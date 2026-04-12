@@ -190,6 +190,15 @@ export const updateSpotSchema = z
   })
   .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided')
 
+export const createItineraryDraftSchema = z.object({
+  vertical: z.enum(VERTICALS_CONST),
+  day_count: z.number().int().min(1).max(30).default(1),
+})
+
+export const reorderSpotsSchema = z.object({
+  spot_ids: z.array(uuidSchema).min(1),
+})
+
 // ─── Content Query ──────────────────────────────────────────
 export const contentListQuerySchema = z.object({
   type: z.enum(CONTENT_TYPES).optional(),
@@ -218,6 +227,8 @@ export type UpdateDayInput = z.infer<typeof updateDaySchema>
 export type AddSpotInput = z.infer<typeof addSpotSchema>
 export type UpdateSpotInput = z.infer<typeof updateSpotSchema>
 export type ContentListQueryInput = z.infer<typeof contentListQuerySchema>
+export type CreateItineraryDraftInput = z.infer<typeof createItineraryDraftSchema>
+export type ReorderSpotsInput = z.infer<typeof reorderSpotsSchema>
 
 // suppress unused import warning
 void USERNAME_CHANGE_COOLDOWN_DAYS

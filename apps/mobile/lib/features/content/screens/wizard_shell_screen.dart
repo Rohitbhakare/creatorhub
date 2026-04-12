@@ -18,6 +18,9 @@ import '../widgets/wizard_step_indicator.dart';
 import '../widgets/steps/basics_step.dart';
 import '../widgets/steps/pricing_step.dart';
 import '../widgets/steps/review_step.dart';
+import '../../posts/widgets/post_media_step.dart';
+import '../../itineraries/widgets/trip_overview_step.dart';
+import '../../itineraries/screens/day_builder_screen.dart';
 
 /// The wizard shell screen — a reusable container for multi-step
 /// content creation. Handles step navigation, auto-save, and
@@ -257,7 +260,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   Widget _buildPostStep(int step) {
     return switch (step) {
       1 => const BasicsStep(),
-      2 => _buildPlaceholderStep('Media', 'Add photos to your post'),
+      2 => const PostMediaStep(),
       3 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };
@@ -266,9 +269,8 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   Widget _buildItineraryStep(int step) {
     return switch (step) {
       1 => const BasicsStep(),
-      2 =>
-        _buildPlaceholderStep('Details', 'Add destinations and day count'),
-      3 => _buildPlaceholderStep('Itinerary', 'Build your day-by-day plan'),
+      2 => const TripOverviewStep(),
+      3 => const DayBuilderStep(),
       4 => _buildPlaceholderStep('Media', 'Add photos to your itinerary'),
       5 => const PricingStep(),
       6 => ReviewStep(onPublish: _onPublish),

@@ -182,7 +182,10 @@ class WizardState {
           if (title.trim().isEmpty) 'Title is required',
           if (title.trim().length > 100) 'Title must be 100 characters or less',
         ],
-      2 => <String>[],
+      2 => [
+          if (body.trim().isEmpty) 'Post body is required',
+          if (media.isEmpty) 'At least 1 image is required',
+        ],
       3 => [
           if (!tncAccepted) 'Accept Terms & Conditions',
         ],

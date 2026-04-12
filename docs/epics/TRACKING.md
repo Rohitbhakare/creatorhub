@@ -27,8 +27,8 @@
 | Epic | Name | Status | Progress | Blocked By |
 |------|------|--------|----------|------------|
 | E1.1 | Content Framework | `DONE` | 14/14 | E0.2, E0.3, E0.4, E0.5 |
-| E1.2 | Posts | `NOT STARTED` | 0/10 | E1.1 |
-| E1.3 | Itineraries | `NOT STARTED` | 0/15 | E1.1 |
+| E1.2 | Posts | `DONE` | 9/10 | E1.1 |
+| E1.3 | Itineraries | `DONE` | 13/15 | E1.1 |
 | E1.4 | Events | `NOT STARTED` | 0/0 | E1.1 |
 | E1.5 | Home Feed | `NOT STARTED` | 0/0 | E0.2, E0.4 |
 | E1.6 | Profiles | `NOT STARTED` | 0/0 | E0.3, E0.4 |

@@ -5,6 +5,8 @@ import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/screens/phone_otp_screen.dart';
 import '../features/content/screens/content_type_picker_screen.dart';
 import '../features/content/screens/wizard_shell_screen.dart';
+import '../features/posts/screens/post_detail_screen.dart';
+import '../features/itineraries/screens/itinerary_detail_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
 import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
@@ -98,6 +100,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding/celebration',
         builder: (context, state) => const CelebrationScreen(),
+      ),
+
+      // Posts
+      GoRoute(
+        path: '/posts/:id',
+        builder: (context, state) => PostDetailScreen(
+          postId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Itineraries
+      GoRoute(
+        path: '/itineraries/:id',
+        builder: (context, state) => ItineraryDetailScreen(
+          itineraryId: state.pathParameters['id']!,
+        ),
       ),
 
       // Content creation
