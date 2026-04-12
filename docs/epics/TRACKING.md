@@ -19,7 +19,7 @@
 | E0.1 | Repo & Infra | `DONE` | 9/9 | — |
 | E0.2 | Database Schema | `DONE` | 12/12 | E0.1 |
 | E0.3 | Authentication | `DONE` | 10/10 | E0.1, E0.2 |
-| E0.4 | Design System | `NOT STARTED` | 0/12 | E0.1 |
+| E0.4 | Design System | `DONE` | 12/12 | E0.1 |
 | E0.5 | Onboarding | `NOT STARTED` | 0/10 | E0.3, E0.4 |
 
 ## M1 — Private Alpha (Weeks 3-6)
