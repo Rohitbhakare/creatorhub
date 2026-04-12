@@ -14,6 +14,9 @@ import authRoutes from './routes/auth.routes.js'
 import citiesRoutes from './routes/cities.routes.js'
 import verticalsRoutes from './routes/verticals.routes.js'
 import onboardingRoutes from './routes/onboarding.routes.js'
+import contentRoutes from './routes/content.routes.js'
+import mediaRoutes from './routes/media.routes.js'
+import placesRoutes from './routes/places.routes.js'
 
 const app = new Hono()
 
@@ -70,9 +73,10 @@ app.route('/api/v1/auth', authRoutes)
 app.route('/api/v1/cities', citiesRoutes)
 app.route('/api/v1/verticals', verticalsRoutes)
 app.route('/api/v1/onboarding', onboardingRoutes)
+app.route('/api/v1/content', contentRoutes)
+app.route('/api/v1/media', mediaRoutes)
+app.route('/api/v1/places', placesRoutes)
 // app.route('/api/v1/users', userRoutes)
-// app.route('/api/v1/places', placesRoutes)
-// app.route('/api/v1/uploads', uploadRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

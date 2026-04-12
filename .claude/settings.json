@@ -2,17 +2,16 @@
   "permissions": {
     "allow": [
       "Read",
+      "Write",
+      "Edit",
       "Glob",
       "Grep",
-      "Bash(git status)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(pnpm dev)",
-      "Bash(pnpm test*)",
-      "Bash(pnpm lint*)",
-      "Bash(flutter test*)",
-      "Bash(flutter analyze)",
-      "Bash(ls *)"
+      "Bash",
+      "Agent",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "NotebookEdit"
     ]
   }
 }

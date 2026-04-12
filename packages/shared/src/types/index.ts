@@ -75,6 +75,116 @@ export type ContentBase = {
   published_at: string | null
 }
 
+// ─── Content Media ──────────────────────────────────────────
+export type MediaType = 'image' | 'video' | 'audio'
+
+export type ContentMedia = {
+  id: string
+  content_id: string
+  media_type: MediaType
+  url: string
+  thumbnail_url: string | null
+  alt_text: string | null
+  width: number | null
+  height: number | null
+  duration_seconds: number | null
+  file_size_bytes: number | null
+  display_order: number
+}
+
+// ─── Content Detail Types ───────────────────────────────────
+import type { SpotStopType } from '../constants/index.js'
+
+export type ItinerarySpot = {
+  id: string
+  itinerary_day_id: string
+  spot_order: number
+  google_place_id: string | null
+  name: string
+  category: string | null
+  lat: number
+  lng: number
+  thumbnail_url: string | null
+  creator_note: string | null
+  duration_minutes: number | null
+  stop_type: SpotStopType
+  is_free_preview: boolean
+}
+
+export type ItineraryDay = {
+  id: string
+  content_id: string
+  day_number: number
+  title: string | null
+  description: string | null
+  total_distance_km: number | null
+  estimated_hours: number | null
+  spots: ItinerarySpot[]
+}
+
+export type PostDetail = ContentBase & {
+  type: 'post'
+  body: string | null
+  media: ContentMedia[]
+  creator: PublicProfile
+}
+
+export type ItineraryDetail = ContentBase & {
+  type: 'self_paced_itinerary'
+  duration_minutes: number | null
+  price_paisa: number
+  sub_category_id: string | null
+  destination_city_ids: string[]
+  days: ItineraryDay[]
+  media: ContentMedia[]
+  creator: PublicProfile
+}
+
+// ─── Content List Item ──────────────────────────────────────
+export type ContentListItem = ContentBase & {
+  creator: {
+    id: string
+    display_name: string | null
+    username: string | null
+    avatar_url: string | null
+  }
+  price_paisa: number
+  duration_minutes: number | null
+}
+
+// ─── Draft ──────────────────────────────────────────────────
+export type DraftSummary = {
+  id: string
+  type: ContentType
+  title: string | null
+  updated_at: string
+}
+
+// ─── Places ─────────────────────────────────────────────────
+export type PlacePrediction = {
+  place_id: string
+  description: string
+  main_text: string
+  secondary_text: string
+}
+
+export type PlaceDetails = {
+  place_id: string
+  name: string
+  formatted_address: string
+  lat: number
+  lng: number
+  photo_url: string | null
+  types: string[]
+}
+
+// ─── Signed URL ─────────────────────────────────────────────
+export type SignedUrlResult = {
+  upload_url: string
+  public_url: string
+  file_path: string
+}
+
 // ─── API Responses ───────────────────────────────────────────
 export type ApiSuccess<T> = {
   success: true

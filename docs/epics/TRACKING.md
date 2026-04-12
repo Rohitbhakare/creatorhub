@@ -26,9 +26,9 @@
 
 | Epic | Name | Status | Progress | Blocked By |
 |------|------|--------|----------|------------|
-| E1.1 | Content Framework | `NOT STARTED` | 0/0 | E0.2, E0.4 |
-| E1.2 | Posts | `NOT STARTED` | 0/0 | E1.1 |
-| E1.3 | Itineraries | `NOT STARTED` | 0/0 | E1.1 |
+| E1.1 | Content Framework | `DONE` | 14/14 | E0.2, E0.3, E0.4, E0.5 |
+| E1.2 | Posts | `NOT STARTED` | 0/10 | E1.1 |
+| E1.3 | Itineraries | `NOT STARTED` | 0/15 | E1.1 |
 | E1.4 | Events | `NOT STARTED` | 0/0 | E1.1 |
 | E1.5 | Home Feed | `NOT STARTED` | 0/0 | E0.2, E0.4 |
 | E1.6 | Profiles | `NOT STARTED` | 0/0 | E0.3, E0.4 |
@@ -66,6 +66,10 @@
 | E0.3 Task Breakdown | `DONE` | `docs/epics/E0.3-authentication/tasks.md` |
 | E0.4 Task Breakdown | `DONE` | `docs/epics/E0.4-design-system/tasks.md` |
 | E0.5 Task Breakdown | `DONE` | `docs/epics/E0.5-onboarding/tasks.md` |
+| OpenAPI Spec (M1) | `DONE` | `docs/engineering/openapi.yaml` |
+| E1.1 Task Breakdown | `DONE` | `docs/epics/E1.1-content-framework/tasks.md` |
+| E1.2 Task Breakdown | `DONE` | `docs/epics/E1.2-posts/tasks.md` |
+| E1.3 Task Breakdown | `DONE` | `docs/epics/E1.3-itineraries/tasks.md` |
 
 ---
 

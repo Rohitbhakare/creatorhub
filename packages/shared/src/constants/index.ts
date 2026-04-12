@@ -55,6 +55,31 @@ export const CONTENT_STATUSES = [
 ] as const
 export type ContentStatus = (typeof CONTENT_STATUSES)[number]
 
+// ─── Content creation ───────────────────────────────────────
+export const MAX_TITLE_LENGTH = 100
+export const MIN_TITLE_LENGTH = 5           // itinerary/experience; posts allow 1
+export const MAX_DESCRIPTION_LENGTH = 280
+export const MAX_TAGS = 5
+export const MAX_TAG_LENGTH = 50
+export const MAX_ITINERARY_DAYS = 30
+export const MAX_SPOTS_PER_DAY = 20
+export const MAX_CREATOR_NOTE_LENGTH = 500
+export const AUTO_SAVE_INTERVAL_MS = 30_000 // 30 seconds (server-side)
+export const POST_AUTO_SAVE_INTERVAL_MS = 10_000 // 10 seconds (local)
+
+// ─── Spot stop types ────────────────────────────────────────
+export const SPOT_STOP_TYPES = ['regular', 'overnight', 'meal', 'viewpoint', 'activity'] as const
+export type SpotStopType = (typeof SPOT_STOP_TYPES)[number]
+
+// ─── Cancellation policies ──────────────────────────────────
+export const CANCELLATION_POLICIES = ['flexible', 'moderate', 'strict'] as const
+export type CancellationPolicy = (typeof CANCELLATION_POLICIES)[number]
+
+// ─── Places API ─────────────────────────────────────────────
+export const PLACES_AUTOCOMPLETE_DEBOUNCE_MS = 300
+export const PLACES_MIN_QUERY_LENGTH = 2
+export const PLACES_RATE_LIMIT_PER_HOUR = 100
+
 // ─── Pagination ──────────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 20
 export const MAX_PAGE_SIZE = 50

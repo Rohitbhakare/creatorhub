@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/screens/phone_otp_screen.dart';
+import '../features/content/screens/content_type_picker_screen.dart';
+import '../features/content/screens/wizard_shell_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
 import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
@@ -24,9 +26,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnAuthScreen = location == '/auth';
       final isOnWelcome = location == '/welcome';
       final isOnOnboarding = location.startsWith('/onboarding');
+      final isOnContent = location.startsWith('/content');
 
       // Still loading — stay put
       if (isLoading) return null;
+
+      // Content creation requires authentication (not guest)
+      if (isOnContent && !isAuth) {
+        return '/auth';
+      }
 
       // Not authenticated and not guest — redirect to welcome
       if (!isAuth && !isGuest && !isOnAuthScreen && !isOnWelcome) {
@@ -90,6 +98,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding/celebration',
         builder: (context, state) => const CelebrationScreen(),
+      ),
+
+      // Content creation
+      GoRoute(
+        path: '/content/create',
+        builder: (context, state) => const ContentTypePickerScreen(),
+      ),
+      GoRoute(
+        path: '/content/wizard',
+        builder: (context, state) => const WizardShellScreen(),
       ),
 
       // Main shell (placeholder until E0.5+ builds real screens)

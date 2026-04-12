@@ -35,6 +35,12 @@ tags:
     description: Signed upload URLs for media
   - name: Places
     description: Google Places API proxy (key never exposed to client)
+  - name: Content
+    description: Content CRUD, draft management, publish/unpublish state machine
+  - name: Posts
+    description: Post content type — text + images, no booking, no KYC
+  - name: Itineraries
+    description: Self-paced itineraries — spot-based day builder, map-first
 
 # ─── PATHS ───────────────────────────────────────────────────
 paths:
@@ -662,6 +668,934 @@ paths:
         "429":
           $ref: "#/components/responses/RateLimited"
 
+  # ── Content (shared) ────────────────────────────────────────
+  /api/v1/content:
+    post:
+      operationId: createContentDraft
+      tags: [Content]
+      summary: Create a new content draft
+      description: |
+        Creates a draft content record of the specified type.
+        User must be authenticated and have completed onboarding.
+        Returns the draft with its ID for subsequent updates.
+        SRS: CRT-FR-007, CRT-FR-008, CRT-FR-015
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContentDraftRequest"
+      responses:
+        "201":
+          description: Draft created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of created content resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Onboarding not completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/v1/content/{contentId}:
+    get:
+      operationId: getContentById
+      tags: [Content]
+      summary: Get content by ID
+      description: |
+        Returns full content details. Guests see published+public only.
+        Owner sees their own content in any status.
+        SRS: CRT-FR-008
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Content detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateContent
+      tags: [Content]
+      summary: Update a content draft
+      description: |
+        Partial update of content fields. Only owner can update.
+        Only drafts can be edited (published content must be unpublished first).
+        Supports optimistic concurrency via If-Match header with updated_at.
+        SRS: CRT-FR-007
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - name: If-Match
+          in: header
+          schema:
+            type: string
+            format: date-time
+          description: Expected updated_at value for optimistic concurrency
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContentRequest"
+      responses:
+        "200":
+          description: Updated content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: Optimistic concurrency conflict (content was modified)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Content is not in draft status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+    delete:
+      operationId: deleteContent
+      tags: [Content]
+      summary: Soft-delete content
+      description: |
+        Soft-deletes content (sets deleted_at). Only owner can delete.
+        SRS: CRT-FR-008
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "204":
+          description: Content deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/content/{contentId}/publish:
+    post:
+      operationId: publishContent
+      tags: [Content]
+      summary: Publish content
+      description: |
+        Transitions content from draft to published (via under_review).
+        Validates all required fields per content type.
+        Checks KYC status for paid content.
+        Requires T&Cs consent (sent in request body).
+        SRS: CRT-FR-008, CRT-FR-020, CRT-FR-021
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishContentRequest"
+      responses:
+        "200":
+          description: Content published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner or KYC not verified for paid content
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Validation failed — missing required fields
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ProblemDetail"
+                  - type: object
+                    properties:
+                      validation_items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ValidationItem"
+
+  /api/v1/content/{contentId}/unpublish:
+    post:
+      operationId: unpublishContent
+      tags: [Content]
+      summary: Unpublish content
+      description: |
+        Transitions content from published to unpublished.
+        Content becomes invisible to public but remains in creator's Studio.
+        SRS: CRT-FR-008
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Content unpublished
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Content is not in published status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/content/{contentId}/archive:
+    post:
+      operationId: archiveContent
+      tags: [Content]
+      summary: Archive content
+      description: |
+        Permanently archives content. Cannot be undone in MVP.
+        SRS: CRT-FR-008
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Content archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/content/me/drafts:
+    get:
+      operationId: listMyDrafts
+      tags: [Content]
+      summary: List current user's drafts
+      description: |
+        Returns the authenticated user's draft content, optionally filtered by type.
+        Ordered by updated_at descending (most recently edited first).
+        SRS: CRT-FR-007
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentType"
+          description: Filter drafts by content type
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: User's drafts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Media ──────────────────────────────────────────────────
+  /api/v1/media/confirm:
+    post:
+      operationId: confirmMediaUpload
+      tags: [Upload]
+      summary: Confirm a media upload and attach to content
+      description: |
+        Called by client after uploading file to Firebase Storage via signed URL.
+        Server validates the file exists, creates a content_media record,
+        and returns the media metadata.
+        SRS: CRT-FR-012
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmMediaRequest"
+      responses:
+        "201":
+          description: Media confirmed and attached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-MediaItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Content not found or file not found in storage
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Media limit exceeded for content type
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/media/{mediaId}:
+    delete:
+      operationId: deleteMedia
+      tags: [Upload]
+      summary: Remove media from content
+      description: |
+        Removes a media item from its content. Only content owner can delete.
+        File remains in storage (cleanup via background job).
+        SRS: CRT-FR-012
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Media removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Posts ───────────────────────────────────────────────────
+  /api/v1/posts:
+    post:
+      operationId: createPostDraft
+      tags: [Posts]
+      summary: Create a post draft
+      description: |
+        Creates a new post draft. Sets type='post', pricing_model='free', price_paisa=0.
+        No KYC required for posts.
+        SRS: CRT-FR-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostRequest"
+      responses:
+        "201":
+          description: Post draft created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+    get:
+      operationId: listPosts
+      tags: [Posts]
+      summary: List published posts
+      description: |
+        Returns published posts. Supports filtering by vertical, creator.
+        Cursor-based pagination. Guests allowed.
+        SRS: CRT-FR-001
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: vertical
+          in: query
+          schema:
+            $ref: "#/components/schemas/Vertical"
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by creator
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Post list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentList"
+
+  /api/v1/posts/{contentId}:
+    get:
+      operationId: getPostDetail
+      tags: [Posts]
+      summary: Get post detail
+      description: |
+        Returns full post detail with media, creator profile, engagement state.
+        Guests see published only. Owner sees all statuses.
+        SRS: CRT-FR-001, DD-026
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Post detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-PostDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updatePost
+      tags: [Posts]
+      summary: Update a post draft
+      description: |
+        Updates post-specific fields. Only owner, only draft status.
+        SRS: CRT-FR-001
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostRequest"
+      responses:
+        "200":
+          description: Post updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Content is not in draft status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/posts/{contentId}/publish:
+    post:
+      operationId: publishPost
+      tags: [Posts]
+      summary: Publish a post
+      description: |
+        Validates post requirements (title, body, at least 1 image)
+        and publishes. No KYC check needed for posts.
+        SRS: CRT-FR-001, CRT-FR-020, CRT-FR-021
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishContentRequest"
+      responses:
+        "200":
+          description: Post published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ContentSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Validation failed (missing title, body, or images)
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ProblemDetail"
+                  - type: object
+                    properties:
+                      validation_items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ValidationItem"
+
+  # ── Itineraries ────────────────────────────────────────────
+  /api/v1/itineraries:
+    post:
+      operationId: createItineraryDraft
+      tags: [Itineraries]
+      summary: Create an itinerary draft
+      description: |
+        Creates a new self-paced itinerary draft with initial day skeletons.
+        Requires day_count (1-30). Sets type='self_paced_itinerary'.
+        SRS: CRT-FR-002, CRT-FR-019
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItineraryRequest"
+      responses:
+        "201":
+          description: Itinerary draft created with day skeletons
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItinerarySummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/v1/itineraries/{contentId}:
+    get:
+      operationId: getItineraryDetail
+      tags: [Itineraries]
+      summary: Get itinerary detail with days and spots
+      description: |
+        Returns full itinerary with days, spots, and map data.
+        For paid itineraries: non-buyers see Day 1 spots only (free preview).
+        Guests allowed.
+        SRS: CRT-FR-002, DD-023, DD-024
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Itinerary detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItineraryDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateItinerary
+      tags: [Itineraries]
+      summary: Update itinerary draft fields
+      description: |
+        Updates itinerary-specific fields (day_count, starting_city, destinations, budget).
+        Only owner, only draft status.
+        SRS: CRT-FR-002
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItineraryRequest"
+      responses:
+        "200":
+          description: Itinerary updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItinerarySummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Content is not in draft status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/itineraries/{contentId}/publish:
+    post:
+      operationId: publishItinerary
+      tags: [Itineraries]
+      summary: Publish an itinerary
+      description: |
+        Validates itinerary requirements (title, days, spots, KYC for paid)
+        and publishes. Auto-sets Day 1 spots as free preview for paid itineraries.
+        SRS: CRT-FR-002, CRT-FR-020, CRT-FR-021
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishContentRequest"
+      responses:
+        "200":
+          description: Itinerary published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItinerarySummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the owner or KYC not verified for paid itinerary
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Validation failed (missing days, spots, etc.)
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ProblemDetail"
+                  - type: object
+                    properties:
+                      validation_items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ValidationItem"
+
+  # ── Itinerary Days ─────────────────────────────────────────
+  /api/v1/itineraries/{contentId}/days:
+    post:
+      operationId: addItineraryDay
+      tags: [Itineraries]
+      summary: Add a day to an itinerary
+      description: |
+        Adds a new day to the itinerary. Day number auto-assigned.
+        Only owner, only draft status.
+        SRS: CRT-FR-002
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryDayInput"
+      responses:
+        "201":
+          description: Day added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItineraryDay"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "422":
+          description: Maximum 30 days or content is not a draft
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/itineraries/{contentId}/days/{dayId}:
+    put:
+      operationId: updateItineraryDay
+      tags: [Itineraries]
+      summary: Update a day's title and description
+      description: Only owner, only draft status.
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryDayInput"
+      responses:
+        "200":
+          description: Day updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItineraryDay"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: removeItineraryDay
+      tags: [Itineraries]
+      summary: Remove a day (cascades spots)
+      description: |
+        Removes a day and all its spots. Remaining days are renumbered.
+        Only owner, only draft status.
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+      responses:
+        "204":
+          description: Day removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: Cannot remove the last day
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Itinerary Spots ────────────────────────────────────────
+  /api/v1/itineraries/{contentId}/days/{dayId}/spots:
+    post:
+      operationId: addSpotToDay
+      tags: [Itineraries]
+      summary: Add a spot to a day
+      description: |
+        Adds a spot to the specified day. Fetches place details from Google (or cache).
+        Auto-sets thumbnail from Google Places photo_reference.
+        Spot order auto-assigned to end of list.
+        SRS: CRT-FR-003, CRT-FR-016
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSpotRequest"
+      responses:
+        "201":
+          description: Spot added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItinerarySpot"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          description: Itinerary or day not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/v1/itineraries/{contentId}/days/{dayId}/spots/{spotId}:
+    put:
+      operationId: updateSpot
+      tags: [Itineraries]
+      summary: Update a spot
+      description: |
+        Updates spot fields (creator_note, duration, stop_type).
+        Only owner, only draft status.
+        SRS: CRT-FR-003
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+        - $ref: "#/components/parameters/spotId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSpotRequest"
+      responses:
+        "200":
+          description: Spot updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItinerarySpot"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: removeSpot
+      tags: [Itineraries]
+      summary: Remove a spot from a day
+      description: |
+        Removes a spot. Remaining spots are renumbered.
+        Triggers distance recomputation for the day.
+        Only owner, only draft status.
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+        - $ref: "#/components/parameters/spotId"
+      responses:
+        "204":
+          description: Spot removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/itineraries/{contentId}/days/{dayId}/spots/reorder:
+    put:
+      operationId: reorderSpots
+      tags: [Itineraries]
+      summary: Reorder spots within a day
+      description: |
+        Accepts an ordered array of spot IDs and updates spot_order accordingly.
+        All spot IDs must belong to the specified day.
+        Triggers distance recomputation.
+        SRS: CRT-FR-003
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+        - $ref: "#/components/parameters/dayId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [spot_ids]
+              properties:
+                spot_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Spot IDs in desired order
+      responses:
+        "200":
+          description: Spots reordered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-ItineraryDay"
+        "400":
+          description: Missing or duplicate spot IDs
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not the content owner
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
 # ─── COMPONENTS ──────────────────────────────────────────────
 components:
 
@@ -677,6 +1611,30 @@ components:
   parameters:
     userId:
       name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    contentId:
+      name: contentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    dayId:
+      name: dayId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    spotId:
+      name: spotId
       in: path
       required: true
       schema:
@@ -1223,6 +2181,597 @@ components:
               height:
                 type: integer
 
+    # ── Content ────────────────────────────────────────────────
+    CreateContentDraftRequest:
+      type: object
+      required: [type, vertical]
+      properties:
+        type:
+          $ref: "#/components/schemas/ContentType"
+        vertical:
+          $ref: "#/components/schemas/Vertical"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Optional at draft creation
+        description:
+          type: string
+          maxLength: 280
+
+    UpdateContentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 280
+        body:
+          type: string
+          maxLength: 1000
+          description: Rich text body (posts only in MVP)
+        sub_category_id:
+          type: string
+        leaf_type:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+          maxItems: 5
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        price_paisa:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+          description: Price in paisa (max ₹10,000)
+        starting_city_id:
+          type: string
+        destination_city_ids:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        location_place_id:
+          type: string
+          description: Google Place ID for location tag
+        vertical_data:
+          type: object
+          description: Vertical-specific data (schema varies by vertical)
+
+    PublishContentRequest:
+      type: object
+      required: [tnc_version, tnc_accepted]
+      properties:
+        tnc_version:
+          type: string
+          description: T&Cs version string (e.g., "1.0.0")
+        tnc_accepted:
+          type: boolean
+          const: true
+          description: Must be true — T&Cs consent required
+
+    ContentSummary:
+      type: object
+      required: [id, type, vertical, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/ContentType"
+        vertical:
+          $ref: "#/components/schemas/Vertical"
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ContentStatus"
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        price_paisa:
+          type: integer
+        cover_image_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL of the first media item (cover image)
+        like_count:
+          type: integer
+        comment_count:
+          type: integer
+        view_count:
+          type: integer
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ContentDetail:
+      allOf:
+        - $ref: "#/components/schemas/ContentSummary"
+        - type: object
+          properties:
+            body:
+              type: string
+              nullable: true
+            sub_category_id:
+              type: string
+              nullable: true
+            leaf_type:
+              type: string
+              nullable: true
+            tags:
+              type: array
+              items:
+                type: string
+            facets:
+              type: object
+            vertical_data:
+              type: object
+            starting_city:
+              $ref: "#/components/schemas/City"
+            destination_city_ids:
+              type: array
+              items:
+                type: string
+            location_place_id:
+              type: string
+              nullable: true
+            featured:
+              type: boolean
+            duration_minutes:
+              type: integer
+              nullable: true
+            save_count:
+              type: integer
+            share_count:
+              type: integer
+            booking_count:
+              type: integer
+            media:
+              type: array
+              items:
+                $ref: "#/components/schemas/MediaItem"
+            creator:
+              $ref: "#/components/schemas/PublicProfile"
+            is_liked:
+              type: boolean
+              nullable: true
+              description: Whether authenticated user liked this (null if guest)
+            is_saved:
+              type: boolean
+              nullable: true
+              description: Whether authenticated user saved this (null if guest)
+
+    ContentListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentSummary"
+        meta:
+          $ref: "#/components/schemas/CursorMeta"
+
+    ValidationItem:
+      type: object
+      required: [field, label, passed]
+      properties:
+        field:
+          type: string
+          example: title
+        label:
+          type: string
+          example: Title is required
+        passed:
+          type: boolean
+        step:
+          type: integer
+          description: Wizard step number where this field lives
+
+    # ── Media ─────────────────────────────────────────────────
+    ConfirmMediaRequest:
+      type: object
+      required: [content_id, file_path, media_type, content_type]
+      properties:
+        content_id:
+          type: string
+          format: uuid
+        file_path:
+          type: string
+          description: Storage path returned from signed-url endpoint
+        media_type:
+          type: string
+          enum: [image, video, audio]
+        content_type:
+          type: string
+          enum: [image/jpeg, image/png, image/webp, video/mp4]
+        alt_text:
+          type: string
+          maxLength: 200
+        display_order:
+          type: integer
+          minimum: 0
+          description: Position in media list (auto-assigned if not provided)
+
+    MediaItem:
+      type: object
+      required: [id, content_id, media_type, url, display_order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        content_id:
+          type: string
+          format: uuid
+        media_type:
+          type: string
+          enum: [image, video, audio]
+        url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+          nullable: true
+        alt_text:
+          type: string
+          nullable: true
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        duration_seconds:
+          type: integer
+          nullable: true
+        file_size_bytes:
+          type: integer
+          nullable: true
+        display_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Posts ──────────────────────────────────────────────────
+    CreatePostRequest:
+      type: object
+      required: [vertical]
+      properties:
+        vertical:
+          $ref: "#/components/schemas/Vertical"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 280
+
+    UpdatePostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 280
+        body:
+          type: string
+          maxLength: 1000
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+          maxItems: 5
+        location_place_id:
+          type: string
+          nullable: true
+          description: Google Place ID for location tag (null to remove)
+        sub_category_id:
+          type: string
+          nullable: true
+
+    PostDetail:
+      allOf:
+        - $ref: "#/components/schemas/ContentDetail"
+        - type: object
+          description: |
+            Post-specific detail. Body text displayed in Fraunces 14px/1.65.
+            No price field, no booking CTA. (DD-026, DD-027)
+
+    # ── Itineraries ───────────────────────────────────────────
+    CreateItineraryRequest:
+      type: object
+      required: [vertical, day_count]
+      properties:
+        vertical:
+          type: string
+          enum: [travel]
+          description: Itineraries are travel-only in MVP
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 280
+        day_count:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: Number of days — creates empty day skeletons
+        starting_city_id:
+          type: string
+          description: Starting city for the itinerary
+        destination_city_ids:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        sub_category_id:
+          type: string
+          description: Travel sub-category (e.g., "travel.road_trips")
+
+    UpdateItineraryRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 280
+        day_count:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: Changing day count adds/removes day skeletons
+        starting_city_id:
+          type: string
+        destination_city_ids:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        sub_category_id:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 30
+          maxItems: 5
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        price_paisa:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        budget_min_paisa:
+          type: integer
+          minimum: 0
+          description: Minimum budget per person in paisa
+        budget_max_paisa:
+          type: integer
+          minimum: 0
+          description: Maximum budget per person in paisa
+        vertical_data:
+          type: object
+          description: Category-adaptive fields (e.g., road_trip extras)
+
+    ItineraryDayInput:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+
+    ItineraryDay:
+      type: object
+      required: [id, content_id, day_number]
+      properties:
+        id:
+          type: string
+          format: uuid
+        content_id:
+          type: string
+          format: uuid
+        day_number:
+          type: integer
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        total_distance_km:
+          type: number
+          format: float
+          nullable: true
+        estimated_hours:
+          type: number
+          format: float
+          nullable: true
+        spots:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItinerarySpot"
+        spot_count:
+          type: integer
+
+    AddSpotRequest:
+      type: object
+      required: [google_place_id, name, lat, lng]
+      properties:
+        google_place_id:
+          type: string
+          description: Google Place ID (required in MVP)
+        name:
+          type: string
+          maxLength: 200
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+        creator_note:
+          type: string
+          maxLength: 500
+        duration_minutes:
+          type: integer
+          minimum: 0
+          maximum: 1440
+        stop_type:
+          $ref: "#/components/schemas/SpotStopType"
+        category:
+          type: string
+          description: Place category from Google Places
+
+    UpdateSpotRequest:
+      type: object
+      properties:
+        creator_note:
+          type: string
+          maxLength: 500
+          nullable: true
+        duration_minutes:
+          type: integer
+          minimum: 0
+          maximum: 1440
+        stop_type:
+          $ref: "#/components/schemas/SpotStopType"
+
+    ItinerarySpot:
+      type: object
+      required: [id, itinerary_day_id, spot_order, name, lat, lng, stop_type]
+      properties:
+        id:
+          type: string
+          format: uuid
+        itinerary_day_id:
+          type: string
+          format: uuid
+        spot_order:
+          type: integer
+        google_place_id:
+          type: string
+          nullable: true
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+        thumbnail_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Google Places photo_reference URL (MVP only source)
+        creator_note:
+          type: string
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        stop_type:
+          $ref: "#/components/schemas/SpotStopType"
+        is_free_preview:
+          type: boolean
+          description: True for Day 1 spots of paid itineraries
+        created_at:
+          type: string
+          format: date-time
+
+    SpotStopType:
+      type: string
+      enum: [regular, overnight, meal, viewpoint, activity]
+
+    ItinerarySummary:
+      allOf:
+        - $ref: "#/components/schemas/ContentSummary"
+        - type: object
+          properties:
+            day_count:
+              type: integer
+            total_spots:
+              type: integer
+            total_distance_km:
+              type: number
+              format: float
+              nullable: true
+            starting_city:
+              $ref: "#/components/schemas/City"
+
+    ItineraryDetail:
+      allOf:
+        - $ref: "#/components/schemas/ContentDetail"
+        - type: object
+          required: [days]
+          properties:
+            day_count:
+              type: integer
+            total_spots:
+              type: integer
+            total_distance_km:
+              type: number
+              format: float
+              nullable: true
+            budget_min_paisa:
+              type: integer
+              nullable: true
+            budget_max_paisa:
+              type: integer
+              nullable: true
+            days:
+              type: array
+              items:
+                $ref: "#/components/schemas/ItineraryDay"
+              description: |
+                All days with spots. For paid itineraries viewed by non-buyers,
+                only Day 1 spots are included (others show spot_count only).
+            has_purchased:
+              type: boolean
+              nullable: true
+              description: Whether authenticated user has purchased (null if guest or free)
+
     # ── Readiness ─────────────────────────────────────────────
     ReadinessResponse:
       type: object
@@ -1383,3 +2932,93 @@ components:
           const: true
         data:
           $ref: "#/components/schemas/PlaceDetail"
+
+    SuccessResponse-ContentSummary:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ContentSummary"
+
+    SuccessResponse-ContentDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ContentDetail"
+
+    SuccessResponse-ContentList:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ContentListResponse"
+
+    SuccessResponse-PostDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/PostDetail"
+
+    SuccessResponse-MediaItem:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/MediaItem"
+
+    SuccessResponse-ItinerarySummary:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ItinerarySummary"
+
+    SuccessResponse-ItineraryDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ItineraryDetail"
+
+    SuccessResponse-ItineraryDay:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ItineraryDay"
+
+    SuccessResponse-ItinerarySpot:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/ItinerarySpot"
