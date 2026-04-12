@@ -7,8 +7,8 @@
 
 ## Current Sprint
 
-**Sprint:** Pre-coding (Engineering Design)
-**Focus:** HLD, OpenAPI spec, epic task breakdowns
+**Sprint:** M0 Complete — Moving to M1 (Private Alpha)
+**Focus:** E1.1 Content Framework → E1.2 Posts → E1.3 Itineraries
 
 ---
 
@@ -20,7 +20,7 @@
 | E0.2 | Database Schema | `DONE` | 12/12 | E0.1 |
 | E0.3 | Authentication | `DONE` | 10/10 | E0.1, E0.2 |
 | E0.4 | Design System | `DONE` | 12/12 | E0.1 |
-| E0.5 | Onboarding | `NOT STARTED` | 0/10 | E0.3, E0.4 |
+| E0.5 | Onboarding | `DONE` | 10/10 | E0.3, E0.4 |
 
 ## M1 — Private Alpha (Weeks 3-6)
 

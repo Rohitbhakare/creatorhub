@@ -111,6 +111,7 @@ creatorhub/
 
 ## Current Sprint
 
-**Phase:** Pre-coding (Engineering Design)
-**Next:** HLD → OpenAPI spec → Epic task breakdowns → Then E0.1 (Repo & Infra)
+**Phase:** M0 Complete — Starting M1 (Private Alpha)
+**Done:** E0.1 Repo, E0.2 Schema, E0.3 Auth, E0.4 Design System, E0.5 Onboarding
+**Next:** E1.1 Content Framework → E1.2 Posts → E1.3 Itineraries
 **Tracking:** `docs/epics/TRACKING.md`
