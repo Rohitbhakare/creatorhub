@@ -7,8 +7,10 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { env } from './env.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { generalRateLimit } from './middleware/rateLimit.js'
 import { supabase } from './lib/supabase.js'
 import { firebaseAuth } from './lib/firebase.js'
+import authRoutes from './routes/auth.routes.js'
 
 const app = new Hono()
 
@@ -57,9 +59,11 @@ app.get('/readyz', async (c) => {
   )
 })
 
+// ─── General Rate Limit ─────────────────────────────────────
+app.use('/api/*', generalRateLimit)
+
 // ─── API v1 Routes ───────────────────────────────────────────
-// Routes will be mounted here as epics are built:
-// app.route('/api/v1/auth', authRoutes)
+app.route('/api/v1/auth', authRoutes)
 // app.route('/api/v1/users', userRoutes)
 // app.route('/api/v1/onboarding', onboardingRoutes)
 // app.route('/api/v1/cities', cityRoutes)
