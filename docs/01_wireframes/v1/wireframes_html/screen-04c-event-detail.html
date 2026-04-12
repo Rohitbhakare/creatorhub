@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen 04c · Event detail · &lt;AppName&gt; wireframes</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    /* Calendar date block - the distinctive element of event pages */
+    .date-block {
+      flex-shrink: 0;
+      width: 58px;
+      border: 1px solid var(--ink);
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .date-block-header {
+      background: var(--ink);
+      color: var(--surface);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 5px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .date-block-body { padding: 7px 0; }
+    .date-block-day {
+      font-family: var(--font-display);
+      font-size: 24px;
+      color: var(--ink);
+      font-weight: 600;
+      line-height: 1;
+      font-variation-settings: 'SOFT' 60, 'opsz' 30;
+    }
+    .date-block-weekday {
+      font-size: 8px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* Key facts grid */
+    .facts-grid {
+      background: var(--sunken);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .fact-item { display: flex; align-items: center; gap: 8px; }
+    .fact-label {
+      font-size: 8px;
+      color: var(--soft-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .fact-value { font-size: 11px; color: var(--ink); font-weight: 600; }
+
+    /* Who's going avatar pile */
+    .avatar-pile { display: flex; }
+    .avatar-pile-item {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--sunken);
+      border: 2px solid var(--surface);
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .avatar-pile-item + .avatar-pile-item { margin-left: -8px; }
+    .avatar-pile-item.more { background: var(--ink); color: var(--surface); }
+
+    /* Section headers inside the page */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--ink);
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-variation-settings: 'SOFT' 60, 'opsz' 18;
+    }
+
+    /* Sticky bottom booking bar */
+    .sticky-bottom {
+      position: sticky;
+      bottom: 0;
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="wf-header">
+    <div class="wf-header-eyebrow">Screen 04c · event detail</div>
+    <h1>Event · single-occurrence time-bound experience</h1>
+    <p>Short-duration, fixed-venue experience with a single date and time. Under 24 hours. Usually free or low-cost with a community meetup feel. The detail page leads with a prominent calendar date block because "when" is the single most important fact for an event — it determines whether the user can even consider attending. Distinct from scheduled experiences (which have multiple future date options and are multi-day).</p>
+    <div class="wf-meta">
+      <div><strong>DD refs:</strong> DD-022, DD-025</div>
+      <div><strong>SRS refs:</strong> CRT-FR-013, BOOK-FR-001, SOC-FR-005</div>
+      <div><strong>Schema:</strong> content_type='event' · event_occurrences table</div>
+    </div>
+  </header>
+
+  <div class="wf-stage">
+    <div>
+      <div class="phone-label">Paid event state · Sunrise trek at Sinhagad</div>
+      <div class="phone">
+        <div class="phone-screen">
+
+          <!-- Hero with floating nav -->
+          <div style="position: relative;">
+            <div style="position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 10;">
+              <button class="nav-icon-btn" style="width: 36px; height: 36px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <div style="display: flex; gap: 6px;">
+                <!-- WhatsApp share (first-class per DD-019) -->
+                <button class="nav-icon-btn" style="width: 36px; height: 36px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.979-1.607z"/></svg>
+                </button>
+                <button class="nav-icon-btn" style="width: 36px; height: 36px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+                <button class="nav-icon-btn" style="width: 36px; height: 36px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Hero image (stylized mountain scene) -->
+            <div style="aspect-ratio: 16/10; background: var(--border); position: relative; overflow: hidden;">
+              <svg width="100%" height="100%" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice">
+                <rect width="320" height="200" fill="#E5E0D7"/>
+                <!-- Sun (rising) -->
+                <circle cx="240" cy="55" r="22" fill="#F8D7C5"/>
+                <circle cx="240" cy="55" r="16" fill="#FCE3DA"/>
+                <!-- Mountain silhouettes -->
+                <path d="M0 130 L50 95 L110 115 L170 80 L220 105 L320 75 L320 200 L0 200 Z" fill="#C9C3B6"/>
+                <path d="M0 155 L60 130 L130 145 L200 125 L270 140 L320 130 L320 200 L0 200 Z" fill="#9C9689"/>
+                <path d="M0 175 L80 165 L160 172 L240 162 L320 168 L320 200 L0 200 Z" fill="#6B6660"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Date block + title row -->
+          <div style="padding: 20px 18px 0; display: flex; gap: 14px; align-items: flex-start;">
+            <div class="date-block">
+              <div class="date-block-header">May</div>
+              <div class="date-block-body">
+                <div class="date-block-day">12</div>
+                <div class="date-block-weekday">Sat</div>
+              </div>
+            </div>
+            <div style="flex: 1; min-width: 0; padding-top: 2px;">
+              <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px;">Event · Meetup</div>
+              <div class="fraunces" style="font-size: 20px; color: var(--ink); font-weight: 500; line-height: 1.2; margin-bottom: 6px; font-variation-settings: 'SOFT' 60, 'opsz' 26;">Sunrise trek at Sinhagad</div>
+              <div style="font-size: 11px; color: var(--muted);">by Aarti Gokhale · Pune</div>
+            </div>
+          </div>
+
+          <!-- Key facts grid -->
+          <div style="padding: 18px;">
+            <div class="facts-grid">
+              <div class="fact-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div>
+                  <div class="fact-label">Starts</div>
+                  <div class="fact-value">5:30 AM</div>
+                </div>
+              </div>
+              <div class="fact-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <div>
+                  <div class="fact-label">Duration</div>
+                  <div class="fact-value">3.5 hours</div>
+                </div>
+              </div>
+              <div class="fact-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+                <div>
+                  <div class="fact-label">Difficulty</div>
+                  <div class="fact-value">Moderate</div>
+                </div>
+              </div>
+              <div class="fact-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div>
+                  <div class="fact-label">Spots</div>
+                  <div class="fact-value">3 of 15 left</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- About -->
+          <div style="padding: 0 18px 20px;">
+            <div class="section-title">About this event</div>
+            <div style="font-size: 12px; color: #4A4641; line-height: 1.6;">Sinhagad before sunrise is something everyone in Pune should do once. We start at 5:30 AM from the base, reach the top in 90 minutes, and catch first light over the Sahyadris. This isn't a guided adventure trek — just a shared experience with folks who also want to be up early. Chai and pithla bhakri at the summit (at your own expense, the local stalls are great).</div>
+          </div>
+
+          <!-- Meeting point -->
+          <div style="padding: 0 18px 20px;">
+            <div class="section-title">Meeting point</div>
+            <div class="card-rail">
+              <div style="aspect-ratio: 16/8; background: var(--sunken); position: relative; overflow: hidden;">
+                <svg width="100%" height="100%" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice">
+                  <rect width="320" height="160" fill="#F2EEE8"/>
+                  <path d="M20 40 Q90 55 150 48 T240 65" stroke="#E5E0D7" stroke-width="2" fill="none"/>
+                  <path d="M40 85 Q110 100 170 90 T260 105" stroke="#E5E0D7" stroke-width="2" fill="none"/>
+                  <path d="M0 115 Q80 130 150 120 T260 130" stroke="#E5E0D7" stroke-width="2" fill="none"/>
+                  <circle cx="160" cy="80" r="32" fill="rgba(225,90,65,0.08)"/>
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);">
+                  <svg width="24" height="24" viewBox="0 0 256 256" fill="#E15A41"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+                </div>
+              </div>
+              <div style="padding: 12px 14px;">
+                <div style="font-size: 12px; color: var(--ink); font-weight: 600; margin-bottom: 2px;">Sinhagad Fort base parking</div>
+                <div style="font-size: 10px; color: var(--muted);">Donje, Pune · 45 min drive from city center</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Who's going -->
+          <div style="padding: 0 18px 20px;">
+            <div class="section-title">Who's going · 12</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="avatar-pile">
+                <div class="avatar-pile-item">RM</div>
+                <div class="avatar-pile-item" style="background: var(--border);">NK</div>
+                <div class="avatar-pile-item">SP</div>
+                <div class="avatar-pile-item" style="background: var(--border);">AG</div>
+                <div class="avatar-pile-item more">+8</div>
+              </div>
+              <span style="font-size: 11px; color: var(--muted);">and 8 others going</span>
+            </div>
+          </div>
+
+          <!-- What to bring -->
+          <div style="padding: 0 18px 20px;">
+            <div class="section-title">What to bring</div>
+            <div style="display: grid; gap: 7px;">
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #4A4641;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Grippy shoes · the rock steps are slippery at dawn
+              </div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #4A4641;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                1 litre of water
+              </div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #4A4641;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Light jacket · it's 14° at the top at dawn
+              </div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #4A4641;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Your own ride · shared parking at the base
+              </div>
+            </div>
+          </div>
+
+          <!-- Cancellation -->
+          <div style="padding: 0 18px 22px;">
+            <div style="background: var(--sunken); border-radius: 8px; padding: 12px 14px; font-size: 11px; color: var(--muted); line-height: 1.55;">
+              <strong style="color: var(--ink);">Free cancellation</strong> up to 24 hours before the event. After that, no refunds.
+            </div>
+          </div>
+
+          <div style="height: 80px;"></div>
+
+          <!-- Sticky bottom -->
+          <div class="sticky-bottom">
+            <div style="flex: 1;">
+              <div style="font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 1px;">Per person</div>
+              <div class="fraunces tabular" style="font-size: 17px; color: var(--ink); font-weight: 600;">₹500</div>
+            </div>
+            <button class="btn-primary" style="padding: 12px 22px; font-size: 13px;">Get my spot</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation-card">
+        <div class="annotation-card-title">Calendar date block is the hero</div>
+        <div>For an event, the single most important fact is <strong>when</strong> — it determines whether the user can even consider attending. The dark-ink header with month, Fraunces day number, tiny weekday label — it reads like a physical tear-off calendar. Placed first after the hero image. Contrast with scheduled experiences, where multiple dates appear as a horizontal rail lower in the page.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Key facts grid · 4 essentials</div>
+        <div class="annotation-card-muted">Starts, Duration, Difficulty, Spots left. All in a sunken card. These are the 4 facts that determine "is this for me?" before reading any description. Spots-left count creates soft urgency without being pushy — "3 of 15 left" is honest and scannable.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Meeting point is PUBLIC (unlike scheduled experiences)</div>
+        <div>For a scheduled experience we deliberately hid the exact pickup until 24hr before for privacy (the DD-021 scheduled_dates pattern). For events we show the exact meeting point <em>immediately</em>, because events are shorter, lower stakes, and usually free or low-cost. Users need to know if they can get there before RSVPing.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">"Who's going" · social proof that converts</div>
+        <div>Overlapping avatar pile showing 4 attendees + "+8" count + "and 8 others going" copy. This is the single most conversion-critical element for community events. Users RSVP faster when they can see real people have already committed. Schema: read from <code style="background: var(--sunken); padding: 1px 4px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;">event_occurrences.rsvp_count</code> and the first 4 avatars from the bookings table.</div>
+      </div>
+
+      <div class="annotation-card warm">
+        <div class="annotation-card-title">WhatsApp share as first-class (DD-019)</div>
+        <div class="annotation-card-muted">The top nav has a dedicated WhatsApp button (green) alongside the generic share button. Indian users overwhelmingly share on WhatsApp — having a dedicated button saves a tap compared to opening the native share sheet and scrolling to find WhatsApp. Open Graph metadata (og:title, og:description, og:image, og:url) must be emitted on all public event pages so WhatsApp preview cards render cleanly.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Event vs scheduled experience · when to use which</div>
+        <div>
+          <div style="margin-bottom: 5px;"><strong>Event:</strong> single date, under 24 hours, fixed venue, low-cost or free, community meetup feel. "Sunrise trek Saturday."</div>
+          <div><strong>Scheduled experience:</strong> multiple future dates, multi-day, multi-location, higher price, commercial group trip. "Spiti 7-day trip running May and June."</div>
+        </div>
+      </div>
+
+      <div class="annotation-card sunken">
+        <div class="annotation-card-title">Promoted from V2 to M0 (DD-025)</div>
+        <div class="annotation-card-muted">In SRS v1.1, events were deferred to V2 as "Events & Groups." DD-025 promotes them to M0 because the community meetup use case is too central to the platform's wedge — travel creators running weekend walks, photo meetups, food trails. Schema was already in the DB from M0; now the UI ships with them.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Free event variant note -->
+  <div class="wf-stage-full" style="margin-top: 32px;">
+    <div class="annotation-card warm">
+      <div class="annotation-card-title">Free event variant (not drawn separately)</div>
+      <div class="annotation-card-muted">Free events follow the same template with two changes: (a) the sticky bottom bar shows <em>"Free"</em> in Fraunces instead of a rupee price, with CTA label <em>"RSVP"</em> instead of <em>"Get my spot"</em>; (b) the "Spots" fact shows <em>"12 going / 50 max"</em> since free events usually have looser capacity. All other sections (date block, meeting point, who's going, what to bring, cancellation) remain identical. Creators can publish free events without KYC (because no payment processing is involved) — this is a deliberate low-friction entry point for new community organizers.</div>
+    </div>
+  </div>
+
+  <footer class="wf-footer">
+    <strong>Screen 04c · Event detail</strong> · last updated 2026-04-08 · implements DD-022, DD-025
+    · Uses <code>event_occurrences</code> schema · Distinct content_type from scheduled_experience
+    · <a href="index.html">← back to wireframe index</a>
+  </footer>
+
+</body>
+</html>

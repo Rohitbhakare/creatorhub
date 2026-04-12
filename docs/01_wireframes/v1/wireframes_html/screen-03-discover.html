@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen 03 · Discover · &lt;AppName&gt; wireframes</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+    .cat-tile { aspect-ratio: 4/3; background: var(--sunken); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+    .cat-tile.dim { opacity: 0.55; }
+    .cat-icon { width: 30px; height: 30px; background: #FFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .cat-name { font-family: var(--font-display); font-size: 13px; font-weight: 500; color: var(--ink); }
+    .cat-count { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; margin-top: 2px; }
+    .cat-count.soon { color: var(--coral); }
+    .search-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; }
+    .search-row-icon { width: 28px; height: 28px; background: var(--sunken); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .search-section { font-size: 9px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; padding: 16px 16px 6px; display: flex; justify-content: space-between; }
+    .filter-sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #FFF; border-radius: 20px 20px 0 0; padding: 14px 0 16px; box-shadow: 0 -10px 40px rgba(60,30,15,.22); }
+    .filter-handle { width: 36px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 16px; }
+    .filter-section { padding: 0 20px; margin-bottom: 18px; }
+    .filter-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-chip { background: #FFF; border: 1px solid var(--border); color: var(--ink); font-family: inherit; font-size: 11px; font-weight: 500; padding: 6px 12px; border-radius: 99px; }
+    .filter-chip.active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+    .coll-card { background: var(--sunken); border-radius: 10px; padding: 11px 13px; margin-bottom: 7px; }
+    .coll-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+    .coll-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+  <header class="wf-header">
+    <div class="wf-header-eyebrow">Screen 03 · Discover</div>
+    <h1>Discover · browse, search, filter</h1>
+    <p>Three states of the Discover tab. Home feed is "what's fresh for me." Discover is "I'm looking for something specific." Default is a browse grid (8 verticals, 6 marked "soon"). Tapping search opens an overlay with personal recent + trending. Tapping the filter icon opens a bottom sheet with orthogonal facets (budget, duration, difficulty, etc.).</p>
+    <div class="wf-meta">
+      <div><strong>DD refs:</strong> DD-014, DD-014-amendment, DD-015, DD-006</div>
+      <div><strong>SRS refs:</strong> DISC-FR-006, DISC-FR-030 to 036</div>
+    </div>
+  </header>
+
+  <div class="wf-stage-3col">
+
+    <!-- STATE A: Browse default -->
+    <div>
+      <div class="phone-label">A · browse default</div>
+      <div class="phone phone-small">
+        <div class="phone-screen">
+
+          <!-- Search bar + filter btn -->
+          <div style="padding: 14px 14px 0;">
+            <div style="display: flex; gap: 8px;">
+              <div style="flex: 1; display: flex; align-items: center; gap: 9px; background: #FFF; border: 0.5px solid var(--border); border-radius: 11px; padding: 10px 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span style="font-size: 12px; color: var(--soft-ink);">Try "trek under ₹5k"</span>
+              </div>
+              <button style="width: 38px; height: 38px; background: #FFF; border: 0.5px solid var(--border); border-radius: 11px; display: flex; align-items: center; justify-content: center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="padding: 18px 16px 10px;">
+            <div class="fraunces" style="font-size: 16px; color: var(--ink); font-weight: 500;">Browse by category</div>
+          </div>
+
+          <!-- 8 verticals · 2 shipped, 6 waitlisted -->
+          <div class="category-grid">
+            <div class="cat-tile"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg></div><div><div class="cat-name">Travel</div><div class="cat-count">142 trips</div></div></div>
+            <div class="cat-tile"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div><div class="cat-name">Stories</div><div class="cat-count">63 posts</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div><div><div class="cat-name">Food</div><div class="cat-count soon">soon</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M6.5 6.5L17.5 17.5M9 12h6"/></svg></div><div><div class="cat-name">Fitness</div><div class="cat-count soon">soon</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div><div><div class="cat-name">Photography</div><div class="cat-count soon">soon</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="cat-name">Wellness</div><div class="cat-count soon">soon</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div><div class="cat-name">Music</div><div class="cat-count soon">soon</div></div></div>
+            <div class="cat-tile dim"><div class="cat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg></div><div><div class="cat-name">Education</div><div class="cat-count soon">soon</div></div></div>
+          </div>
+
+          <!-- Handpicked collections -->
+          <div style="padding: 20px 16px 10px;">
+            <div class="fraunces" style="font-size: 14px; color: var(--ink); font-weight: 500;">Handpicked for you</div>
+            <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">Refreshed daily</div>
+          </div>
+          <div style="padding: 0 16px 16px;">
+            <div class="coll-card"><div class="coll-title">New in Travel</div><div class="coll-sub">8 fresh itineraries and trips</div></div>
+            <div class="coll-card"><div class="coll-title">Worth the drive from Pune</div><div class="coll-sub">3–6 hour getaways</div></div>
+            <div class="coll-card"><div class="coll-title">Under ₹5,000</div><div class="coll-sub">Budget-friendly weekends</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE B: Search active -->
+    <div>
+      <div class="phone-label">B · search active · history + trending</div>
+      <div class="phone phone-small">
+        <div class="phone-screen">
+
+          <div style="padding: 12px 14px 0;">
+            <div style="background: #FFF; border: 1px solid var(--ink); border-radius: 11px; padding: 10px 12px; display: flex; align-items: center; gap: 9px; box-shadow: 0 2px 10px rgba(60,30,15,.08);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span style="flex: 1; font-size: 12px; color: var(--soft-ink);">Try "trek under ₹5k"</span>
+              <button style="background: none; border: none; color: var(--muted); font-family: inherit; font-size: 11px;">Cancel</button>
+            </div>
+          </div>
+
+          <div class="search-section"><span>Your recent searches</span><span style="font-size: 9px; color: var(--muted); text-transform: none; letter-spacing: 0;">Clear</span></div>
+
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div style="flex: 1; font-size: 12px; color: var(--ink);">spiti winter trips</div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div style="flex: 1; font-size: 12px; color: var(--ink);">coorg road trip</div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div style="flex: 1; font-size: 12px; color: var(--ink);">riya menon</div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+
+          <div class="search-section"><span>Trending this week</span><span style="font-size: 8px; color: var(--soft-ink); text-transform: none; letter-spacing: 0; font-weight: 500;">V1</span></div>
+
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: var(--ink);">monsoon waterfalls maharashtra</div>
+              <div style="font-size: 9px; color: var(--muted);">312 searches this week</div>
+            </div>
+          </div>
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: var(--ink);">hampi bike trip</div>
+              <div style="font-size: 9px; color: var(--muted);">184 searches</div>
+            </div>
+          </div>
+          <div class="search-row">
+            <div class="search-row-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: var(--ink);">offbeat places south india</div>
+              <div style="font-size: 9px; color: var(--muted);">128 searches</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE C: Filter sheet -->
+    <div>
+      <div class="phone-label">C · filter sheet · orthogonal facets</div>
+      <div class="phone phone-small">
+        <div class="phone-screen" style="height: 600px; position: relative;">
+
+          <!-- Dimmed background -->
+          <div style="filter: brightness(0.5); pointer-events: none;">
+            <div style="padding: 14px 14px 0;">
+              <div style="background: #FFF; border: 0.5px solid var(--border); border-radius: 11px; padding: 10px 12px;">
+                <span style="font-size: 12px; color: var(--ink);">spiti</span>
+              </div>
+            </div>
+            <div style="padding: 18px 16px;">
+              <div style="background: var(--sunken); height: 180px; border-radius: 10px; margin-bottom: 10px;"></div>
+              <div style="background: var(--sunken); height: 180px; border-radius: 10px;"></div>
+            </div>
+          </div>
+
+          <!-- Filter sheet -->
+          <div class="filter-sheet">
+            <div class="filter-handle"></div>
+
+            <div style="padding: 0 20px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); margin-bottom: 16px;">
+              <div class="fraunces" style="font-size: 15px; color: var(--ink); font-weight: 500;">Filters</div>
+              <button style="background: none; border: none; font-family: inherit; font-size: 11px; color: var(--muted);">Clear all</button>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-label">Budget</div>
+              <div class="filter-chips">
+                <span class="filter-chip">Under ₹2k</span>
+                <span class="filter-chip active">₹2k–5k</span>
+                <span class="filter-chip active">₹5k–15k</span>
+                <span class="filter-chip">₹15k+</span>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-label">Duration</div>
+              <div class="filter-chips">
+                <span class="filter-chip">Day trip</span>
+                <span class="filter-chip">Weekend</span>
+                <span class="filter-chip active">3–5 days</span>
+                <span class="filter-chip">6+ days</span>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-label">Group size</div>
+              <div class="filter-chips">
+                <span class="filter-chip">Solo</span>
+                <span class="filter-chip">Couple</span>
+                <span class="filter-chip">Small (4–6)</span>
+                <span class="filter-chip">Group (7+)</span>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-label">Difficulty</div>
+              <div class="filter-chips">
+                <span class="filter-chip">Easy</span>
+                <span class="filter-chip active">Moderate</span>
+                <span class="filter-chip">Challenging</span>
+              </div>
+            </div>
+
+            <div style="padding: 0 20px;">
+              <button class="btn-primary" style="width: 100%;">Show 24 results</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wf-stage-full" style="margin-top: 28px;">
+    <div class="annotation-card">
+      <div class="annotation-card-title">Key design notes</div>
+      <div>
+        <strong>Browse first, search second.</strong> The default Discover state is browse — user sees 8 categories and handpicked collections without typing anything. Search is one tap away but not the default. Compare to Google, where search is the only surface — here, browsing is deliberately surfaced because users don't always know what they're looking for.
+        <br><br>
+        <strong>6 of 8 verticals are "soon" in MVP.</strong> Travel and Stories ship. The other 6 verticals render dimmed with a coral "soon" tag. Tapping a soon tile adds the user to that vertical's waitlist (DD-002) and shows a toast: "We'll notify you when {vertical} goes live."
+        <br><br>
+        <strong>Collections are algorithmic for MVP, manual for V1.</strong> The three collections shown ("New in Travel", "Worth the drive from Pune", "Under ₹5,000") are generated from templates + user location + user's interest signals, cached per user per day. V1 adds an admin panel where the platform team can override with manually curated collections. (DD-014 amendment)
+        <br><br>
+        <strong>Facets are orthogonal to the taxonomy.</strong> The filter sheet shows Budget, Duration, Group size, Difficulty — these are NOT sub-categories of the vertical tree. They're filter dimensions that cut across any content. A user can filter by "budget ₹2k–5k + duration 3–5 days + moderate difficulty" without specifying a vertical. (DD-006)
+        <br><br>
+        <strong>Trending is V1, not MVP.</strong> The "Trending this week" section in the search overlay is marked V1 because it requires the <code style="background: var(--sunken); padding: 1px 4px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;">top_searches_7d</code> materialized view + enough search volume to be meaningful. In MVP, the search overlay shows only personal recent searches + the 5 seeded placeholder suggestions.
+      </div>
+    </div>
+  </div>
+
+  <footer class="wf-footer">
+    <strong>Screen 03 · Discover</strong> · last updated 2026-04-08 · implements DD-014, DD-015, DD-006
+    · <a href="index.html">← back to wireframe index</a>
+  </footer>
+
+</body>
+</html>

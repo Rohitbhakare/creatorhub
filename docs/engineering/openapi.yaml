@@ -1,0 +1,1385 @@
+openapi: 3.1.0
+info:
+  title: CreatorHub API
+  version: 0.1.0
+  description: |
+    CreatorHub API — travel social platform + experience marketplace for India.
+    All monetary amounts are in **paisa** (integer). All timestamps are ISO 8601 UTC.
+    Auth: Firebase Phone OTP → JWT verified server-side.
+  contact:
+    name: CreatorHub Engineering
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api.creatorhub.in
+    description: Production
+
+# ─── SECURITY ────────────────────────────────────────────────
+security:
+  - bearerAuth: []
+
+# ─── TAGS ────────────────────────────────────────────────────
+tags:
+  - name: Health
+    description: Liveness and readiness probes (no auth)
+  - name: Auth
+    description: Registration, session management, sign-out
+  - name: Users
+    description: User profile CRUD, username, phone change
+  - name: Onboarding
+    description: Location, verticals, suggested creators
+  - name: Upload
+    description: Signed upload URLs for media
+  - name: Places
+    description: Google Places API proxy (key never exposed to client)
+
+# ─── PATHS ───────────────────────────────────────────────────
+paths:
+
+  # ── Health ──────────────────────────────────────────────────
+  /healthz:
+    get:
+      operationId: getLiveness
+      tags: [Health]
+      summary: Liveness probe
+      description: Returns 200 if the server process is running. No dependency checks.
+      security: []
+      responses:
+        "200":
+          description: Process alive
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, timestamp]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      tags: [Health]
+      summary: Readiness probe
+      description: |
+        Checks DB connection and Firebase SDK initialization.
+        Returns 200 if all checks pass, 503 if any check fails.
+      security: []
+      responses:
+        "200":
+          description: Ready to serve traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: One or more checks failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+  # ── Auth ────────────────────────────────────────────────────
+  /api/v1/auth/register:
+    post:
+      operationId: registerUser
+      tags: [Auth]
+      summary: Register or sign in with Firebase token
+      description: |
+        Called after Firebase Phone OTP or Social Login completes on the client.
+        Verifies the Firebase ID token server-side, upserts the user record,
+        and returns the user profile + app session.
+
+        - New user: creates `users` row, returns 201
+        - Existing user: updates `last_login_at`, returns 200
+
+        SRS: IAM-FR-001, IAM-FR-005
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Existing user signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AuthResult"
+        "201":
+          description: New user created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of created user resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AuthResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/v1/auth/refresh:
+    post:
+      operationId: refreshSession
+      tags: [Auth]
+      summary: Refresh app session
+      description: |
+        Exchanges a valid refresh token for a new access token.
+        Mobile: 90-day rolling session. Web: 30-day session.
+        SRS: IAM-FR-002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: New tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-TokenPair"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/auth/sign-out:
+    post:
+      operationId: signOut
+      tags: [Auth]
+      summary: Sign out and revoke refresh token
+      description: |
+        Revokes the refresh token server-side. Client must clear local storage.
+        SRS: IAM-FR-002
+      responses:
+        "204":
+          description: Signed out successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Users ───────────────────────────────────────────────────
+  /api/v1/users/me:
+    get:
+      operationId: getCurrentUser
+      tags: [Users]
+      summary: Get current user profile
+      description: Returns the authenticated user's full profile.
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    patch:
+      operationId: updateCurrentUser
+      tags: [Users]
+      summary: Update current user profile
+      description: |
+        Partial update of user profile fields.
+        SRS: PROF-FR-006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Username already taken
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/users/me/username:
+    put:
+      operationId: changeUsername
+      tags: [Users]
+      summary: Change username (30-day cooldown)
+      description: |
+        Changes the user's username. Subject to 30-day cooldown.
+        First-time set does not count as a change (cooldown remains null).
+        SRS: PROF-FR-007
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+                  pattern: "^[a-z0-9_]{3,30}$"
+                  description: Lowercase alphanumeric + underscore, 3-30 chars
+      responses:
+        "200":
+          description: Username changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Username already taken
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          description: Within 30-day cooldown period
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/users/me/phone:
+    put:
+      operationId: changePhone
+      tags: [Users]
+      summary: Change phone number
+      description: |
+        Initiates phone number change. Requires OTP verification on new number.
+        Rejects if new number already registered to another account.
+        Logs old number in audit_events.
+        SRS: PROF-FR-009
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firebase_token]
+              properties:
+                firebase_token:
+                  type: string
+                  description: Firebase ID token from OTP verification on new number
+      responses:
+        "200":
+          description: Phone number updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Phone number already registered to another account
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/users/{userId}:
+    get:
+      operationId: getUserById
+      tags: [Users]
+      summary: Get public user profile
+      description: Returns a user's public profile. Guests allowed.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: Public user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-PublicProfile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/users/{userId}/follow:
+    post:
+      operationId: followUser
+      tags: [Users]
+      summary: Follow a user
+      description: Creates a follow relationship. Idempotent.
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: Followed (or already following)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FollowResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: unfollowUser
+      tags: [Users]
+      summary: Unfollow a user
+      description: Removes a follow relationship. Idempotent.
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "204":
+          description: Unfollowed (or was not following)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Onboarding ──────────────────────────────────────────────
+  /api/v1/onboarding/location:
+    put:
+      operationId: setOnboardingLocation
+      tags: [Onboarding]
+      summary: Set user's location during onboarding
+      description: |
+        Sets the user's current city (from ~4000 cities) and optional GPS coordinates.
+        Cannot proceed through onboarding without this.
+        SRS: ONB-FR-002, ONB-FR-010
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetLocationRequest"
+      responses:
+        "200":
+          description: Location set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/onboarding/verticals:
+    put:
+      operationId: setOnboardingVerticals
+      tags: [Onboarding]
+      summary: Set user's vertical interests (minimum 3)
+      description: |
+        Writes to `user_active_verticals`. Verticals with ≤10 published creators
+        also written to `user_waitlisted_verticals`.
+        SRS: ONB-FR-003, ONB-FR-008
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verticals]
+              properties:
+                verticals:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Vertical"
+                  minItems: 3
+                  maxItems: 8
+      responses:
+        "200":
+          description: Verticals set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-VerticalsResult"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/onboarding/suggested-creators:
+    get:
+      operationId: getSuggestedCreators
+      tags: [Onboarding]
+      summary: Get suggested creators for onboarding
+      description: |
+        Returns creators personalized to user's selected verticals.
+        Featured creators appear first.
+        SRS: ONB-FR-004
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+      responses:
+        "200":
+          description: Suggested creators list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-SuggestedCreators"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/onboarding/complete:
+    post:
+      operationId: completeOnboarding
+      tags: [Onboarding]
+      summary: Mark onboarding as complete
+      description: |
+        Sets `onboarding_completed_at` on user record.
+        Should be called after location + verticals are set.
+        SRS: ONB-FR-005
+      responses:
+        "200":
+          description: Onboarding completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Onboarding prerequisites not met (location or verticals missing)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Verticals & Cities ──────────────────────────────────────
+  /api/v1/verticals:
+    get:
+      operationId: listVerticals
+      tags: [Onboarding]
+      summary: List all verticals with creator counts
+      description: |
+        Returns all 8 verticals with live creator counts.
+        Verticals with 0 creators marked "coming soon".
+        SRS: ONB-FR-007
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Verticals with counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-VerticalsList"
+
+  /api/v1/cities:
+    get:
+      operationId: searchCities
+      tags: [Onboarding]
+      summary: Search cities (~4000 Indian cities)
+      description: |
+        Fuzzy search across ~4000 cities. Used in onboarding location picker.
+        No tier filtering — all cities equally valid.
+        SRS: ONB-FR-010
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query (fuzzy matched against city name)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        "200":
+          description: Matching cities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-CitiesList"
+
+  /api/v1/cities/nearby:
+    get:
+      operationId: findNearbyCity
+      tags: [Onboarding]
+      summary: Find nearest city from GPS coordinates
+      description: |
+        Returns the nearest city to the given coordinates.
+        Used for auto-detecting city from GPS during onboarding.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+      responses:
+        "200":
+          description: Nearest city
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-City"
+        "404":
+          description: No city found within reasonable distance
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Upload ──────────────────────────────────────────────────
+  /api/v1/uploads/signed-url:
+    post:
+      operationId: getSignedUploadUrl
+      tags: [Upload]
+      summary: Generate a signed upload URL
+      description: |
+        Returns a Firebase Storage signed URL for direct client upload.
+        File type and size validated server-side before generating URL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignedUrlRequest"
+      responses:
+        "200":
+          description: Signed upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-SignedUrl"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Places Proxy ────────────────────────────────────────────
+  /api/v1/places/autocomplete:
+    get:
+      operationId: placesAutocomplete
+      tags: [Places]
+      summary: Google Places autocomplete proxy
+      description: |
+        Proxies Google Places Autocomplete API. Key stays server-side.
+        Biased to India (componentRestrictions: country:'in').
+      parameters:
+        - name: input
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Search text for autocomplete
+        - name: lat
+          in: query
+          schema:
+            type: number
+            format: double
+          description: Latitude for location bias
+        - name: lng
+          in: query
+          schema:
+            type: number
+            format: double
+          description: Longitude for location bias
+      responses:
+        "200":
+          description: Autocomplete predictions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-PlacePredictions"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/v1/places/{placeId}:
+    get:
+      operationId: getPlaceDetails
+      tags: [Places]
+      summary: Google Places detail proxy
+      description: |
+        Proxies Google Places Details API. Returns name, coordinates,
+        address, photos, rating. Key stays server-side.
+      parameters:
+        - name: placeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Place details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-PlaceDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+# ─── COMPONENTS ──────────────────────────────────────────────
+components:
+
+  # ── Security Schemes ────────────────────────────────────────
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase ID token or app session token
+
+  # ── Parameters ──────────────────────────────────────────────
+  parameters:
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+      description: Opaque cursor for pagination (base64-encoded)
+
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 50
+
+  # ── Reusable Responses ──────────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid/expired
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ValidationError:
+      description: Request validation failed (Zod errors)
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ProblemDetail"
+              - type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FieldError"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds until rate limit resets
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Schemas ─────────────────────────────────────────────────
+  schemas:
+
+    # ── Enums ─────────────────────────────────────────────────
+    Vertical:
+      type: string
+      enum:
+        - travel
+        - stories
+        - food
+        - fitness
+        - education
+        - photography
+        - music
+        - wellness
+
+    ContentType:
+      type: string
+      enum:
+        - post
+        - event
+        - scheduled_experience
+        - self_paced_itinerary
+
+    ContentStatus:
+      type: string
+      enum:
+        - draft
+        - under_review
+        - published
+        - unpublished
+        - archived
+        - rejected
+        - taken_down
+
+    Visibility:
+      type: string
+      enum: [public, unlisted, private]
+
+    PricingModel:
+      type: string
+      enum: [free, paid]
+
+    KycStatus:
+      type: string
+      enum: [not_started, pending, verified, rejected, expired]
+
+    # ── Common ────────────────────────────────────────────────
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [type, title, status, detail, instance]
+          properties:
+            type:
+              type: string
+              format: uri
+              example: https://creatorhub.in/errors/validation-failed
+            title:
+              type: string
+              example: Validation Failed
+            status:
+              type: integer
+              example: 400
+            detail:
+              type: string
+              example: Title must be between 3 and 200 characters.
+            instance:
+              type: string
+              example: /api/v1/itineraries
+            errors:
+              type: array
+              items:
+                $ref: "#/components/schemas/FieldError"
+
+    FieldError:
+      type: object
+      required: [field, message, code]
+      properties:
+        field:
+          type: string
+          example: title
+        message:
+          type: string
+          example: String must contain at least 3 character(s)
+        code:
+          type: string
+          example: too_small
+
+    CursorMeta:
+      type: object
+      properties:
+        next_cursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for next page (null if no more results)
+        has_more:
+          type: boolean
+        per_page:
+          type: integer
+
+    # ── Auth ──────────────────────────────────────────────────
+    RegisterRequest:
+      type: object
+      required: [firebase_token]
+      properties:
+        firebase_token:
+          type: string
+          description: Firebase ID token from Phone OTP or Social Login
+        device_info:
+          type: object
+          properties:
+            platform:
+              type: string
+              enum: [ios, android, web]
+            device_id:
+              type: string
+            app_version:
+              type: string
+
+    AuthResult:
+      type: object
+      required: [user, tokens, is_new_user]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        tokens:
+          $ref: "#/components/schemas/TokenPair"
+        is_new_user:
+          type: boolean
+          description: True if this registration created a new user
+
+    TokenPair:
+      type: object
+      required: [access_token, refresh_token, expires_in]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          description: Access token expiry in seconds
+
+    # ── User ──────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      required: [id, phone, is_creator, kyc_status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          type: string
+          example: "+919876543210"
+        display_name:
+          type: string
+          nullable: true
+          example: Riya Sharma
+        username:
+          type: string
+          nullable: true
+          example: riya_travels
+        bio:
+          type: string
+          nullable: true
+          maxLength: 280
+        email:
+          type: string
+          format: email
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        is_creator:
+          type: boolean
+        kyc_status:
+          $ref: "#/components/schemas/KycStatus"
+        current_city:
+          $ref: "#/components/schemas/City"
+        active_verticals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vertical"
+        onboarding_completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        username_changed_at:
+          type: string
+          format: date-time
+          nullable: true
+        follower_count:
+          type: integer
+        following_count:
+          type: integer
+        content_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    PublicProfile:
+      type: object
+      required: [id, display_name, is_creator, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        is_creator:
+          type: boolean
+        current_city:
+          $ref: "#/components/schemas/City"
+        active_verticals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vertical"
+        featured:
+          type: boolean
+        follower_count:
+          type: integer
+        following_count:
+          type: integer
+        content_count:
+          type: integer
+        is_following:
+          type: boolean
+          description: Whether the authenticated user follows this user (null if guest)
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        bio:
+          type: string
+          maxLength: 280
+        email:
+          type: string
+          format: email
+        avatar_url:
+          type: string
+          format: uri
+
+    FollowResult:
+      type: object
+      required: [following, follower_count]
+      properties:
+        following:
+          type: boolean
+        follower_count:
+          type: integer
+
+    # ── Onboarding ────────────────────────────────────────────
+    SetLocationRequest:
+      type: object
+      required: [city_id, source]
+      properties:
+        city_id:
+          type: string
+          description: City ID from cities table (e.g., "in.mh.pune")
+        lat:
+          type: number
+          format: double
+          description: GPS latitude (if source is "gps")
+        lng:
+          type: number
+          format: double
+          description: GPS longitude (if source is "gps")
+        source:
+          type: string
+          enum: [gps, manual]
+
+    VerticalsResult:
+      type: object
+      required: [active_verticals, waitlisted_verticals]
+      properties:
+        active_verticals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vertical"
+        waitlisted_verticals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vertical"
+          description: Verticals with ≤10 published creators (auto-detected)
+
+    VerticalInfo:
+      type: object
+      required: [slug, name, creator_count, status]
+      properties:
+        slug:
+          $ref: "#/components/schemas/Vertical"
+        name:
+          type: string
+          example: Travel
+        creator_count:
+          type: integer
+          description: Live count of published creators in this vertical
+        status:
+          type: string
+          enum: [active, soon, coming_soon]
+          description: "active (>10 creators), soon (1-10), coming_soon (0)"
+
+    SuggestedCreator:
+      type: object
+      required: [id, display_name, is_featured]
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        username:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        verticals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vertical"
+        content_count:
+          type: integer
+        follower_count:
+          type: integer
+        is_featured:
+          type: boolean
+        is_following:
+          type: boolean
+          description: Whether current user already follows this creator
+
+    # ── City ──────────────────────────────────────────────────
+    City:
+      type: object
+      required: [id, name, state, country]
+      properties:
+        id:
+          type: string
+          example: in.mh.pune
+        name:
+          type: string
+          example: Pune
+        state:
+          type: string
+          example: Maharashtra
+        country:
+          type: string
+          example: IN
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+
+    # ── Upload ────────────────────────────────────────────────
+    SignedUrlRequest:
+      type: object
+      required: [file_name, content_type, purpose]
+      properties:
+        file_name:
+          type: string
+          example: photo_01.jpg
+        content_type:
+          type: string
+          enum:
+            - image/jpeg
+            - image/png
+            - image/webp
+            - video/mp4
+            - application/pdf
+          description: MIME type of the file to upload
+        purpose:
+          type: string
+          enum: [avatar, content_image, content_video, kyc_document]
+          description: Determines storage path and size limits
+        content_id:
+          type: string
+          format: uuid
+          description: Associated content ID (for content_image, content_video)
+
+    SignedUrlResult:
+      type: object
+      required: [upload_url, file_path, expires_at]
+      properties:
+        upload_url:
+          type: string
+          format: uri
+          description: Pre-signed URL for direct upload
+        file_path:
+          type: string
+          description: Storage path to reference after upload completes
+        expires_at:
+          type: string
+          format: date-time
+          description: URL expiry (15 minutes)
+
+    # ── Places ────────────────────────────────────────────────
+    PlacePrediction:
+      type: object
+      required: [place_id, description]
+      properties:
+        place_id:
+          type: string
+        description:
+          type: string
+          example: Tilicho Lake, Manang, Nepal
+        structured_formatting:
+          type: object
+          properties:
+            main_text:
+              type: string
+              example: Tilicho Lake
+            secondary_text:
+              type: string
+              example: Manang, Nepal
+
+    PlaceDetail:
+      type: object
+      required: [place_id, name, lat, lng]
+      properties:
+        place_id:
+          type: string
+        name:
+          type: string
+        formatted_address:
+          type: string
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+        rating:
+          type: number
+          format: float
+          nullable: true
+        photos:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+              width:
+                type: integer
+              height:
+                type: integer
+
+    # ── Readiness ─────────────────────────────────────────────
+    ReadinessResponse:
+      type: object
+      required: [status, checks, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ready, degraded]
+        checks:
+          type: object
+          properties:
+            database:
+              type: boolean
+            firebase:
+              type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    # ── Generic Success Wrappers ──────────────────────────────
+    # These use "-" separator to indicate the data type inside.
+    # In code, the actual type replaces the wrapper.
+
+    SuccessResponse-AuthResult:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/AuthResult"
+
+    SuccessResponse-TokenPair:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/TokenPair"
+
+    SuccessResponse-UserProfile:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/UserProfile"
+
+    SuccessResponse-PublicProfile:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/PublicProfile"
+
+    SuccessResponse-FollowResult:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/FollowResult"
+
+    SuccessResponse-VerticalsResult:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/VerticalsResult"
+
+    SuccessResponse-VerticalsList:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/VerticalInfo"
+
+    SuccessResponse-SuggestedCreators:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuggestedCreator"
+
+    SuccessResponse-CitiesList:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/City"
+
+    SuccessResponse-City:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/City"
+
+    SuccessResponse-SignedUrl:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/SignedUrlResult"
+
+    SuccessResponse-PlacePredictions:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlacePrediction"
+
+    SuccessResponse-PlaceDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/PlaceDetail"

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 12 · You Tab</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px 20px; font-family: 'Inter', system-ui, sans-serif; background: #E5E0D7; color: #2C2823; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .caption { font-size: 13px; color: #6B6660; margin-bottom: 24px; line-height: 1.55; text-align: center; }
+  .phones { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .phone-col { display: flex; flex-direction: column; }
+  .phone-label { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .phone-bezel { background: #2C2823; padding: 7px 7px 4px; border-radius: 26px 26px 6px 6px; }
+  .phone-screen { background: #FAF7F4; border-radius: 20px 20px 0 0; overflow: hidden; min-height: 960px; display: flex; flex-direction: column; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+  .title-f { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #2C2823; font-weight: 500; font-variation-settings: 'SOFT' 60, 'opsz' 28; }
+  .top-icon { width: 34px; height: 34px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .hero-card { margin: 8px 16px 0; background: #F2EEE8; border-radius: 18px; padding: 24px 22px 22px; text-align: center; }
+  .avatar-wrap { position: relative; display: inline-block; margin-bottom: 14px; }
+  .avatar-ring { width: 84px; height: 84px; border-radius: 50%; padding: 3px; display: flex; align-items: center; justify-content: center; }
+  .avatar-ring.incomplete { background: #E5E0D7; border: 2px dashed #C9C3B6; }
+  .avatar-ring.coral { background: #FFFFFF; border: 3px solid #E15A41; }
+  .avatar-inner { width: 100%; height: 100%; border-radius: 50%; background: #F2EEE8; color: #2C2823; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 28px; font-weight: 600; }
+  .plus-badge { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; background: #FFFFFF; border: 2px solid #F2EEE8; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .check-badge { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; background: #E15A41; border: 2px solid #F2EEE8; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .display-name { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #2C2823; font-weight: 500; line-height: 1.2; font-variation-settings: 'SOFT' 60, 'opsz' 28; }
+  .display-name-ghost { color: #9C9689; font-style: italic; }
+  .username { font-size: 12px; color: #6B6660; margin-top: 4px; }
+  .bio-prompt { font-size: 12px; color: #9C9689; font-style: italic; margin-top: 10px; padding: 6px 12px; background: #FFFFFF; border-radius: 99px; display: inline-block; border: 1px dashed #C9C3B6; }
+  .bio-real { font-family: 'Fraunces', Georgia, serif; font-size: 13px; color: #2C2823; font-style: italic; line-height: 1.55; margin-top: 10px; padding: 0 6px; }
+  .stats-inline { display: flex; justify-content: center; gap: 24px; margin-top: 16px; padding-top: 14px; border-top: 0.5px solid #E5E0D7; }
+  .stat-inline { text-align: center; }
+  .stat-val { font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-val.coral { color: #E15A41; }
+  .stat-lbl { font-size: 10px; color: #6B6660; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-top: 4px; }
+  .section-label { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 20px 8px; margin-top: 22px; }
+  .progress-card { margin: 0 16px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 14px; padding: 16px 18px; }
+  .progress-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .progress-title { font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #2C2823; font-weight: 500; }
+  .progress-pct { font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #E15A41; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .progress-bar { height: 5px; background: #F2EEE8; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .progress-fill { height: 100%; background: #E15A41; border-radius: 99px; }
+  .progress-items { display: grid; gap: 9px; }
+  .progress-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #2C2823; }
+  .progress-item.done { color: #6B6660; }
+  .check-circle { width: 16px; height: 16px; border-radius: 50%; background: #F2EEE8; border: 1.5px solid #C9C3B6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .check-circle.done { background: #0F6E56; border-color: #0F6E56; }
+  .become-card { margin: 0 16px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; }
+  .become-icon { width: 42px; height: 42px; border-radius: 12px; background: #F2EEE8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .become-info { flex: 1; }
+  .become-title { font-family: 'Fraunces', Georgia, serif; font-size: 14px; color: #2C2823; font-weight: 500; }
+  .become-desc { font-size: 11px; color: #6B6660; margin-top: 3px; line-height: 1.4; }
+  .become-cta { background: #E15A41; color: #FFFFFF; border: none; font-family: inherit; font-size: 11px; font-weight: 500; padding: 8px 14px; border-radius: 8px; white-space: nowrap; }
+  .settings-card { margin: 0 16px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 14px; overflow: hidden; }
+  .setting-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 0.5px solid #F2EEE8; }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-icon { width: 28px; height: 28px; border-radius: 7px; background: #F2EEE8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .setting-label { flex: 1; font-size: 13px; color: #2C2823; }
+  .setting-label.destructive { color: #C2362F; }
+  .setting-value { font-size: 11px; color: #9C9689; margin-right: 6px; }
+  .setting-badge { display: inline-flex; align-items: center; gap: 4px; background: #E1F5EE; color: #0F6E56; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 99px; margin-right: 6px; }
+  .chevron { color: #C9C3B6; }
+  .social-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 0.5px solid #F2EEE8; }
+  .social-icon { width: 32px; height: 32px; background: #F2EEE8; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .social-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border: 2px solid #FFFFFF; border-radius: 50%; }
+  .social-dot.green { background: #1D9E75; }
+  .social-dot.gray { background: #C9C3B6; }
+  .social-info { flex: 1; }
+  .social-label { font-size: 13px; color: #2C2823; font-weight: 500; }
+  .social-sub { font-size: 11px; color: #6B6660; margin-top: 1px; }
+  .social-sub strong { font-family: 'Fraunces', Georgia, serif; color: #2C2823; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .connect-pill { background: #E15A41; color: #FFFFFF; border: none; font-size: 11px; font-weight: 500; padding: 6px 12px; border-radius: 99px; }
+  .spacer { flex: 1; }
+  .tab-bar-wrap { padding: 12px 12px 14px; background: #FAF7F4; border-top: 0.5px solid #E5E0D7; }
+  .tab-bar { background: #FFFFFF; border-radius: 16px; padding: 10px 8px 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-label { font-size: 11px; color: #6B6660; }
+  .tab-label.active { color: #E15A41; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="caption">Screen 12 · You tab · two states · A. Follower (Aanya, new user, incomplete profile) · B. Creator (Riya, established, verified, connected social).</div>
+
+<div class="phones">
+
+<div class="phone-col">
+<div class="phone-label">A · Follower · new user · incomplete profile</div>
+<div class="phone-bezel"><div class="phone-screen">
+
+<div class="top-bar">
+  <div class="title-f">You</div>
+  <div class="top-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+</div>
+
+<div class="hero-card">
+  <div class="avatar-wrap">
+    <div class="avatar-ring incomplete">
+      <div class="avatar-inner" style="background: #FFFFFF;">AR</div>
+    </div>
+    <div class="plus-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+  </div>
+  <div class="display-name display-name-ghost">Add your name</div>
+  <div class="username">@aanya_r</div>
+  <div class="bio-prompt">+ Add bio</div>
+  <div class="stats-inline">
+    <div class="stat-inline"><div class="stat-val">0</div><div class="stat-lbl">Followers</div></div>
+    <div class="stat-inline"><div class="stat-val">3</div><div class="stat-lbl">Following</div></div>
+    <div class="stat-inline"><div class="stat-val">7</div><div class="stat-lbl">Saved</div></div>
+  </div>
+</div>
+
+<div class="section-label">Finish your profile</div>
+<div class="progress-card">
+  <div class="progress-head">
+    <div class="progress-title">Make it yours</div>
+    <div class="progress-pct">40%</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
+  <div class="progress-items">
+    <div class="progress-item done"><div class="check-circle done"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Add your location</div>
+    <div class="progress-item done"><div class="check-circle done"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Follow 3 creators</div>
+    <div class="progress-item"><div class="check-circle"></div>Add a profile photo</div>
+    <div class="progress-item"><div class="check-circle"></div>Write a short bio</div>
+    <div class="progress-item"><div class="check-circle"></div>Connect a social account</div>
+  </div>
+</div>
+
+<div class="section-label">Become a creator</div>
+<div class="become-card">
+  <div class="become-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+  <div class="become-info">
+    <div class="become-title">Share your trips</div>
+    <div class="become-desc">Publish your own itineraries and get paid.</div>
+  </div>
+  <button class="become-cta">Learn more</button>
+</div>
+
+<div class="section-label">Settings</div>
+<div class="settings-card">
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="setting-label">Notifications</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="setting-label">Edit profile</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="setting-label">Bookings</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="setting-label">Help &amp; legal</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C2362F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+    <div class="setting-label destructive">Sign out</div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<div class="tab-bar-wrap">
+  <div class="tab-bar">
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div class="tab-label">Home</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="tab-label">Discover</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div class="tab-label">Studio</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><div class="tab-label">Saved</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E15A41" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="tab-label active">You</div></div>
+  </div>
+</div>
+
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">B · Creator · established · verified · social connected</div>
+<div class="phone-bezel"><div class="phone-screen">
+
+<div class="top-bar">
+  <div class="title-f">You</div>
+  <div class="top-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+</div>
+
+<div class="hero-card">
+  <div class="avatar-wrap">
+    <div class="avatar-ring coral">
+      <div class="avatar-inner">RM</div>
+    </div>
+    <div class="check-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  </div>
+  <div class="display-name">Riya Menon</div>
+  <div class="username">@riya_menon · Pune, Maharashtra</div>
+  <div class="bio-real">Sharing offbeat Himalayan trips from Pune. 7 years running small-group tours across Spiti, Ladakh, and Kinnaur.</div>
+  <div class="stats-inline">
+    <div class="stat-inline"><div class="stat-val coral">432</div><div class="stat-lbl">Followers</div></div>
+    <div class="stat-inline"><div class="stat-val">89</div><div class="stat-lbl">Following</div></div>
+    <div class="stat-inline"><div class="stat-val">6</div><div class="stat-lbl">Published</div></div>
+  </div>
+</div>
+
+<div class="section-label">Connected accounts</div>
+<div class="settings-card">
+  <div class="social-row">
+    <div class="social-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#2C2823" stroke="none"><path d="M23 12s0-3.9-.5-5.8c-.3-1-1.1-1.8-2.1-2.1C18.6 3.6 12 3.6 12 3.6s-6.6 0-8.4.5c-1 .3-1.8 1.1-2.1 2.1C1 8.1 1 12 1 12s0 3.9.5 5.8c.3 1 1.1 1.8 2.1 2.1 1.8.5 8.4.5 8.4.5s6.6 0 8.4-.5c1-.3 1.8-1.1 2.1-2.1.5-1.9.5-5.8.5-5.8zM9.7 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+      <div class="social-dot green"></div>
+    </div>
+    <div class="social-info">
+      <div class="social-label">YouTube</div>
+      <div class="social-sub">@riyawanders · <strong>12.3K subs</strong></div>
+    </div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="social-row" style="border-bottom: none;">
+    <div class="social-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      <div class="social-dot gray"></div>
+    </div>
+    <div class="social-info">
+      <div class="social-label">Instagram</div>
+      <div class="social-sub">Not connected</div>
+    </div>
+    <button class="connect-pill">Connect</button>
+  </div>
+</div>
+
+<div class="section-label">Settings</div>
+<div class="settings-card">
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="setting-label">Notifications</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="setting-label">Edit profile</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="setting-label">Bookings</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <div class="setting-label">Identity &amp; payouts</div>
+    <div class="setting-badge"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Verified</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="setting-label">Help &amp; legal</div>
+    <svg class="chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="setting-row">
+    <div class="setting-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C2362F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+    <div class="setting-label destructive">Sign out</div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<div class="tab-bar-wrap">
+  <div class="tab-bar">
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div class="tab-label">Home</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="tab-label">Discover</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div class="tab-label">Studio</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><div class="tab-label">Saved</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E15A41" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="tab-label active">You</div></div>
+  </div>
+</div>
+
+</div></div>
+</div>
+
+</div>
+</div>
+</body>
+</html>

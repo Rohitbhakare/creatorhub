@@ -1,0 +1,57 @@
+# ─── Environment ─────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ─── Node ────────────────────────────────────────────────────
+node_modules/
+dist/
+.cache/
+*.tsbuildinfo
+
+# ─── pnpm ────────────────────────────────────────────────────
+.pnpm-store/
+
+# ─── Flutter / Dart ──────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+apps/mobile/ios/Pods/
+apps/mobile/ios/.symlinks/
+apps/mobile/android/.gradle/
+apps/mobile/android/local.properties
+apps/mobile/android/app/google-services.json
+apps/mobile/ios/Runner/GoogleService-Info.plist
+
+# ─── Next.js ─────────────────────────────────────────────────
+.next/
+out/
+
+# ─── macOS ───────────────────────────────────────────────────
+.DS_Store
+*.swp
+.AppleDouble
+.LSOverride
+
+# ─── IDE ─────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+*.iml
+
+# ─── Logs ────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Coverage ────────────────────────────────────────────────
+coverage/
+lcov.info
+
+# ─── Firebase ────────────────────────────────────────────────
+.firebase/
+firebase-debug.log
+firestore-debug.log

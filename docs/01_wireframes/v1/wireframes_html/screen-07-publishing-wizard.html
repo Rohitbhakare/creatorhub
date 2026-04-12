@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 07 · Publishing Wizard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px 20px; font-family: 'Inter', system-ui, sans-serif; background: #E5E0D7; color: #2C2823; }
+  .wrap { max-width: 1300px; margin: 0 auto; }
+  .caption { font-size: 13px; color: #6B6660; margin-bottom: 10px; line-height: 1.55; text-align: center; }
+  .section-head { font-family: 'Fraunces', Georgia, serif; font-size: 24px; color: #2C2823; font-weight: 500; margin: 40px 0 16px; text-align: center; font-variation-settings: 'SOFT' 60, 'opsz' 30; }
+  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-bottom: 22px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
+  .phone-col { display: flex; flex-direction: column; }
+  .phone-label { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .phone-bezel { background: #2C2823; padding: 7px 7px 4px; border-radius: 26px 26px 6px 6px; }
+  .phone-screen { background: #FAF7F4; border-radius: 20px 20px 0 0; overflow: hidden; min-height: 780px; display: flex; flex-direction: column; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; }
+  .back { width: 32px; height: 32px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .step-label { font-size: 11px; color: #6B6660; font-weight: 500; }
+  .save-link { font-size: 12px; color: #6B6660; font-weight: 500; }
+  .cancel-link { font-size: 13px; color: #6B6660; font-weight: 500; }
+  .progress { display: grid; gap: 4px; padding: 0 16px; margin-bottom: 16px; }
+  .progress-5 { grid-template-columns: repeat(5, 1fr); }
+  .progress-7 { grid-template-columns: repeat(7, 1fr); }
+  .progress-2 { grid-template-columns: 1fr 1fr; }
+  .progress-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .prog-dot { height: 3px; background: #E5E0D7; border-radius: 99px; }
+  .prog-dot.done { background: #2C2823; }
+  .pad { padding: 0 16px; }
+  .f-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #2C2823; font-weight: 500; line-height: 1.2; font-variation-settings: 'SOFT' 60, 'opsz' 28; }
+  .f-sub { font-size: 12px; color: #6B6660; margin-top: 4px; line-height: 1.5; }
+  .spacer { flex: 1; }
+  .btn-footer { background: #FFFFFF; border-top: 1px solid #E5E0D7; padding: 12px 16px; }
+  .btn-primary-full { width: 100%; background: #E15A41; color: #FFFFFF; border: none; font-family: inherit; font-size: 14px; font-weight: 500; padding: 13px; border-radius: 12px; }
+  .type-card { background: #FFFFFF; border: 1.5px solid #E5E0D7; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .type-card.selected { background: #FFF5F1; border-color: #E15A41; }
+  .type-head { display: flex; align-items: center; gap: 12px; }
+  .type-icon { width: 38px; height: 38px; background: #F2EEE8; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .type-icon.selected { background: #FCE3DA; }
+  .type-title { font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #2C2823; font-weight: 500; font-variation-settings: 'SOFT' 60, 'opsz' 20; }
+  .type-desc { font-size: 11px; color: #6B6660; margin-top: 2px; }
+  .type-radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #C9C3B6; flex-shrink: 0; }
+  .type-radio.selected { background: #E15A41; border-color: #E15A41; display: flex; align-items: center; justify-content: center; }
+  .type-info { flex: 1; }
+  .type-foot { font-size: 11px; color: #9C9689; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid #F2EEE8; }
+  .type-foot.selected { color: #6E2412; border-color: #F8C2B0; }
+  .label-small { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .label-counter { font-size: 11px; color: #9C9689; font-variant-numeric: tabular-nums; }
+  .input-card { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 10px; padding: 11px 13px; font-size: 13px; color: #2C2823; }
+  .input-text { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 10px; padding: 11px 13px; font-size: 12px; color: #2C2823; line-height: 1.5; }
+  .cover-empty { aspect-ratio: 16/10; background: #F2EEE8; border: 1.5px dashed #C9C3B6; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .mb14 { margin-bottom: 14px; }
+  .mb16 { margin-bottom: 16px; }
+  .chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 11px; font-weight: 500; padding: 6px 11px; border-radius: 99px; }
+  .chip.active { background: #2C2823; color: #FAF7F4; border: 0.5px solid #2C2823; }
+  .chip.inactive { background: #FFFFFF; color: #2C2823; border: 0.5px solid #E5E0D7; }
+  .stepper-card { display: flex; align-items: center; gap: 14px; background: #F2EEE8; border-radius: 12px; padding: 14px; }
+  .stepper-btn { width: 32px; height: 32px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E5E0D7; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: #2C2823; }
+  .stepper-val { flex: 1; text-align: center; }
+  .stepper-num { font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 600; color: #2C2823; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stepper-lbl { font-size: 11px; color: #6B6660; margin-top: 3px; }
+  .search-active { background: #FFFFFF; border: 1.5px solid #2C2823; border-radius: 10px; padding: 11px 13px; display: flex; align-items: center; gap: 9px; box-shadow: 0 2px 10px rgba(60,30,15,0.08); position: relative; z-index: 5; }
+  .search-icon { flex-shrink: 0; }
+  .search-text { flex: 1; font-size: 13px; color: #2C2823; }
+  .dropdown { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 10px; margin-top: 4px; box-shadow: 0 6px 22px rgba(60,30,15,0.14); overflow: hidden; }
+  .dropdown-item { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 0.5px solid #F2EEE8; }
+  .dropdown-icon { width: 28px; height: 28px; background: #F2EEE8; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .dropdown-info { flex: 1; min-width: 0; }
+  .dropdown-name { font-size: 13px; color: #2C2823; font-weight: 500; }
+  .dropdown-addr { font-size: 11px; color: #6B6660; margin-top: 1px; }
+  .google-attrib { padding: 8px 13px; background: #FAF7F4; text-align: right; font-size: 11px; color: #9C9689; }
+  .spot-card { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 12px; padding: 12px; margin-bottom: 9px; }
+  .spot-card.coral { background: #FFF5F1; border: 1.5px solid #E15A41; }
+  .spot-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .spot-num { width: 22px; height: 22px; border-radius: 50%; background: #2C2823; color: #FAF7F4; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .spot-num.coral { background: #E15A41; color: #FFFFFF; }
+  .spot-name { font-size: 13px; font-weight: 500; color: #2C2823; }
+  .spot-meta { font-size: 11px; color: #6B6660; margin-top: 1px; }
+  .spot-info { flex: 1; min-width: 0; }
+  .note-card { background: #F2EEE8; border-radius: 8px; padding: 10px 12px; }
+  .note-card.white { background: #FFFFFF; }
+  .note-label { font-size: 10px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .note-text { font-family: 'Fraunces', Georgia, serif; font-size: 12px; color: #2C2823; font-style: italic; line-height: 1.5; }
+  .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid #F2EEE8; }
+  .toggle-row.coral { border-color: #F8C2B0; }
+  .toggle { width: 28px; height: 16px; background: #E5E0D7; border-radius: 10px; position: relative; }
+  .toggle.on { background: #E15A41; }
+  .toggle-thumb { position: absolute; top: 1px; width: 14px; height: 14px; background: #FFFFFF; border-radius: 50%; }
+  .toggle .toggle-thumb { left: 1px; }
+  .toggle.on .toggle-thumb { right: 1px; }
+  .toggle-label { font-size: 11px; color: #6B6660; }
+  .toggle-label.coral { color: #6E2412; font-weight: 500; }
+  .add-spot { background: transparent; border: 1.5px dashed #C9C3B6; border-radius: 12px; padding: 14px; text-align: center; font-size: 12px; color: #6B6660; font-weight: 500; }
+  .price-picker { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 12px; padding: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .price-tab { background: transparent; color: #6B6660; border: none; font-family: inherit; font-size: 13px; font-weight: 500; padding: 10px; border-radius: 8px; }
+  .price-tab.active { background: #2C2823; color: #FAF7F4; }
+  .price-input { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 12px; padding: 18px 16px; display: flex; align-items: baseline; gap: 8px; }
+  .currency { font-family: 'Fraunces', Georgia, serif; font-size: 28px; color: #2C2823; font-weight: 500; }
+  .amount { font-family: 'Fraunces', Georgia, serif; font-size: 32px; color: #2C2823; font-weight: 600; font-variant-numeric: tabular-nums; flex: 1; }
+  .amount-label { font-size: 11px; color: #6B6660; }
+  .help-text { font-size: 11px; color: #6B6660; margin-top: 8px; line-height: 1.55; }
+  .inclusions-card { background: #FFFFFF; border: 1px solid #E5E0D7; border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; }
+  .inclusion-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #2C2823; }
+  .freemium-card { background: #FFF5F1; border: 1px solid #F8C2B0; border-radius: 12px; padding: 14px 16px; }
+  .freemium-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .freemium-lbl { font-size: 11px; color: #6E2412; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .freemium-toggle { width: 34px; height: 20px; background: #E15A41; border-radius: 10px; position: relative; }
+  .freemium-toggle .thumb { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: #FFFFFF; border-radius: 50%; }
+  .freemium-body { font-size: 12px; color: #4A4641; line-height: 1.55; margin-bottom: 10px; }
+  .freemium-body strong { color: #2C2823; }
+  .freemium-rec { font-size: 11px; color: #6E2412; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="caption">Screen 07 · Publishing Wizard · content type picker + 5-step wizard for self-paced itinerary + distinctive steps for post, event, and scheduled experience.</div>
+
+<div class="section-head">Content type picker + self-paced itinerary wizard</div>
+
+<div class="row">
+
+<div class="phone-col">
+<div class="phone-label">A · Content type picker</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="cancel-link">Cancel</div>
+  <div class="step-label">Create</div>
+  <div style="width: 40px;"></div>
+</div>
+<div class="pad" style="padding-bottom: 22px;">
+  <div class="f-title">What are you creating?</div>
+  <div class="f-sub">Pick the type that fits best. You can change your mind before publishing.</div>
+</div>
+<div class="pad">
+  <div class="type-card">
+    <div class="type-head">
+      <div class="type-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="type-info">
+        <div class="type-title">Post</div>
+        <div class="type-desc">A long-form write-up</div>
+      </div>
+      <div class="type-radio"></div>
+    </div>
+    <div class="type-foot">Free · no KYC needed · fastest to publish</div>
+  </div>
+  <div class="type-card">
+    <div class="type-head">
+      <div class="type-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="type-info">
+        <div class="type-title">Event</div>
+        <div class="type-desc">A single time-bound experience</div>
+      </div>
+      <div class="type-radio"></div>
+    </div>
+    <div class="type-foot">Free or paid · KYC needed if paid · under 24 hours</div>
+  </div>
+  <div class="type-card">
+    <div class="type-head">
+      <div class="type-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+      <div class="type-info">
+        <div class="type-title">Scheduled experience</div>
+        <div class="type-desc">A creator-led multi-day trip</div>
+      </div>
+      <div class="type-radio"></div>
+    </div>
+    <div class="type-foot">Paid · KYC required · you are with travellers</div>
+  </div>
+  <div class="type-card selected">
+    <div class="type-head">
+      <div class="type-icon selected"><svg width="18" height="18" viewBox="0 0 256 256" fill="#E15A41"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg></div>
+      <div class="type-info">
+        <div class="type-title">Self-paced itinerary</div>
+        <div class="type-desc">A spot-based guide travellers follow on their own</div>
+      </div>
+      <div class="type-radio selected"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="type-foot selected">Free or paid · KYC needed if paid · you are not with travellers</div>
+  </div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Continue</button></div>
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">B · Step 1 · Basics</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 1 of 5 · Basics</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-5">
+  <div class="prog-dot done"></div><div class="prog-dot"></div><div class="prog-dot"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+</div>
+<div class="pad mb16">
+  <div class="f-title">Start with the basics</div>
+  <div class="f-sub">These are the first things travellers will see.</div>
+</div>
+<div class="pad mb16">
+  <div class="label-small">Cover image</div>
+  <div class="cover-empty">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <div style="font-size: 12px; color: #2C2823; font-weight: 500;">Tap to upload</div>
+    <div style="font-size: 11px; color: #9C9689;">1200 × 750 · JPG or PNG · max 5 MB</div>
+  </div>
+</div>
+<div class="pad mb14">
+  <div class="label-row"><div class="label-small">Title</div><div class="label-counter">28 / 100</div></div>
+  <div class="input-card">The complete Spiti guide</div>
+</div>
+<div class="pad mb14">
+  <div class="label-row"><div class="label-small">Short description</div><div class="label-counter">89 / 280</div></div>
+  <div class="input-text">7 days through the Spiti valley. 24 hand-picked spots with monastery timings, local food tips, and homestay contacts.</div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Sub-category · pick one</div>
+  <div class="chips-row">
+    <div class="chip inactive">Road Trips</div>
+    <div class="chip inactive">Trekking</div>
+    <div class="chip active">Heritage &amp; Culture</div>
+    <div class="chip inactive">Offbeat</div>
+  </div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Continue</button></div>
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">C · Step 2 · Trip overview</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 2 of 5 · Overview</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-5">
+  <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+</div>
+<div class="pad mb16">
+  <div class="f-title">Trip overview</div>
+  <div class="f-sub">The skeleton of your trip. You can refine later.</div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Starts from</div>
+  <div class="input-card" style="display: flex; align-items: center; gap: 10px;">
+    <svg width="14" height="14" viewBox="0 0 256 256" fill="#E15A41"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+    <div>Manali, Himachal Pradesh</div>
+  </div>
+</div>
+<div class="pad mb16">
+  <div class="label-small">How many days?</div>
+  <div class="stepper-card">
+    <div class="stepper-btn">−</div>
+    <div class="stepper-val">
+      <div class="stepper-num">7</div>
+      <div class="stepper-lbl">days</div>
+    </div>
+    <div class="stepper-btn">+</div>
+  </div>
+  <div class="help-text">Creates 7 day buckets. You'll add spots to each in the next step.</div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Budget range · per traveller</div>
+  <div class="chips-row">
+    <div class="chip inactive">Under ₹5k</div>
+    <div class="chip inactive">₹5k–15k</div>
+    <div class="chip active">₹15k–30k</div>
+    <div class="chip inactive">₹30k+</div>
+  </div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Difficulty</div>
+  <div class="chips-row">
+    <div class="chip inactive">Easy</div>
+    <div class="chip active">Moderate</div>
+    <div class="chip inactive">Challenging</div>
+  </div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Continue</button></div>
+</div></div>
+</div>
+
+</div>
+
+<div class="section-head">Step 3 · Days · spot editor (the novel step)</div>
+
+<div class="row-2">
+
+<div class="phone-col">
+<div class="phone-label">D · Google Places autocomplete active</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 3 of 5 · Days</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-5">
+  <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+</div>
+<div class="pad mb16">
+  <div class="f-title">Build your days</div>
+  <div class="f-sub">Add spots to each day. Your notes are what travellers pay for.</div>
+</div>
+<div class="pad mb14">
+  <div class="chips-row">
+    <div class="chip active">Day 1</div>
+    <div class="chip inactive">Day 2</div>
+    <div class="chip" style="border: 0.5px dashed #C9C3B6; background: #FFFFFF; color: #9C9689;">+ Day</div>
+  </div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Day title</div>
+  <div class="input-card">Manali → Jibhi</div>
+</div>
+<div class="pad mb14">
+  <div class="label-small">Spots · 0 added</div>
+  <div class="search-active">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="search-text">naggar|</div>
+  </div>
+  <div class="dropdown">
+    <div class="dropdown-item">
+      <div class="dropdown-icon"><svg width="14" height="14" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg></div>
+      <div class="dropdown-info">
+        <div class="dropdown-name">Naggar Castle</div>
+        <div class="dropdown-addr">Naggar, Kullu, Himachal Pradesh</div>
+      </div>
+    </div>
+    <div class="dropdown-item">
+      <div class="dropdown-icon"><svg width="14" height="14" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Z"/></svg></div>
+      <div class="dropdown-info">
+        <div class="dropdown-name">Naggar Heritage Walk</div>
+        <div class="dropdown-addr">Old Manali Road, Naggar</div>
+      </div>
+    </div>
+    <div class="dropdown-item" style="border-bottom: none;">
+      <div class="dropdown-icon"><svg width="14" height="14" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Z"/></svg></div>
+      <div class="dropdown-info">
+        <div class="dropdown-name">Nicholas Roerich Art Gallery</div>
+        <div class="dropdown-addr">Naggar Castle, Kullu district</div>
+      </div>
+    </div>
+    <div class="google-attrib">powered by Google</div>
+  </div>
+</div>
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">E · Spots populated with creator notes + overnight</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 3 of 5 · Days</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-5">
+  <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+</div>
+<div class="pad" style="margin-bottom: 14px;">
+  <div class="chips-row">
+    <div class="chip active">Day 1</div>
+    <div class="chip inactive">Day 2</div>
+  </div>
+</div>
+<div class="pad">
+  <div class="label-small">Spots · 3 added</div>
+  <div class="spot-card">
+    <div class="spot-head">
+      <div class="spot-num">1</div>
+      <div class="spot-info">
+        <div class="spot-name">Naggar Castle</div>
+        <div class="spot-meta">Heritage · 45 min</div>
+      </div>
+    </div>
+    <div class="note-card">
+      <div class="note-label">Your note</div>
+      <div class="note-text">Come at 10am before the tour buses arrive. The Roerich gallery upstairs is easy to miss.</div>
+    </div>
+  </div>
+  <div class="spot-card">
+    <div class="spot-head">
+      <div class="spot-num">2</div>
+      <div class="spot-info">
+        <div class="spot-name">Jibhi Waterfall</div>
+        <div class="spot-meta">Nature · 1 hour</div>
+      </div>
+    </div>
+    <div class="note-card">
+      <div class="note-label">Your note</div>
+      <div class="note-text">20-minute walk from the road. Wear grippy shoes · the last 50m is slippery.</div>
+    </div>
+  </div>
+  <div class="spot-card coral">
+    <div class="spot-head">
+      <div class="spot-num coral">3</div>
+      <div class="spot-info">
+        <div class="spot-name">Doobi Homestay</div>
+        <div class="spot-meta">Stay · overnight</div>
+      </div>
+    </div>
+    <div class="note-card white">
+      <div class="note-label">Your note</div>
+      <div class="note-text">Ask for Tenzin · mention my name · the apple pie is unreal.</div>
+    </div>
+    <div class="toggle-row coral">
+      <div class="toggle on"><div class="toggle-thumb"></div></div>
+      <div class="toggle-label coral">Overnight stop</div>
+    </div>
+  </div>
+  <div class="add-spot">+ Add another spot</div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Day 2 →</button></div>
+</div></div>
+</div>
+
+</div>
+
+<div class="section-head">Step 4 · Pricing · freemium toggle</div>
+
+<div class="row-2">
+
+<div class="phone-col">
+<div class="phone-label">F · Pricing with freemium preview</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 4 of 5 · Pricing</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-5">
+  <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot"></div>
+</div>
+<div class="pad mb16">
+  <div class="f-title">How much will this cost?</div>
+</div>
+<div class="pad mb16">
+  <div class="price-picker">
+    <button class="price-tab">Free</button>
+    <button class="price-tab active">Paid</button>
+  </div>
+</div>
+<div class="pad" style="margin-bottom: 22px;">
+  <div class="label-small">Price per traveller</div>
+  <div class="price-input">
+    <span class="currency">₹</span>
+    <span class="amount">499</span>
+    <span class="amount-label">lifetime access</span>
+  </div>
+  <div class="help-text">Travellers pay once and keep lifetime access. GST (18%) is added at checkout, not to your listed price.</div>
+</div>
+<div class="pad" style="margin-bottom: 22px;">
+  <div class="label-small">What travellers get · auto-filled</div>
+  <div class="inclusions-card">
+    <div class="inclusion-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>All 24 spots across 7 days</div>
+    <div class="inclusion-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Your insider notes for every spot</div>
+    <div class="inclusion-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Offline access</div>
+    <div class="inclusion-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Free updates when you add spots</div>
+  </div>
+</div>
+<div class="pad" style="margin-bottom: 20px;">
+  <div class="freemium-card">
+    <div class="freemium-head">
+      <div class="freemium-lbl">Freemium preview</div>
+      <div class="freemium-toggle"><div class="thumb"></div></div>
+    </div>
+    <div class="freemium-body">Let travellers see <strong>Day 1 (3 spots)</strong> for free. They unlock the rest after buying.</div>
+    <div class="freemium-rec">Recommended · free previews convert 3× better than hard paywalls.</div>
+  </div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Review &amp; publish →</button></div>
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">G · Scheduled experience · Departures step</div>
+<div class="phone-bezel"><div class="phone-screen">
+<div class="top-bar">
+  <div class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+  <div class="step-label">Step 4 of 7 · Departures</div>
+  <div class="save-link">Save</div>
+</div>
+<div class="progress progress-7">
+  <div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot done"></div><div class="prog-dot"></div><div class="prog-dot"></div><div class="prog-dot"></div>
+</div>
+<div class="pad mb16">
+  <div class="f-title">When are you running this?</div>
+  <div class="f-sub">Add every departure you're planning.</div>
+</div>
+<div class="pad" style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+  <div class="label-small" style="margin-bottom: 0;">3 departures scheduled</div>
+  <div style="font-size: 11px; color: #6B6660;">24 total spots</div>
+</div>
+<div class="pad">
+  <div class="spot-card" style="padding: 14px; margin-bottom: 9px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 44px; flex-shrink: 0; border: 1px solid #2C2823; border-radius: 8px; overflow: hidden; text-align: center;">
+          <div style="background: #2C2823; color: #FAF7F4; font-size: 11px; font-weight: 600; padding: 3px 0; text-transform: uppercase;">May</div>
+          <div style="padding: 5px 0;"><div style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 600; line-height: 1;">15</div></div>
+        </div>
+        <div>
+          <div style="font-family: 'Fraunces', Georgia, serif; font-size: 14px; color: #2C2823; font-weight: 500;">May 15 – 21</div>
+          <div style="font-size: 11px; color: #6B6660; margin-top: 2px;">7 days · Thu to Wed</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top: 10px; border-top: 0.5px solid #F2EEE8; display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-size: 11px; color: #6B6660;">Capacity</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: #F2EEE8; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2C2823;">−</div>
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: #2C2823;">8</div>
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: #F2EEE8; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #2C2823;">+</div>
+      </div>
+    </div>
+  </div>
+  <div class="spot-card" style="padding: 14px; margin-bottom: 9px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 44px; border: 1px solid #2C2823; border-radius: 8px; overflow: hidden; text-align: center;">
+        <div style="background: #2C2823; color: #FAF7F4; font-size: 11px; font-weight: 600; padding: 3px 0; text-transform: uppercase;">Jun</div>
+        <div style="padding: 5px 0;"><div style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 600; line-height: 1;">5</div></div>
+      </div>
+      <div style="flex: 1;">
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 14px; color: #2C2823; font-weight: 500;">Jun 5 – 11</div>
+        <div style="font-size: 11px; color: #6B6660; margin-top: 2px;">7 days · 8 spots</div>
+      </div>
+    </div>
+  </div>
+  <div class="add-spot">+ Add another departure</div>
+</div>
+<div class="spacer"></div>
+<div class="btn-footer"><button class="btn-primary-full">Continue</button></div>
+</div></div>
+</div>
+
+</div>
+
+</div>
+</body>
+</html>

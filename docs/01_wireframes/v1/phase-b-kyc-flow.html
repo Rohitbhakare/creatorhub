@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase B · KYC Mobile Flow · &lt;AppName&gt;</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --sunken: #F2EEE8;
+    --border: #E5E0D7;
+    --line: #C9C3B6;
+    --soft-ink: #9C9689;
+    --muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-wash: #FFF5F1;
+    --coral-border: #F8C2B0;
+    --coral-deep: #6E2412;
+    --green: #0F6E56;
+    --green-bg: #E1F5EE;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --red: #C2362F;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--body);
+    background: #1a1815;
+    color: var(--ink);
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+
+  /* ── Page header ── */
+  .page-header {
+    background: var(--coral-wash);
+    border: 1px solid var(--coral-border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .page-eyebrow {
+    font-size: 11px;
+    color: var(--coral-deep);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .page-title {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+    line-height: 1.15;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    max-width: 800px;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    color: var(--surface);
+    margin-bottom: 18px;
+    padding: 0 4px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .section-meta {
+    font-size: 11px;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Screen group grid ── */
+  .screens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 28px;
+    align-items: start;
+  }
+  .screens-2 { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+
+  /* ── Phone frame ── */
+  .phone {
+    background: #1a1815;
+    padding: 8px 8px 4px;
+    border-radius: 32px 32px 8px 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .screen {
+    background: var(--surface);
+    border-radius: 25px 25px 0 0;
+    overflow: hidden;
+    min-height: 720px;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen-content {
+    flex: 1;
+    overflow: hidden;
+  }
+  .screen-label {
+    color: var(--soft-ink);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+  .screen-label .num { color: var(--coral); }
+
+  /* ── Top nav (back button + step) ── */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 8px;
+  }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .step-meta {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .nav-link {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── Progress bar ── */
+  .progress {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    padding: 0 18px 16px;
+  }
+  .progress-step {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+  }
+  .progress-step.done { background: var(--ink); }
+  .progress-step.active { background: var(--coral); }
+
+  /* ── Headlines ── */
+  .h1 {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.15;
+    color: var(--ink);
+    padding: 0 18px;
+    margin-bottom: 8px;
+  }
+  .h1.bigger { font-size: 30px; }
+  .h2 {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink);
+    padding: 0 18px;
+    margin-bottom: 6px;
+  }
+  .sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 0 18px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Field labels ── */
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--soft-ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 18px 6px;
+  }
+  .why-link {
+    font-size: 10px;
+    color: var(--coral);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* ── Inputs ── */
+  .input {
+    margin: 0 18px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .input.placeholder { color: var(--soft-ink); }
+  .input.mono { font-family: var(--mono); letter-spacing: 0.05em; }
+  .input.valid {
+    border: 1.5px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .input.error {
+    border: 1.5px solid var(--red);
+  }
+  .input-error-msg {
+    font-size: 11px;
+    color: var(--red);
+    padding: 0 18px 12px;
+    margin-top: -10px;
+  }
+  .input-help {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 0 18px 14px;
+    margin-top: -10px;
+    line-height: 1.5;
+  }
+
+  /* ── Why explainer ── */
+  .why-explainer {
+    margin: 0 18px 16px;
+    background: var(--sunken);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--coral);
+  }
+  .why-explainer-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .why-explainer-row {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 4px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .why-explainer-row .icon {
+    color: var(--coral);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── Upload zone ── */
+  .upload-zone {
+    margin: 0 18px 16px;
+    background: var(--sunken);
+    border: 1.5px dashed var(--line);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+  }
+  .upload-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .upload-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .upload-help {
+    font-size: 10px;
+    color: var(--soft-ink);
+  }
+  .upload-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    justify-content: center;
+  }
+  .upload-btn {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .upload-zone.uploaded {
+    background: var(--green-bg);
+    border: 1.5px solid var(--green);
+    border-style: solid;
+    text-align: left;
+    padding: 14px 16px;
+  }
+  .uploaded-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .uploaded-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .uploaded-name {
+    flex: 1;
+  }
+  .uploaded-name .file {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .uploaded-name .meta {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── CTA buttons ── */
+  .cta-coral {
+    margin: 8px 18px 16px;
+    background: var(--coral);
+    color: white;
+    font-family: var(--body);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 15px;
+    border-radius: 14px;
+    text-align: center;
+  }
+  .cta-coral.disabled { opacity: 0.4; }
+  .cta-outline {
+    margin: 8px 18px;
+    background: white;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 13px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .cta-text {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 12px 0;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-coral { background: var(--coral-wash); color: var(--coral); border: 0.5px solid var(--coral-border); }
+  .badge-red { background: #FCE5E3; color: var(--red); }
+
+  /* ── Annotation panel ── */
+  .annotation {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .annotation strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .annotation .anno-title {
+    font-family: var(--display);
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  /* ── KYC nudge card (Studio context) ── */
+  .nudge-context {
+    padding: 14px 18px;
+  }
+  .nudge-context-label {
+    font-size: 9px;
+    color: var(--soft-ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .nudge-card {
+    background: var(--coral-wash);
+    border: 1px solid var(--coral-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin: 0 4px;
+  }
+  .nudge-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .nudge-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nudge-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--coral-deep);
+  }
+  .nudge-sub {
+    font-size: 11px;
+    color: #8B3A22;
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+  .nudge-cta-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .nudge-cta {
+    flex: 1;
+    background: var(--coral);
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 9px;
+    border-radius: 9px;
+    text-align: center;
+  }
+  .nudge-link {
+    font-size: 11px;
+    color: var(--coral);
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  /* ── Intro screen ── */
+  .intro-hero {
+    padding: 30px 24px 20px;
+    text-align: center;
+  }
+  .intro-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: var(--coral-wash);
+    border: 1.5px solid var(--coral-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .intro-meta {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .intro-meta .dot {
+    color: var(--line);
+  }
+  .step-list {
+    margin: 24px 18px;
+  }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--surface);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--display);
+  }
+  .step-text {
+    flex: 1;
+  }
+  .step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .step-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .step-time {
+    font-size: 10px;
+    color: var(--soft-ink);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  .privacy-note {
+    margin: 16px 18px;
+    background: var(--green-bg);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .privacy-note .icon { color: var(--green); flex-shrink: 0; margin-top: 2px; }
+  .privacy-note .text {
+    font-size: 11px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .privacy-note .text strong { font-weight: 600; }
+
+  /* ── Selfie capture ── */
+  .selfie-hero {
+    margin: 16px 18px;
+    background: #2C2823;
+    border-radius: 16px;
+    aspect-ratio: 3/4;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .selfie-oval {
+    width: 200px;
+    height: 260px;
+    border: 3px dashed var(--coral);
+    border-radius: 50%;
+    position: relative;
+  }
+  .selfie-oval.good {
+    border-style: solid;
+    border-color: var(--green);
+  }
+  .selfie-status {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.95);
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .selfie-status.warn { color: var(--amber); }
+  .selfie-status.good { color: var(--green); }
+  .selfie-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px;
+  }
+  .capture-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--coral);
+    border: 4px solid white;
+    box-shadow: 0 0 0 2px var(--coral);
+  }
+  .selfie-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--sunken);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Review summary ── */
+  .review-card {
+    margin: 0 18px 12px;
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .review-row {
+    padding: 13px 16px;
+    border-bottom: 0.5px solid var(--sunken);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .review-row:last-child { border-bottom: none; }
+  .review-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .review-content {
+    flex: 1;
+  }
+  .review-label {
+    font-size: 10px;
+    color: var(--soft-ink);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .review-value {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .review-edit {
+    font-size: 11px;
+    color: var(--coral);
+    font-weight: 500;
+  }
+
+  /* ── Declaration checkbox ── */
+  .declaration {
+    margin: 8px 18px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px;
+    background: var(--sunken);
+    border-radius: 10px;
+  }
+  .checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--line);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .checkbox.checked {
+    background: var(--coral);
+    border-color: var(--coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .declaration-text {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ── Submitted hero ── */
+  .submitted-hero {
+    text-align: center;
+    padding: 50px 24px 20px;
+  }
+  .submitted-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .submitted-h1 {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .submitted-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 0 12px;
+  }
+  .next-steps {
+    margin: 24px 18px;
+    background: var(--sunken);
+    border-radius: 14px;
+    padding: 18px 20px;
+    text-align: left;
+  }
+  .next-steps-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+  .next-step-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .next-step-row:last-child { margin-bottom: 0; }
+  .next-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .next-step-text {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ── Status states (pending, approved, rejected) ── */
+  .status-card {
+    margin: 16px 18px;
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .status-card.pending {
+    background: var(--amber-bg);
+    border: 1px solid #E8C68D;
+  }
+  .status-card.approved {
+    background: var(--green-bg);
+    border: 1px solid #A8DDC5;
+  }
+  .status-card.rejected {
+    background: #FCE5E3;
+    border: 1px solid #E8A8A0;
+  }
+  .status-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .status-icon-circ {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .status-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .status-card.pending .status-title { color: var(--amber); }
+  .status-card.approved .status-title { color: var(--green); }
+  .status-card.rejected .status-title { color: var(--red); }
+  .status-sub {
+    font-size: 12px;
+    margin-top: 4px;
+    line-height: 1.55;
+  }
+  .status-card.pending .status-sub { color: #6E3D04; }
+  .status-card.approved .status-sub { color: #074A39; }
+  .status-card.rejected .status-sub { color: #6E1B16; }
+  .status-meta {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid;
+    font-size: 10px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-card.pending .status-meta { border-color: #E8C68D; color: #6E3D04; }
+  .status-card.approved .status-meta { border-color: #A8DDC5; color: #074A39; }
+  .status-card.rejected .status-meta { border-color: #E8A8A0; color: #6E1B16; }
+
+  /* ── Issue list (rejected state) ── */
+  .issue-list {
+    margin: 16px 18px;
+  }
+  .issue-list-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .issue-item {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--red);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .issue-item .step-name {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .issue-item .reason {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .issue-fix {
+    font-size: 11px;
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  /* ── Confetti hero (approved) ── */
+  .confetti-hero {
+    text-align: center;
+    padding: 40px 24px 16px;
+    position: relative;
+  }
+  .confetti-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    border: 2px solid var(--green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .confetti-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ── Aadhaar option toggle ── */
+  .option-toggle {
+    margin: 0 18px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .option-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .option-card.selected {
+    border: 1.5px solid var(--coral);
+    background: var(--coral-wash);
+  }
+  .option-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--sunken);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .option-card.selected .option-icon {
+    background: white;
+  }
+  .option-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .option-meta {
+    font-size: 9px;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .option-card.selected .option-meta { color: var(--coral); }
+
+  /* ── Inline modal sheet (interrupt) ── */
+  .modal-overlay {
+    background: rgba(44, 40, 35, 0.55);
+    padding: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 14px 18px 24px;
+  }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 99px;
+    margin: 0 auto 18px;
+  }
+  .modal-title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .modal-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+  .modal-bullets {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .modal-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink);
+    padding: 5px 0;
+    line-height: 1.5;
+  }
+  .modal-bullet .check { color: var(--green); flex-shrink: 0; }
+
+  /* ── SVG icon helper ── */
+  svg { display: block; }
+
+  /* ── Container helpers ── */
+  .pad-x { padding-left: 18px; padding-right: 18px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+
+  /* ── Bank IFSC autofill row ── */
+  .autofill-row {
+    margin: 0 18px 16px;
+    background: var(--green-bg);
+    border-left: 3px solid var(--green);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .autofill-row svg { color: var(--green); flex-shrink: 0; }
+  .autofill-text {
+    font-size: 11px;
+    color: #074A39;
+    line-height: 1.5;
+  }
+  .autofill-text strong { font-weight: 700; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PAGE HEADER
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-header">
+    <div class="page-eyebrow">PHASE B · KYC MOBILE FLOW</div>
+    <div class="page-title">Identity verification for paid creators</div>
+    <div class="page-sub">
+      Triggered when an unverified creator toggles "Paid" in the publishing wizard. 11 screens · Option A inline interrupt · 5-step linear flow with selfie · "Why we ask" explainers on every input · Manual review for MVP, third-party API in V1 · Single KYC unlocks unlimited paid publishing.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 1 · ENTRY POINTS
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">1 · Entry points</div>
+      <div class="section-meta">2 screens · interrupt + intro</div>
+    </div>
+    <div class="screens">
+
+      <!-- SCREEN 1 · INTERRUPT MODAL -->
+      <div>
+        <div class="screen-label"><span class="num">01</span> · Inline interrupt · triggered from wizard step 4</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content modal-overlay">
+              <div class="modal-sheet">
+                <div class="modal-handle"></div>
+                <div class="badge badge-coral" style="margin-bottom: 12px;">⚠ VERIFICATION REQUIRED</div>
+                <div class="modal-title">Verify your identity to publish paid content</div>
+                <div class="modal-text">RBI requires us to verify every creator who receives payouts. This is a one-time process — once approved you can publish unlimited paid trips.</div>
+                <div class="modal-bullets">
+                  <div class="modal-bullet"><svg class="check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> About 8 minutes</div>
+                  <div class="modal-bullet"><svg class="check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> PAN, Aadhaar, bank account, selfie</div>
+                  <div class="modal-bullet"><svg class="check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Reviewed within 24-48 hours</div>
+                  <div class="modal-bullet"><svg class="check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Your draft is saved automatically</div>
+                </div>
+                <div class="cta-coral" style="margin: 0 0 10px;">Start verification</div>
+                <div class="cta-text" style="padding: 6px 0;">Save as draft and finish later</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">When this fires</div>
+          Creator is in publishing wizard Step 4 (Pricing). Toggles "Paid". If KYC status ≠ verified, the wizard pauses and this sheet slides up from the bottom. <strong>No third "skip" option</strong> — KYC is non-negotiable for paid content. Tapping "Save as draft and finish later" returns the creator to Studio with their draft preserved at exactly Step 4 with Paid selected, so they can resume after verification without redoing anything.
+        </div>
+      </div>
+
+      <!-- SCREEN 2 · INTRO -->
+      <div>
+        <div class="screen-label"><span class="num">02</span> · Intro screen · sets expectations</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Verification</div>
+                <div style="width: 32px;"></div>
+              </div>
+              <div class="intro-hero">
+                <div class="intro-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+                </div>
+                <div class="h1 bigger" style="padding: 0;">Three quick steps to get verified</div>
+                <div class="intro-meta">
+                  <span>≈ 8 minutes</span>
+                  <span class="dot">·</span>
+                  <span>Reviewed in 24-48 hrs</span>
+                </div>
+              </div>
+              <div class="step-list">
+                <div class="step-item">
+                  <div class="step-num">1</div>
+                  <div class="step-text">
+                    <div class="step-title">PAN card</div>
+                    <div class="step-sub">Number, name on card, and a photo of the card itself</div>
+                    <div class="step-time">≈ 2 minutes</div>
+                  </div>
+                </div>
+                <div class="step-item">
+                  <div class="step-num">2</div>
+                  <div class="step-text">
+                    <div class="step-title">Aadhaar</div>
+                    <div class="step-sub">Aadhaar number and photo, or Digilocker (V1)</div>
+                    <div class="step-time">≈ 2 minutes</div>
+                  </div>
+                </div>
+                <div class="step-item">
+                  <div class="step-num">3</div>
+                  <div class="step-text">
+                    <div class="step-title">Bank account &amp; selfie</div>
+                    <div class="step-sub">Account details for payouts, plus a quick selfie</div>
+                    <div class="step-time">≈ 4 minutes</div>
+                  </div>
+                </div>
+              </div>
+              <div class="privacy-note">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div class="text"><strong>Encrypted, never shared.</strong> Your documents are encrypted at rest and only viewable by our reviewers during verification. We never share them with travellers or sell them to anyone.</div>
+              </div>
+              <div class="cta-coral">Start with PAN</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Setting expectations matters</div>
+          The intro screen exists because <strong>uncertainty is the #1 cause of KYC drop-off</strong>. Showing the time estimate ("≈ 8 minutes"), the document list, and the review SLA upfront converts dramatically better than dropping users into Step 1 cold. The privacy note in green is the trust device — it answers the question every creator is silently asking ("what happens to my Aadhaar?"). Coral icon, soft warm framing, no jargon.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 2 · THE VERIFICATION FLOW
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">2 · The verification flow</div>
+      <div class="section-meta">5 steps · linear · all saveable as draft</div>
+    </div>
+    <div class="screens">
+
+      <!-- SCREEN 3 · STEP 1 PAN -->
+      <div>
+        <div class="screen-label"><span class="num">03</span> · Step 1 · PAN card</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 1 of 5 · PAN</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+              </div>
+              <div class="h1">Your PAN card</div>
+              <div class="sub">We'll verify your name and tax identity.</div>
+
+              <div class="field-label">
+                <span>PAN NUMBER</span>
+                <span class="why-link">ⓘ Why we ask</span>
+              </div>
+              <div class="input mono">ABCPM 1234 K</div>
+
+              <div class="field-label">
+                <span>NAME AS ON PAN</span>
+              </div>
+              <div class="input">Riya Menon</div>
+
+              <div class="field-label">
+                <span>UPLOAD A PHOTO OF YOUR PAN CARD</span>
+              </div>
+              <div class="upload-zone">
+                <div class="upload-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div class="upload-title">Tap to upload</div>
+                <div class="upload-help">JPG or PNG · max 5 MB · clear and well-lit</div>
+                <div class="upload-actions">
+                  <div class="upload-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Camera
+                  </div>
+                  <div class="upload-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    Gallery
+                  </div>
+                </div>
+              </div>
+
+              <div class="cta-coral disabled">Continue to Aadhaar</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">PAN as the first step · why</div>
+          PAN is the easiest of the three documents — most creators have the number memorized and the card photo is straightforward. <strong>Starting with the easiest step builds momentum</strong>. The CTA stays disabled until all three fields are filled (number, name, photo upload). The "ⓘ Why we ask" link is the trust device — see screen 4 for the expanded state. Camera vs Gallery options accommodate both creators on-the-go and those uploading from existing photos.
+        </div>
+      </div>
+
+      <!-- SCREEN 4 · STEP 1 PAN WITH WHY EXPANDED + UPLOADED -->
+      <div>
+        <div class="screen-label"><span class="num">04</span> · Step 1 · with "Why we ask" expanded + uploaded state</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 1 of 5 · PAN</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+              </div>
+              <div class="h1">Your PAN card</div>
+              <div class="sub">We'll verify your name and tax identity.</div>
+
+              <!-- Why we ask · expanded state -->
+              <div class="why-explainer">
+                <div class="why-explainer-title">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Why we need your PAN
+                </div>
+                <div class="why-explainer-row"><span class="icon">→</span><span><strong>Required by law.</strong> RBI mandates PAN verification for any creator receiving payouts above ₹2.5 lakh per year.</span></div>
+                <div class="why-explainer-row"><span class="icon">→</span><span><strong>Never shared.</strong> Travellers never see your PAN number. We never sell or share it with third parties.</span></div>
+                <div class="why-explainer-row"><span class="icon">→</span><span><strong>Encrypted at rest.</strong> Stored encrypted, only viewable by our reviewers during verification.</span></div>
+              </div>
+
+              <div class="field-label">
+                <span>PAN NUMBER</span>
+              </div>
+              <div class="input mono valid">
+                ABCPM1234K
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+
+              <div class="field-label">
+                <span>NAME AS ON PAN</span>
+              </div>
+              <div class="input">Riya Menon</div>
+
+              <div class="field-label">
+                <span>PHOTO OF YOUR PAN CARD</span>
+              </div>
+              <div class="upload-zone uploaded">
+                <div class="uploaded-row">
+                  <div class="uploaded-thumb"></div>
+                  <div class="uploaded-name">
+                    <div class="file">pan-card.jpg</div>
+                    <div class="meta">2.4 MB · uploaded</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+
+              <div class="cta-coral">Continue to Aadhaar</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">The "Why we ask" pattern</div>
+          When the creator taps the ⓘ link, an inline explainer expands above the field (not a modal — modals interrupt). It stays open until tapped again. <strong>Three sentences, three reciprocity statements:</strong> what it's for, what we never do, how we store it. Coral left border ties it to the trust accent. <strong>Validated state on PAN number</strong> shows green border + checkmark when format matches `[A-Z]{5}[0-9]{4}[A-Z]{1}`. <strong>Uploaded state</strong> replaces the dashed dropzone with a green-bordered card showing thumbnail + filename + size. CTA enables only when all three are valid.
+        </div>
+      </div>
+
+      <!-- SCREEN 5 · STEP 2 AADHAAR -->
+      <div>
+        <div class="screen-label"><span class="num">05</span> · Step 2 · Aadhaar with manual / Digilocker option</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 2 of 5 · Aadhaar</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step done"></div>
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+              </div>
+              <div class="h1">Your Aadhaar</div>
+              <div class="sub">Required for KYC compliance.</div>
+
+              <div class="option-toggle">
+                <div class="option-card selected">
+                  <div class="option-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div class="option-title">Upload manually</div>
+                  <div class="option-meta">MVP</div>
+                </div>
+                <div class="option-card">
+                  <div class="option-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
+                  <div class="option-title">Use Digilocker</div>
+                  <div class="option-meta">V1 · soon</div>
+                </div>
+              </div>
+
+              <div class="field-label">
+                <span>AADHAAR NUMBER</span>
+                <span class="why-link">ⓘ Why we ask</span>
+              </div>
+              <div class="input mono">XXXX XXXX 1234</div>
+              <div class="input-help">Last 4 digits visible · we mask the rest in the UI.</div>
+
+              <div class="field-label">
+                <span>NAME AS ON AADHAAR</span>
+              </div>
+              <div class="input">Riya Menon</div>
+
+              <div class="field-label">
+                <span>PHOTOS · FRONT &amp; BACK</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 18px 16px;">
+                <div class="upload-zone uploaded" style="margin: 0; padding: 12px;">
+                  <div style="font-size: 9px; color: #9C9689; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">FRONT</div>
+                  <div style="width: 100%; height: 50px; background: #C9C3B6; border-radius: 4px; margin-bottom: 6px;"></div>
+                  <div style="font-size: 10px; color: #0F6E56; font-weight: 600;">✓ uploaded</div>
+                </div>
+                <div class="upload-zone" style="margin: 0; padding: 12px;">
+                  <div style="font-size: 9px; color: #9C9689; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">BACK</div>
+                  <div style="width: 100%; height: 50px; background: #F2EEE8; border: 1px dashed #C9C3B6; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </div>
+                  <div style="font-size: 10px; color: #9C9689; margin-top: 6px;">tap to add</div>
+                </div>
+              </div>
+
+              <div class="cta-coral disabled">Continue to bank</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Aadhaar with manual / Digilocker toggle</div>
+          MVP forces manual upload (PDF/photo of physical Aadhaar). <strong>Digilocker option is shown but marked "V1 · soon"</strong> so creators know it's coming and don't feel like we're behind on tech. The Aadhaar number input is masked — only the last 4 digits visible — for privacy even from the creator's own screen (shoulder surfing). Front + back photos are required separately so the address on the back can be cross-verified. Mid-step state shown: front uploaded (green), back pending (dashed).
+        </div>
+      </div>
+
+      <!-- SCREEN 6 · STEP 3 BANK -->
+      <div>
+        <div class="screen-label"><span class="num">06</span> · Step 3 · Bank account · IFSC autofill</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 3 of 5 · Bank</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+              </div>
+              <div class="h1">Where should we send payouts?</div>
+              <div class="sub">We pay out 7 days after each trip starts.</div>
+
+              <div class="field-label">
+                <span>ACCOUNT HOLDER NAME</span>
+                <span class="why-link">ⓘ Why we ask</span>
+              </div>
+              <div class="input">Riya Menon</div>
+              <div class="input-help">Must match the name on your PAN card.</div>
+
+              <div class="field-label">
+                <span>ACCOUNT NUMBER</span>
+              </div>
+              <div class="input mono">XXXXXXXX1234</div>
+
+              <div class="field-label">
+                <span>RE-ENTER ACCOUNT NUMBER</span>
+              </div>
+              <div class="input mono valid">
+                XXXXXXXX1234
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+
+              <div class="field-label">
+                <span>IFSC CODE</span>
+              </div>
+              <div class="input mono valid">
+                HDFC0001234
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+
+              <div class="autofill-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <div class="autofill-text"><strong>HDFC Bank</strong> · Pune · Camp Branch</div>
+              </div>
+
+              <div class="field-label">
+                <span>ACCOUNT TYPE</span>
+              </div>
+              <div style="display: flex; gap: 8px; padding: 0 18px 16px;">
+                <div style="background: #2C2823; color: #FAF7F4; font-size: 12px; font-weight: 500; padding: 9px 16px; border-radius: 99px;">Savings</div>
+                <div style="background: white; color: #2C2823; border: 0.5px solid #E5E0D7; font-size: 12px; font-weight: 500; padding: 9px 16px; border-radius: 99px;">Current</div>
+              </div>
+
+              <div class="cta-coral">Continue to selfie</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">IFSC autofill is the magic moment</div>
+          The moment after the creator types a valid IFSC code, the bank name + branch + city auto-populates in a green confirmation row. <strong>This single interaction is the highest-trust moment in the whole flow</strong> — it shows the platform knows what it's doing. Re-entered account number prevents typos in the most expensive field (a wrong account number = lost payout). Account holder name has explicit "must match PAN" hint to prevent the most common reason for KYC rejection in India: bank account in initials, PAN in full name.
+        </div>
+      </div>
+
+      <!-- SCREEN 7 · STEP 4 SELFIE GUIDE -->
+      <div>
+        <div class="screen-label"><span class="num">07</span> · Step 4 · Selfie · positioning guide</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 4 of 5 · Selfie</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+              </div>
+              <div class="h1">A quick selfie</div>
+              <div class="sub">Make sure your face matches the photo on your PAN card.</div>
+
+              <div class="selfie-hero">
+                <div class="selfie-oval">
+                  <div class="selfie-status warn">⚠ Move closer</div>
+                </div>
+              </div>
+
+              <div class="selfie-controls">
+                <div class="selfie-icon-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                </div>
+                <div class="capture-btn"></div>
+                <div class="selfie-icon-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+                </div>
+              </div>
+
+              <div style="text-align: center; padding: 0 24px 16px;">
+                <div style="font-size: 11px; color: #6B6660; line-height: 1.55;">Position your face inside the oval. Good lighting helps. No hats or sunglasses.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Selfie capture · the trust handshake</div>
+          The dark hero zone is the camera viewfinder. The <strong>dashed coral oval</strong> is the face guide overlay — it turns solid green when the face is correctly positioned. Status pill at the bottom of the oval shows real-time feedback ("Move closer", "Move back", "Center your face", "Hold still", "Captured!"). Three controls: gallery import (left), shutter (center, big coral), settings (right). Plain-language coaching below the camera ("Good lighting helps. No hats or sunglasses.") replaces the usual technical jargon you see on bank apps.
+        </div>
+      </div>
+
+      <!-- SCREEN 8 · STEP 5 REVIEW -->
+      <div>
+        <div class="screen-label"><span class="num">08</span> · Step 5 · Review &amp; submit</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Step 5 of 5 · Review</div>
+                <div class="nav-link">Save</div>
+              </div>
+              <div class="progress">
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step done"></div>
+                <div class="progress-step active"></div>
+              </div>
+              <div class="h1">Review your details</div>
+              <div class="sub">Tap any row to make changes before submitting.</div>
+
+              <div class="review-card">
+                <div class="review-row">
+                  <div class="review-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="review-content">
+                    <div class="review-label">PAN</div>
+                    <div class="review-value">ABCPM1234K · Riya Menon</div>
+                  </div>
+                  <div class="review-edit">Edit</div>
+                </div>
+                <div class="review-row">
+                  <div class="review-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="review-content">
+                    <div class="review-label">AADHAAR</div>
+                    <div class="review-value">XXXX XXXX 1234 · Front + back uploaded</div>
+                  </div>
+                  <div class="review-edit">Edit</div>
+                </div>
+                <div class="review-row">
+                  <div class="review-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="review-content">
+                    <div class="review-label">BANK</div>
+                    <div class="review-value">HDFC Bank · ••••1234 · Savings</div>
+                  </div>
+                  <div class="review-edit">Edit</div>
+                </div>
+                <div class="review-row">
+                  <div class="review-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="review-content">
+                    <div class="review-label">SELFIE</div>
+                    <div class="review-value">Captured · ready for review</div>
+                  </div>
+                  <div class="review-edit">Retake</div>
+                </div>
+              </div>
+
+              <div class="declaration">
+                <div class="checkbox checked">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="declaration-text">I confirm all details are accurate and the documents belong to me. I understand that providing false information may result in account suspension and is punishable under Indian law.</div>
+              </div>
+
+              <div class="cta-coral">Submit for verification</div>
+              <div class="cta-text">Save and submit later</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Review with inline edit · no start-over</div>
+          Each row shows a green check + label + masked value + Edit link. <strong>Inline edit is critical</strong> — tapping Edit jumps the creator back to that specific step with their data preserved, lets them fix one field, then returns them to Review. The declaration text is plain language ("documents belong to me") with one legal phrase ("punishable under Indian law") to make the seriousness clear without bureaucratic tone. Pre-checked checkbox is a deliberate choice — most users would check it anyway and pre-checking reduces friction. Two CTAs: submit now (primary), save and finish later (secondary text).
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 3 · STATUS & RESOLUTION
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">3 · Submission &amp; status states</div>
+      <div class="section-meta">3 screens · pending → approved or rejected</div>
+    </div>
+    <div class="screens">
+
+      <!-- SCREEN 9 · SUBMITTED -->
+      <div>
+        <div class="screen-label"><span class="num">09</span> · Submitted · "what happens next"</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="submitted-hero">
+                <div class="submitted-icon">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FAF7F4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="submitted-h1">Submitted for review</div>
+                <div class="submitted-sub">Our team will review your details and notify you within <strong>24-48 hours</strong>.</div>
+              </div>
+
+              <div class="next-steps">
+                <div class="next-steps-title">WHAT HAPPENS NEXT</div>
+                <div class="next-step-row">
+                  <div class="next-step-num">1</div>
+                  <div class="next-step-text">Our reviewers verify your documents against the names you entered. Most reviews finish in under 24 hours.</div>
+                </div>
+                <div class="next-step-row">
+                  <div class="next-step-num">2</div>
+                  <div class="next-step-text">You'll get a WhatsApp message + push notification when verification is complete. Your draft trip is saved and waiting in Studio.</div>
+                </div>
+                <div class="next-step-row">
+                  <div class="next-step-num" style="background: #E15A41;">3</div>
+                  <div class="next-step-text">Once approved, you can publish unlimited paid trips. No need to verify again.</div>
+                </div>
+              </div>
+
+              <div class="cta-coral" style="margin: 16px 18px 8px;">Back to my draft</div>
+              <div class="cta-text">Browse other creators</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">The waiting state matters</div>
+          The submitted screen does three jobs: <strong>celebrates the milestone</strong> (dark filled checkmark, "Submitted for review"), <strong>sets exact expectations</strong> ("24-48 hours" not "soon"), and <strong>gives the creator a clear next action</strong> ("Back to my draft"). Step 3 in the WHAT HAPPENS NEXT card uses coral to highlight the future-state benefit ("publish unlimited paid trips") — this is the reciprocity payoff that makes the whole 8 minutes feel worth it.
+        </div>
+      </div>
+
+      <!-- SCREEN 10 · PENDING IN STUDIO -->
+      <div>
+        <div class="screen-label"><span class="num">10</span> · Pending state · Studio context</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 18px 6px;">
+                <div style="font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500;">Studio</div>
+                <div style="background: #E15A41; color: white; font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 10px;">+ New</div>
+              </div>
+              <div style="font-size: 13px; color: #6B6660; padding: 0 18px 16px;">0 published · 1 draft</div>
+
+              <!-- KYC pending status card -->
+              <div class="status-card pending">
+                <div class="status-row">
+                  <div class="status-icon-circ">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <div style="flex: 1;">
+                    <div class="status-title">Verification in progress</div>
+                    <div class="status-sub">We received your documents 4 hours ago. We'll notify you within 24-48 hours of submission.</div>
+                  </div>
+                </div>
+                <div class="status-meta">SUBMITTED · 12 APR 2026 · 14:32</div>
+              </div>
+
+              <div style="font-size: 10px; color: #9C9689; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 16px 18px 10px;">YOUR DRAFT</div>
+
+              <div style="margin: 0 18px 10px; background: white; border: 0.5px solid #E5E0D7; border-radius: 12px; padding: 14px 16px;">
+                <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;">
+                  <div style="width: 48px; height: 48px; border-radius: 8px; background: #E5E0D7; flex-shrink: 0;"></div>
+                  <div style="flex: 1;">
+                    <div style="font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600;">The complete Spiti guide</div>
+                    <div style="font-size: 11px; color: #6B6660; margin-top: 3px;">Step 4 · Pricing · ₹499 set</div>
+                  </div>
+                  <div class="badge badge-amber">DRAFT · KYC PENDING</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="flex: 1; height: 5px; background: #F2EEE8; border-radius: 99px; overflow: hidden;">
+                    <div style="width: 80%; height: 100%; background: #854F0B; border-radius: 99px;"></div>
+                  </div>
+                  <div style="font-size: 11px; font-weight: 600; color: #6B6660;">80%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Studio while KYC is pending</div>
+          When the creator returns to Studio mid-review, they see this. <strong>Amber status card replaces the usual coral attention card</strong> — clearly different so it doesn't get confused with new bookings. Submission timestamp + relative time ("4 hours ago") sets the waiting expectation. Their draft is preserved with a "DRAFT · KYC PENDING" amber badge and an amber progress bar (instead of coral) to signal the gated state. They can keep editing the draft but can't publish until KYC clears.
+        </div>
+      </div>
+
+      <!-- SCREEN 11 · APPROVED -->
+      <div>
+        <div class="screen-label"><span class="num">11</span> · Approved · success state</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="confetti-hero">
+                <div class="confetti-dot" style="background: #E15A41; top: 20px; left: 40px;"></div>
+                <div class="confetti-dot" style="background: #B8860B; top: 35px; right: 50px;"></div>
+                <div class="confetti-dot" style="background: #5A7247; top: 80px; left: 30px;"></div>
+                <div class="confetti-dot" style="background: #7C5CBF; top: 60px; right: 30px;"></div>
+                <div class="confetti-dot" style="background: #3B7DD8; top: 100px; right: 70px;"></div>
+                <div class="confetti-dot" style="background: #E15A41; top: 110px; left: 60px;"></div>
+                <div class="confetti-icon">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="submitted-h1">You're verified</div>
+                <div class="submitted-sub">Your identity has been approved. You can now publish paid content on &lt;AppName&gt;.</div>
+              </div>
+
+              <div class="status-card approved" style="margin-top: 8px;">
+                <div class="status-row" style="margin-bottom: 0;">
+                  <div class="status-icon-circ">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  </div>
+                  <div style="flex: 1;">
+                    <div class="status-title">KYC verified</div>
+                    <div class="status-sub">PAN · Aadhaar · Bank · Selfie all confirmed</div>
+                  </div>
+                </div>
+                <div class="status-meta">APPROVED · 13 APR 2026 · 09:18 · ONE-TIME · LIFETIME ACCESS</div>
+              </div>
+
+              <div style="margin: 16px 18px;">
+                <div style="font-size: 11px; color: #9C9689; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; text-align: center;">YOUR DRAFT IS WAITING</div>
+                <div style="background: white; border: 1.5px solid #E15A41; border-radius: 14px; padding: 14px 16px;">
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="width: 48px; height: 48px; border-radius: 8px; background: #E5E0D7; flex-shrink: 0;"></div>
+                    <div style="flex: 1;">
+                      <div style="font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600;">The complete Spiti guide</div>
+                      <div style="font-size: 11px; color: #6B6660; margin-top: 3px;">Ready to publish · Step 4 of 5</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cta-coral" style="margin: 8px 18px;">Resume publishing</div>
+              <div class="cta-text">Take me to Studio</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">The reciprocity payoff</div>
+          Confetti dots in the per-vertical accent colors (Travel amber, Stories coral, Food olive, Fitness violet, Photography blue) make the moment feel celebratory without being cheesy — and they reinforce the multi-vertical brand identity. <strong>Crucially, the draft they were working on is surfaced immediately</strong> with a coral border and "Resume publishing" CTA — this is the moment we close the loop on the Option A inline interrupt. The creator left the publishing wizard at Step 4, did 8 minutes of KYC, came back, and the platform remembered exactly where they were. That's the trust device that makes all the friction worth it.
+        </div>
+      </div>
+
+      <!-- SCREEN 12 · REJECTED / NEEDS INFO -->
+      <div>
+        <div class="screen-label"><span class="num">12</span> · Needs more info · specific issue, fix in place</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-content">
+              <div class="top-nav">
+                <div class="back-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+                <div class="step-meta">Verification</div>
+                <div style="width: 32px;"></div>
+              </div>
+
+              <div style="text-align: center; padding: 20px 24px 16px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: #FCE5E3; border: 2px solid #C2362F; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C2362F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; margin-bottom: 8px;">We need a couple of fixes</div>
+                <div style="font-size: 12px; color: #6B6660; line-height: 1.55;">Don't worry — most issues take less than 2 minutes to fix. You don't need to redo the whole flow.</div>
+              </div>
+
+              <div class="issue-list">
+                <div class="issue-list-title">2 ITEMS NEED ATTENTION</div>
+
+                <div class="issue-item">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C2362F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div style="flex: 1;">
+                    <div class="step-name">Aadhaar back photo</div>
+                    <div class="reason">The photo is blurry and the address isn't readable. Please re-upload a clearer photo with all corners visible.</div>
+                  </div>
+                  <div class="issue-fix">Fix →</div>
+                </div>
+
+                <div class="issue-item">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C2362F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div style="flex: 1;">
+                    <div class="step-name">Name mismatch</div>
+                    <div class="reason">Your bank account shows "R. Menon" but your PAN shows "Riya Menon". Please update your bank account or contact your bank to match.</div>
+                  </div>
+                  <div class="issue-fix">Fix →</div>
+                </div>
+              </div>
+
+              <div style="margin: 16px 18px; padding: 12px 14px; background: #FAEEDA; border-radius: 10px; font-size: 11px; color: #6E3D04; line-height: 1.55;">
+                Once you fix these items and resubmit, we'll re-review within 12 hours.
+              </div>
+
+              <div class="cta-coral" style="margin-top: 0;">Fix and resubmit</div>
+              <div class="cta-text">Get help via WhatsApp</div>
+            </div>
+          </div>
+        </div>
+        <div class="annotation" style="margin-top: 14px;">
+          <div class="anno-title">Rejection done with empathy</div>
+          The rejection state is the most dangerous moment in KYC — most platforms drop creators here because they make it feel like failure. We deliberately don't say "rejected" in the headline. <strong>"We need a couple of fixes"</strong> + the reassurance "most issues take less than 2 minutes" frames it as a small task, not a verdict. Each issue has: <strong>specific field name, plain-language reason, individual Fix link</strong> that jumps to that exact field with the data preserved. The 12-hour re-review SLA is intentionally faster than the original 24-48 hours — rewarding the creator for fixing things quickly. WhatsApp escalation link at the bottom for creators who can't figure out the fix on their own.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════════════════ -->
+  <div style="margin-top: 60px; padding: 24px 28px; background: var(--surface); border-radius: 14px;">
+    <div style="font-family: var(--display); font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 12px;">Phase B summary</div>
+    <div style="font-size: 12px; color: var(--muted); line-height: 1.7;">
+      <strong>11 screens</strong> covering the full KYC mobile flow from interrupt → intro → 5 verification steps → submission → status states (pending, approved, needs fixes). <strong>Option A inline interrupt</strong> is the entry mechanism — verification only triggers when a creator tries to publish paid content for the first time. <strong>Selfie verification included</strong> as a step 4 with face oval guide. <strong>"Why we ask" expandable explainer pattern</strong> on every input gives creators control over their understanding. Manual review for MVP (24-48 hours), third-party API in V1 will reduce this to instant. <strong>Single KYC unlocks unlimited paid publishing</strong> — one-time effort, lifetime benefit. The flow is designed to feel like professional onboarding, not interrogation. <br><br>
+      <strong>Next: Phase C</strong> · Admin panel for manual KYC review (web, 13 screens).
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

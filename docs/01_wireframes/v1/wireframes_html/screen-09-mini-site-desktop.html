@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 09 · Creator Mini-site · Desktop</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px 20px; font-family: 'Inter', system-ui, sans-serif; background: #E5E0D7; color: #2C2823; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  .caption { font-size: 13px; color: #6B6660; margin-bottom: 16px; line-height: 1.55; text-align: center; }
+  .browser-chrome { background: #2C2823; border-radius: 12px 12px 0 0; padding: 10px 14px; display: flex; align-items: center; gap: 11px; }
+  .browser-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #5F5E5A; }
+  .browser-url { flex: 1; background: #444441; border-radius: 6px; padding: 5px 12px; display: flex; align-items: center; gap: 8px; }
+  .url-text { font-size: 11px; color: #B4B2A9; font-family: ui-monospace, monospace; }
+  .page { background: #FAF7F4; border-radius: 0 0 12px 12px; overflow: hidden; }
+  .hero-img { aspect-ratio: 20/7; background: #E5E0D7; overflow: hidden; }
+  .profile-card-wrap { max-width: 1080px; margin: -110px auto 0; padding: 0 32px; position: relative; z-index: 2; }
+  .profile-card { background: #FAF7F4; border: 0.5px solid #E5E0D7; border-radius: 18px; padding: 30px 36px 26px; box-shadow: 0 12px 40px rgba(60,30,15,0.10); }
+  .profile-top { display: flex; gap: 28px; align-items: flex-start; }
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar-ring { width: 108px; height: 108px; border-radius: 50%; background: #FFFFFF; border: 3px solid #E15A41; padding: 4px; display: flex; align-items: center; justify-content: center; }
+  .avatar-inner { width: 100%; height: 100%; border-radius: 50%; background: #F2EEE8; color: #2C2823; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 36px; font-weight: 600; }
+  .verify-badge { position: absolute; bottom: 2px; right: 2px; width: 32px; height: 32px; background: #E15A41; border: 3px solid #FAF7F4; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .name-block { flex: 1; min-width: 0; }
+  .category-pill { display: inline-flex; align-items: center; gap: 6px; background: #F2EEE8; color: #6B6660; font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .h1 { font-family: 'Fraunces', Georgia, serif; font-size: 44px; color: #2C2823; font-weight: 600; line-height: 1.05; margin: 0 0 6px; font-variation-settings: 'SOFT' 80, 'opsz' 60; }
+  .handle { font-size: 14px; color: #6B6660; margin-bottom: 12px; }
+  .bio { font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #2C2823; line-height: 1.55; max-width: 560px; font-style: italic; font-variation-settings: 'opsz' 20; }
+  .actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+  .btn-follow { background: #E15A41; color: #FFFFFF; border: none; font-family: inherit; font-size: 13px; font-weight: 500; padding: 11px 26px; border-radius: 10px; white-space: nowrap; }
+  .btn-share-row { display: flex; gap: 6px; }
+  .btn-share { flex: 1; background: #FFFFFF; color: #2C2823; border: 1px solid #E5E0D7; font-family: inherit; font-size: 12px; font-weight: 500; padding: 9px 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-copy { background: #FFFFFF; color: #2C2823; border: 1px solid #E5E0D7; padding: 9px 11px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .stats { margin-top: 26px; padding-top: 22px; border-top: 0.5px solid #E5E0D7; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+  .stat-val { font-family: 'Fraunces', Georgia, serif; font-size: 26px; color: #2C2823; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-val.coral { color: #E15A41; }
+  .stat-lbl { font-size: 11px; color: #6B6660; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-top: 6px; }
+  .filter-wrap { max-width: 1080px; margin: 36px auto 0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 12px; font-weight: 500; padding: 8px 16px; border-radius: 99px; }
+  .chip.active { background: #2C2823; color: #FAF7F4; }
+  .chip.inactive { background: #FFFFFF; color: #2C2823; border: 0.5px solid #E5E0D7; }
+  .sort-wrap { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B6660; }
+  .sort-btn { background: #FFFFFF; border: 0.5px solid #E5E0D7; font-size: 12px; font-weight: 500; padding: 8px 12px; border-radius: 8px; color: #2C2823; display: flex; align-items: center; gap: 6px; }
+  .trips-grid { max-width: 1080px; margin: 20px auto 0; padding: 0 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .trip-card { background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 14px; overflow: hidden; }
+  .trip-cover { aspect-ratio: 16/10; background: #E5E0D7; position: relative; }
+  .trip-pill { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.95); color: #2C2823; font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .trip-body { padding: 16px 18px 18px; }
+  .trip-title { font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 500; line-height: 1.25; font-variation-settings: 'SOFT' 60, 'opsz' 22; }
+  .trip-desc { font-size: 12px; color: #6B6660; margin-top: 6px; line-height: 1.5; }
+  .trip-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 0.5px solid #F2EEE8; }
+  .trip-meta { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6B6660; }
+  .trip-price { font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #2C2823; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .trust-section { max-width: 1080px; margin: 48px auto 0; padding: 0 32px; }
+  .trust-card { background: #F2EEE8; border-radius: 18px; padding: 34px 38px; }
+  .trust-eyebrow { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .trust-title { font-family: 'Fraunces', Georgia, serif; font-size: 26px; color: #2C2823; font-weight: 500; line-height: 1.2; margin-bottom: 24px; font-variation-settings: 'SOFT' 60, 'opsz' 32; }
+  .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .trust-item { background: #FFFFFF; border-radius: 12px; padding: 18px 20px; }
+  .trust-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .trust-icon { width: 30px; height: 30px; border-radius: 8px; background: #F2EEE8; display: flex; align-items: center; justify-content: center; }
+  .trust-item-title { font-size: 13px; color: #2C2823; font-weight: 600; }
+  .trust-item-desc { font-size: 12px; color: #6B6660; line-height: 1.55; }
+  .trust-item-desc strong { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #2C2823; font-variant-numeric: tabular-nums; }
+  .refund-strip { margin-top: 22px; padding-top: 20px; border-top: 0.5px solid #E5E0D7; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .refund-text { font-size: 12px; color: #6B6660; line-height: 1.55; flex: 1; }
+  .refund-text strong { color: #2C2823; font-weight: 500; }
+  .refund-btn { background: transparent; color: #2C2823; border: 1px solid #2C2823; font-family: inherit; font-size: 12px; font-weight: 500; padding: 10px 18px; border-radius: 9px; white-space: nowrap; }
+  .footer { max-width: 1080px; margin: 40px auto 0; padding: 32px 32px 40px; border-top: 0.5px solid #E5E0D7; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .footer-brand { display: flex; align-items: center; gap: 24px; }
+  .brand-mark { font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 600; font-variation-settings: 'SOFT' 40, 'opsz' 22; }
+  .footer-copyright { font-size: 11px; color: #9C9689; }
+  .footer-links { display: flex; gap: 20px; font-size: 11px; color: #6B6660; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="caption">Screen 09 · Creator mini-site desktop · editorial magazine layout · full-bleed hero with overlapping profile card · content grid · trust section · footer.</div>
+
+<div class="browser-chrome">
+  <div class="browser-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div class="browser-url">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <div class="url-text">xyz.com/travel/riya_menon</div>
+  </div>
+</div>
+
+<div class="page">
+
+<div class="hero-img">
+  <svg width="100%" height="100%" viewBox="0 0 900 315" preserveAspectRatio="xMidYMid slice">
+    <rect width="900" height="315" fill="#E5E0D7"/>
+    <circle cx="720" cy="70" r="28" fill="#F8D7C5"/>
+    <path d="M0 155 L100 105 L180 135 L280 90 L360 125 L460 80 L540 115 L630 75 L720 100 L820 70 L900 95 L900 315 L0 315 Z" fill="#C9C3B6"/>
+    <path d="M0 195 L80 165 L160 185 L250 150 L340 175 L430 145 L520 170 L620 140 L720 160 L820 135 L900 155 L900 315 L0 315 Z" fill="#9C9689"/>
+    <path d="M0 235 L120 215 L240 225 L360 205 L480 220 L600 200 L720 215 L840 195 L900 205 L900 315 L0 315 Z" fill="#6B6660"/>
+    <path d="M0 275 L150 265 L300 270 L450 255 L600 265 L750 255 L900 260 L900 315 L0 315 Z" fill="#444441"/>
+  </svg>
+</div>
+
+<div class="profile-card-wrap">
+<div class="profile-card">
+  <div class="profile-top">
+    <div class="avatar-wrap">
+      <div class="avatar-ring"><div class="avatar-inner">RM</div></div>
+      <div class="verify-badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="name-block">
+      <div class="category-pill">
+        <svg width="10" height="10" viewBox="0 0 256 256" fill="#E15A41"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+        Travel creator
+      </div>
+      <h1 class="h1">Riya Menon</h1>
+      <div class="handle">@riya_menon · Pune, Maharashtra</div>
+      <div class="bio">Sharing offbeat Himalayan trips from Pune. 7 years running small-group tours across Spiti, Ladakh, and Kinnaur — the kind of places you find by asking the wrong person for directions.</div>
+    </div>
+    <div class="actions">
+      <button class="btn-follow">+ Follow</button>
+      <div class="btn-share-row">
+        <button class="btn-share">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <button class="btn-copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="stats">
+    <div><div class="stat-val coral">432</div><div class="stat-lbl">Followers</div></div>
+    <div><div class="stat-val">6</div><div class="stat-lbl">Published</div></div>
+    <div><div class="stat-val">148</div><div class="stat-lbl">Travellers hosted</div></div>
+    <div><div class="stat-val">20.8K</div><div class="stat-lbl">Social reach</div></div>
+    <div><div class="stat-val">2026</div><div class="stat-lbl">On xyz since</div></div>
+  </div>
+</div>
+</div>
+
+<div class="filter-wrap">
+  <div class="filter-chips">
+    <div class="chip active">All · 6</div>
+    <div class="chip inactive">Scheduled trips · 2</div>
+    <div class="chip inactive">Itineraries · 2</div>
+    <div class="chip inactive">Posts · 1</div>
+    <div class="chip inactive">Events · 1</div>
+  </div>
+  <div class="sort-wrap">
+    Sort
+    <div class="sort-btn">Newest <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+  </div>
+</div>
+
+<div class="trips-grid">
+
+<div class="trip-card">
+  <div class="trip-cover">
+    <svg width="100%" height="100%" viewBox="0 0 340 213" preserveAspectRatio="xMidYMid slice"><rect width="340" height="213" fill="#E5E0D7"/><path d="M0 120 L55 80 L115 100 L180 70 L250 95 L340 65 L340 213 L0 213 Z" fill="#9C9689"/><path d="M0 145 L60 125 L140 135 L220 115 L310 130 L340 120 L340 213 L0 213 Z" fill="#6B6660"/></svg>
+    <div class="trip-pill">Scheduled trip</div>
+  </div>
+  <div class="trip-body">
+    <div class="trip-title">Spiti in seven days</div>
+    <div class="trip-desc">A small-group trip through Kinnaur and Spiti. 3 departures through June.</div>
+    <div class="trip-foot">
+      <div class="trip-meta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>From May 15</div>
+      <div class="trip-price">₹24,999</div>
+    </div>
+  </div>
+</div>
+
+<div class="trip-card">
+  <div class="trip-cover">
+    <svg width="100%" height="100%" viewBox="0 0 340 213" preserveAspectRatio="xMidYMid slice"><rect width="340" height="213" fill="#F2EEE8"/><path d="M40 70 C 90 110, 160 130, 200 165 S 280 195, 300 210" stroke="#C9C3B6" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="65" cy="85" r="11" fill="#2C2823"/><text x="65" y="90" font-family="Inter" font-size="11" font-weight="700" fill="#FAF7F4" text-anchor="middle">1</text><circle cx="125" cy="115" r="11" fill="#2C2823"/><text x="125" y="120" font-family="Inter" font-size="11" font-weight="700" fill="#FAF7F4" text-anchor="middle">2</text><circle cx="195" cy="150" r="13" fill="#E15A41"/><text x="195" y="155" font-family="Inter" font-size="12" font-weight="700" fill="#FAF7F4" text-anchor="middle">3</text></svg>
+    <div class="trip-pill">Itinerary</div>
+  </div>
+  <div class="trip-body">
+    <div class="trip-title">The complete Spiti guide</div>
+    <div class="trip-desc">Self-paced · 24 spots across 7 days · monastery timings and homestay contacts.</div>
+    <div class="trip-foot">
+      <div class="trip-meta"><svg width="11" height="11" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>24 spots</div>
+      <div class="trip-price">₹499</div>
+    </div>
+  </div>
+</div>
+
+<div class="trip-card">
+  <div class="trip-cover">
+    <svg width="100%" height="100%" viewBox="0 0 340 213" preserveAspectRatio="xMidYMid slice"><rect width="340" height="213" fill="#E5E0D7"/><circle cx="280" cy="50" r="22" fill="#F8D7C5"/><path d="M0 135 L60 95 L130 115 L210 80 L290 105 L340 80 L340 213 L0 213 Z" fill="#C9C3B6"/><path d="M0 165 L70 135 L150 150 L230 125 L310 145 L340 130 L340 213 L0 213 Z" fill="#9C9689"/></svg>
+    <div class="trip-pill">Post</div>
+  </div>
+  <div class="trip-body">
+    <div class="trip-title">Why I stopped planning trips</div>
+    <div class="trip-desc">Three years of over-planning taught me that the best moments are the ones you don't schedule.</div>
+    <div class="trip-foot">
+      <div class="trip-meta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div>
+      <div style="font-size: 11px; color: #9C9689; font-weight: 500;">Free</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="trust-section">
+<div class="trust-card">
+  <div class="trust-eyebrow">Trust &amp; verification</div>
+  <div class="trust-title">Why you can trust Riya</div>
+  <div class="trust-grid">
+    <div class="trust-item">
+      <div class="trust-item-head">
+        <div class="trust-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="trust-item-title">Identity verified</div>
+      </div>
+      <div class="trust-item-desc">PAN, Aadhaar and bank account verified by &lt;AppName&gt;. GSTIN on file for all bookings.</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-item-head">
+        <div class="trust-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#2C2823" stroke="none"><path d="M23 12s0-3.9-.5-5.8c-.3-1-1.1-1.8-2.1-2.1C18.6 3.6 12 3.6 12 3.6s-6.6 0-8.4.5c-1 .3-1.8 1.1-2.1 2.1C1 8.1 1 12 1 12s0 3.9.5 5.8c.3 1 1.1 1.8 2.1 2.1 1.8.5 8.4.5 8.4.5s6.6 0 8.4-.5c1-.3 1.8-1.1 2.1-2.1.5-1.9.5-5.8.5-5.8zM9.7 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg></div>
+        <div class="trust-item-title">YouTube connected</div>
+      </div>
+      <div class="trust-item-desc">@riyawanders · <strong>12,300 subscribers</strong></div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-item-head">
+        <div class="trust-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <div class="trust-item-title">Instagram connected</div>
+      </div>
+      <div class="trust-item-desc">@riya_wanders · <strong>8,520 followers</strong></div>
+    </div>
+  </div>
+  <div class="refund-strip">
+    <div class="refund-text">Every booking on &lt;AppName&gt; is protected by our <strong>refund guarantee</strong> and handled through escrow. Your money is held safely until the trip completes.</div>
+    <button class="refund-btn">How it works</button>
+  </div>
+</div>
+</div>
+
+<div class="footer">
+  <div class="footer-brand">
+    <div class="brand-mark">&lt;AppName&gt;</div>
+    <div class="footer-copyright">© 2026 · Pune, India</div>
+  </div>
+  <div class="footer-links">
+    <div>Report this profile</div>
+    <div>Terms</div>
+    <div>Privacy</div>
+    <div>Help</div>
+  </div>
+</div>
+
+</div>
+
+</div>
+</body>
+</html>

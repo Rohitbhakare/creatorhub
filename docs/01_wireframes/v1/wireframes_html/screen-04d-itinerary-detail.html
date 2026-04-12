@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen 04d · Self-paced itinerary detail · &lt;AppName&gt; wireframes</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    .map-hero { aspect-ratio: 4/3; background: var(--sunken); position: relative; overflow: hidden; }
+    .map-hero svg { width: 100%; height: 100%; }
+    .floating-nav { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 10; }
+    .floating-nav .nav-icon-btn { background: rgba(250,247,244,0.95); backdrop-filter: blur(10px); border: 0.5px solid rgba(229,224,215,0.5); box-shadow: 0 2px 8px rgba(60,30,15,0.15); }
+    .view-toggle { position: absolute; bottom: 14px; right: 14px; background: #FFFFFF; border: 0.5px solid var(--border); border-radius: 10px; padding: 3px; box-shadow: var(--shadow-md); display: flex; gap: 2px; }
+    .view-toggle button { padding: 6px 11px; border: none; background: transparent; color: var(--ink); border-radius: 7px; font-family: inherit; font-size: 10px; font-weight: 500; cursor: pointer; }
+    .view-toggle button.active { background: var(--ink); color: var(--surface); font-weight: 600; }
+    .stats-bar { background: var(--sunken); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .stat { text-align: center; }
+    .stat + .stat { border-left: 0.5px solid var(--border); }
+    .stat-value { font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+    .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-top: 2px; }
+    .day-chips { display: flex; gap: 6px; padding-right: 16px; overflow: visible; }
+    .day-chip { background: #FFFFFF; color: var(--ink); font-size: 11px; padding: 8px 14px; border-radius: 99px; border: 0.5px solid var(--border); display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .day-chip.active { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 500; }
+    .spot-card { background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 8px; }
+    .spot-badge { position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; background: var(--ink); color: var(--surface); border: 2px solid var(--surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+    .creator-note { margin-top: 10px; padding: 10px 12px; background: var(--sunken); border-radius: 8px; border-left: 2px solid var(--ink); }
+  </style>
+</head>
+<body>
+
+  <header class="wf-header">
+    <div class="wf-header-eyebrow">Screen 04d · self-paced itinerary detail</div>
+    <h1>Self-paced itinerary · map-first, Roamy-inspired</h1>
+    <p>The most novel pattern in the app. Unlike every other detail page, the hero is a <strong>map</strong>, not a photo. The itinerary is a curated collection of spots (pinned locations with creator notes) organized day by day. Users buy once for lifetime access, then follow the itinerary on their actual trip.</p>
+    <div class="wf-meta">
+      <div><strong>DD refs:</strong> DD-022, DD-023, DD-024</div>
+      <div><strong>SRS refs:</strong> CRT-FR-002, CRT-FR-003, §5.1 (itinerary_days, itinerary_spots)</div>
+      <div><strong>Dependencies:</strong> Google Places API, PostGIS</div>
+    </div>
+  </header>
+
+  <div class="wf-stage">
+    <div>
+      <div class="phone-label">Freemium preview state · Day 1 partial · days 2–7 locked</div>
+      <div class="phone">
+        <div class="phone-screen">
+
+          <!-- Map hero -->
+          <div style="position: relative;">
+            <div class="floating-nav">
+              <button class="nav-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <div style="display: flex; gap: 6px;">
+                <button class="nav-icon-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M14 10l6.1-6.1M9 21H3v-6M10 14l-6.1 6.1"/></svg>
+                </button>
+                <button class="nav-icon-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.498 5.997L6.5 12.003M17.498 18.003L6.5 11.997"/><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg>
+                </button>
+                <button class="nav-icon-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="map-hero">
+              <svg viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice">
+                <rect width="320" height="240" fill="#F2EEE8"/>
+                <path d="M0 80 Q40 60 80 75 T160 70 T240 80 T320 65" stroke="#E5E0D7" stroke-width="1.5" fill="none"/>
+                <path d="M0 130 Q50 115 100 125 T200 120 T300 135" stroke="#E5E0D7" stroke-width="1.5" fill="none"/>
+                <path d="M0 190 Q60 175 120 185 T220 180 T320 195" stroke="#E5E0D7" stroke-width="1.5" fill="none"/>
+                <path d="M40 60 C 80 90, 140 110, 180 150 S 260 190, 280 210" stroke="#C9C3B6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 60 95 L 110 120 L 155 145 L 200 175" stroke="#2C2823" stroke-width="1.8" stroke-dasharray="3 4" fill="none"/>
+                <circle cx="260" cy="60" r="4" fill="#9C9689"/>
+                <circle cx="290" cy="80" r="4" fill="#9C9689"/>
+                <circle cx="230" cy="200" r="4" fill="#9C9689"/>
+                <g>
+                  <circle cx="60" cy="95" r="12" fill="#2C2823"/>
+                  <text x="60" y="99" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#FAF7F4" text-anchor="middle">1</text>
+                </g>
+                <g>
+                  <circle cx="110" cy="120" r="12" fill="#2C2823"/>
+                  <text x="110" y="124" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#FAF7F4" text-anchor="middle">2</text>
+                </g>
+                <g>
+                  <circle cx="155" cy="145" r="12" fill="#2C2823"/>
+                  <text x="155" y="149" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#FAF7F4" text-anchor="middle">3</text>
+                </g>
+                <g>
+                  <circle cx="200" cy="175" r="14" fill="#E15A41"/>
+                  <text x="200" y="180" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#FAF7F4" text-anchor="middle">4</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="view-toggle">
+              <button class="active">Map</button>
+              <button>List</button>
+            </div>
+          </div>
+
+          <!-- Title block -->
+          <div style="padding: 18px 16px 0;">
+            <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Self-paced itinerary · Travel</div>
+            <div style="font-family: var(--font-display); font-size: 22px; color: var(--ink); font-weight: 500; line-height: 1.15; margin-bottom: 10px; font-variation-settings: 'SOFT' 60, 'opsz' 30;">The complete Spiti guide</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--sunken); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">RM</div>
+              <div style="flex: 1;">
+                <div style="font-size: 12px; color: var(--ink); font-weight: 600;">Riya Menon</div>
+                <div style="font-size: 10px; color: var(--muted);">Travel creator · Based in Pune</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats bar -->
+          <div style="padding: 16px 16px 0;">
+            <div class="stats-bar">
+              <div class="stat">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Days</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">24</div>
+                <div class="stat-label">Spots</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">340</div>
+                <div class="stat-label">km</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">15k</div>
+                <div class="stat-label">Budget</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day selector -->
+          <div style="padding: 20px 0 0 16px;">
+            <div style="font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 500; margin-bottom: 12px; font-variation-settings: 'SOFT' 60, 'opsz' 22;">Day by day</div>
+            <div class="day-chips">
+              <span class="day-chip active">Day 1</span>
+              <span class="day-chip">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Day 2
+              </span>
+              <span class="day-chip">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Day 3
+              </span>
+              <span class="day-chip">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Day 4
+              </span>
+            </div>
+          </div>
+
+          <!-- Day header -->
+          <div style="padding: 18px 16px 10px;">
+            <div style="font-family: var(--font-display); font-size: 15px; color: var(--ink); font-weight: 500; margin-bottom: 2px; font-variation-settings: 'SOFT' 60, 'opsz' 20;">Day 1 · Manali → Jibhi</div>
+            <div style="font-size: 11px; color: var(--muted);">4 stops · 110 km · ~6 hours driving</div>
+          </div>
+
+          <!-- Spot list -->
+          <div style="padding: 0 16px;">
+
+            <div class="spot-card">
+              <div style="display: flex; gap: 12px;">
+                <div style="position: relative; flex-shrink: 0;">
+                  <div style="width: 52px; height: 52px; border-radius: 10px; background: var(--border);"></div>
+                  <div class="spot-badge">1</div>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 9px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 2px;">Heritage</div>
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600; line-height: 1.2; margin-bottom: 4px;">Naggar Castle</div>
+                  <div style="font-size: 10px; color: var(--muted);">45 min · Open in Maps ↗</div>
+                </div>
+              </div>
+              <div class="creator-note">
+                <div style="font-size: 10px; color: var(--ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Riya's note</div>
+                <div style="font-family: var(--font-display); font-size: 12px; color: var(--ink); font-style: italic; line-height: 1.5;">Come at 10am, before the tour buses from Manali get here. The Nicholas Roerich gallery upstairs is easy to miss.</div>
+              </div>
+            </div>
+
+            <div class="spot-card">
+              <div style="display: flex; gap: 12px;">
+                <div style="position: relative; flex-shrink: 0;">
+                  <div style="width: 52px; height: 52px; border-radius: 10px; background: var(--border);"></div>
+                  <div class="spot-badge">2</div>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-size: 9px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 2px;">Nature</div>
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600; line-height: 1.2; margin-bottom: 4px;">Jibhi Waterfall</div>
+                  <div style="font-size: 10px; color: var(--muted);">1 hour · Open in Maps ↗</div>
+                </div>
+              </div>
+              <div class="creator-note">
+                <div style="font-size: 10px; color: var(--ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Riya's note</div>
+                <div style="font-family: var(--font-display); font-size: 12px; color: var(--ink); font-style: italic; line-height: 1.5;">20-minute walk from the road. Wear grippy shoes — the last 50m is slippery. Best light is morning.</div>
+              </div>
+            </div>
+
+            <div style="background: #FFFFFF; border: 1px dashed var(--line); border-radius: 12px; padding: 18px 14px; text-align: center; margin-top: 6px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 8px; display: block;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <div style="font-family: var(--font-display); font-size: 13px; color: var(--ink); font-weight: 500; margin-bottom: 4px; font-variation-settings: 'SOFT' 60, 'opsz' 18;">22 more spots across 6 days</div>
+              <div style="font-size: 10px; color: var(--muted); line-height: 1.5;">Including Key Monastery, Dhankar Lake, and Chandratal. Get full access to unlock.</div>
+            </div>
+          </div>
+
+          <div style="height: 90px;"></div>
+
+          <!-- Sticky bottom bar -->
+          <div style="position: sticky; bottom: 0; background: #FFFFFF; border-top: 1px solid var(--border); padding: 14px 16px; box-shadow: 0 -4px 16px rgba(60,30,15,0.06); display: flex; align-items: center; gap: 12px;">
+            <div style="flex: 1;">
+              <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 1px;">One-time</div>
+              <div style="display: flex; align-items: baseline; gap: 4px;">
+                <span class="fraunces" style="font-size: 18px; color: var(--ink); font-weight: 600;" class="tabular">₹499</span>
+                <span style="font-size: 10px; color: var(--muted);">lifetime access</span>
+              </div>
+            </div>
+            <button class="btn-primary" style="padding: 13px 20px; font-size: 13px;">Get full itinerary</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation-card">
+        <div class="annotation-card-title">The map IS the hero · fundamental shift</div>
+        <div>Unlike every other detail page where the hero is a photo, the self-paced itinerary hero is the MAP. This immediately communicates "this is a spot-based guide, not a narrative." Users who have used Roamy, Google Maps lists, or any trip planner recognize the pattern in under a second.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Numbered pins · coral for overnight stop · DD-024</div>
+        <div>Stops 1-3 are ink pins with white numbers. The LAST stop of each day (stop 4, the Jibhi homestay where the user sleeps) is a larger coral pin. This is one of the 5 coral contexts — the overnight stop is psychologically the most important spot of each day (sleep, logistics, anchor point). Other days' spots appear on the map as muted gray dots.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Map / List toggle</div>
+        <div>Bottom-right of the map. "Map" is the default view. Tapping "List" collapses the map and expands the scrollable stop list to use the full viewport. Classic Roamy pattern. Engineers: handle the state with a simple local toggle — no need for a router change.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Trip stats bar · 4 facts at a glance</div>
+        <div>Days, Spots, km, Budget. All in Fraunces with tabular numbers. The sunken card sits just below the creator chip. These are the facts a user needs to decide "is this trip for me?" before reading any details.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Spot card anatomy</div>
+        <div>Each spot: numbered badge (top-left overlay on thumbnail), category overline, name, duration, "Open in Maps" deep-link. Below, the <strong>creator note</strong> in warm sunken background with ink left-border and italic Fraunces. The note is the single most valuable piece of content on the page — it's why someone pays ₹499. The design prioritizes the note visually.</div>
+      </div>
+
+      <div class="annotation-card warm">
+        <div class="annotation-card-title">Freemium · Day 1 partial preview</div>
+        <div>Stops 1-2 of Day 1 are fully visible with complete notes. Stops 3-4 and Days 2-7 are replaced by a dashed-border preview card showing "22 more spots across 6 days" with named highlights (Key Monastery, Dhankar Lake, Chandratal) to tease the value. Day 2-7 chips show lock icons. The free preview is generous enough to establish value, constrained enough to drive purchase.</div>
+      </div>
+
+      <div class="annotation-card sunken">
+        <div class="annotation-card-title">Post-purchase state (not shown)</div>
+        <div>After buying, the sticky bar changes to "Continue · 3 of 24 spots visited" with a progress pill. All days unlock. Each spot gets a "Mark as visited" button. Visited spots turn into checkmarks on the map. The itinerary becomes a personal checklist the user follows on their actual trip. This reuses the same layout — only the bottom bar and spot states change.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Publishing wizard implication</div>
+        <div>This screen's structure dictates what the publishing wizard needs: a <strong>spot editor</strong> (not a text editor). Creators search places via Google Places autocomplete, drop them into day buckets, write a 1-2 sentence creator note, mark one spot per day as overnight. Full wizard design is Screen 07 (pending).</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wf-footer">
+    <div><strong>Screen 04d · Self-paced itinerary detail</strong></div>
+    <div style="margin-top: 4px;">Source of truth: SRS CRT-FR-002, CRT-FR-003 · schema: <code>itinerary_days</code>, <code>itinerary_spots</code>, <code>spot_stop_type</code> enum</div>
+    <div style="margin-top: 4px;">External dependency: Google Places API (see DD-028, C-22 in SRS)</div>
+    <div style="margin-top: 4px;"><a href="index.html">← Back to index</a></div>
+  </footer>
+
+</body>
+</html>

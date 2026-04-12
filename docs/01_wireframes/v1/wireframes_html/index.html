@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>&lt;AppName&gt; · Wireframe Set · MVP</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --sunken: #F2EEE8;
+    --border: #E5E0D7;
+    --line: #C9C3B6;
+    --soft-ink: #9C9689;
+    --muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .hero {
+    background: var(--sunken);
+    padding: 80px 48px 70px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px;
+    color: var(--coral);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow-dot { width: 6px; height: 6px; background: var(--coral); border-radius: 50%; }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 68px;
+    font-weight: 600;
+    line-height: 1.02;
+    margin: 0 0 24px;
+    max-width: 880px;
+    font-variation-settings: 'SOFT' 100, 'opsz' 80;
+    letter-spacing: -0.015em;
+  }
+  .hero-subtitle {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 19px;
+    color: var(--ink);
+    line-height: 1.55;
+    font-style: italic;
+    max-width: 720px;
+    margin-bottom: 38px;
+    font-variation-settings: 'opsz' 22;
+  }
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 48px;
+    padding-top: 32px;
+    border-top: 0.5px solid var(--border);
+    max-width: 760px;
+  }
+  .meta-item { display: flex; flex-direction: column; }
+  .meta-label {
+    font-size: 10px;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .meta-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-nav {
+    position: sticky;
+    top: 0;
+    background: rgba(250, 247, 244, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 48px;
+    z-index: 50;
+  }
+  .section-nav-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .brand-mark {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 40, 'opsz' 22;
+  }
+  .section-links { display: flex; gap: 28px; }
+  .section-link {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .section-link:hover { color: var(--coral); }
+
+  .content { max-width: 1180px; margin: 0 auto; padding: 80px 48px 100px; }
+  .section { margin-bottom: 90px; scroll-margin-top: 80px; }
+  .section-header {
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .section-eyebrow {
+    font-size: 11px;
+    color: var(--soft-ink);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 38px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    font-variation-settings: 'SOFT' 80, 'opsz' 48;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 680px;
+    line-height: 1.6;
+  }
+
+  .screen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .screen-grid.web { grid-template-columns: repeat(2, 1fr); }
+  .screen-card {
+    background: #FFFFFF;
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .screen-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(60, 30, 15, 0.10);
+    border-color: var(--line);
+  }
+  .screen-preview {
+    aspect-ratio: 4/3;
+    background: var(--sunken);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .screen-grid.web .screen-preview { aspect-ratio: 16/10; }
+  .preview-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .preview-mini-phone {
+    width: 42%;
+    background: var(--ink);
+    padding: 3px 3px 2px;
+    border-radius: 10px 10px 2px 2px;
+    box-shadow: 0 8px 28px rgba(60, 30, 15, 0.15);
+  }
+  .preview-mini-screen {
+    background: var(--surface);
+    border-radius: 7px 7px 0 0;
+    padding: 10px 8px;
+    min-height: 180px;
+  }
+  .preview-mini-web {
+    width: 84%;
+    background: var(--ink);
+    padding: 4px 4px 2px;
+    border-radius: 8px 8px 2px 2px;
+    box-shadow: 0 8px 28px rgba(60, 30, 15, 0.15);
+  }
+  .preview-web-chrome { display: flex; gap: 3px; padding: 3px 5px 2px; }
+  .preview-web-dot { width: 4px; height: 4px; border-radius: 50%; background: #5F5E5A; }
+  .preview-mini-screen-web {
+    background: var(--surface);
+    border-radius: 4px 4px 0 0;
+    padding: 8px;
+    min-height: 140px;
+  }
+  .mini-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .mini-sub { font-size: 7px; color: var(--muted); margin-bottom: 8px; }
+  .mini-block {
+    background: var(--border);
+    height: 14px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+  }
+  .mini-block.tall { height: 28px; }
+  .mini-block.half { width: 60%; }
+  .mini-block.coral {
+    background: var(--coral);
+    height: 10px;
+    width: 40%;
+    border-radius: 99px;
+  }
+  .mini-chip {
+    display: inline-block;
+    background: var(--ink);
+    height: 8px;
+    width: 18px;
+    border-radius: 99px;
+    margin-right: 3px;
+  }
+  .mini-chip.out { background: transparent; border: 0.5px solid var(--line); }
+  .mini-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--coral);
+    margin: 0 auto 4px;
+  }
+  .mini-row { display: flex; gap: 3px; margin-bottom: 3px; }
+  .mini-row .mini-block { flex: 1; margin-bottom: 0; }
+  .screen-body { padding: 18px 20px 20px; }
+  .screen-number {
+    font-size: 10px;
+    color: var(--soft-ink);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .screen-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 6px;
+    font-variation-settings: 'SOFT' 60, 'opsz' 22;
+  }
+  .screen-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .screen-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 0.5px solid var(--sunken);
+    margin-top: auto;
+  }
+  .screen-tag {
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--sunken);
+    padding: 3px 8px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+  .screen-tag.platform { background: var(--ink); color: var(--surface); }
+  .screen-tag.web { background: #E8F0F5; color: #1F4E5C; }
+  .screen-tag.coral { background: #FCE3DA; color: #8B2E1C; }
+
+  .docs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .doc-card {
+    background: #FFFFFF;
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 30px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .doc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(60, 30, 15, 0.10);
+    border-color: var(--line);
+  }
+  .doc-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--sunken);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-eyebrow {
+    font-size: 10px;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .doc-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    font-variation-settings: 'SOFT' 60, 'opsz' 22;
+  }
+  .doc-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .footer {
+    background: var(--ink);
+    color: #B4B2A9;
+    padding: 50px 48px 40px;
+    margin-top: 40px;
+  }
+  .footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footer-brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 18px;
+    color: var(--surface);
+    font-weight: 600;
+  }
+  .footer-info {
+    font-size: 11px;
+    color: var(--soft-ink);
+    text-align: right;
+  }
+  .footer-info-line { margin-bottom: 3px; }
+
+  @media (max-width: 900px) {
+    .hero { padding: 60px 28px 50px; }
+    h1 { font-size: 44px; }
+    .hero-subtitle { font-size: 17px; }
+    .hero-meta { gap: 28px; grid-template-columns: repeat(2, auto); }
+    .section-nav { padding: 12px 20px; }
+    .section-links { display: none; }
+    .content { padding: 50px 20px 70px; }
+    .screen-grid, .screen-grid.web, .docs-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: 30px; }
+    .footer { padding: 40px 20px 30px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="section-nav">
+  <div class="section-nav-inner">
+    <div class="brand-mark">&lt;AppName&gt; · Wireframes</div>
+    <div class="section-links">
+      <a href="#onboarding" class="section-link">Onboarding</a>
+      <a href="#discovery" class="section-link">Discovery</a>
+      <a href="#detail" class="section-link">Detail &amp; Booking</a>
+      <a href="#creator" class="section-link">Creator</a>
+      <a href="#identity" class="section-link">Profile</a>
+      <a href="#web" class="section-link">Web</a>
+      <a href="#docs" class="section-link">Documents</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">
+      <div class="eyebrow-dot"></div>
+      WIREFRAME SET · MVP · v1.0
+    </div>
+    <h1>A creator platform for trips worth taking.</h1>
+    <div class="hero-subtitle">21 screens across mobile native, web desktop, and web mobile. Covering the full MVP scope — from onboarding to booking to creator publishing. Curated by real humans, not algorithms.</div>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="meta-label">Screens</div>
+        <div class="meta-value">21</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Surfaces</div>
+        <div class="meta-value">3</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Decisions</div>
+        <div class="meta-value">40</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Status</div>
+        <div class="meta-value">Complete</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="content">
+
+<section class="section" id="onboarding">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 1</div>
+    <h2 class="section-title">Onboarding &amp; entry</h2>
+    <p class="section-desc">First impressions, sign-up, and the default landing experience for authenticated users.</p>
+  </div>
+  <div class="screen-grid">
+
+    <a href="screen-01-onboarding.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Welcome</div>
+              <div class="mini-sub">Trips curated by real creators</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-block half"></div>
+              <div style="margin-top: 12px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 01</div>
+        <div class="screen-title">Onboarding flow</div>
+        <div class="screen-desc">Welcome → phone OTP → location picker → complete. Single flow from cold start to authenticated user.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">1 flow</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-02-home-feed.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Home</div>
+              <div class="mini-sub">What's on today</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-row">
+                <div class="mini-block"></div>
+                <div class="mini-block"></div>
+              </div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 02</div>
+        <div class="screen-title">Home feed</div>
+        <div class="screen-desc">Curated home feed with featured trips, creator strips, and editorial content. Curated, not algorithmic.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Curated</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-02b-location-picker.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Where are you?</div>
+              <div class="mini-sub">We'll show nearby trips</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 02b</div>
+        <div class="screen-title">Location picker</div>
+        <div class="screen-desc">PostGIS-backed city autocomplete. Uses GeoNames dataset for structured location input.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">GeoNames</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="discovery">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 2</div>
+    <h2 class="section-title">Discovery</h2>
+    <p class="section-desc">How users browse and filter content across the catalogue.</p>
+  </div>
+  <div class="screen-grid">
+
+    <a href="screen-03-discover.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Discover</div>
+              <div class="mini-sub">Find your next trip</div>
+              <div style="margin: 8px 0;"><span class="mini-chip"></span><span class="mini-chip out"></span><span class="mini-chip out"></span></div>
+              <div class="mini-row"><div class="mini-block"></div><div class="mini-block"></div></div>
+              <div class="mini-row"><div class="mini-block"></div><div class="mini-block"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 03</div>
+        <div class="screen-title">Discover grid</div>
+        <div class="screen-desc">Content grid with type filters (All, Scheduled, Itineraries, Events, Posts). Scrollable by vertical.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Filters</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="detail">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 3</div>
+    <h2 class="section-title">Content detail &amp; booking</h2>
+    <p class="section-desc">Per-content-type detail pages and the end-to-end booking flow with escrow and WhatsApp confirmation.</p>
+  </div>
+  <div class="screen-grid">
+
+    <a href="screen-04-experience-scheduled.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-block tall"></div>
+              <div class="mini-title">Spiti in seven days</div>
+              <div class="mini-sub">Riya Menon · May 15</div>
+              <div class="mini-block half"></div>
+              <div style="margin-top: 10px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 04</div>
+        <div class="screen-title">Scheduled experience</div>
+        <div class="screen-desc">Creator-led multi-day trip detail page. Departures, inclusions, cancellation policy, book CTA.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag coral">Paid</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-04b-post-detail.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Why I stopped planning</div>
+              <div class="mini-sub">Riya Menon · 6 min read</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 04b</div>
+        <div class="screen-title">Post detail</div>
+        <div class="screen-desc">Long-form editorial content. Fraunces body type, save/follow affordances, no monetization.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Free</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-04c-event-detail.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-block tall"></div>
+              <div class="mini-title">Sinhagad sunrise trek</div>
+              <div class="mini-sub">Sat 12 May · 3.5 hours</div>
+              <div class="mini-block half"></div>
+              <div style="margin-top: 10px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 04c</div>
+        <div class="screen-title">Event detail</div>
+        <div class="screen-desc">Time-bound single-occurrence experience. Under 24 hours, simple venue + time + price.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag coral">Paid</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-04d-itinerary-detail.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">The complete Spiti guide</div>
+              <div class="mini-sub">24 spots · 7 days</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div style="margin-top: 8px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 04d</div>
+        <div class="screen-title">Self-paced itinerary</div>
+        <div class="screen-desc">Spot-based guide with locked/unlocked states. Freemium teaser + purchase gate.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">2 states</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-04e-soft-auth-wall.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Sign in to continue</div>
+              <div class="mini-sub">Save trips, follow creators</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div style="margin-top: 10px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 04e</div>
+        <div class="screen-title">Soft auth wall</div>
+        <div class="screen-desc">Bottom sheet over locked content. Phone OTP primary, Google/Apple secondary.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Auth</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-05-booking-flow.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Review &amp; pay</div>
+              <div class="mini-sub">May 15 · 2 travellers</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block half"></div>
+              <div style="margin-top: 10px;"><div class="mini-block coral"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 05</div>
+        <div class="screen-title">Booking flow</div>
+        <div class="screen-desc">5-state flow: date picker → travellers → review/pay → confirmation → self-paced variant. 10-min hold timer.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">5 states</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="creator">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 4</div>
+    <h2 class="section-title">Creator experience</h2>
+    <p class="section-desc">Studio dashboard and publishing wizard for all 4 content types.</p>
+  </div>
+  <div class="screen-grid">
+
+    <a href="screen-06-studio.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Studio</div>
+              <div class="mini-sub">2 new bookings today</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-row"><div class="mini-block"></div><div class="mini-block"></div><div class="mini-block"></div><div class="mini-block"></div></div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 06</div>
+        <div class="screen-title">Studio tab</div>
+        <div class="screen-desc">Creator dashboard with contextual alert hero, stats, content list, and earnings card. Two states drawn.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">2 states</span>
+          <span class="screen-tag coral">Creator</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-07-publishing-wizard.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Step 3 · Days</div>
+              <div class="mini-sub">Build your days</div>
+              <div class="mini-row"><div class="mini-block"></div><div class="mini-block"></div><div class="mini-block"></div></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 07</div>
+        <div class="screen-title">Publishing wizard</div>
+        <div class="screen-desc">Content type picker + 5-step wizard. Self-paced itinerary + post + event + scheduled experience variants.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">4 types</span>
+          <span class="screen-tag coral">Creator</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="identity">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 5</div>
+    <h2 class="section-title">Identity, saves &amp; profile</h2>
+    <p class="section-desc">You tab with all sub-screens, saved wishlists, and notifications.</p>
+  </div>
+  <div class="screen-grid">
+
+    <a href="screen-11-saved.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Your wishlists</div>
+              <div class="mini-sub">3 saved lists</div>
+              <div class="mini-row"><div class="mini-block tall"></div><div class="mini-block tall"></div></div>
+              <div class="mini-row"><div class="mini-block tall"></div><div class="mini-block tall"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 11</div>
+        <div class="screen-title">Saved tab</div>
+        <div class="screen-desc">Multi-list wishlists (Airbnb pattern). Grid, inside-list view, save-to-list bottom sheet.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">3 states</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-12-you-tab.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div style="text-align: center;"><div class="mini-circle"></div></div>
+              <div class="mini-title" style="text-align: center;">Riya Menon</div>
+              <div class="mini-sub" style="text-align: center;">@riya_menon</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 12</div>
+        <div class="screen-title">You tab</div>
+        <div class="screen-desc">Profile hero + settings. Follower state (incomplete) and creator state (verified, connected social).</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">2 states</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-12a-notifications.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Notifications</div>
+              <div class="mini-sub">Choose what reaches you</div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 12a</div>
+        <div class="screen-title">Notifications</div>
+        <div class="screen-desc">6 categories × 3 channels (push, WhatsApp, email). WhatsApp locked for bookings per DD-021.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Privacy</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-12b-edit-profile.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Edit profile</div>
+              <div class="mini-sub">How you show up</div>
+              <div style="text-align: center; margin: 8px 0;"><div class="mini-circle"></div></div>
+              <div class="mini-block"></div>
+              <div class="mini-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 12b</div>
+        <div class="screen-title">Edit profile</div>
+        <div class="screen-desc">Photo, display name, username (30-day cooldown), bio, location, contact. Creator variant shown.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Settings</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-12c-bookings.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">Bookings</div>
+              <div class="mini-sub">Your upcoming trips</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-block tall"></div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 12c</div>
+        <div class="screen-title">Bookings list</div>
+        <div class="screen-desc">Upcoming trips + Library (self-paced purchases). Status pills, urgent state, refund visibility.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">Transactional</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-12d-connected-account.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-title">YouTube</div>
+              <div class="mini-sub">Connected · @riyawanders</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-block"></div>
+              <div class="mini-block half"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 12d</div>
+        <div class="screen-title">Connected social account</div>
+        <div class="screen-desc">Per-platform detail view. Subscriber delta, sync status, explicit permissions transparency, disconnect.</div>
+        <div class="screen-tags">
+          <span class="screen-tag platform">Mobile</span>
+          <span class="screen-tag">OAuth</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="web">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 6</div>
+    <h2 class="section-title">Web surfaces</h2>
+    <p class="section-desc">Public SEO-indexed pages and responsive variants. India-first positioning.</p>
+  </div>
+  <div class="screen-grid web">
+
+    <a href="screen-10-web-home.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-web">
+            <div class="preview-web-chrome">
+              <div class="preview-web-dot"></div>
+              <div class="preview-web-dot"></div>
+              <div class="preview-web-dot"></div>
+            </div>
+            <div class="preview-mini-screen-web">
+              <div class="mini-title" style="font-size: 13px;">Trips worth taking.</div>
+              <div class="mini-sub">Curated by real creators across India</div>
+              <div class="mini-block tall"></div>
+              <div class="mini-row">
+                <div class="mini-block"></div>
+                <div class="mini-block"></div>
+                <div class="mini-block"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 10</div>
+        <div class="screen-title">Web home · logged out</div>
+        <div class="screen-desc">Marketing landing at xyz.com. Editorial hero, how it works, featured creators, trips grid, creator CTA band, trust signals, footer.</div>
+        <div class="screen-tags">
+          <span class="screen-tag web">Web desktop</span>
+          <span class="screen-tag">SEO</span>
+          <span class="screen-tag">India-first</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-09-mini-site-desktop.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-web">
+            <div class="preview-web-chrome">
+              <div class="preview-web-dot"></div>
+              <div class="preview-web-dot"></div>
+              <div class="preview-web-dot"></div>
+            </div>
+            <div class="preview-mini-screen-web">
+              <div class="mini-block tall"></div>
+              <div style="text-align: center; margin: -8px 0 6px;"><div class="mini-circle"></div></div>
+              <div class="mini-title" style="text-align: center;">Riya Menon</div>
+              <div class="mini-sub" style="text-align: center;">Travel creator · Pune</div>
+              <div class="mini-row">
+                <div class="mini-block"></div>
+                <div class="mini-block"></div>
+                <div class="mini-block"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 09</div>
+        <div class="screen-title">Creator mini-site · desktop</div>
+        <div class="screen-desc">Public profile page at xyz.com/travel/username. Editorial hero, overlapping profile card, content grid, trust section.</div>
+        <div class="screen-tags">
+          <span class="screen-tag web">Web desktop</span>
+          <span class="screen-tag">SEO</span>
+          <span class="screen-tag">Public</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="screen-09b-mini-site-mobile.html" class="screen-card">
+      <div class="screen-preview">
+        <div class="preview-inner">
+          <div class="preview-mini-phone">
+            <div class="preview-mini-screen">
+              <div class="mini-block tall"></div>
+              <div style="text-align: center; margin: -8px 0 6px;"><div class="mini-circle"></div></div>
+              <div class="mini-title" style="text-align: center;">Riya Menon</div>
+              <div class="mini-sub" style="text-align: center;">Travel creator</div>
+              <div class="mini-block coral" style="margin: 0 auto; width: 60%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-number">SCREEN 09b</div>
+        <div class="screen-title">Creator mini-site · mobile</div>
+        <div class="screen-desc">Responsive mobile version with sticky header, horizontal scrollable stats, single-column content list.</div>
+        <div class="screen-tags">
+          <span class="screen-tag web">Web mobile</span>
+          <span class="screen-tag">Responsive</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<section class="section" id="docs">
+  <div class="section-header">
+    <div class="section-eyebrow">SECTION 7</div>
+    <h2 class="section-title">Reference documents</h2>
+    <p class="section-desc">Design decision changelogs and the SRS consolidation prompt for handoff to engineering.</p>
+  </div>
+  <div class="docs-grid">
+
+    <a href="../wireframe-consolidation-changelog-final.md" class="doc-card">
+      <div class="doc-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="doc-info">
+        <div class="doc-eyebrow">CHANGELOG</div>
+        <div class="doc-title">Wireframe consolidation v1.0</div>
+        <div class="doc-desc">Complete changelog · 21 screens · DD-029 to DD-040 · 50+ new FRs · 8 schema tables · compliance notes.</div>
+      </div>
+    </a>
+
+    <a href="../srs-design-decisions-changelog-final.md" class="doc-card">
+      <div class="doc-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="doc-info">
+        <div class="doc-eyebrow">CHANGELOG</div>
+        <div class="doc-title">SRS design decisions v1</div>
+        <div class="doc-desc">Original closed changelog · DD-001 through DD-028 · locked decisions from the v1.1 consolidation pass.</div>
+      </div>
+    </a>
+
+    <a href="../claude-code-prompt-srs-v1.2-consolidation.md" class="doc-card">
+      <div class="doc-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div class="doc-info">
+        <div class="doc-eyebrow">CLAUDE CODE PROMPT</div>
+        <div class="doc-title">SRS v1.2 consolidation</div>
+        <div class="doc-desc">11-step execution prompt for Claude Code. Produces srs-v1.2.md from v1.1 + both changelogs.</div>
+      </div>
+    </a>
+
+    <a href="../claude-code-prompt-srs-consolidation.md" class="doc-card">
+      <div class="doc-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div class="doc-info">
+        <div class="doc-eyebrow">CLAUDE CODE PROMPT · LEGACY</div>
+        <div class="doc-title">SRS v1.1 consolidation (original)</div>
+        <div class="doc-desc">Earlier consolidation prompt used to produce v1.1 from the base SRS and DD-001 through DD-028.</div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">&lt;AppName&gt;</div>
+    <div class="footer-info">
+      <div class="footer-info-line">Wireframe set v1.0 · MVP scope</div>
+      <div class="footer-info-line">21 screens · 3 surfaces · 40 design decisions</div>
+      <div class="footer-info-line">xyz.com · Pune, India · 2026</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.section-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

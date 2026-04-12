@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen 02b · Location picker &amp; nearest-neighbor fallback · &lt;AppName&gt; wireframes</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    .progress-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      padding: 0 22px;
+      margin: 10px 0 24px;
+    }
+    .progress-segment {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+    }
+    .progress-segment.active { background: var(--ink); }
+
+    .city-result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+    }
+    .city-result:last-child { border-bottom: none; }
+    .city-result.active { background: var(--sunken); }
+    .city-name { font-size: 14px; color: var(--ink); font-weight: 500; }
+    .city-meta { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    .pin-icon-box {
+      width: 36px;
+      height: 36px;
+      background: var(--sunken);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Honesty banner for fallback state */
+    .fallback-banner {
+      background: var(--coral-wash);
+      border: 1px solid #F8C2B0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 14px 16px 10px;
+      font-size: 12px;
+      color: #6E2412;
+      line-height: 1.5;
+    }
+    .fallback-banner strong { color: #4A1606; font-weight: 600; }
+    .fallback-banner .banner-meta {
+      font-size: 10px;
+      color: #8E3A22;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="wf-header">
+    <div class="wf-header-eyebrow">Screen 02b · location picker and nearest-neighbor fallback</div>
+    <h1>Current location · mandatory step with honest fallback</h1>
+    <p>Location is captured as a mandatory step during onboarding (between OTP and category selection). No home city / viewing city split — users have a single <em>current city</em> they can change anytime. When a city has no content, the home feed falls back through a nearest-neighbor waterfall (exact city → 200km → 500km → India-wide) and shows an honest banner telling the user what's happening.</p>
+    <div class="wf-meta">
+      <div><strong>DD refs:</strong> DD-009, DD-010, DD-011</div>
+      <div><strong>SRS refs:</strong> ONB-FR-006, DISC-FR-025 through DISC-FR-029</div>
+      <div><strong>Schema:</strong> cities (PostGIS) · users.current_city_id · current_location_point</div>
+    </div>
+  </header>
+
+  <!-- ============ ROW 1: Location onboarding step ============ -->
+  <div class="wf-stage">
+    <div>
+      <div class="phone-label">Step 2 · Location capture · onboarding</div>
+      <div class="phone">
+        <div class="phone-screen">
+
+          <!-- Top nav with back + skip-free (you can't skip) -->
+          <div style="padding: 16px 16px 0; display: flex; align-items: center; justify-content: space-between;">
+            <button class="nav-icon-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="font-size: 11px; color: var(--muted); font-weight: 500;">Step 2 of 5</div>
+            <div style="width: 34px;"></div>
+          </div>
+
+          <!-- Progress bar · 5 segments · step 2 active -->
+          <div class="progress-bar">
+            <div class="progress-segment active"></div>
+            <div class="progress-segment active"></div>
+            <div class="progress-segment"></div>
+            <div class="progress-segment"></div>
+            <div class="progress-segment"></div>
+          </div>
+
+          <!-- Title area -->
+          <div style="padding: 0 22px 20px;">
+            <div class="fraunces" style="font-size: 26px; color: var(--ink); font-weight: 500; line-height: 1.15; margin-bottom: 10px; font-variation-settings: 'SOFT' 80, 'opsz' 34;">Where are you now?</div>
+            <div style="font-size: 13px; color: var(--muted); line-height: 1.55;">We use your location to show trips starting near you. You can change this anytime from the top bar.</div>
+          </div>
+
+          <!-- Use GPS button (primary) -->
+          <div style="padding: 0 22px 12px;">
+            <button style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--coral); color: #FFFFFF; border: none; font-family: inherit; font-size: 14px; font-weight: 500; padding: 14px; border-radius: 12px; box-shadow: 0 2px 8px rgba(225,90,65,0.22);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Use my current location
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 22px;">
+            <div style="flex: 1; height: 0.5px; background: var(--border);"></div>
+            <div style="font-size: 10px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">or pick a city</div>
+            <div style="flex: 1; height: 0.5px; background: var(--border);"></div>
+          </div>
+
+          <!-- Search input -->
+          <div style="padding: 12px 22px 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search for your city" style="border: none; outline: none; font-family: inherit; font-size: 14px; color: var(--ink); flex: 1; background: transparent;">
+            </div>
+          </div>
+
+          <!-- Popular cities suggestion -->
+          <div style="padding: 0 22px 8px;">
+            <div style="font-size: 10px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 10px;">Popular in India</div>
+          </div>
+
+          <!-- City result list (popular) -->
+          <div style="padding: 0 6px;">
+            <div class="city-result">
+              <div class="pin-icon-box">
+                <svg width="18" height="18" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              </div>
+              <div style="flex: 1;">
+                <div class="city-name">Pune</div>
+                <div class="city-meta">Maharashtra · 3.1M people</div>
+              </div>
+            </div>
+            <div class="city-result">
+              <div class="pin-icon-box">
+                <svg width="18" height="18" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              </div>
+              <div style="flex: 1;">
+                <div class="city-name">Mumbai</div>
+                <div class="city-meta">Maharashtra · 20.4M people</div>
+              </div>
+            </div>
+            <div class="city-result">
+              <div class="pin-icon-box">
+                <svg width="18" height="18" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              </div>
+              <div style="flex: 1;">
+                <div class="city-name">Bengaluru</div>
+                <div class="city-meta">Karnataka · 13.2M people</div>
+              </div>
+            </div>
+            <div class="city-result">
+              <div class="pin-icon-box">
+                <svg width="18" height="18" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              </div>
+              <div style="flex: 1;">
+                <div class="city-name">Delhi</div>
+                <div class="city-meta">Delhi NCR · 32.1M people</div>
+              </div>
+            </div>
+            <div class="city-result">
+              <div class="pin-icon-box">
+                <svg width="18" height="18" viewBox="0 0 256 256" fill="#2C2823"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              </div>
+              <div style="flex: 1;">
+                <div class="city-name">Hyderabad</div>
+                <div class="city-meta">Telangana · 10.5M people</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation-card">
+        <div class="annotation-card-title">Location is mandatory · no skip</div>
+        <div>The header shows "Step 2 of 5" but has no "Skip" button, unlike other onboarding steps. Location is the foundation of the home feed's "Near you" section and the nearest-neighbor waterfall — we cannot show a useful feed without it. The user can pick their city from the list OR tap "Use my current location" for GPS permission.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">No home-city / viewing-city split · just "current location"</div>
+        <div class="annotation-card-muted">Earlier drafts had a dual abstraction — "home city" (persistent) and "viewing city" (temporary override). Rohit rejected this as over-engineering. Users have exactly one <em>current location</em>. If they travel from Pune to Manali, they change their location from Pune to Manali. When they come back, they change it back. One field, one mental model. (DD-009)</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">"Popular in India" · not a tier-based list</div>
+        <div>Earlier we considered a tier system (Tier 1 / Tier 2 / Tier 3 cities). Rejected — it's both technically fragile and subtly condescending. Instead, we seed the initial list with the top 5 cities by population, and the full dataset (~2500 cities from GeoNames) is searchable from the input field above. Every city is equal. A user in Shirdi or Kohima types their city and gets the same treatment as one in Mumbai.</div>
+      </div>
+
+      <div class="annotation-card warm">
+        <div class="annotation-card-title">Engineer note · PostGIS from Week 1</div>
+        <div class="annotation-card-muted">Enable the PostGIS extension on Supabase on day one of the build. Seed the <code style="background: rgba(60,30,15,0.06); padding: 1px 4px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;">cities</code> table from the GeoNames India dataset (cities with population ≥ 5000, ~2500 rows). Each row has <code style="background: rgba(60,30,15,0.06); padding: 1px 4px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;">geography(POINT, 4326)</code> for PostGIS ST_DWithin queries. Do NOT build materialized views — runtime ST_DWithin is fast enough for MVP content scale.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ROW 2: Nearest-neighbor fallback home feed ============ -->
+  <div class="wf-stage" style="margin-top: 44px;">
+    <div>
+      <div class="phone-label">Home feed · Shirdi user · nearest-neighbor fallback in action</div>
+      <div class="phone">
+        <div class="phone-screen">
+
+          <!-- Top bar with Shirdi location -->
+          <div class="top-bar">
+            <button class="location-chip">
+              <svg width="14" height="14" viewBox="0 0 256 256" fill="#E15A41"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>
+              <div>
+                <div class="location-chip-label">You're in</div>
+                <div class="location-chip-city">Shirdi
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </button>
+            <div style="display: flex; gap: 6px;">
+              <button class="nav-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+              <button class="nav-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="nav-unread-dot"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Near you section header with honesty -->
+          <div style="padding: 18px 18px 0;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px;">
+              <div class="fraunces" style="font-size: 18px; color: var(--ink); font-weight: 500; font-variation-settings: 'SOFT' 60, 'opsz' 22;">Near you</div>
+              <button style="background: none; border: none; font-family: inherit; font-size: 11px; color: var(--muted); font-weight: 500; padding: 3px 0;">See all</button>
+            </div>
+          </div>
+
+          <!-- The honest fallback banner -->
+          <div class="fallback-banner">
+            Nothing in <strong>Shirdi</strong> yet — showing trips from <strong>Nashik, Aurangabad, Pune</strong>
+            <div class="banner-meta">We'll notify you as soon as creators publish from Shirdi. In the meantime, here's what's nearby.</div>
+          </div>
+
+          <!-- Content rail -->
+          <div style="padding: 6px 0 0;">
+            <div style="display: flex; gap: 12px; padding: 0 18px; overflow: visible;">
+              <!-- Card 1 -->
+              <div style="flex-shrink: 0; width: 155px;">
+                <div style="aspect-ratio: 3/4; background: var(--sunken); border-radius: 10px; position: relative; overflow: hidden;">
+                  <svg width="100%" height="100%" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice">
+                    <rect width="120" height="160" fill="#E5E0D7"/>
+                    <path d="M0 80 L30 60 L60 75 L90 55 L120 65 L120 160 L0 160 Z" fill="#9C9689"/>
+                    <path d="M0 110 L40 90 L80 100 L120 85 L120 160 L0 160 Z" fill="#6B6660"/>
+                  </svg>
+                  <div style="position: absolute; top: 8px; left: 8px;">
+                    <span class="content-pill">
+                      <svg width="8" height="8" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Z"/></svg>
+                      Nashik · 80 km
+                    </span>
+                  </div>
+                  <div style="position: absolute; top: 8px; right: 8px;">
+                    <div style="width: 22px; height: 22px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding: 8px 2px 0;">
+                  <div style="font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.25; margin-bottom: 4px;">Vineyards of Sula · weekend</div>
+                  <div style="font-size: 10px; color: var(--muted);">Priya K · ₹4,500 · 2 days</div>
+                </div>
+              </div>
+
+              <!-- Card 2 -->
+              <div style="flex-shrink: 0; width: 155px;">
+                <div style="aspect-ratio: 3/4; background: var(--sunken); border-radius: 10px; position: relative; overflow: hidden;">
+                  <svg width="100%" height="100%" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice">
+                    <rect width="120" height="160" fill="#E5E0D7"/>
+                    <rect x="25" y="60" width="70" height="80" fill="#9C9689"/>
+                    <polygon points="15,60 60,30 105,60" fill="#6B6660"/>
+                    <rect x="45" y="90" width="12" height="25" fill="#6B6660"/>
+                    <rect x="65" y="90" width="12" height="25" fill="#6B6660"/>
+                  </svg>
+                  <div style="position: absolute; top: 8px; left: 8px;">
+                    <span class="content-pill">
+                      <svg width="8" height="8" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Z"/></svg>
+                      Aurangabad · 120 km
+                    </span>
+                  </div>
+                </div>
+                <div style="padding: 8px 2px 0;">
+                  <div style="font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.25; margin-bottom: 4px;">Ellora caves day trip</div>
+                  <div style="font-size: 10px; color: var(--muted);">Rohan M · ₹1,800 · 1 day</div>
+                </div>
+              </div>
+
+              <!-- Card 3 -->
+              <div style="flex-shrink: 0; width: 155px;">
+                <div style="aspect-ratio: 3/4; background: var(--sunken); border-radius: 10px; position: relative; overflow: hidden;">
+                  <svg width="100%" height="100%" viewBox="0 0 120 160" preserveAspectRatio="xMidYMid slice">
+                    <rect width="120" height="160" fill="#E5E0D7"/>
+                    <circle cx="30" cy="40" r="14" fill="#F8D7C5"/>
+                    <path d="M0 100 L40 80 L80 90 L120 75 L120 160 L0 160 Z" fill="#9C9689"/>
+                    <path d="M0 125 L60 110 L120 120 L120 160 L0 160 Z" fill="#6B6660"/>
+                  </svg>
+                  <div style="position: absolute; top: 8px; left: 8px;">
+                    <span class="content-pill">
+                      <svg width="8" height="8" viewBox="0 0 256 256" fill="#6B6660"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Z"/></svg>
+                      Pune · 185 km
+                    </span>
+                  </div>
+                </div>
+                <div style="padding: 8px 2px 0;">
+                  <div style="font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.25; margin-bottom: 4px;">Sinhagad sunrise trek</div>
+                  <div style="font-size: 10px; color: var(--muted);">Aarti G · ₹500 · 3.5 hrs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height: 60px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation-card warm">
+        <div class="annotation-card-title">The honesty banner is the entire point</div>
+        <div class="annotation-card-muted">"Nothing in Shirdi yet — showing trips from Nashik, Aurangabad, Pune." This single sentence is worth more than a thousand polished UI elements. Users in smaller cities have been gaslit by every major Indian app for years ("Showing results from all of India!") — we tell them the truth about why they're seeing what they're seeing. Sub-copy: "We'll notify you as soon as creators publish from Shirdi."</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Distance badge on each card</div>
+        <div>Every card in a fallback state shows the distance from the user's current city — "Nashik · 80 km", "Aurangabad · 120 km", "Pune · 185 km". The user can instantly decide whether something is worth the drive. This is only shown when the user is in fallback mode — for exact-match cities, cards show city name without distance.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Nearest-neighbor waterfall · 4 levels</div>
+        <div style="font-family: var(--font-mono); font-size: 10px; background: var(--sunken); padding: 10px 12px; border-radius: 6px; line-height: 1.6; color: var(--ink); margin-top: 6px;">
+1. exact city match (content.starting_city_id = user.current_city_id)<br>
+&nbsp;&nbsp;&nbsp;if count &lt; 5: fall through<br>
+2. ST_DWithin(content.point, user.point, 200_km)<br>
+&nbsp;&nbsp;&nbsp;if count &lt; 5: fall through<br>
+3. ST_DWithin(content.point, user.point, 500_km)<br>
+&nbsp;&nbsp;&nbsp;if count &lt; 5: fall through<br>
+4. popular_in_india (any Indian city)</div>
+        <div style="margin-top: 8px;">Each level has its own banner copy. Level 4 says "Nothing nearby yet · showing popular across India." The home feed remembers which level matched so cards render the correct distance badge.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Coral pin in the location chip</div>
+        <div>The location chip in the top bar uses the single coral pin icon. This is one of the 5 allowed uses of coral per DD-013 — the icon that represents "where I am." The chip is tappable: tapping it opens the location picker as a bottom sheet, letting the user update their current city without going back to onboarding.</div>
+      </div>
+
+      <div class="annotation-card sunken">
+        <div class="annotation-card-title">GPS refresh rules</div>
+        <div class="annotation-card-muted">If the user has granted location permission, we refresh the GPS point on app foreground if >1 hour has passed since last refresh. We do NOT refresh on every app open (battery drain). If the new GPS point is >50km from the current <code style="background: rgba(60,30,15,0.06); padding: 1px 4px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;">users.current_city_id</code>, we show a non-intrusive toast: "Looks like you're in Nashik now. Update your location?" with Yes / No Thanks. We never auto-change the user's city without consent.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wf-footer">
+    <strong>Screen 02b · Location picker &amp; fallback</strong> · last updated 2026-04-08 · implements DD-009, DD-010, DD-011
+    · PostGIS enabled Week 1 · Seeded from GeoNames · Runtime ST_DWithin queries, no materialized views
+    · <a href="index.html">← back to wireframe index</a>
+  </footer>
+
+</body>
+</html>

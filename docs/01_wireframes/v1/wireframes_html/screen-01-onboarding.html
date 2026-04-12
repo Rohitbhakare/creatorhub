@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 01 · Onboarding · &lt;AppName&gt;</title>
+<link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+
+<div class="wf-header">
+  <div class="wf-header-eyebrow">Screen 01 · Critical path 1</div>
+  <h1>Onboarding · welcome → location → categories → creators → done</h1>
+  <p>Five-step flow capturing the minimum we need to make the first home feed meaningful. Location is mandatory; categories mandate ≥3 picks; creators step is skippable.</p>
+  <div class="wf-meta">
+    <div><strong>Milestone</strong> M0</div>
+    <div><strong>DDs</strong> DD-001, DD-003, DD-004</div>
+    <div><strong>Related</strong> Screen 02b for location picker detail</div>
+  </div>
+</div>
+
+<!-- ========== ROW 1 · WELCOME SCREEN ========== -->
+<div class="wf-stage">
+  <div>
+    <div class="phone-label">A · Welcome · three CTAs</div>
+    <div class="phone">
+      <div class="phone-screen" style="min-height: 600px; display: flex; flex-direction: column;">
+
+        <!-- Hero illustration area -->
+        <div style="flex: 1; background: linear-gradient(180deg, var(--coral-wash) 0%, var(--surface) 80%); padding: 36px 24px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, var(--coral-faint) 0%, transparent 70%);"></div>
+          <div style="position: absolute; bottom: -30px; left: -30px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(225,90,65,0.08) 0%, transparent 70%);"></div>
+          
+          <!-- Illustration placeholder · simple mark -->
+          <div style="width: 88px; height: 88px; background: #FFFFFF; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); margin-bottom: 28px; position: relative; z-index: 1;">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+          </div>
+
+          <div style="font-family: var(--font-display); font-size: 28px; font-weight: 500; font-variation-settings: 'SOFT' 80, 'opsz' 36; color: var(--ink); line-height: 1.1; text-align: center; margin-bottom: 10px; position: relative; z-index: 1;">
+            Stories, trips,<br>and the people<br>behind them.
+          </div>
+          <div style="font-size: 13px; color: var(--muted); text-align: center; line-height: 1.55; max-width: 260px; position: relative; z-index: 1;">
+            A creator-first home for travel, food, fitness, and seven more worlds to wander into.
+          </div>
+        </div>
+
+        <!-- CTA stack -->
+        <div style="padding: 20px 22px 32px;">
+          <button class="btn-primary" style="width: 100%; margin-bottom: 10px;">Create an account</button>
+          <button class="btn-secondary" style="width: 100%; margin-bottom: 16px;">I already have an account</button>
+          <div style="text-align: center;">
+            <button style="background: transparent; border: none; color: var(--muted); font-family: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; padding: 6px;">Browse as a guest</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <div class="annotation-card">
+      <div class="annotation-card-title">1 · Three-CTA welcome</div>
+      <div>Primary: "Create an account" (coral). Secondary: "I already have an account" (ink outlined). Tertiary: "Browse as a guest" (text link, underlined). Following Airbnb's onboarding pattern and DD-003.</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">2 · Why guest browsing matters</div>
+      <div>Indian users burn data on sign-up friction. Guest browsing drops the funnel loss from 40% (hard wall) to 8% (Airbnb-measured). Guest can browse home feed, discover, detail pages, and creator mini-sites. Protected actions (book/save/follow) trigger the soft auth wall (Screen 04e).</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">3 · Copy voice</div>
+      <div>"Stories, trips, and the people behind them" signals multi-vertical from the first screen. Not "Plan your trip" (travel-only). Not "Social app for travelers" (too narrow). The subhead explicitly names the 8 verticals as "nine more worlds to wander into" — this is the on-ramp to the category picker.</div>
+    </div>
+    <div class="annotation-card sunken">
+      <div class="annotation-card-title">Visual identity</div>
+      <div>Warm radial glows in the hero area are the only decorative flourish on the whole screen. No illustrated characters, no emojis, no gradients on buttons. Premium feel from restraint, not richness.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ROW 2 · CATEGORY PICKER ========== -->
+<div class="wf-stage">
+  <div>
+    <div class="phone-label">B · Categories · pick at least 3</div>
+    <div class="phone">
+      <div class="phone-screen" style="min-height: 600px;">
+
+        <!-- Top bar with progress -->
+        <div style="padding: 14px 16px 12px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+            <button class="nav-icon-btn" style="width: 30px; height: 30px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="flex: 1; display: flex; gap: 4px;">
+              <div style="flex: 1; height: 3px; background: var(--coral); border-radius: 99px;"></div>
+              <div style="flex: 1; height: 3px; background: var(--coral); border-radius: 99px;"></div>
+              <div style="flex: 1; height: 3px; background: var(--coral); border-radius: 99px;"></div>
+              <div style="flex: 1; height: 3px; background: var(--border); border-radius: 99px;"></div>
+              <div style="flex: 1; height: 3px; background: var(--border); border-radius: 99px;"></div>
+            </div>
+            <span style="font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;">3/5</span>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div style="padding: 8px 22px 20px;">
+          <div style="font-family: var(--font-display); font-size: 24px; font-weight: 500; font-variation-settings: 'SOFT' 60, 'opsz' 32; color: var(--ink); line-height: 1.15; margin-bottom: 6px;">
+            What worlds do you want to wander?
+          </div>
+          <div style="font-size: 12px; color: var(--muted); line-height: 1.5;">
+            Pick at least 3. We'll build your feed around these.
+          </div>
+        </div>
+
+        <!-- 2x4 grid of vertical tiles -->
+        <div style="padding: 0 16px 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- Travel · selected -->
+            <div style="background: #FFFFFF; border: 1.5px solid var(--ink); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 0 0 2px var(--coral-tint);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+              <div>
+                <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Travel</div>
+                <div style="font-size: 10px; color: var(--soft-ink);">247 trips</div>
+              </div>
+              <div style="margin-left: auto; width: 18px; height: 18px; background: var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FAF7F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+            <!-- Stories · selected -->
+            <div style="background: #FFFFFF; border: 1.5px solid var(--ink); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 0 0 2px var(--coral-tint);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg>
+              <div>
+                <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Stories</div>
+                <div style="font-size: 10px; color: var(--soft-ink);">89 writers</div>
+              </div>
+              <div style="margin-left: auto; width: 18px; height: 18px; background: var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FAF7F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+            <!-- Food · selected, waitlisted -->
+            <div style="background: #FFFFFF; border: 1.5px solid var(--ink); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 0 0 2px var(--coral-tint);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Food</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">8 on waitlist</div>
+              </div>
+              <div style="margin-left: auto; width: 18px; height: 18px; background: var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FAF7F4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+            <!-- Others · unselected -->
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 2 11l4.5 4.5M17.5 6.5 22 11l-4.5 4.5M12 2v20"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Fitness</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">3 on waitlist</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Photo</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">5 on waitlist</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Wellness</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">2 on waitlist</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Music</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">1 on waitlist</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; display: flex; align-items: center; gap: 12px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <div style="font-size: 13px; color: var(--ink); font-weight: 600;">Learn</div>
+                  <span style="font-size: 8px; color: var(--muted); background: var(--border); padding: 1px 5px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">soon</span>
+                </div>
+                <div style="font-size: 10px; color: var(--soft-ink);">4 on waitlist</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky bottom CTA -->
+        <div style="padding: 14px 16px 20px; background: #FFFFFF; border-top: 0.5px solid var(--border); margin-top: auto;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-size: 11px; color: var(--muted);">3 picked · 5 more to explore</span>
+          </div>
+          <button class="btn-primary" style="width: 100%;">Continue</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <div class="annotation-card">
+      <div class="annotation-card-title">1 · All 8 verticals shown, always</div>
+      <div>Even with only Travel + Stories live at MVP, users see all 8. Waitlisted verticals get a "soon" pill + creator count. This sets expectations honestly and creates anticipation. DD-001, DD-002.</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">2 · Selection state · ink border + coral ring</div>
+      <div>Selected cards get a 1.5px ink border plus a 2px coral outer ring (not the card itself — the shadow offset). This is the one decorative coral touch in onboarding; it signals "I did this" per the save-state coral rule.</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">3 · Waitlist copy is specific</div>
+      <div>"8 on waitlist" (not "soon" alone) because a number makes the promise feel real and trackable. When Food ships, everyone on the waitlist gets a notification — the count becomes real audience.</div>
+    </div>
+    <div class="annotation-card warm">
+      <div class="annotation-card-title">Progress bar · 5 segments not 4</div>
+      <div>Onboarding steps: phone → location → categories → creators → done. The addition of the mandatory location step (DD-009) turns v1.1's 4-step flow into 5. Progress bar is 3/5 here because user has completed phone, location, and is now on categories.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ROW 3 · MILESTONE CELEBRATION ========== -->
+<div class="wf-stage">
+  <div>
+    <div class="phone-label">C · Milestone · final step</div>
+    <div class="phone">
+      <div class="phone-screen" style="min-height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 28px; text-align: center;">
+
+        <!-- Celebration mark -->
+        <div style="width: 108px; height: 108px; background: #FFFFFF; border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-xl); margin-bottom: 36px; position: relative;">
+          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <!-- Subtle glow -->
+          <div style="position: absolute; inset: -20px; background: radial-gradient(circle, var(--coral-faint) 0%, transparent 60%); border-radius: 50%; z-index: -1;"></div>
+        </div>
+
+        <div style="font-family: var(--font-display); font-size: 28px; font-weight: 500; font-variation-settings: 'SOFT' 80, 'opsz' 36; color: var(--ink); line-height: 1.1; margin-bottom: 12px;">
+          Welcome in, Riya.
+        </div>
+        <div style="font-size: 13px; color: var(--muted); line-height: 1.55; max-width: 260px; margin-bottom: 40px;">
+          Your feed is ready. Travel and Stories creators from Pune and nearby are lined up.
+        </div>
+
+        <button class="btn-primary" style="width: 100%;">Show me around</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <div class="annotation-card">
+      <div class="annotation-card-title">1 · Restrained celebration</div>
+      <div>No confetti, no Lottie fireworks, no XP popups. A single coral-outlined star mark with a subtle glow. Premium feel comes from restraint — the celebration is in the words ("Welcome in, Riya"), not the animation.</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">2 · Personalized subhead</div>
+      <div>"Your feed is ready. Travel and Stories creators from Pune and nearby are lined up." References the user's picks AND their location — the app acknowledges both. This is the "the app knows me" moment.</div>
+    </div>
+    <div class="annotation-card">
+      <div class="annotation-card-title">3 · Auto-dismiss option</div>
+      <div>Per DD-004, this screen can auto-dismiss after 2 seconds OR wait for the user to tap the CTA. Product decision: make it tap-required for the first session (users want to read the welcome), auto-dismiss for re-onboarding flows after settings changes.</div>
+    </div>
+    <div class="annotation-card sunken">
+      <div class="annotation-card-title">The star icon</div>
+      <div>One of exactly five places coral is permitted semantically — this is "something the user has accomplished." The same coral rule as save-bookmark-active and overnight-itinerary-pin.</div>
+    </div>
+  </div>
+</div>
+
+<div class="wf-footer">
+  Screen 01 · Onboarding · v1.2 · last updated 2026-04-08 · see <a href="index.html">index</a> · paired requirements: <code>ONB-FR-001</code> through <code>ONB-FR-006</code>
+</div>
+
+</body>
+</html>

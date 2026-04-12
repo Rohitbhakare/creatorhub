@@ -1,0 +1,27 @@
+{
+  "name": "creatorhub",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "concurrently --names api,web --prefix-colors cyan,magenta \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "build": "pnpm --recursive --filter !mobile build",
+    "lint": "eslint apps/api/src apps/web/src packages/shared/src",
+    "typecheck": "pnpm --recursive --filter !mobile typecheck",
+    "test": "pnpm --recursive --filter !mobile test",
+    "clean": "pnpm --recursive exec rm -rf dist .next .turbo node_modules"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}

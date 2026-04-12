@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen 04 · Scheduled experience detail · &lt;AppName&gt; wireframes</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    .hero-img { aspect-ratio: 16/10; background: linear-gradient(135deg, #C9C3B6, #9C9689); position: relative; }
+    .section { padding: 18px 18px 0; }
+    .section h2 { font-family: var(--font-display); font-size: 15px; color: var(--ink); font-weight: 500; margin: 0 0 8px 0; font-variation-settings: 'SOFT' 60, 'opsz' 20; }
+    .facts-grid { background: var(--sunken); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fact { display: flex; align-items: center; gap: 8px; }
+    .fact-label { font-size: 8px; color: var(--soft-ink); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .fact-value { font-size: 11px; color: var(--ink); font-weight: 600; }
+    .date-pill { background: #FFFFFF; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 80px; text-align: center; flex-shrink: 0; }
+    .date-pill.selected { border-color: var(--ink); border-width: 2px; }
+    .date-month { font-size: 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .date-day { font-family: var(--font-display); font-size: 20px; color: var(--ink); font-weight: 600; line-height: 1.1; }
+    .date-year { font-size: 9px; color: var(--muted); }
+    .date-status { font-size: 8px; color: var(--success); font-weight: 600; margin-top: 3px; }
+  </style>
+</head>
+<body>
+
+  <header class="wf-header">
+    <div class="wf-header-eyebrow">Screen 04 · scheduled experience detail</div>
+    <h1>Scheduled experience · Airbnb-inspired detail page</h1>
+    <p>The most-used detail page template in the app. Shows a creator-led multi-day experience with multiple future departure dates. Airbnb-inspired: hero → quick facts → host chip → itinerary → dates rail → reviews → sticky booking bar.</p>
+    <div class="wf-meta">
+      <div><strong>DD refs:</strong> DD-013, DD-017, DD-019, DD-021, DD-022, DD-025</div>
+      <div><strong>SRS refs:</strong> CRT-FR-005, BOOK-FR-002, §5.1 (scheduled_dates, meeting_points)</div>
+    </div>
+  </header>
+
+  <div class="wf-stage">
+    <div>
+      <div class="phone-label">A · Default state · user has not saved or booked yet</div>
+      <div class="phone">
+        <div class="phone-screen">
+
+          <!-- Hero with floating nav -->
+          <div style="position: relative;">
+            <div style="position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 10;">
+              <button class="nav-icon-btn" style="background: rgba(250,247,244,0.95); backdrop-filter: blur(10px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <div style="display: flex; gap: 6px;">
+                <button class="nav-icon-btn" style="background: rgba(250,247,244,0.95); backdrop-filter: blur(10px);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366" stroke="#25D366" stroke-width="0"><path d="M20.5 3.5C18.3 1.3 15.3 0 12.2 0 5.9 0 .7 5.2.7 11.5c0 2 .5 4 1.5 5.8L.6 24l6.9-1.8c1.7 1 3.7 1.5 5.7 1.5 6.3 0 11.5-5.2 11.5-11.5 0-3.1-1.2-6-3.2-8.7z"/></svg>
+                </button>
+                <button class="nav-icon-btn" style="background: rgba(250,247,244,0.95); backdrop-filter: blur(10px);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+                <button class="nav-icon-btn" style="background: rgba(250,247,244,0.95); backdrop-filter: blur(10px);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="hero-img"></div>
+          </div>
+
+          <!-- Title block -->
+          <div style="padding: 18px 18px 0;">
+            <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Scheduled experience · Travel</div>
+            <div class="fraunces" style="font-size: 22px; color: var(--ink); font-weight: 500; line-height: 1.15; margin-bottom: 10px;">Spiti Valley · 7 days with Riya</div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#2C2823" stroke="#2C2823"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="color: var(--ink); font-weight: 600;">4.9</span>
+              <span>(23 reviews)</span>
+              <span>·</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E15A41" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Starts in Manali</span>
+            </div>
+          </div>
+
+          <!-- Creator chip -->
+          <div style="padding: 16px 18px 0;">
+            <div style="background: #FFFFFF; border: 0.5px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--sunken); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">RM</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span style="font-size: 13px; color: var(--ink); font-weight: 600;">Riya Menon</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#2C2823"/><path d="M8 12l3 3 5-6" stroke="#FAF7F4" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">Travel creator · 12 trips hosted · Speaks Hindi, English</div>
+              </div>
+              <button class="btn-dark">Follow</button>
+            </div>
+          </div>
+
+          <!-- Quick facts -->
+          <div class="section">
+            <div class="facts-grid">
+              <div class="fact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <div>
+                  <div class="fact-label">Duration</div>
+                  <div class="fact-value">7 days / 6 nights</div>
+                </div>
+              </div>
+              <div class="fact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <div>
+                  <div class="fact-label">Group size</div>
+                  <div class="fact-value">6 to 12 people</div>
+                </div>
+              </div>
+              <div class="fact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+                <div>
+                  <div class="fact-label">Difficulty</div>
+                  <div class="fact-value">Moderate · altitude</div>
+                </div>
+              </div>
+              <div class="fact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <div>
+                  <div class="fact-label">Best season</div>
+                  <div class="fact-value">May to October</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- About section -->
+          <div class="section">
+            <h2>About this trip</h2>
+            <div style="font-size: 12px; color: #4A4641; line-height: 1.55;">Seven days across Spiti Valley, from Manali through the Kunzum Pass to Kaza and back via Chandratal. Small group, one vehicle, monastery stays where possible. I've run this route twice a year for three years...</div>
+            <button style="background: transparent; border: none; color: var(--ink); font-family: inherit; font-size: 11px; font-weight: 600; padding: 6px 0; margin-top: 6px; text-decoration: underline; text-underline-offset: 3px;">Read more</button>
+          </div>
+
+          <!-- Upcoming dates rail -->
+          <div class="section">
+            <h2>Upcoming departures</h2>
+            <div style="display: flex; gap: 8px; overflow: visible; padding-bottom: 4px;">
+              <div class="date-pill selected">
+                <div class="date-month">May</div>
+                <div class="date-day">18</div>
+                <div class="date-year">2026</div>
+                <div class="date-status">4 spots left</div>
+              </div>
+              <div class="date-pill">
+                <div class="date-month">Jun</div>
+                <div class="date-day">08</div>
+                <div class="date-year">2026</div>
+                <div class="date-status">Available</div>
+              </div>
+              <div class="date-pill">
+                <div class="date-month">Jun</div>
+                <div class="date-day">22</div>
+                <div class="date-year">2026</div>
+                <div class="date-status">Available</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day-by-day teaser -->
+          <div class="section">
+            <h2>Day by day</h2>
+            <div style="background: #FFFFFF; border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden;">
+              <div style="padding: 12px 14px; border-bottom: 0.5px solid var(--border);">
+                <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Day 1 · Manali</div>
+                <div style="font-size: 12px; color: var(--ink); font-weight: 500;">Arrival, brief, acclimatization walk</div>
+              </div>
+              <div style="padding: 12px 14px; border-bottom: 0.5px solid var(--border);">
+                <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Day 2 · Manali → Kaza</div>
+                <div style="font-size: 12px; color: var(--ink); font-weight: 500;">Kunzum Pass crossing, 9 hours driving</div>
+              </div>
+              <div style="padding: 12px 14px;">
+                <div style="font-size: 9px; color: var(--soft-ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Days 3–7</div>
+                <div style="font-size: 12px; color: var(--muted);">Key Monastery, Dhankar, Chandratal, return</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Meeting point preview -->
+          <div class="section">
+            <h2>Where we meet</h2>
+            <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;">
+              <div style="font-size: 12px; color: var(--ink); font-weight: 600; margin-bottom: 4px;">Manali Volvo stand area</div>
+              <div style="font-size: 10px; color: var(--muted); line-height: 1.5;">Exact pickup location shared via email 24 hours before departure.</div>
+            </div>
+          </div>
+
+          <!-- Spacer -->
+          <div style="height: 100px;"></div>
+
+          <!-- Sticky bottom bar -->
+          <div style="position: sticky; bottom: 0; background: #FFFFFF; border-top: 1px solid var(--border); padding: 14px 16px; box-shadow: 0 -4px 16px rgba(60,30,15,0.06); display: flex; align-items: center; gap: 12px;">
+            <div style="flex: 1;">
+              <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 1px;">From</div>
+              <div style="display: flex; align-items: baseline; gap: 4px;">
+                <span class="fraunces tabular" style="font-size: 18px; color: var(--ink); font-weight: 600;">₹24,000</span>
+                <span style="font-size: 10px; color: var(--muted);">per person</span>
+              </div>
+            </div>
+            <button class="btn-primary" style="padding: 13px 22px; font-size: 13px;">Check availability</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation-card">
+        <div class="annotation-card-title">Floating top nav with WhatsApp as first-class · DD-019</div>
+        <div>Four buttons on the hero: back, WhatsApp share (dedicated icon, green fill), generic share, save bookmark. WhatsApp is its own button because Indian users share predominantly on WhatsApp — a dedicated button saves a tap. Requires Open Graph metadata on all public URLs for preview cards to render.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Title block · Airbnb pattern</div>
+        <div>Eyebrow (content type · vertical) → Fraunces title → inline meta row (rating, review count, starting city). Rating star is ink-filled (not coral — coral is reserved). Location pin is coral (one of the 5 coral contexts).</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Creator chip · between title and facts</div>
+        <div>Promoted above the quick facts grid because trust in the creator is the primary conversion driver. Avatar, name, verified checkmark (if KYC done), trip count, languages. Follow button on the right is secondary (ink dark, not coral) — primary action on this screen is Book, not Follow.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Quick facts · 2×2 grid · DD-013</div>
+        <div>Four facts in a sunken card: duration, group size, difficulty, best season. Each has an icon + label + value. Tight vertical spacing. Removed the colorful vertical-tinted cards from earlier drafts — monochrome system means these all share the same warm neutral background.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Upcoming departures rail · DD-021</div>
+        <div>Horizontal scroll of date pills. Each pill: month / day / year / status ("4 spots left", "Available", "Sold out"). The selected date has a 2px ink border. Capacity (spots_booked out of capacity) comes from the <code>scheduled_dates</code> table. The sticky bottom bar reflects the currently selected date — if none selected, shows "From ₹X" (base price).</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Meeting point · privacy-preserving · DD-021</div>
+        <div>Shows neighborhood-level description ("Manali Volvo stand area") but NOT the exact coordinates. Exact location is shared via booking confirmation email 24hr before departure. Schema: <code>meeting_points.area_point</code> is public, <code>exact_location</code> is private. This is the Airbnb / solo traveler privacy pattern.</div>
+      </div>
+
+      <div class="annotation-card">
+        <div class="annotation-card-title">Sticky bottom booking bar</div>
+        <div>"From ₹24,000" in Fraunces with tabular numerals, coral "Check availability" primary CTA on the right. The bar stays pinned during scroll. Guests (not logged in) who tap Check availability trigger the soft auth wall (DD-016). Logged-in users proceed to the booking flow (Screen 05, pending).</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wf-footer">
+    <div><strong>Screen 04 · Scheduled experience detail</strong></div>
+    <div style="margin-top: 4px;">Source of truth: SRS CRT-FR-005, BOOK-FR-002 · schema: <code>scheduled_dates</code>, <code>meeting_points</code></div>
+    <div style="margin-top: 4px;">Related: <a href="screen-04b-post-detail.html">04b Post</a> · <a href="screen-04c-event-detail.html">04c Event</a> · <a href="screen-04d-itinerary-detail.html">04d Itinerary</a> · <a href="screen-04e-soft-auth-wall.html">04e Auth wall</a></div>
+    <div style="margin-top: 4px;"><a href="index.html">← Back to index</a></div>
+  </footer>
+
+</body>
+</html>

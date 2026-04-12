@@ -1,0 +1,408 @@
+/* ============================================================
+   <AppName> · Shared wireframe styles
+   Version: v1.2 (monochrome system · 2026-04-08)
+   
+   This stylesheet is used by every wireframe HTML file in this folder.
+   It defines the design tokens, the phone mockup chrome, and the
+   annotation card styling so individual wireframe files can focus on
+   content without repeating boilerplate.
+   
+   Design system source of truth: DD-013 (monochrome + coral rule),
+   DD-018 typography (Fraunces + Inter), DD-019 iconography (Phosphor).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ===== DESIGN TOKENS ===== */
+:root {
+  /* Warm neutrals (7 values) */
+  --surface: #FAF7F4;
+  --sunken: #F2EEE8;
+  --border: #E5E0D7;
+  --line: #C9C3B6;
+  --soft-ink: #9C9689;
+  --muted: #6B6660;
+  --ink: #2C2823;
+
+  /* Single accent · coral */
+  --coral: #E15A41;
+  --coral-hover: #C84628;
+  --coral-pressed: #9F361D;
+  --coral-tint: rgba(225, 90, 65, 0.12);
+  --coral-faint: #FCE3DA;
+  --coral-wash: #FFF5F1;
+
+  /* Semantic (functional states only) */
+  --success: #1D9E75;
+  --warning: #BA7517;
+  --danger: #C2362F;
+  --info: #185FA5;
+
+  /* Shadows (warm-tinted, two-layer) */
+  --shadow-sm: 0 1px 2px rgba(60, 30, 15, 0.04);
+  --shadow-md: 0 1px 2px rgba(60, 30, 15, 0.05), 0 6px 18px rgba(60, 30, 15, 0.06);
+  --shadow-lg: 0 1px 2px rgba(60, 30, 15, 0.05), 0 8px 24px rgba(60, 30, 15, 0.07);
+  --shadow-xl: 0 12px 40px rgba(60, 30, 15, 0.18);
+
+  /* Typography scale */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-full: 9999px;
+}
+
+/* ===== RESET + PAGE BASICS ===== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--ink); }
+
+/* ===== PAGE HEADER (every wireframe file has this) ===== */
+.wf-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  padding: 20px 24px;
+  background: #FFFFFF;
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.wf-header-eyebrow {
+  font-size: 10px;
+  color: var(--soft-ink);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.wf-header h1 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  font-variation-settings: 'SOFT' 60, 'opsz' 32;
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+}
+
+.wf-header p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.wf-header .wf-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--border);
+  font-size: 11px;
+  color: var(--soft-ink);
+}
+
+.wf-header .wf-meta strong { color: var(--ink); font-weight: 600; }
+
+/* ===== LAYOUT GRID ===== */
+.wf-stage {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.wf-stage-full {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wf-stage-3col {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.wf-stage + .wf-stage,
+.wf-stage-full + .wf-stage,
+.wf-stage-3col + .wf-stage-3col {
+  margin-top: 32px;
+}
+
+/* ===== PHONE MOCKUP CHROME ===== */
+.phone {
+  background: var(--ink);
+  padding: 8px 8px 4px;
+  border-radius: 28px 28px 8px 8px;
+  box-shadow: var(--shadow-xl);
+}
+
+.phone-small {
+  border-radius: 22px 22px 6px 6px;
+  box-shadow: 0 10px 30px rgba(60, 30, 15, 0.15);
+}
+
+.phone-screen {
+  background: var(--surface);
+  border-radius: 22px 22px 4px 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.phone-small .phone-screen {
+  border-radius: 16px 16px 0 0;
+}
+
+.phone-label {
+  font-size: 10px;
+  color: var(--soft-ink);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+/* ===== TOP NAV AND BOTTOM TAB BAR (reusable) ===== */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(250, 247, 244, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 0.5px solid rgba(229, 224, 215, 0.6);
+}
+
+.location-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+
+.location-chip-label {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.location-chip-city {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.nav-icon-btn {
+  width: 34px;
+  height: 34px;
+  background: #FFFFFF;
+  border: 0.5px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  cursor: pointer;
+}
+
+.nav-unread-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  background: var(--coral);
+  border: 1.5px solid #FFFFFF;
+  border-radius: 50%;
+}
+
+.tab-bar-wrap {
+  padding: 14px 12px 8px;
+  background: rgba(250, 247, 244, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.tab-bar {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 10px 6px 14px;
+  box-shadow: 0 1px 2px rgba(60, 30, 15, 0.04), 0 6px 22px rgba(60, 30, 15, 0.08);
+}
+
+.tab-bar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-label { font-size: 9px; color: var(--muted); }
+.tab-label.active { color: var(--coral); font-weight: 600; }
+
+/* ===== CARDS AND COMPONENTS ===== */
+.card-rail {
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.content-pill {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-primary {
+  background: var(--coral);
+  color: #FFFFFF;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 13px 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(225, 90, 65, 0.25);
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-dark {
+  background: var(--ink);
+  color: var(--surface);
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* ===== ANNOTATION CARDS ===== */
+.annotations {
+  font-size: 11px;
+  line-height: 1.65;
+  color: #4A4641;
+}
+
+.annotation-card {
+  background: #FFFFFF;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.annotation-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.annotation-card-muted { color: var(--muted); }
+
+.annotation-card.warm {
+  background: var(--coral-wash);
+  border-color: #F8C2B0;
+}
+
+.annotation-card.warm .annotation-card-title {
+  color: #6E2412;
+}
+
+.annotation-card.sunken {
+  background: var(--sunken);
+  border: none;
+}
+
+/* ===== FOOTER (every file has this) ===== */
+.wf-footer {
+  max-width: 1100px;
+  margin: 48px auto 0;
+  padding: 20px 24px;
+  background: var(--sunken);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.wf-footer a {
+  color: var(--coral);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.wf-footer code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--ink);
+}
+
+/* ===== TYPOGRAPHY HELPERS ===== */
+.fraunces { font-family: var(--font-display); font-variation-settings: 'SOFT' 60, 'opsz' 24; }
+.tabular { font-variant-numeric: tabular-nums; }

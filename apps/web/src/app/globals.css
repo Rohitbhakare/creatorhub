@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm Neutrals */
+  --color-linen: #FBF7F4;
+  --color-stone: #8A7B6B;
+  --color-bark: #3E3228;
+
+  /* Coral accent — 8 contexts only (see ui-ux.md) */
+  --color-coral: #E15A41;
+
+  /* Semantic */
+  --color-success: #2D7A4F;
+  --color-warning: #C47C1B;
+  --color-error: #C0392B;
+}
+
+html {
+  background-color: var(--color-linen);
+  color: var(--color-bark);
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screen 06 · Studio Tab</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px 20px; font-family: 'Inter', system-ui, sans-serif; background: #E5E0D7; color: #2C2823; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .caption { font-size: 13px; color: #6B6660; margin-bottom: 24px; line-height: 1.55; text-align: center; }
+  .phones { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .phone-col { display: flex; flex-direction: column; }
+  .phone-label { font-size: 11px; color: #9C9689; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .phone-bezel { background: #2C2823; padding: 7px 7px 4px; border-radius: 26px 26px 6px 6px; }
+  .phone-screen { background: #FAF7F4; border-radius: 20px 20px 0 0; overflow: hidden; min-height: 780px; display: flex; flex-direction: column; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 14px; }
+  .title-f { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #2C2823; font-weight: 500; font-variation-settings: 'SOFT' 60, 'opsz' 28; }
+  .top-icons { display: flex; gap: 8px; align-items: center; }
+  .top-icon { width: 34px; height: 34px; background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .top-avatar { width: 34px; height: 34px; border-radius: 50%; background: #F2EEE8; color: #2C2823; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .dot-badge { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; background: #E15A41; border: 1.5px solid #FFFFFF; border-radius: 50%; }
+  .pad { padding: 0 16px 18px; }
+  .hero-empty { background: #F2EEE8; border-radius: 14px; padding: 20px 18px; }
+  .hero-alert { background: #FFF5F1; border: 1px solid #F8C2B0; border-radius: 14px; padding: 16px 18px; }
+  .eyebrow { font-size: 11px; color: #6B6660; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .eyebrow.coral { color: #6E2412; }
+  .eyebrow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .coral-circle { width: 22px; height: 22px; border-radius: 50%; background: #E15A41; display: flex; align-items: center; justify-content: center; }
+  .f-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #2C2823; font-weight: 500; line-height: 1.2; margin-bottom: 8px; font-variation-settings: 'SOFT' 60, 'opsz' 28; }
+  .f-title-sm { font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2C2823; font-weight: 500; line-height: 1.25; margin-bottom: 6px; font-variation-settings: 'SOFT' 60, 'opsz' 22; }
+  .body-12 { font-size: 12px; color: #4A4641; line-height: 1.55; margin-bottom: 12px; }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-primary { background: #E15A41; color: #FFFFFF; border: none; font-family: inherit; font-size: 13px; font-weight: 500; padding: 11px 20px; border-radius: 10px; }
+  .btn-outline { background: transparent; color: #2C2823; border: 1px solid #2C2823; font-family: inherit; font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 10px; }
+  .booking-mini { background: #FFFFFF; border-radius: 10px; padding: 10px 11px; display: flex; align-items: center; gap: 10px; }
+  .avatars-stack { display: flex; }
+  .mini-avatar { width: 26px; height: 26px; border-radius: 50%; background: #E5E0D7; border: 1.5px solid #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #2C2823; }
+  .mini-avatar + .mini-avatar { margin-left: -8px; background: #F2EEE8; }
+  .mini-text { flex: 1; font-size: 12px; color: #2C2823; }
+  .mini-cta { font-size: 12px; color: #6B6660; font-weight: 500; }
+  .section-label { font-size: 11px; color: #9C9689; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 10px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .btn-create { background: #E15A41; color: #FFFFFF; border: none; font-family: inherit; font-size: 11px; font-weight: 500; padding: 7px 13px; border-radius: 8px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .stat-tile { background: #F2EEE8; border-radius: 10px; padding: 11px 10px; text-align: center; }
+  .stat-val { font-family: 'Fraunces', Georgia, serif; font-size: 19px; color: #2C2823; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-val.muted { color: #9C9689; }
+  .stat-lbl { font-size: 11px; color: #6B6660; margin-top: 5px; }
+  .content-row { background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; gap: 11px; align-items: center; }
+  .content-thumb { width: 44px; height: 44px; border-radius: 8px; background: #E5E0D7; overflow: hidden; flex-shrink: 0; }
+  .content-info { flex: 1; min-width: 0; }
+  .content-title { font-size: 12px; font-weight: 600; color: #2C2823; line-height: 1.25; }
+  .content-meta { font-size: 11px; color: #6B6660; margin-top: 3px; }
+  .content-price { font-family: 'Fraunces', Georgia, serif; font-size: 13px; color: #2C2823; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 6px; margin-bottom: 10px; }
+  .chip { font-size: 11px; font-weight: 500; padding: 5px 11px; border-radius: 99px; }
+  .chip.active { background: #2C2823; color: #FAF7F4; }
+  .chip.inactive { background: #FFFFFF; color: #2C2823; border: 0.5px solid #E5E0D7; }
+  .chip.muted { background: #FFFFFF; color: #6B6660; border: 0.5px solid #E5E0D7; }
+  .earnings-card { background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 12px; padding: 14px 16px; }
+  .earnings-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+  .kyc-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #0F6E56; font-weight: 500; }
+  .earnings-body { display: flex; align-items: flex-end; justify-content: space-between; }
+  .earnings-val { font-family: 'Fraunces', Georgia, serif; font-size: 24px; color: #2C2823; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .earnings-sub { font-size: 11px; color: #6B6660; margin-top: 5px; }
+  .details-link { font-size: 12px; color: #2C2823; font-weight: 500; }
+  .info-card { background: #FFFFFF; border: 0.5px solid #E5E0D7; border-radius: 12px; padding: 14px 16px; }
+  .info-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .info-card-title { font-size: 12px; color: #2C2823; font-weight: 600; }
+  .info-card-text { font-size: 11px; color: #6B6660; line-height: 1.55; }
+  .empty-content { background: #FFFFFF; border: 1px dashed #C9C3B6; border-radius: 12px; padding: 28px 20px; text-align: center; }
+  .empty-icon { width: 44px; height: 44px; background: #F2EEE8; border-radius: 10px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; }
+  .empty-title { font-family: 'Fraunces', Georgia, serif; font-size: 14px; color: #2C2823; font-weight: 500; margin-bottom: 4px; }
+  .empty-desc { font-size: 12px; color: #6B6660; line-height: 1.5; }
+  .spacer { flex: 1; }
+  .tab-bar-wrap { padding: 12px 12px 14px; background: #FAF7F4; border-top: 0.5px solid #E5E0D7; }
+  .tab-bar { background: #FFFFFF; border-radius: 16px; padding: 10px 8px 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-label { font-size: 11px; color: #6B6660; }
+  .tab-label.active { color: #E15A41; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="caption">Screen 06 · Studio tab · two states · new creator (empty) + established creator (with contextual alert, stats, content list, earnings).</div>
+
+<div class="phones">
+
+<div class="phone-col">
+<div class="phone-label">A · New creator · Stories only · no KYC needed</div>
+<div class="phone-bezel"><div class="phone-screen">
+
+<div class="top-bar">
+  <div class="title-f">Studio</div>
+  <div class="top-icons">
+    <div class="top-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="top-avatar">AR</div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="hero-empty">
+    <div class="eyebrow-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <div class="eyebrow">Get started</div>
+    </div>
+    <div class="f-title">Start your first piece</div>
+    <div class="body-12">Post a short write-up or put together your first itinerary. Takes a few minutes — you can publish or save it as a draft.</div>
+    <div class="btn-row">
+      <button class="btn-primary">Create</button>
+      <button class="btn-outline">See examples</button>
+    </div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="section-label">Your numbers</div>
+  <div class="stats-grid">
+    <div class="stat-tile"><div class="stat-val muted">—</div><div class="stat-lbl">Views</div></div>
+    <div class="stat-tile"><div class="stat-val muted">—</div><div class="stat-lbl">Saves</div></div>
+    <div class="stat-tile"><div class="stat-val muted">—</div><div class="stat-lbl">Books</div></div>
+    <div class="stat-tile"><div class="stat-val">0</div><div class="stat-lbl">Followers</div></div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="section-label">Your content</div>
+  <div class="empty-content">
+    <div class="empty-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9689" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
+    <div class="empty-title">Nothing here yet</div>
+    <div class="empty-desc">Drafts and published pieces show up here.</div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="info-card">
+    <div class="info-card-head">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <div class="info-card-title">Earnings</div>
+    </div>
+    <div class="info-card-text">You only need to set up payouts when you publish paid content. Free posts and itineraries work without it.</div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<div class="tab-bar-wrap">
+  <div class="tab-bar">
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div class="tab-label">Home</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="tab-label">Discover</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E15A41" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div class="tab-label active">Studio</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><div class="tab-label">Saved</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="tab-label">You</div></div>
+  </div>
+</div>
+
+</div></div>
+</div>
+
+<div class="phone-col">
+<div class="phone-label">B · Established creator · active bookings · pending payout</div>
+<div class="phone-bezel"><div class="phone-screen">
+
+<div class="top-bar">
+  <div class="title-f">Studio</div>
+  <div class="top-icons">
+    <div class="top-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2C2823" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="dot-badge"></div></div>
+    <div class="top-avatar">RM</div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="hero-alert">
+    <div class="eyebrow-row">
+      <div class="coral-circle">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+      <div class="eyebrow coral">Needs your attention</div>
+    </div>
+    <div class="f-title-sm">2 new bookings today</div>
+    <div class="body-12">Rohit and Priya booked Spiti (May 15 – 21). Send them the kit list and traveller form.</div>
+    <div class="booking-mini">
+      <div class="avatars-stack">
+        <div class="mini-avatar">R</div>
+        <div class="mini-avatar">P</div>
+      </div>
+      <div class="mini-text">Spiti in seven days · May 15</div>
+      <div class="mini-cta">Open →</div>
+    </div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="section-label">This week</div>
+  <div class="stats-grid">
+    <div class="stat-tile"><div class="stat-val">2.3k</div><div class="stat-lbl">Views</div></div>
+    <div class="stat-tile"><div class="stat-val">187</div><div class="stat-lbl">Saves</div></div>
+    <div class="stat-tile"><div class="stat-val">12</div><div class="stat-lbl">Books</div></div>
+    <div class="stat-tile"><div class="stat-val">432</div><div class="stat-lbl">Followers</div></div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="section-header">
+    <div class="section-label">Your content</div>
+    <button class="btn-create">+ Create</button>
+  </div>
+  <div class="chips">
+    <div class="chip active">Published · 4</div>
+    <div class="chip inactive">Drafts · 1</div>
+    <div class="chip muted">Archived</div>
+  </div>
+  <div class="content-row">
+    <div class="content-thumb"><svg width="100%" height="100%" viewBox="0 0 44 44"><rect width="44" height="44" fill="#E5E0D7"/><path d="M0 28 L15 18 L28 24 L44 16 L44 44 L0 44 Z" fill="#9C9689"/></svg></div>
+    <div class="content-info">
+      <div class="content-title">Spiti in seven days</div>
+      <div class="content-meta">Scheduled · 3 dates · 12 booked</div>
+    </div>
+    <div class="content-price">₹24,999</div>
+  </div>
+  <div class="content-row">
+    <div class="content-thumb"><svg width="100%" height="100%" viewBox="0 0 44 44"><rect width="44" height="44" fill="#E5E0D7"/><circle cx="14" cy="18" r="3" fill="#2C2823"/><circle cx="28" cy="24" r="3" fill="#2C2823"/><circle cx="20" cy="32" r="3" fill="#E15A41"/></svg></div>
+    <div class="content-info">
+      <div class="content-title">The complete Spiti guide</div>
+      <div class="content-meta">Itinerary · 24 spots · 48 bought</div>
+    </div>
+    <div class="content-price">₹499</div>
+  </div>
+  <div class="content-row">
+    <div class="content-thumb"><svg width="100%" height="100%" viewBox="0 0 44 44"><rect width="44" height="44" fill="#E5E0D7"/><circle cx="34" cy="12" r="5" fill="#F8D7C5"/><path d="M0 30 L15 22 L44 20 L44 44 L0 44 Z" fill="#9C9689"/></svg></div>
+    <div class="content-info">
+      <div class="content-title">Why I stopped planning trips</div>
+      <div class="content-meta">Post · 142 likes · 23 comments</div>
+    </div>
+    <div class="content-price" style="color: #9C9689; font-family: inherit; font-size: 11px;">Free</div>
+  </div>
+</div>
+
+<div class="pad">
+  <div class="earnings-card">
+    <div class="earnings-header">
+      <div class="section-label" style="margin-bottom: 0;">Earnings</div>
+      <div class="kyc-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="#1D9E75" stroke="none"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        KYC verified
+      </div>
+    </div>
+    <div class="earnings-body">
+      <div>
+        <div class="earnings-val">₹12,400</div>
+        <div class="earnings-sub">pending payout · arriving May 15</div>
+      </div>
+      <div class="details-link">Details →</div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<div class="tab-bar-wrap">
+  <div class="tab-bar">
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div class="tab-label">Home</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="tab-label">Discover</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="#E15A41" stroke="#E15A41" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div class="tab-label active">Studio</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><div class="tab-label">Saved</div></div>
+    <div class="tab-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6660" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="tab-label">You</div></div>
+  </div>
+</div>
+
+</div></div>
+</div>
+
+</div>
+</div>
+</body>
+</html>
