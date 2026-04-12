@@ -4,6 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pinput/pinput.dart';
 import '../providers/auth_provider.dart';
+import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/typography.dart' as typ;
+import '../../../shared/theme/spacing.dart';
+import '../../../shared/theme/layout.dart';
+import '../../../shared/components/button.dart';
 
 /// Phone OTP authentication screen.
 /// Two-step flow: phone input → OTP verification.
@@ -158,16 +163,17 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Layout.screenPaddingH + Spacing.sm,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 48),
+              const SizedBox(height: Spacing.xxxl),
 
               // Back button (OTP step only)
               if (_showOtpInput)
@@ -177,43 +183,45 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                     _goBackToPhone();
                   },
                   child: const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: Icon(Icons.arrow_back, size: 24),
+                    padding: EdgeInsets.only(bottom: Spacing.lg),
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 24,
+                      color: AppColors.ink,
+                    ),
                   ),
                 ),
 
               // Title
               Text(
                 _showOtpInput ? 'Verify your number' : 'Welcome to CreatorHub',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: typ.AppTypography.h3,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
 
               // Subtitle
               Text(
                 _showOtpInput
                     ? 'Enter the 6-digit code sent to +91 ${_phoneController.text}'
                     : 'Enter your phone number to get started',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                style: typ.AppTypography.bodyLarge.copyWith(
+                  color: AppColors.muted,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxl),
 
               // Phone input OR OTP input
-              if (!_showOtpInput) _buildPhoneInput(theme),
-              if (_showOtpInput) _buildOtpInput(theme),
+              if (!_showOtpInput) _buildPhoneInput(),
+              if (_showOtpInput) _buildOtpInput(),
 
               // Error message
               if (_error != null && _error!.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.only(top: Spacing.md),
                   child: Text(
                     _error!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
+                    style: typ.AppTypography.bodySmall.copyWith(
+                      color: AppColors.danger,
                     ),
                   ),
                 ),
@@ -230,14 +238,14 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                     },
                     child: Text(
                       'Browse as guest',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      style: typ.AppTypography.body.copyWith(
+                        color: AppColors.softInk,
                       ),
                     ),
                   ),
                 ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -245,33 +253,31 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
     );
   }
 
-  Widget _buildPhoneInput(ThemeData theme) {
+  Widget _buildPhoneInput() {
     return Column(
       children: [
         // Phone input with +91 prefix
         Container(
           decoration: BoxDecoration(
-            border: Border.all(
-              color: theme.colorScheme.outline.withValues(alpha: 0.3),
-            ),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(Layout.inputRadius),
           ),
           child: Row(
             children: [
               // Country code
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.lg,
+                  vertical: Spacing.lg,
+                ),
+                decoration: const BoxDecoration(
                   border: Border(
-                    right: BorderSide(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                    ),
+                    right: BorderSide(color: AppColors.border),
                   ),
                 ),
                 child: Text(
                   '+91',
-                  style: theme.textTheme.bodyLarge?.copyWith(
+                  style: typ.AppTypography.bodyLarge.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -284,12 +290,17 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: theme.textTheme.bodyLarge,
-                  decoration: const InputDecoration(
+                  style: typ.AppTypography.bodyLarge,
+                  decoration: InputDecoration(
                     hintText: 'Phone number',
+                    hintStyle: typ.AppTypography.bodyLarge.copyWith(
+                      color: AppColors.softInk,
+                    ),
                     border: InputBorder.none,
                     counterText: '',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.lg,
+                    ),
                   ),
                   onSubmitted: (_) => _sendOtp(),
                 ),
@@ -297,49 +308,31 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: Spacing.mlg),
 
         // Continue button
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: FilledButton(
-            onPressed: _isLoading ? null : _sendOtp,
-            style: FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              disabledBackgroundColor:
-                  theme.colorScheme.primary.withValues(alpha: 0.4),
-            ),
-            child: _isLoading
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  )
-                : const Text('Continue'),
-          ),
+        AppButton(
+          label: 'Continue',
+          onPressed: _isLoading ? null : _sendOtp,
+          variant: AppButtonVariant.primary,
+          size: AppButtonSize.large,
+          isLoading: _isLoading,
+          fullWidth: true,
         ),
       ],
     );
   }
 
-  Widget _buildOtpInput(ThemeData theme) {
+  Widget _buildOtpInput() {
     final defaultPinTheme = PinTheme(
       width: 48,
       height: 56,
-      textStyle: theme.textTheme.headlineSmall?.copyWith(
+      textStyle: typ.AppTypography.h4.copyWith(
         fontWeight: FontWeight.w600,
       ),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.3),
-        ),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(Layout.inputRadius),
       ),
     );
 
@@ -353,52 +346,60 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
           defaultPinTheme: defaultPinTheme,
           focusedPinTheme: defaultPinTheme.copyWith(
             decoration: BoxDecoration(
-              border: Border.all(color: theme.colorScheme.primary, width: 2),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.coral, width: 2),
+              borderRadius: BorderRadius.circular(Layout.inputRadius),
             ),
           ),
           submittedPinTheme: defaultPinTheme.copyWith(
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.05),
-              border: Border.all(color: theme.colorScheme.primary),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.coralSurface,
+              border: Border.all(color: AppColors.coral),
+              borderRadius: BorderRadius.circular(Layout.inputRadius),
             ),
           ),
           enabled: !_isLoading,
           onCompleted: _verifyOtp,
           hapticFeedbackType: HapticFeedbackType.lightImpact,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: Spacing.xl),
 
         // Resend OTP
         if (_resendCooldown > 0)
           Text(
             'Resend OTP in ${_resendCooldown}s',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            style: typ.AppTypography.bodySmall.copyWith(
+              color: AppColors.softInk,
             ),
           )
         else if (_resendCount < _maxResends)
           TextButton(
             onPressed: _resendOtp,
-            child: const Text('Resend OTP'),
+            child: Text(
+              'Resend OTP',
+              style: typ.AppTypography.body.copyWith(
+                color: AppColors.coral,
+              ),
+            ),
           )
         else
           Text(
             'Maximum resend attempts reached',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.error,
+            style: typ.AppTypography.bodySmall.copyWith(
+              color: AppColors.danger,
             ),
           ),
 
         // Loading indicator during verification
         if (_isLoading)
           const Padding(
-            padding: EdgeInsets.only(top: 16),
+            padding: EdgeInsets.only(top: Spacing.lg),
             child: SizedBox(
               height: 20,
               width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.coral,
+              ),
             ),
           ),
       ],

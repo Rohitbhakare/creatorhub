@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../theme/colors.dart';
+import '../theme/typography.dart' as typ;
+import '../theme/spacing.dart';
+import '../theme/layout.dart';
 
 /// Soft auth wall bottom sheet (IAM-FR-011).
 /// Triggered on protected actions for guest users.
@@ -24,7 +28,7 @@ Future<bool> showSoftAuthWall(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
     ),
     builder: (context) => _SoftAuthWallSheet(
       actionDescription: actionDescription,
@@ -41,8 +45,6 @@ class _SoftAuthWallSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     // Sanitize action description — strip any markup
     final sanitized = actionDescription.replaceAll(RegExp(r'[<>&]'), '');
 
@@ -51,56 +53,54 @@ class _SoftAuthWallSheet extends StatelessWidget {
         duration: const Duration(milliseconds: 240),
         curve: Curves.easeOut,
         padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          left: Spacing.xl,
+          right: Spacing.xl,
+          top: Spacing.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.xl,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Drag handle
             Container(
-              width: 40,
-              height: 4,
+              width: Layout.sheetHandleWidth,
+              height: Layout.sheetHandleHeight,
               decoration: BoxDecoration(
-                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                color: AppColors.line,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xl),
 
             // Icon
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              decoration: const BoxDecoration(
+                color: AppColors.coralSurface,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.lock_outline_rounded,
                 size: 32,
-                color: theme.colorScheme.primary,
+                color: AppColors.coral,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.mlg),
 
             // Title
             Text(
               'Sign in to continue',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: typ.AppTypography.h3,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
 
             // Context-aware subtitle
             Text(
               'Create a free account to $sanitized and unlock the full experience.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              style: typ.AppTypography.body.copyWith(
+                color: AppColors.muted,
               ),
             ),
             const SizedBox(height: 28),
@@ -118,13 +118,13 @@ class _SoftAuthWallSheet extends StatelessWidget {
                 },
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Layout.buttonRadius),
                   ),
                 ),
                 child: const Text('Sign up — it\'s free'),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
 
             // Sign in (secondary)
             SizedBox(
@@ -138,16 +138,16 @@ class _SoftAuthWallSheet extends StatelessWidget {
                 },
                 style: OutlinedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Layout.buttonRadius),
                   ),
-                  side: BorderSide(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  side: const BorderSide(
+                    color: AppColors.border,
                   ),
                 ),
                 child: const Text('I already have an account'),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
 
             // Not now
             TextButton(
@@ -157,8 +157,8 @@ class _SoftAuthWallSheet extends StatelessWidget {
               },
               child: Text(
                 'Not now',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                style: typ.AppTypography.body.copyWith(
+                  color: AppColors.softInk,
                 ),
               ),
             ),

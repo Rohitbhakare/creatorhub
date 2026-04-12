@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/typography.dart' as typ;
+import '../../../shared/theme/spacing.dart';
+import '../../../shared/theme/layout.dart';
 
 /// Social login buttons: Google (both platforms) + Apple (iOS only).
 /// Shows OAuth permissions transparency card before each redirect.
@@ -28,7 +32,7 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
       ),
       builder: (context) => _OAuthPermissionsCard(
         providerName: providerName,
@@ -79,35 +83,33 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: [
         // Divider
         Row(
           children: [
-            Expanded(
+            const Expanded(
               child: Divider(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                color: AppColors.border,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
               child: Text(
                 'or continue with',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                style: typ.AppTypography.bodySmall.copyWith(
+                  color: AppColors.softInk,
                 ),
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Divider(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                color: AppColors.border,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: Spacing.mlg),
 
         // Google
         _SocialButton(
@@ -181,8 +183,6 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -190,22 +190,22 @@ class _SocialButton extends StatelessWidget {
         onPressed: disabled ? null : onTap,
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Layout.buttonRadius),
           ),
-          side: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          side: const BorderSide(
+            color: AppColors.border,
           ),
         ),
         icon: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 height: 18,
                 width: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: theme.colorScheme.onSurface,
+                  color: AppColors.ink,
                 ),
               )
-            : Icon(icon, size: 24),
+            : Icon(icon, size: Spacing.xl),
         label: Text(label),
       ),
     );
@@ -225,11 +225,9 @@ class _OAuthPermissionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        padding: const EdgeInsets.fromLTRB(Spacing.xl, Spacing.lg, Spacing.xl, Spacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,52 +235,50 @@ class _OAuthPermissionsCard extends StatelessWidget {
             // Drag handle
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: Layout.sheetHandleWidth,
+                height: Layout.sheetHandleHeight,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  color: AppColors.line,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.mlg),
 
             Text(
               'Sign in with $providerName',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: typ.AppTypography.h3,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
 
             Text(
               'CreatorHub will receive:',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              style: typ.AppTypography.body.copyWith(
+                color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
 
             // Permissions list
             ...permissions.map(
               (p) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: Spacing.xs),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.check_circle_outline,
                       size: 20,
-                      color: theme.colorScheme.primary,
+                      color: AppColors.coral,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(p, style: theme.textTheme.bodyMedium),
+                      child: Text(p, style: typ.AppTypography.body),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xl),
 
             // Continue button
             SizedBox(
@@ -295,13 +291,13 @@ class _OAuthPermissionsCard extends StatelessWidget {
                 },
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Layout.buttonRadius),
                   ),
                 ),
                 child: Text('Continue with $providerName'),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
 
             // Cancel
             Center(
