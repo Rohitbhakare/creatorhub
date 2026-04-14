@@ -35,10 +35,10 @@ export async function searchCities(query: string, limit: number = 10): Promise<C
 export async function findNearbyCity(lat: number, lng: number): Promise<CityResult | null> {
   // Use PostGIS ST_Distance to find nearest city within 100km
   const { data, error } = await supabase.rpc('nearby_cities', {
-    user_lat: lat,
-    user_lng: lng,
-    radius_km: 100,
-    result_limit: 1,
+    p_lat: lat,
+    p_lng: lng,
+    p_radius_km: 100,
+    p_limit: 1,
   })
 
   if (error) {
