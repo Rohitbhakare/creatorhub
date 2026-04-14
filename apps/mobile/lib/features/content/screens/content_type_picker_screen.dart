@@ -106,14 +106,19 @@ class ContentTypePickerScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Event (disabled for MVP)
-                    const ContentTypeCard(
+                    // Event (free events only in M1)
+                    ContentTypeCard(
                       icon: PhosphorIconsFill.calendarBlank,
                       title: 'Event',
                       subtitle: 'Host a gathering',
-                      badgeText: 'Coming soon',
-                      badgeColor: AppColors.muted,
-                      enabled: false,
+                      badgeText: 'Free events only',
+                      badgeColor: AppColors.success,
+                      enabled: true,
+                      onTap: () => _selectType(
+                        context,
+                        ref,
+                        ContentType.event,
+                      ),
                     ),
 
                     // Scheduled Experience (disabled)

@@ -19,6 +19,7 @@ import mediaRoutes from './routes/media.routes.js'
 import placesRoutes from './routes/places.routes.js'
 import postsRoutes from './routes/posts.routes.js'
 import itinerariesRoutes from './routes/itineraries.routes.js'
+import eventsRoutes from './routes/events.routes.js'
 
 const app = new Hono()
 
@@ -80,6 +81,7 @@ app.route('/api/v1/media', mediaRoutes)
 app.route('/api/v1/places', placesRoutes)
 app.route('/api/v1/posts', postsRoutes)
 app.route('/api/v1/itineraries', itinerariesRoutes)
+app.route('/api/v1/events', eventsRoutes)
 // app.route('/api/v1/users', userRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────

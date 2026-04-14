@@ -87,3 +87,13 @@ export const MAX_PAGE_SIZE = 50
 // ─── Geo ─────────────────────────────────────────────────────
 export const NEARBY_RADIUS_KM = 50
 export const NEARBY_CITY_DETECTION_RADIUS_KM = 100
+
+// ─── Events ──────────────────────────────────────────────────
+export const MAX_EVENT_TITLE_LENGTH = 100
+export const MIN_EVENT_TITLE_LENGTH = 5
+export const MAX_EVENT_DESCRIPTION_LENGTH = 500
+export const MAX_EVENT_CAPACITY = 10_000
+export const MIN_EVENT_CAPACITY = 1
+export const MAX_EVENT_VENUE_NAME_LENGTH = 200
+export const MAX_EVENT_VENUE_ADDRESS_LENGTH = 500
+export const MAX_EVENT_IMAGES = 5

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,8 @@ import '../widgets/steps/review_step.dart';
 import '../../posts/widgets/post_media_step.dart';
 import '../../itineraries/widgets/trip_overview_step.dart';
 import '../../itineraries/screens/day_builder_screen.dart';
+import '../../events/providers/event_wizard_provider.dart';
+import '../../events/widgets/event_details_step.dart';
 
 /// The wizard shell screen — a reusable container for multi-step
 /// content creation. Handles step navigation, auto-save, and
@@ -34,17 +37,47 @@ class WizardShellScreen extends ConsumerStatefulWidget {
 
 class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   DraftAutoSaveService? _autoSave;
+  bool _creatingDraft = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Start auto-save timer
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final wizard = ref.read(wizardProvider);
       final dio = ref.read(authServiceProvider).dio;
+
+      // Events: create the stub draft upfront so event_occurrences row exists.
+      // Guard against re-entry if the user navigates back before the POST completes.
+      if (wizard.contentType == ContentType.event &&
+          wizard.contentId == null &&
+          !_creatingDraft) {
+        _creatingDraft = true;
+        _createEventDraft(dio, wizard.vertical);
+      }
+
+      // Start auto-save timer
       _autoSave = DraftAutoSaveService(ref: ref, dio: dio);
       _autoSave!.start();
     });
+  }
+
+  /// Create the event draft via POST /api/v1/events and store the contentId.
+  Future<void> _createEventDraft(Dio dio, String vertical) async {
+    try {
+      final response = await dio.post('/api/v1/events', data: {
+        'type': 'event',
+        'vertical': vertical.isNotEmpty ? vertical : 'travel',
+      });
+      final data =
+          (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+      final contentId = data['id'] as String;
+      ref.read(wizardProvider.notifier).setContentId(contentId);
+    } catch (_) {
+      // Draft creation failed — will retry on next save attempt
+    } finally {
+      _creatingDraft = false;
+    }
   }
 
   @override
@@ -67,8 +100,33 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
 
   void _onNext() {
     HapticFeedback.lightImpact();
+    final wizard = ref.read(wizardProvider);
+
+    // Events: save event-specific fields when leaving the Details step
+    if (wizard.contentType == ContentType.event &&
+        wizard.currentStep == 2 &&
+        wizard.contentId != null) {
+      unawaited(_saveEventDetails(
+        ref.read(authServiceProvider).dio,
+        wizard.contentId!,
+      ));
+    }
+
     ref.read(wizardProvider.notifier).nextStep();
     _autoSave?.reset();
+  }
+
+  /// Save event-specific fields (venue, dates, capacity) to PUT /api/v1/events/:id.
+  Future<void> _saveEventDetails(Dio dio, String contentId) async {
+    final eventState = ref.read(eventWizardProvider);
+    final payload = eventState.toApiPayload();
+    if (payload.isEmpty) return;
+
+    try {
+      await dio.put('/api/v1/events/$contentId', data: payload);
+    } catch (_) {
+      // Fire and forget — auto-save will retry
+    }
   }
 
   Future<void> _onPublish() async {
@@ -82,11 +140,26 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       final dio = ref.read(authServiceProvider).dio;
       final contentId = wizard.contentId;
 
-      if (contentId != null) {
-        // Publish existing draft
-        await dio.post('/api/v1/content/$contentId/publish');
+      if (wizard.contentType == ContentType.event) {
+        // Events: always publish via event-specific endpoint (requires contentId)
+        if (contentId == null) {
+          ref.read(wizardProvider.notifier).markSaveError(
+            'Draft not ready. Please wait a moment and try again.',
+          );
+          return;
+        }
+        await dio.post(
+          '/api/v1/${wizard.contentType.apiPath}/$contentId/publish',
+          data: {'tnc_accepted': true},
+        );
+      } else if (contentId != null) {
+        // Publish existing draft (posts, itineraries)
+        await dio.post(
+          '/api/v1/${wizard.contentType.apiPath}/$contentId/publish',
+          data: {'tnc_accepted': true},
+        );
       } else {
-        // Create and publish in one call
+        // Create and publish in one call (posts only — drafts not pre-created)
         await dio.post('/api/v1/content', data: {
           'content_type': wizard.contentType.name,
           'title': wizard.title,
@@ -281,9 +354,9 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   Widget _buildEventStep(int step) {
     return switch (step) {
       1 => const BasicsStep(),
-      2 => _buildPlaceholderStep('Details', 'Add event details'),
+      2 => const EventDetailsStep(),
       3 => _buildPlaceholderStep('Media', 'Add photos to your event'),
-      4 => const PricingStep(),
+      4 => _buildPlaceholderStep('Pricing', 'Free events only in M1'),
       5 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };

@@ -101,6 +101,13 @@ import {
   MAX_POST_TEXT_LENGTH,
   MAX_IMAGES_PER_POST,
   MAX_IMAGES_PER_EXPERIENCE,
+  MIN_EVENT_TITLE_LENGTH,
+  MAX_EVENT_TITLE_LENGTH,
+  MAX_EVENT_DESCRIPTION_LENGTH,
+  MIN_EVENT_CAPACITY,
+  MAX_EVENT_CAPACITY,
+  MAX_EVENT_VENUE_NAME_LENGTH,
+  MAX_EVENT_VENUE_ADDRESS_LENGTH,
 } from '../constants/index.js'
 
 export const createContentSchema = z.object({
@@ -199,6 +206,43 @@ export const reorderSpotsSchema = z.object({
   spot_ids: z.array(uuidSchema).min(1),
 })
 
+// ─── Event ──────────────────────────────────────────────────
+export const updateEventSchema = z
+  .object({
+    title: z.string().min(MIN_EVENT_TITLE_LENGTH).max(MAX_EVENT_TITLE_LENGTH).optional(),
+    description: z.string().max(MAX_EVENT_DESCRIPTION_LENGTH).optional(),
+    start_at: z.string().datetime({ offset: true }).optional(),
+    end_at: z.string().datetime({ offset: true }).optional(),
+    timezone: z.string().optional(),
+    venue_name: z.string().min(1).max(MAX_EVENT_VENUE_NAME_LENGTH).optional(),
+    venue_address: z.string().max(MAX_EVENT_VENUE_ADDRESS_LENGTH).optional(),
+    venue_lat: z.number().min(-90).max(90).optional(),
+    venue_lng: z.number().min(-180).max(180).optional(),
+    city_id: z.string().optional(),
+    capacity: z.number().int().min(MIN_EVENT_CAPACITY).max(MAX_EVENT_CAPACITY).optional(),
+    tags: z.array(z.string().max(50)).max(5).optional(),
+    sub_category_id: z.string().optional(),
+    visibility: z.enum(['public', 'unlisted', 'private']).optional(),
+    what_to_bring: z.array(z.string().max(200)).max(30).optional(),
+    vertical_data: z
+      .object({
+        dress_code: z.string().max(200).optional(),
+        age_restriction: z.string().max(200).optional(),
+      })
+      .optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided')
+
+export const eventListQuerySchema = z.object({
+  city_id: z.string().optional(),
+  from_date: z.string().datetime({ offset: true }).optional(),
+  vertical: z.enum(VERTICALS_CONST).optional(),
+  user_id: uuidSchema.optional(),
+  include_past: z.coerce.boolean().default(false),
+  cursor: cursorSchema,
+  limit: limitSchema,
+})
+
 // ─── Content Query ──────────────────────────────────────────
 export const contentListQuerySchema = z.object({
   type: z.enum(CONTENT_TYPES).optional(),
@@ -229,6 +273,8 @@ export type UpdateSpotInput = z.infer<typeof updateSpotSchema>
 export type ContentListQueryInput = z.infer<typeof contentListQuerySchema>
 export type CreateItineraryDraftInput = z.infer<typeof createItineraryDraftSchema>
 export type ReorderSpotsInput = z.infer<typeof reorderSpotsSchema>
+export type UpdateEventInput = z.infer<typeof updateEventSchema>
+export type EventListQueryInput = z.infer<typeof eventListQuerySchema>
 
 // suppress unused import warning
 void USERNAME_CHANGE_COOLDOWN_DAYS

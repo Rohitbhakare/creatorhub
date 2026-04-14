@@ -215,6 +215,99 @@ export type ApiError = {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError
 
+// ─── Event ───────────────────────────────────────────────────
+export type CreatorSummary = {
+  id: string
+  display_name: string | null
+  username: string | null
+  avatar_url: string | null
+}
+
+export type AttendeeItem = {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+}
+
+export type EventVerticalData = {
+  // Optional extras in content.vertical_data JSONB
+  // what_to_bring is a typed TEXT[] column on event_occurrences, not here
+  dress_code?: string | null
+  age_restriction?: string | null
+}
+
+export type EventOccurrence = {
+  content_id: string
+  // nullable during draft; non-null after publish (enforced at application layer)
+  start_at: string | null
+  end_at: string | null
+  timezone: string
+  venue_name: string | null
+  venue_address: string | null
+  venue_lat: number | null
+  venue_lng: number | null
+  city_id: string | null
+  capacity: number | null
+  spots_booked: number
+  rsvp_count: number
+  is_free: boolean
+  what_to_bring: string[]
+}
+
+export type EventDetail = ContentBase & {
+  type: 'event'
+  price_paisa: number
+  start_at: string
+  end_at: string
+  timezone: string
+  venue_name: string
+  venue_address: string
+  venue_lat: number
+  venue_lng: number
+  city_id: string
+  capacity: number
+  spots_booked: number
+  is_free: boolean
+  has_rsvpd: boolean
+  what_to_bring: string[]
+  media: ContentMedia[]
+  creator: CreatorSummary
+  attendees: AttendeeItem[]
+  attendee_count: number
+  vertical_data: EventVerticalData
+}
+
+export type EventListItem = {
+  id: string
+  title: string
+  start_at: string
+  end_at: string
+  venue_name: string
+  city_id: string
+  capacity: number
+  spots_booked: number
+  is_free: boolean
+  cover_image_url: string | null
+  creator: CreatorSummary
+}
+
+export type EventDraftData = {
+  id: string
+  title: string | null
+  start_at: string | null
+  end_at: string | null
+  timezone: string | null
+  venue_name: string | null
+  venue_address: string | null
+  venue_lat: number | null
+  venue_lng: number | null
+  city_id: string | null
+  capacity: number | null
+  what_to_bring: string[]
+  vertical_data: EventVerticalData
+  updated_at: string
+}
+
 // ─── Auth ────────────────────────────────────────────────────
 export type TokenPair = {
   access_token: string

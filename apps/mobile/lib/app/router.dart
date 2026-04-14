@@ -6,6 +6,7 @@ import '../features/auth/screens/phone_otp_screen.dart';
 import '../features/content/screens/content_type_picker_screen.dart';
 import '../features/content/screens/wizard_shell_screen.dart';
 import '../features/posts/screens/post_detail_screen.dart';
+import '../features/events/screens/event_detail_screen.dart';
 import '../features/itineraries/screens/itinerary_detail_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
 import '../features/onboarding/screens/location_screen.dart';
@@ -115,6 +116,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/itineraries/:id',
         builder: (context, state) => ItineraryDetailScreen(
           itineraryId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Events
+      GoRoute(
+        path: '/events/:id',
+        builder: (context, state) => EventDetailScreen(
+          eventId: state.pathParameters['id']!,
         ),
       ),
 

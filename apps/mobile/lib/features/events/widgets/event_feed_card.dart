@@ -1,0 +1,326 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
+import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+
+import '../../../shared/theme/animations.dart';
+import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/layout.dart';
+import '../../../shared/theme/spacing.dart';
+import '../../../shared/theme/typography.dart' as typ;
+import '../../../shared/utils/format.dart';
+
+/// Feed card for events shown in the home feed or search results.
+///
+/// Shows cover image (16:9), EVENT badge, date badge, title, creator,
+/// "X going / Y max" capacity, and FREE/paid badge.
+class EventFeedCard extends StatefulWidget {
+  final String id;
+  final String title;
+  final String? coverImageUrl;
+  final DateTime? startAt;
+  final int attendeeCount;
+  final int? capacity;
+  final int pricePaisa;
+  final String creatorName;
+  final String? creatorAvatarUrl;
+
+  const EventFeedCard({
+    super.key,
+    required this.id,
+    required this.title,
+    this.coverImageUrl,
+    this.startAt,
+    required this.attendeeCount,
+    this.capacity,
+    required this.pricePaisa,
+    required this.creatorName,
+    this.creatorAvatarUrl,
+  });
+
+  @override
+  State<EventFeedCard> createState() => _EventFeedCardState();
+}
+
+class _EventFeedCardState extends State<EventFeedCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressController;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      vsync: this,
+      duration: Anim.cardPressDuration,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: Anim.cardPressScale)
+        .animate(CurvedAnimation(
+      parent: _pressController,
+      curve: Anim.pressCurve,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  void _onTap() {
+    HapticFeedback.lightImpact();
+    context.push('/events/${widget.id}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isFree = widget.pricePaisa <= 0;
+    final reduceMotion = Anim.shouldReduceMotion(context);
+
+    Widget card = Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(Layout.cardRadius),
+        border: Border.all(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cover image (16:9)
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Image
+                widget.coverImageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: widget.coverImageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => Container(
+                          color: AppColors.shimmerBase,
+                        ),
+                        errorWidget: (_, _, _) => const _CoverPlaceholder(),
+                      )
+                    : const _CoverPlaceholder(),
+
+                // EVENT badge (top-left)
+                Positioned(
+                  top: Spacing.sm,
+                  left: Spacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.sm,
+                      vertical: Spacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.ink.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'EVENT',
+                      style: typ.AppTypography.label.copyWith(
+                        color: AppColors.white,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Date badge (top-right)
+                if (widget.startAt != null)
+                  Positioned(
+                    top: Spacing.sm,
+                    right: Spacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.sm,
+                        vertical: Spacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            PhosphorIconsFill.calendarBlank,
+                            size: 12,
+                            color: AppColors.coral,
+                          ),
+                          const SizedBox(width: Spacing.xs),
+                          Text(
+                            DateFormat('d MMM').format(widget.startAt!),
+                            style: typ.AppTypography.label.copyWith(
+                              color: AppColors.ink,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(Layout.cardPaddingCompact),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title (2 lines max)
+                Text(
+                  widget.title,
+                  style: typ.AppTypography.h4,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: Spacing.sm),
+
+                // Creator row
+                Row(
+                  children: [
+                    ClipOval(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: widget.creatorAvatarUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: widget.creatorAvatarUrl!,
+                                fit: BoxFit.cover,
+                                placeholder: (_, _) => Container(
+                                  color: AppColors.shimmerBase,
+                                ),
+                                errorWidget: (_, _, _) => Container(
+                                  color: AppColors.sunken,
+                                  child: const Icon(
+                                    PhosphorIconsFill.user,
+                                    size: 12,
+                                    color: AppColors.softInk,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: AppColors.sunken,
+                                child: const Icon(
+                                  PhosphorIconsFill.user,
+                                  size: 12,
+                                  color: AppColors.softInk,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: Text(
+                        widget.creatorName,
+                        style: typ.AppTypography.caption
+                            .copyWith(color: AppColors.muted),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Spacing.sm),
+
+                // Stats row + price badge
+                Row(
+                  children: [
+                    // Capacity: "X going / Y max" or "X going"
+                    Expanded(
+                      child: Text(
+                        _buildCapacityText(),
+                        style: typ.AppTypography.caption
+                            .copyWith(color: AppColors.softInk),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+
+                    // Price badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.sm,
+                        vertical: Spacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isFree
+                            ? AppColors.successSurface
+                            : AppColors.coralSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        formatPrice(widget.pricePaisa),
+                        style: typ.AppTypography.label.copyWith(
+                          color: isFree ? AppColors.success : AppColors.coral,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Press animation
+    if (!reduceMotion) {
+      card = AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
+        ),
+        child: card,
+      );
+    }
+
+    return GestureDetector(
+      onTapDown: (_) => _pressController.forward(),
+      onTapUp: (_) => _pressController.reverse(),
+      onTapCancel: () => _pressController.reverse(),
+      onTap: _onTap,
+      child: card,
+    );
+  }
+
+  String _buildCapacityText() {
+    if (widget.capacity != null) {
+      return '${widget.attendeeCount} going / ${widget.capacity} max';
+    }
+    if (widget.attendeeCount > 0) {
+      return '${widget.attendeeCount} going';
+    }
+    return 'Be the first to RSVP';
+  }
+}
+
+class _CoverPlaceholder extends StatelessWidget {
+  const _CoverPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.sunken,
+      child: Center(
+        child: Icon(
+          PhosphorIconsFill.calendarBlank,
+          size: 40,
+          color: AppColors.softInk.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+}

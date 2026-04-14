@@ -15,6 +15,11 @@ type WindowEntry = {
 // In-memory sliding window store (MVP — replace with Redis in V1)
 const store = new Map<string, WindowEntry>()
 
+/** Clears all rate limit counters — for use in tests only. */
+export function resetRateLimitStore(): void {
+  store.clear()
+}
+
 // Cleanup stale entries every 5 minutes
 setInterval(() => {
   const now = Date.now()
@@ -86,3 +91,5 @@ export function rateLimit(config: RateLimitConfig, prefix = 'general') {
 export const authRateLimit = rateLimit({ windowMs: 60_000, maxRequests: 10 }, 'auth')
 export const generalRateLimit = rateLimit({ windowMs: 60_000, maxRequests: 100 }, 'general')
 export const otpRateLimit = rateLimit({ windowMs: 3600_000, maxRequests: 5 }, 'otp')
+// 5 RSVP actions (create or cancel) per user per minute — prevents booking spam
+export const rsvpRateLimit = rateLimit({ windowMs: 60_000, maxRequests: 5 }, 'rsvp')

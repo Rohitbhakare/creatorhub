@@ -57,7 +57,7 @@
 | E1.1 | Content Framework | `IN REVIEW` | 14/14 | `[~]` 55/55 core (pending: CRUD, media, T&C service tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` | `[ ]` |
 | E1.2 | Posts | `IN REVIEW` | 9/10 | `[~]` 51/51 written (pending: Flutter widget tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` |
 | E1.3 | Itineraries | `IN REVIEW` | 13/15 | `[~]` 68/68 written (pending: Flutter widget tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` |
-| E1.4 | Events | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
+| E1.4 | Events | `PLAN REVIEW` | 0/12 | — | — | — | — | — | — | — | — |
 | E1.5 | Home Feed | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
 | E1.6 | Profiles | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
 | E1.7 | Social | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
@@ -318,4 +318,5 @@
 | E0.1–E0.5 Task Breakdowns | `[x]` Done | `docs/epics/E0.*/tasks.md` |
 | E1.1–E1.3 Task Breakdowns | `[x]` Done | `docs/epics/E1.*/tasks.md` |
 | Precommit instruction file | `[x]` Done | `.claude/instructions/precommit.md` |
-| E1.4–E1.9 Task Breakdowns | `[ ]` Not yet written | Needed before building |
+| E1.4 Task Breakdown + Plan | `[x]` Done | `docs/epics/E1.4-events/` — awaiting founder approval |
+| E1.5–E1.9 Task Breakdowns | `[ ]` Not yet written | Needed before building |

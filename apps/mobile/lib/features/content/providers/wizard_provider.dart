@@ -15,6 +15,14 @@ enum ContentType {
         scheduledExperience => 'Scheduled Experience',
       };
 
+  /// API resource path segment used in endpoint URLs (e.g. `/api/v1/$apiPath/:id/publish`).
+  String get apiPath => switch (this) {
+        post => 'posts',
+        selfPacedItinerary => 'itineraries',
+        event => 'events',
+        scheduledExperience => 'experiences',
+      };
+
   int get totalSteps => switch (this) {
         post => 3,
         selfPacedItinerary => 6,
