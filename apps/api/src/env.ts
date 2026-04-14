@@ -4,27 +4,29 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
 
-  // Supabase
+  // Supabase — required in all environments
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
-  // Firebase Admin
+  // Firebase Admin — required in all environments (auth won't work without it)
   FIREBASE_PROJECT_ID: z.string().min(1),
   FIREBASE_PRIVATE_KEY: z.string().min(1).transform((key) => key.replace(/\\n/g, '\n')),
   FIREBASE_CLIENT_EMAIL: z.string().email(),
 
-  // App session tokens
+  // App session tokens — required in all environments
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
 
-  // Payments
-  RAZORPAY_KEY_ID: z.string().min(1),
-  RAZORPAY_KEY_SECRET: z.string().min(1),
-  RAZORPAY_WEBHOOK_SECRET: z.string().min(1),
+  // Payments — required in production only (E2.3 scope)
+  // In dev, placeholder values are acceptable; payment calls will fail at runtime.
+  RAZORPAY_KEY_ID: z.string().min(1).optional(),
+  RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
 
-  // Google Places
-  GOOGLE_PLACES_API_KEY: z.string().min(1),
+  // Google Places — required in production only
+  // In dev, placeholder value is acceptable; autocomplete calls will fail at runtime.
+  GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
 
-  // Observability
+  // Observability — optional everywhere
   SENTRY_DSN: z.string().url().optional(),
 })
 

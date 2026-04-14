@@ -86,7 +86,6 @@ CREATE TABLE event_occurrences (
   CHECK (spots_booked >= 0 AND spots_booked <= capacity)
 );
 
-CREATE INDEX event_occurrences_start_idx ON event_occurrences (start_at)
-  WHERE start_at > now();
+CREATE INDEX event_occurrences_start_idx ON event_occurrences (start_at);
 CREATE INDEX event_occurrences_city_idx ON event_occurrences (city_id);
 CREATE INDEX event_occurrences_point_idx ON event_occurrences USING GIST (venue_point);
