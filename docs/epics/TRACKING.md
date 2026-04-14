@@ -24,7 +24,7 @@
 ## Current Sprint
 
 **Milestone:** M1 — Private Alpha
-**Focus:** Complete pre-commit checklist for E1.1 → E1.2 → E1.3, then E1.4 Events
+**Focus:** E1.4 Events DONE — next: E1.5 Home Feed
 
 **Immediate blockers (before any M1 epic can commit):**
 1. `[x]` ~~Deploy SQL migrations 001–013 to Supabase~~ — Done (48 tables deployed)
@@ -57,7 +57,7 @@
 | E1.1 | Content Framework | `IN REVIEW` | 14/14 | `[~]` 55/55 core (pending: CRUD, media, T&C service tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` | `[ ]` |
 | E1.2 | Posts | `IN REVIEW` | 9/10 | `[~]` 51/51 written (pending: Flutter widget tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` |
 | E1.3 | Itineraries | `IN REVIEW` | 13/15 | `[~]` 68/68 written (pending: Flutter widget tests) | `[x]` | `[x]` | `[x]` | `[x]` | `[x]` | `[ ]` | `[ ]` |
-| E1.4 | Events | `PLAN REVIEW` | 0/12 | — | — | — | — | — | — | — | — |
+| E1.4 | Events | `DONE` | 11/11 | `[x]` 56 Flutter + 188 API | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 | E1.5 | Home Feed | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
 | E1.6 | Profiles | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
 | E1.7 | Social | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
@@ -260,9 +260,14 @@
 | `apps/api/src/handlers/content.test.ts` | api | — | `[ ]` Not written |
 | `apps/api/src/handlers/posts.test.ts` | api | **20** | `[x]` All passing |
 | `apps/api/src/handlers/itineraries.test.ts` | api | **33** | `[x]` All passing |
-| Flutter widget tests | mobile | — | `[ ]` Not written |
+| `apps/api/src/services/event.service.test.ts` | api | **26** | `[x]` All passing |
+| `apps/api/src/handlers/events.test.ts` | api | **38** | `[x]` All passing |
+| `apps/mobile/test/features/events/widgets/event_feed_card_test.dart` | mobile | **11** | `[x]` All passing |
+| `apps/mobile/test/features/events/widgets/date_block_test.dart` | mobile | **7** | `[x]` All passing |
+| `apps/mobile/test/features/events/screens/event_detail_screen_test.dart` | mobile | **10** | `[x]` All passing |
+| Other Flutter widget tests | mobile | **28** | `[x]` All passing (itinerary + post) |
 
-**Total passing: 159 / 159 written tests** (35 shared + 124 api)
+**Total passing: 244 / 244 written tests** (35 shared + 153 API + 56 Flutter)
 
 ---
 
@@ -318,5 +323,5 @@
 | E0.1–E0.5 Task Breakdowns | `[x]` Done | `docs/epics/E0.*/tasks.md` |
 | E1.1–E1.3 Task Breakdowns | `[x]` Done | `docs/epics/E1.*/tasks.md` |
 | Precommit instruction file | `[x]` Done | `.claude/instructions/precommit.md` |
-| E1.4 Task Breakdown + Plan | `[x]` Done | `docs/epics/E1.4-events/` — awaiting founder approval |
+| E1.4 Task Breakdown + Plan | `[x]` Done | `docs/epics/E1.4-events/` — COMMITTED |
 | E1.5–E1.9 Task Breakdowns | `[ ]` Not yet written | Needed before building |
