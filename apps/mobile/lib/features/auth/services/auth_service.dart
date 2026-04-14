@@ -10,17 +10,37 @@ import 'secure_storage.dart';
 class AuthService {
   final Dio _dio;
   final SecureStorage _storage;
-  final fb.FirebaseAuth _firebaseAuth;
+  final fb.FirebaseAuth? _firebaseAuth;
 
   // Mutex for token refresh to prevent concurrent refresh calls
   Completer<void>? _refreshLock;
+
+  /// Safely get FirebaseAuth.instance — returns null if Firebase isn't initialized.
+  static fb.FirebaseAuth? _safeFirebaseInstance() {
+    try {
+      return fb.FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Throws a clear error when Firebase isn't initialized.
+  fb.FirebaseAuth get _auth {
+    if (_firebaseAuth == null) {
+      throw Exception(
+        'Firebase is not initialized. Add GoogleService-Info.plist (iOS) '
+        'or google-services.json (Android) to enable authentication.',
+      );
+    }
+    return _firebaseAuth;
+  }
 
   AuthService({
     required String baseUrl,
     SecureStorage? storage,
     fb.FirebaseAuth? firebaseAuth,
   })  : _storage = storage ?? SecureStorage(),
-        _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance,
+        _firebaseAuth = firebaseAuth ?? _safeFirebaseInstance(),
         _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 10),
@@ -66,12 +86,12 @@ class AuthService {
   Future<String> sendOtp(String phoneNumber) async {
     final completer = Completer<String>();
 
-    await _firebaseAuth.verifyPhoneNumber(
+    await _auth.verifyPhoneNumber(
       phoneNumber: '+91$phoneNumber',
       timeout: const Duration(seconds: 60),
       verificationCompleted: (fb.PhoneAuthCredential credential) async {
         // Auto-verification (Android only)
-        await _firebaseAuth.signInWithCredential(credential);
+        await _auth.signInWithCredential(credential);
         if (!completer.isCompleted) {
           completer.complete('auto');
         }
@@ -105,7 +125,7 @@ class AuthService {
     );
 
     final userCredential =
-        await _firebaseAuth.signInWithCredential(credential);
+        await _auth.signInWithCredential(credential);
     return _registerWithApi(userCredential);
   }
 
@@ -134,7 +154,7 @@ class AuthService {
     final credential = fb.GoogleAuthProvider.credential(idToken: idToken);
 
     final userCredential =
-        await _firebaseAuth.signInWithCredential(credential);
+        await _auth.signInWithCredential(credential);
     return _registerWithApi(userCredential);
   }
 
@@ -145,7 +165,7 @@ class AuthService {
       ..addScope('name');
 
     final userCredential =
-        await _firebaseAuth.signInWithProvider(appleProvider);
+        await _auth.signInWithProvider(appleProvider);
     return _registerWithApi(userCredential);
   }
 
@@ -244,7 +264,7 @@ class AuthService {
       // Sign out is best-effort — always clear local state
     }
 
-    await _firebaseAuth.signOut();
+    await _auth.signOut();
     await _storage.clearAll();
   }
 
