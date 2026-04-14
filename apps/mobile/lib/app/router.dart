@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
@@ -13,6 +12,7 @@ import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
+import '../features/feed/screens/home_feed_screen.dart';
 
 // GoRouter provider — rebuilds on auth state changes
 final routerProvider = Provider<GoRouter>((ref) {
@@ -137,49 +137,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const WizardShellScreen(),
       ),
 
-      // Main shell (placeholder until E0.5+ builds real screens)
+      // Home feed
       GoRoute(
         path: '/',
-        builder: (context, state) => const _PlaceholderHome(),
+        builder: (context, state) => const HomeFeedScreen(),
       ),
     ],
   );
 });
-
-// Temporary placeholder until home feed is built
-class _PlaceholderHome extends ConsumerWidget {
-  const _PlaceholderHome();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('CreatorHub', style: theme.textTheme.displaySmall),
-              const SizedBox(height: 8),
-              Text(
-                authState.isGuest ? 'Browsing as guest' : 'Welcome back!',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              if (authState.isGuest || authState.isAuthenticated) ...[
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () => ref.read(authProvider.notifier).signOut(),
-                  child: const Text('Sign out'),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
