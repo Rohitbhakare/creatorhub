@@ -5,6 +5,12 @@ import 'app/app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    // GoogleService-Info.plist / google-services.json not yet added.
+    // App will boot for UI verification — auth features will not work.
+    debugPrint('[Firebase] init skipped: $e');
+  }
   runApp(const ProviderScope(child: CreatorHubApp()));
 }

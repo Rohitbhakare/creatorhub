@@ -37,8 +37,7 @@ class AuthState {
 // ── Providers ───────────────────────────────────────────────────
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  // TODO: Read from env/config
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'http://localhost:3001';
   return AuthService(baseUrl: baseUrl);
 });
 
