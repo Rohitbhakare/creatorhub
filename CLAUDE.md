@@ -57,6 +57,7 @@ creatorhub/
 | `.claude/instructions/testing.md` | Before writing any test |
 | `.claude/instructions/infosec.md` | Before touching auth, payments, user data, or external services |
 | `.claude/instructions/documentation.md` | Before creating docs, ADRs, or commit messages |
+| `.claude/instructions/precommit.md` | Before declaring any task or epic DONE — mandatory checklist |
 
 ## Key Document References
 
@@ -108,6 +109,30 @@ creatorhub/
 /epic-status [id]   → Show progress
 /update-tracking    → Update task/epic progress
 ```
+
+## Epic Completion Rules (NON-NEGOTIABLE)
+
+A task is DONE only when ALL of these pass. No exceptions:
+
+```
+1. Tests written + passing   → pnpm test (API) + flutter test (mobile)
+2. Lint clean                → flutter analyze (0 issues) + eslint (0 errors)
+3. Type check passes         → tsc --noEmit (0 errors)
+4. 4-step review gate        → edge cases → security → architecture → code quality
+5. API boots                 → /healthz returns 200 after any backend changes
+6. Flutter launches          → no runtime crashes after any mobile changes
+7. Tracking file updated     → pre-commit checklist in epic tracking.md is filled in
+```
+
+Read `.claude/instructions/precommit.md` for the full step-by-step checklist.
+
+## Environment
+
+- **API port:** 3001 (3000 is taken by other dev tools)
+- **API start:** `pnpm dev` in `apps/api/` (uses `--env-file=.env`)
+- **Credentials:** Supabase + Firebase configured in `apps/api/.env` (NOT committed)
+- **Migrations:** Must be deployed to Supabase before DB queries work
+- **Pending creds:** Google Places API key, Razorpay keys (not yet needed — payments are M2 scope)
 
 ## Current Sprint
 
