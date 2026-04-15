@@ -20,7 +20,7 @@ export async function handleNearYouSection(c: Context): Promise<Response> {
 // ─── GET /api/v1/feed/vertical/:vertical ─────────────────────────
 // Optional auth. Returns content rail for the given vertical.
 export async function handleVerticalSection(c: Context): Promise<Response> {
-  const vertical = c.req.param('vertical')
+  const vertical = c.req.param('vertical')!
   if (!VALID_VERTICALS.includes(vertical as (typeof VALID_VERTICALS)[number])) {
     throw new AppError('validation-failed', 400, `Invalid vertical: ${vertical}`)
   }

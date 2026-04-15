@@ -152,8 +152,8 @@ describe('getVerticalSection', () => {
 
     const items = await getVerticalSection('travel')
     expect(items).toHaveLength(1)
-    expect(items[0].title).toBe('Spiti trip')
-    expect(items[0].creator?.display_name).toBe('Riya')
+    expect(items[0]!.title).toBe('Spiti trip')
+    expect(items[0]!.creator?.display_name).toBe('Riya')
   })
 
   it('returns empty array when no content exists', async () => {
@@ -189,8 +189,8 @@ describe('getDiscoverSection', () => {
 
     const creators = await getDiscoverSection(null)
     expect(creators).toHaveLength(1)
-    expect(creators[0].display_name).toBe('Aditya')
-    expect(creators[0].vertical).toBe('stories')
+    expect(creators[0]!.display_name).toBe('Aditya')
+    expect(creators[0]!.vertical).toBe('stories')
   })
 
   it('excludes user verticals when userId is provided', async () => {

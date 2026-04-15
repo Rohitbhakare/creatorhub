@@ -127,7 +127,7 @@ export async function getNearYouSection(userId: string): Promise<NearYouResult> 
     return { items: [], fallback_level: 3, label: 'Popular across India', fallback_cities: [] }
   }
 
-  const fallbackLevel = rows[0].fallback_level
+  const fallbackLevel = rows[0]!.fallback_level
 
   // Collect unique city IDs for the fallback banner (levels 1–2)
   let fallbackCities: string[] = []

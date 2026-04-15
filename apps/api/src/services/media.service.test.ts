@@ -67,7 +67,8 @@ describe('generateSignedUrl', () => {
   it('returns upload_url, public_url, and file_path', async () => {
     const result = await generateSignedUrl(USER_ID, {
       file_name: 'photo.jpg',
-      purpose: 'content',
+      content_type: 'image/jpeg',
+      purpose: 'content_image',
       content_id: CONTENT_ID,
     })
 
@@ -79,11 +80,12 @@ describe('generateSignedUrl', () => {
   it('file_path includes purpose, userId, and content_id segments', async () => {
     const result = await generateSignedUrl(USER_ID, {
       file_name: 'photo.jpg',
-      purpose: 'content',
+      content_type: 'image/jpeg',
+      purpose: 'content_image',
       content_id: CONTENT_ID,
     })
 
-    expect(result.file_path).toContain('content/')
+    expect(result.file_path).toContain('content_image/')
     expect(result.file_path).toContain(USER_ID)
     expect(result.file_path).toContain(CONTENT_ID)
   })
@@ -91,7 +93,8 @@ describe('generateSignedUrl', () => {
   it('preserves the file extension from file_name', async () => {
     const result = await generateSignedUrl(USER_ID, {
       file_name: 'photo.jpg',
-      purpose: 'content',
+      content_type: 'image/jpeg',
+      purpose: 'content_image',
     })
 
     expect(result.file_path).toMatch(/\.jpg$/)
@@ -100,6 +103,7 @@ describe('generateSignedUrl', () => {
   it('uses "general" segment when content_id is not provided', async () => {
     const result = await generateSignedUrl(USER_ID, {
       file_name: 'avatar.png',
+      content_type: 'image/png',
       purpose: 'avatar',
     })
 
@@ -109,7 +113,8 @@ describe('generateSignedUrl', () => {
   it('falls back to "bin" extension for files with no extension', async () => {
     const result = await generateSignedUrl(USER_ID, {
       file_name: 'noextension',
-      purpose: 'content',
+      content_type: 'image/jpeg',
+      purpose: 'content_image',
     })
 
     expect(result.file_path).toMatch(/\.bin$/)

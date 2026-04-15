@@ -697,7 +697,7 @@ export async function listEvents(
   // Fetch creator summaries + cover images for all items
   const contentIds = items.map((r) => r.content_id as string)
   const userIds = [
-    ...new Set(items.map((r) => (r.content as Record<string, unknown>).user_id as string)),
+    ...new Set(items.map((r) => (r.content as unknown as Record<string, unknown>).user_id as string)),
   ]
 
   const [creators, coverImages] = await Promise.all([
@@ -706,7 +706,7 @@ export async function listEvents(
   ])
 
   const enrichedItems = items.map((r) => {
-    const c = r.content as Record<string, unknown>
+    const c = r.content as unknown as Record<string, unknown>
     return {
       id: r.content_id as string,
       title: c.title as string,
@@ -724,7 +724,7 @@ export async function listEvents(
 
   let nextCursor: string | null = null
   if (hasMore) {
-    const last = items[items.length - 1]
+    const last = items[items.length - 1]!
     nextCursor = encodeCursor(last.start_at as string, last.content_id as string)
   }
 

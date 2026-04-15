@@ -357,7 +357,7 @@ describe('listPublished', () => {
     const items = [{ id: 'c1', type: 'event', status: 'published', published_at: '2026-01-01T00:00:00Z' }]
     vi.mocked(supabase.from).mockReturnValueOnce(mockChain(items) as never)
 
-    const result = await listPublished({ type: 'event' })
+    const result = await listPublished({ limit: 20, type: 'event' })
 
     expect(result.items).toHaveLength(1)
     expect(result.next_cursor).toBeNull()
@@ -367,7 +367,7 @@ describe('listPublished', () => {
     const items = [{ id: 'c1', type: 'post', vertical: 'stories', status: 'published', published_at: '2026-01-01T00:00:00Z' }]
     vi.mocked(supabase.from).mockReturnValueOnce(mockChain(items) as never)
 
-    const result = await listPublished({ vertical: 'stories' })
+    const result = await listPublished({ limit: 20, vertical: 'stories' })
 
     expect(result.items[0]).toMatchObject({ vertical: 'stories' })
   })
@@ -376,7 +376,7 @@ describe('listPublished', () => {
     const items = [{ id: 'c1', user_id: USER_ID, type: 'post', status: 'published', published_at: '2026-01-01T00:00:00Z' }]
     vi.mocked(supabase.from).mockReturnValueOnce(mockChain(items) as never)
 
-    const result = await listPublished({ user_id: USER_ID })
+    const result = await listPublished({ limit: 20, user_id: USER_ID })
 
     expect(result.items[0]).toMatchObject({ user_id: USER_ID })
   })
@@ -384,7 +384,7 @@ describe('listPublished', () => {
   it('returns empty items and no cursor when DB returns null', async () => {
     vi.mocked(supabase.from).mockReturnValueOnce(mockChain(null) as never)
 
-    const result = await listPublished({})
+    const result = await listPublished({ limit: 20 })
 
     expect(result.items).toEqual([])
     expect(result.next_cursor).toBeNull()
@@ -395,7 +395,7 @@ describe('listPublished', () => {
       mockChain(null, { message: 'query failed' }) as never,
     )
 
-    await expect(listPublished({})).rejects.toMatchObject({
+    await expect(listPublished({ limit: 20 })).rejects.toMatchObject({
       status: 500,
       type: 'db-error',
     })

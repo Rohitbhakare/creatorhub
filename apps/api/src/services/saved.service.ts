@@ -229,11 +229,23 @@ export async function getListItems(
     .filter((item) => item.content !== null)
 
   if (sort === 'a_z') {
-    formatted.sort((a, b) => (a.content?.title ?? '').localeCompare(b.content?.title ?? ''))
+    formatted.sort((a, b) =>
+      ((a.content?.['title'] as string | null) ?? '').localeCompare(
+        (b.content?.['title'] as string | null) ?? '',
+      ),
+    )
   } else if (sort === 'price_asc') {
-    formatted.sort((a, b) => (a.content?.price_paisa ?? 0) - (b.content?.price_paisa ?? 0))
+    formatted.sort(
+      (a, b) =>
+        ((a.content?.['price_paisa'] as number | null) ?? 0) -
+        ((b.content?.['price_paisa'] as number | null) ?? 0),
+    )
   } else if (sort === 'price_desc') {
-    formatted.sort((a, b) => (b.content?.price_paisa ?? 0) - (a.content?.price_paisa ?? 0))
+    formatted.sort(
+      (a, b) =>
+        ((b.content?.['price_paisa'] as number | null) ?? 0) -
+        ((a.content?.['price_paisa'] as number | null) ?? 0),
+    )
   }
 
   return {

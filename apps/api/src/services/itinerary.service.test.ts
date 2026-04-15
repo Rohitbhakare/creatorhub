@@ -102,7 +102,7 @@ describe('createItineraryDraft', () => {
       .mockReturnValueOnce(mockChain(draftItineraryContent) as never)
       .mockReturnValueOnce(mockChain(null, null) as never)
 
-    await createItineraryDraft(USER_ID, { vertical: 'travel' })
+    await createItineraryDraft(USER_ID, { vertical: 'travel', day_count: 1 })
 
     // Second from() call is the day insert
     expect(vi.mocked(supabase.from)).toHaveBeenCalledTimes(2)

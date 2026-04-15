@@ -92,7 +92,7 @@ describe('GET /near-you — near you section', () => {
     const res = await app.request('/near-you', { headers: AUTH })
     expect(res.status).toBe(200)
 
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.success).toBe(true)
     expect(body.data.fallback_level).toBe(0)
     expect(body.data.label).toBe('Weekend trips from Pune')
@@ -128,7 +128,7 @@ describe('GET /vertical/:vertical — vertical section', () => {
     const res = await app.request('/vertical/travel')
     expect(res.status).toBe(200)
 
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.success).toBe(true)
     expect(body.data).toHaveLength(1)
     expect(body.data[0].title).toBe('Ladakh')
@@ -150,7 +150,7 @@ describe('GET /vertical/:vertical — vertical section', () => {
     const app = buildFeedApp()
     const res = await app.request('/vertical/stories')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data).toEqual([])
   })
 })
@@ -168,7 +168,7 @@ describe('GET /discover — discover section', () => {
     const res = await app.request('/discover')
     expect(res.status).toBe(200)
 
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data).toHaveLength(1)
     expect(body.data[0].vertical).toBe('stories')
   })
@@ -180,7 +180,7 @@ describe('GET /discover — discover section', () => {
     const app = buildFeedApp()
     const res = await app.request('/discover', { headers: AUTH })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data).toEqual([])
   })
 })
@@ -224,7 +224,7 @@ describe('PUT /me/city — update user city', () => {
       body: JSON.stringify({ city_id: 'in.mh.pune' }),
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.name).toBe('Pune')
   })
 

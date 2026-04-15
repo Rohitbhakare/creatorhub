@@ -139,7 +139,7 @@ describe('POST / — create draft', () => {
 
     expect(res.status).toBe(201)
     expect(res.headers.get('Location')).toBe(`/api/v1/content/${CONTENT_ID}`)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.success).toBe(true)
     expect(body.data).toMatchObject({ id: CONTENT_ID, type: 'post' })
   })
@@ -171,7 +171,7 @@ describe('GET /:id — get content', () => {
     const app = buildApp()
     const res = await app.request(`/${CONTENT_ID}`)
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.success).toBe(true)
     expect(body.data).toMatchObject({ id: CONTENT_ID, media: [], creator: { id: USER_ID } })
   })
@@ -187,7 +187,7 @@ describe('GET /:id — get content', () => {
     const app = buildApp()
     const res = await app.request(`/${CONTENT_ID}`, { headers: AUTH })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.status).toBe('draft')
   })
 })
@@ -231,7 +231,7 @@ describe('PUT /:id — update draft', () => {
       ...authJson({ title: 'New Title', extra_field: 'allowed' }),
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.title).toBe('New Title')
   })
 })
@@ -254,7 +254,7 @@ describe('GET /me/drafts — list drafts', () => {
     const app = buildApp()
     const res = await app.request('/me/drafts', { headers: AUTH })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data).toEqual([])
   })
 
@@ -290,7 +290,7 @@ describe('GET / — list published content', () => {
     const app = buildApp()
     const res = await app.request('/')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.success).toBe(true)
     expect(body.data).toHaveLength(1)
     expect(body.meta).toMatchObject({ has_more: false, per_page: 20 })
@@ -313,7 +313,7 @@ describe('GET / — list published content', () => {
     const app = buildApp()
     const res = await app.request('/')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.meta.has_more).toBe(true)
     expect(body.meta.next_cursor).toBe(cursor)
   })
@@ -397,7 +397,7 @@ describe('POST /:id/publish — publish content', () => {
       ...authJson({ tnc_accepted: true }),
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.status).toBe('published')
   })
 })
@@ -424,7 +424,7 @@ describe('POST /:id/unpublish — unpublish content', () => {
       headers: AUTH,
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.status).toBe('unpublished')
   })
 })
@@ -451,7 +451,7 @@ describe('POST /:id/archive — archive content', () => {
       headers: AUTH,
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as any
     expect(body.data.status).toBe('archived')
   })
 })
