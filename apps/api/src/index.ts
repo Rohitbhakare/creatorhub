@@ -24,6 +24,7 @@ import feedRoutes from './routes/feed.routes.js'
 import usersRoutes from './routes/users.routes.js'
 import socialRoutes from './routes/social.routes.js'
 import studioRoutes from './routes/studio.routes.js'
+import notificationsRoutes from './routes/notifications.routes.js'
 
 const app = new Hono()
 
@@ -90,6 +91,7 @@ app.route('/api/v1/feed', feedRoutes)
 app.route('/api/v1/users', usersRoutes)
 app.route('/api/v1', socialRoutes)
 app.route('/api/v1/studio', studioRoutes)
+app.route('/api/v1/notifications', notificationsRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

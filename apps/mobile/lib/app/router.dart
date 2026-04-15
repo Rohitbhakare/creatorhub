@@ -20,6 +20,7 @@ import '../features/studio/screens/studio_tab_screen.dart';
 import '../features/profile/screens/you_tab_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_view_screen.dart';
+import '../features/notifications/screens/notification_preferences_screen.dart';
 import '../features/saved/screens/saved_lists_screen.dart';
 import '../features/saved/screens/saved_list_detail_screen.dart';
 import 'main_shell.dart';
@@ -239,6 +240,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ProfileViewScreen(
           userId: state.pathParameters['id']!,
         ),
+      ),
+
+      // Notifications
+      GoRoute(
+        path: '/notifications/preferences',
+        builder: (context, state) => const NotificationPreferencesScreen(),
       ),
 
       // Saved lists
