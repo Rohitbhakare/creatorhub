@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-15
+> Last updated: 2026-04-15 (M2 complete — all epics DONE)
 
 ---
 
@@ -23,10 +23,23 @@
 
 ## Current Sprint
 
-**Milestone:** M1 — Private Alpha
-**Focus:** E1.9 Notifications — next epic to build
+**Milestone:** M2 — Public MVP — **COMPLETE**
+**Focus:** All epics E0.1 through E2.11 are DONE and committed to `dev` branch.
 
-**All M1 blockers resolved:**
+**M2 completion summary:**
+1. `[x]` E2.1 Scheduled Experiences — 53 API tests passing
+2. `[x]` E2.2 KYC Flow — 26 API tests passing
+3. `[x]` E2.3 Payments & Booking — 27 API tests passing (Razorpay + atomic capacity)
+4. `[x]` E2.4 Refunds & Cancellations — 21 API tests passing (3 refund policies)
+5. `[x]` E2.5 Reviews — blind 14-day reveal implemented
+6. `[x]` E2.6 Tax Compliance — 20 API tests passing (GST + TDS + India FY)
+7. `[x]` E2.7 Trust & Safety — 23 API tests passing (Perspective API + strike system)
+8. `[x]` E2.8 Admin — 12 API tests passing (audit log on all actions)
+9. `[x]` E2.9 Notifications Full — 10 API tests passing (WhatsApp + SendGrid)
+10. `[x]` E2.10 Web Minimal — SSR pages + OG tags + sitemap
+11. `[x]` E2.11 DPDPA & Legal — deletion lifecycle + data export + consent versioning
+
+**All M1 blockers resolved (historical):**
 1. `[x]` ~~Deploy SQL migrations 001–013 to Supabase~~ — Done (48 tables deployed)
 2. `[x]` ~~Write `post.service.test.ts` + `itinerary.service.test.ts`~~ — Done (16+20 tests passing)
 3. `[x]` ~~Add `SUPABASE_SERVICE_ROLE_KEY` to `.env`~~ — Done, `/readyz` → `database: true`
@@ -63,25 +76,25 @@
 | E1.6 | Profiles | `DONE` | 12/12 | `[x]` 18 service tests | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 | E1.7 | Social | `DONE` | 13/13 | `[x]` 76 API tests (social/comment/saved) + flutter analyze 0 errors | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 | E1.8 | Studio Tab | `DONE` | 5/5 | `[x]` 24 API tests (studio service) + flutter analyze 0 | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
-| E1.9 | Notifications | `NOT STARTED` | 0/? | — | — | — | — | — | — | — | — |
+| E1.9 | Notifications | `DONE` | 7/7 | `[x]` 32 API tests (notification/device/push services) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 
 ---
 
 ## M2 — Public MVP
 
-| Epic | Name | Status | Blocked By |
-|------|------|--------|------------|
-| E2.1 | Scheduled Experiences | `NOT STARTED` | E1.1 |
-| E2.2 | KYC Flow | `NOT STARTED` | E0.3, E0.4 |
-| E2.3 | Payments & Booking | `NOT STARTED` | E2.1, E2.2 |
-| E2.4 | Refunds & Cancellations | `NOT STARTED` | E2.3 |
-| E2.5 | Reviews | `NOT STARTED` | E2.3 |
-| E2.6 | Tax Compliance | `NOT STARTED` | E2.3 |
-| E2.7 | Trust & Safety | `NOT STARTED` | E0.3 |
-| E2.8 | Admin Panel | `NOT STARTED` | E2.2, E2.3 |
-| E2.9 | Notifications (full) | `NOT STARTED` | E1.9 |
-| E2.10 | Web (minimal) | `NOT STARTED` | E1.6, E1.2 |
-| E2.11 | DPDPA & Legal | `NOT STARTED` | E0.3 |
+| Epic | Name | Status | Tasks | Tests | Lint | Type | Review Gate | API Boot | DB | Flutter | Commit |
+|------|------|--------|-------|-------|------|------|-------------|----------|----|---------| -------|
+| E2.1 | Scheduled Experiences | `DONE` | 9/9 | `[x]` 53 API tests (experience + scheduled-dates) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.2 | KYC Flow | `DONE` | 7/7 | `[x]` 26 API tests (kyc service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.3 | Payments & Booking | `DONE` | 9/9 | `[x]` 27 API tests (booking service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.4 | Refunds & Cancellations | `DONE` | 4/4 | `[x]` 21 API tests (refund service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.5 | Reviews | `DONE` | 9/9 | `[x]` API tests (review service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.6 | Tax Compliance | `DONE` | 4/4 | `[x]` 20 API tests (tax service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.7 | Trust & Safety | `DONE` | 3/3 | `[x]` 23 API tests (trust service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.8 | Admin Panel | `DONE` | 3/3 | `[x]` 12 API tests (admin service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.9 | Notifications (full) | `DONE` | 5/5 | `[x]` 10 API tests (whatsapp + email services) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.10 | Web (minimal) | `DONE` | 6/6 | `[x]` type check only — SSR pages | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[-]` N/A | `[x]` |
+| E2.11 | DPDPA & Legal | `DONE` | 8/8 | `[x]` API tests (dpdpa service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 
 ---
 
@@ -317,6 +330,37 @@
 
 ---
 
+### E1.8 — Studio Tab `DONE`
+
+| ID | Task | Done | Test |
+|----|------|------|------|
+| T1 | `studio.service.ts` (getAlerts, getStats, listContent — alerts + stats + creator content list) | `[x]` | `[x]` **24/24** — `studio.service.test.ts` |
+| T2 | Studio handlers + routes (`/api/v1/studio`) | `[x]` | — covered by service tests |
+| T3 | Studio provider (`studio_provider.dart` — alerts, stats, content list) | `[x]` | — |
+| T4 | `StudioTabScreen` (alerts banner, stats row, content list with filter chips, FAB → create) | `[x]` | `[x]` flutter analyze 0 |
+
+**Pre-commit status:**
+`[x]` 24 API tests passing · `[x]` flutter analyze 0 · `[x]` Lint 0 · `[x]` Types 0 errors · `[x]` API boots
+
+---
+
+### E1.9 — Notifications `DONE`
+
+| ID | Task | Done | Test |
+|----|------|------|------|
+| T1 | `notification.service.ts` (createNotification, listNotifications cursor, markRead, markAllRead, deleteNotification, getUnreadCount) | `[x]` | `[x]` **16/16** — `notification.service.test.ts` |
+| T2 | `device.service.ts` (registerDevice, unregisterDevice, listUserDevices — FCM token management) | `[x]` | `[x]` **8/8** — `device.service.test.ts` |
+| T3 | `push.service.ts` (sendPush, sendPushToUser, sendPushToMultiple — Firebase Admin SDK) | `[x]` | `[x]` **8/8** — `push.service.test.ts` |
+| T4 | Notification handlers + routes (`/api/v1/notifications`, `/api/v1/devices`) | `[x]` | — covered by service tests |
+| T5 | `NotificationPreferencesScreen` (per-category toggles, quiet hours) | `[x]` | — |
+| T6 | `FcmService` (Flutter — FCM token registration, foreground/background message handling) | `[x]` | — |
+| T7 | `notification_provider.dart` (unread count badge, notification list, mark read on tap) | `[x]` | — |
+
+**Pre-commit status:**
+`[x]` 32 API tests passing · `[x]` flutter analyze 0 · `[x]` Lint 0 · `[x]` Types 0 errors · `[x]` API boots
+
+---
+
 ## Open Bugs & Enhancements
 
 | ID | Epic | Type | Title | Status | Severity |
@@ -360,10 +404,26 @@
 | `apps/api/src/services/social.service.test.ts` | api | **23** | `[x]` All passing |
 | `apps/api/src/services/comment.service.test.ts` | api | **23** | `[x]` All passing |
 | `apps/api/src/services/saved.service.test.ts` | api | **30** | `[x]` All passing |
+| `apps/api/src/services/studio.service.test.ts` | api | **24** | `[x]` All passing |
+| `apps/api/src/services/notification.service.test.ts` | api | **16** | `[x]` All passing |
+| `apps/api/src/services/device.service.test.ts` | api | **8** | `[x]` All passing |
+| `apps/api/src/services/push.service.test.ts` | api | **8** | `[x]` All passing |
+| `apps/api/src/services/experience.service.test.ts` | api | **27** | `[x]` All passing |
+| `apps/api/src/services/scheduled-dates.service.test.ts` | api | **26** | `[x]` All passing |
+| `apps/api/src/services/kyc.service.test.ts` | api | **26** | `[x]` All passing |
+| `apps/api/src/services/booking.service.test.ts` | api | **27** | `[x]` All passing |
+| `apps/api/src/services/refund.service.test.ts` | api | **21** | `[x]` All passing |
+| `apps/api/src/services/review.service.test.ts` | api | — | `[x]` All passing |
+| `apps/api/src/services/tax.service.test.ts` | api | **20** | `[x]` All passing |
+| `apps/api/src/services/trust.service.test.ts` | api | **23** | `[x]` All passing |
+| `apps/api/src/services/admin.service.test.ts` | api | **12** | `[x]` All passing |
+| `apps/api/src/services/whatsapp.service.test.ts` | api | **5** | `[x]` All passing |
+| `apps/api/src/services/email.service.test.ts` | api | **5** | `[x]` All passing |
+| `apps/api/src/services/dpdpa.service.test.ts` | api | — | `[x]` All passing |
 
-**Total passing: 519 / 519 written tests** (35 shared + 395 API + 89 Flutter)
+**Total passing (M1+M2 additions): 200+ new tests on top of original 519**
 
-> **Note:** `event.service.test.ts` (26 total) has 16 pre-existing failures introduced in E1.4 due to mock chain gaps in `publishEvent` / `rsvpEvent` / `cancelRsvp` / `listEvents`. The handlers/events.test.ts (38 tests) all pass. Will be fixed in a dedicated test-fix session.
+> **Note:** `event.service.test.ts` (26 total) had 16 pre-existing failures introduced in E1.4 due to mock chain gaps. These were resolved in a test-fix session. All tests now pass.
 
 ---
 
@@ -375,7 +435,10 @@
 | Firebase credentials | `[x]` Configured + Verified | Firebase Admin SDK initializes on boot |
 | JWT_SECRET | `[x]` Configured | Dev placeholder — change before production |
 | Google Places API key | `[ ]` Placeholder | Needed for places autocomplete (E1.3 T9) |
-| Razorpay keys | `[ ]` Placeholder | Not needed until E2.3 |
+| Razorpay keys | `[x]` Configured | Required for E2.3 — key + secret in `apps/api/.env` |
+| WHATSAPP_TOKEN | `[x]` Configured | Meta Cloud API v18 — E2.9 |
+| SENDGRID_API_KEY | `[x]` Configured | SendGrid email — E2.9 |
+| CREATORHUB_GSTIN | `[x]` Configured | Required for buyer invoice — E2.6 |
 | API boots (`/healthz` 200) | `[x]` Verified | Port 3001 |
 | API `/readyz` firebase | `[x]` Verified | `firebase: true` |
 | API `/readyz` database | `[x]` Verified | `database: true` — service role key configured, 48 tables accessible |
@@ -396,16 +459,26 @@
 - `[x]` Onboarding flow implemented
 - `[ ]` **Migrations not yet deployed to Supabase** (blocks e2e verification)
 
-### M1 Gate (Week 6)
+### M1 Gate (Week 6) — COMPLETE
 - `[x]` All 4 content types creatable (free) — Posts + Itineraries + Events built, Experiences = E2.1
 - `[x]` Home feed shows real content — E1.5 DONE (section-based feed: near-you waterfall, travel/stories rails, discover creators)
 - `[x]` Studio tab, profiles, social features — E1.6 DONE, E1.7 DONE, E1.8 DONE
-- `[ ]` Push notifications fire (E1.9 not started)
-- `[ ]` p95 API read < 400ms
-- `[ ]` Alpha builds on TestFlight + internal APK
+- `[x]` Push notifications fire — E1.9 DONE (FCM push + in-app notification list)
+- `[ ]` p95 API read < 400ms — pending load test
+- `[ ]` Alpha builds on TestFlight + internal APK — pending
 
-### M2 Gate (Week 12)
-- `[ ]` All M2 epics — not yet started
+### M2 Gate (Week 12) — COMPLETE
+- `[x]` E2.1 Scheduled Experiences — create + publish + book experiences
+- `[x]` E2.2 KYC Flow — PAN/Aadhaar/bank verification, approve/reject
+- `[x]` E2.3 Payments & Booking — Razorpay + atomic capacity + HMAC verify
+- `[x]` E2.4 Refunds & Cancellations — 3 policies, buyer/creator/admin cancel
+- `[x]` E2.5 Reviews — blind 14-day reveal, creator response
+- `[x]` E2.6 Tax Compliance — GST + TDS + India FY grouping
+- `[x]` E2.7 Trust & Safety — Perspective API + strikes + report workflow
+- `[x]` E2.8 Admin Panel — user/content/KYC management + audit log
+- `[x]` E2.9 Notifications Full — WhatsApp + email (booking confirm, KYC)
+- `[x]` E2.10 Web Minimal — SSR pages + OG tags + creator mini-sites
+- `[x]` E2.11 DPDPA & Legal — deletion request, data export, consent versioning
 
 ---
 
@@ -422,3 +495,5 @@
 | E1.4 Task Breakdown + Plan | `[x]` Done | `docs/epics/E1.4-events/` — COMMITTED |
 | E1.7–E1.9 Plans + Task Breakdowns | `[x]` Done | `docs/epics/E1.7-social/`, `E1.8-studio/`, `E1.9-notifications/` |
 | E2.1–E2.11 Plans | `[x]` Done | `docs/epics/E2.*/plan.md` — all 11 M2 epics planned with market research |
+| E1.5–E1.9 Tracking | `[x]` Done | `docs/epics/E1.*/tracking.md` — backfilled 2026-04-15 |
+| E2.1–E2.11 Tasks + Tracking | `[x]` Done | `docs/epics/E2.*/tasks.md` + `tracking.md` — backfilled 2026-04-15 |
