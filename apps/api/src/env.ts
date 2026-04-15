@@ -26,6 +26,19 @@ const envSchema = z.object({
   // In dev, placeholder value is acceptable; autocomplete calls will fail at runtime.
   GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
 
+  // Admin — secret for Retool / admin-only routes
+  ADMIN_SECRET: z.string().min(16).optional(),
+
+  // WhatsApp Business (Meta Cloud API) — optional; skipped in dev
+  WHATSAPP_TOKEN: z.string().min(1).optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
+
+  // SendGrid — optional; skipped in dev
+  SENDGRID_API_KEY: z.string().min(1).optional(),
+
+  // Tax — GSTIN of CreatorHub (for buyer invoices)
+  CREATORHUB_GSTIN: z.string().optional(),
+
   // Observability — optional everywhere
   SENTRY_DSN: z.string().url().optional(),
 })

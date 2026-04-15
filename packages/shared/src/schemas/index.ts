@@ -253,6 +253,47 @@ export const contentListQuerySchema = z.object({
   limit: limitSchema,
 })
 
+// ─── Social: Comments ──────────────────────────────────────
+export const addCommentSchema = z.object({
+  body: z.string().min(1, 'Comment cannot be empty').max(500),
+  parent_id: uuidSchema.optional(),
+})
+
+export const editCommentSchema = z.object({
+  body: z.string().min(1, 'Comment cannot be empty').max(500),
+})
+
+// ─── Social: Saved Lists ───────────────────────────────────
+export const createListSchema = z.object({
+  name: z.string().min(1, 'List name cannot be empty').max(100),
+})
+
+export const renameListSchema = z.object({
+  name: z.string().min(1, 'List name cannot be empty').max(100),
+})
+
+// ─── Social: Save / Unsave Content ─────────────────────────
+export const saveContentSchema = z.object({
+  list_ids: z.array(uuidSchema).default([]),
+})
+
+export const unsaveContentSchema = z.object({
+  list_ids: z.array(uuidSchema).min(1, 'At least one list_id is required'),
+})
+
+// ─── Social: Share ─────────────────────────────────────────
+export const recordShareSchema = z.object({
+  platform: z.enum(['whatsapp', 'instagram', 'twitter', 'copy_link', 'other']),
+})
+
+// ─── Social: List Items Query ──────────────────────────────
+export const listItemsQuerySchema = z.object({
+  sort: z.enum(['recently_added', 'oldest', 'a_z', 'price_asc', 'price_desc']).default('recently_added'),
+  type: z.string().optional(),
+  cursor: cursorSchema,
+  limit: limitSchema,
+})
+
 // Export types inferred from schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
@@ -275,6 +316,27 @@ export type CreateItineraryDraftInput = z.infer<typeof createItineraryDraftSchem
 export type ReorderSpotsInput = z.infer<typeof reorderSpotsSchema>
 export type UpdateEventInput = z.infer<typeof updateEventSchema>
 export type EventListQueryInput = z.infer<typeof eventListQuerySchema>
+
+export type AddCommentInput = z.infer<typeof addCommentSchema>
+export type EditCommentInput = z.infer<typeof editCommentSchema>
+export type CreateListInput = z.infer<typeof createListSchema>
+export type RenameListInput = z.infer<typeof renameListSchema>
+export type SaveContentInput = z.infer<typeof saveContentSchema>
+export type UnsaveContentInput = z.infer<typeof unsaveContentSchema>
+export type RecordShareInput = z.infer<typeof recordShareSchema>
+export type ListItemsQueryInput = z.infer<typeof listItemsQuerySchema>
+
+// ─── Reviews ────────────────────────────────────────────────
+export {
+  submitReviewSchema,
+  submitCreatorResponseSchema,
+  reviewListQuerySchema,
+} from './review.schemas.js'
+export type {
+  SubmitReviewInput,
+  SubmitCreatorResponseInput,
+  ReviewListQueryInput,
+} from './review.schemas.js'
 
 // suppress unused import warning
 void USERNAME_CHANGE_COOLDOWN_DAYS

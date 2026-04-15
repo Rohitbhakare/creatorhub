@@ -10,6 +10,7 @@ import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
+import '../../social/widgets/engagement_bar.dart';
 import '../providers/event_detail_provider.dart';
 import '../widgets/date_block.dart';
 import '../widgets/facts_grid.dart';
@@ -199,16 +200,19 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               ),
             ),
 
-            // Engagement bar
+            // Engagement bar (inline — above the fixed RSVP bar)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Layout.screenPaddingH,
-                  Spacing.lg,
-                  Layout.screenPaddingH,
-                  Spacing.xxxl + 80, // extra bottom padding for the fixed bar
+                padding: const EdgeInsets.only(bottom: 80), // space for RSVP bar
+                child: EngagementBar(
+                  contentId: event.id,
+                  contentType: 'event',
+                  contentTitle: event.title,
+                  initialIsLiked: event.isLiked,
+                  initialLikeCount: event.likeCount,
+                  commentCount: event.commentCount,
+                  initialIsSaved: event.isSaved,
                 ),
-                child: _EngagementBar(event: event),
               ),
             ),
           ],
@@ -413,109 +417,6 @@ class _AvatarPlaceholder extends StatelessWidget {
 
 // ── Engagement Bar ────────────────────────────────────────────────
 
-class _EngagementBar extends StatelessWidget {
-  final EventDetail event;
-
-  const _EngagementBar({required this.event});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.lg,
-        vertical: Spacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.sunken,
-        borderRadius: BorderRadius.circular(Layout.cardRadius),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _EngagementAction(
-            icon: PhosphorIconsFill.heart,
-            label: '${event.likeCount}',
-            isActive: event.isLiked,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement like (E1.7)
-            },
-          ),
-          _EngagementAction(
-            icon: PhosphorIconsFill.chatCircle,
-            label: '${event.commentCount}',
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement comment (E1.7)
-            },
-          ),
-          _EngagementAction(
-            icon: PhosphorIconsFill.shareFat,
-            label: 'Share',
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement share (E1.7)
-            },
-          ),
-          _EngagementAction(
-            icon: PhosphorIconsFill.bookmarkSimple,
-            label: 'Save',
-            isActive: event.isSaved,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement save (E1.7)
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EngagementAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _EngagementAction({
-    required this.icon,
-    required this.label,
-    this.isActive = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.sm,
-          vertical: Spacing.xs,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isActive ? AppColors.coral : AppColors.muted,
-            ),
-            const SizedBox(height: Spacing.xs),
-            Text(
-              label,
-              style: typ.AppTypography.caption.copyWith(
-                color: isActive ? AppColors.coral : AppColors.muted,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ── Loading Skeleton ──────────────────────────────────────────────
 

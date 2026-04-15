@@ -53,6 +53,13 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen>
       final authService = ref.read(authServiceProvider);
       await authService.dio.post('/api/v1/onboarding/complete');
       ref.read(onboardingProvider.notifier).completeOnboarding();
+
+      // Refresh user profile so router sees onboarding_completed_at
+      final profileRes = await authService.dio.get('/api/v1/users/me');
+      final profileData = profileRes.data as Map<String, dynamic>;
+      ref
+          .read(authProvider.notifier)
+          .updateUser(profileData['data'] as Map<String, dynamic>);
     } catch (_) {
       // Graceful failure — still navigate to home
     }

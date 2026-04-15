@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
 import '../../../shared/theme/colors.dart';
@@ -14,25 +15,54 @@ import '../providers/onboarding_provider.dart';
 import '../components/onboarding_progress_bar.dart';
 import '../../auth/providers/auth_provider.dart';
 
+/// Per-vertical accent color from prototype (DD-013).
+const Map<String, Color> _verticalAccentColors = {
+  'travel': Color(0xFFB8860B),
+  'food': Color(0xFF5A7247),
+  'fitness': Color(0xFF7C5CBF),
+  'stories': Color(0xFFE15A41),
+  'photography': Color(0xFF3B7DD8),
+  'wellness': Color(0xFF2D8F6F),
+  'music': Color(0xFF8B4F8B),
+  'education': Color(0xFF888888),
+};
+
+const Map<String, IconData> _verticalIcons = {
+  'travel': PhosphorIconsFill.mountains,
+  'stories': PhosphorIconsFill.bookOpen,
+  'food': PhosphorIconsFill.forkKnife,
+  'fitness': PhosphorIconsFill.barbell,
+  'education': PhosphorIconsFill.graduationCap,
+  'photography': PhosphorIconsFill.camera,
+  'music': PhosphorIconsFill.musicNotes,
+  'wellness': PhosphorIconsFill.sun,
+};
+
 /// Vertical data model for the picker.
 class _Vertical {
-  final String id;
+  final String slug;
   final String name;
   final int creatorCount;
 
   const _Vertical({
-    required this.id,
+    required this.slug,
     required this.name,
     required this.creatorCount,
   });
 
   factory _Vertical.fromJson(Map<String, dynamic> json) {
     return _Vertical(
-      id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      creatorCount: json['creator_count'] as int? ?? 0,
+      slug: (json['slug'] ?? json['id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      creatorCount: (json['creator_count'] as num?)?.toInt() ?? 0,
     );
   }
+
+  Color get accentColor =>
+      _verticalAccentColors[slug.toLowerCase()] ?? AppColors.muted;
+
+  IconData get icon =>
+      _verticalIcons[slug.toLowerCase()] ?? PhosphorIconsFill.sparkle;
 }
 
 /// Vertical interests picker screen (ONB-FR-003).
@@ -50,21 +80,10 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
   bool _isLoading = true;
   String? _loadError;
   bool _isSaving = false;
-  final Set<String> _selectedIds = {};
+  final Set<String> _selectedSlugs = {};
 
   static const int _minRequired = 3;
-
-  /// Map vertical slugs/names to Phosphor icons.
-  static final Map<String, IconData> _verticalIcons = {
-    'travel': PhosphorIconsFill.mountains,
-    'stories': PhosphorIconsFill.bookOpen,
-    'food': PhosphorIconsFill.forkKnife,
-    'fitness': PhosphorIconsFill.barbell,
-    'education': PhosphorIconsFill.graduationCap,
-    'photography': PhosphorIconsFill.camera,
-    'music': PhosphorIconsFill.musicNotes,
-    'wellness': PhosphorIconsFill.sun,
-  };
+  static const double _gridGap = 10;
 
   @override
   void initState() {
@@ -110,19 +129,19 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     }
   }
 
-  void _toggleVertical(String id) {
+  void _toggleVertical(String slug) {
     HapticFeedback.selectionClick();
     setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
+      if (_selectedSlugs.contains(slug)) {
+        _selectedSlugs.remove(slug);
       } else {
-        _selectedIds.add(id);
+        _selectedSlugs.add(slug);
       }
     });
   }
 
   Future<void> _onContinue() async {
-    if (_selectedIds.length < _minRequired) return;
+    if (_selectedSlugs.length < _minRequired) return;
 
     setState(() => _isSaving = true);
 
@@ -130,14 +149,15 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
       final dio = ref.read(authServiceProvider).dio;
       await dio.put(
         '/api/v1/onboarding/verticals',
-        data: {'vertical_ids': _selectedIds.toList()},
+        data: {'verticals': _selectedSlugs.toList()},
       );
 
       if (mounted) {
         ref
             .read(onboardingProvider.notifier)
-            .setVerticals(_selectedIds.toList());
+            .setVerticals(_selectedSlugs.toList());
         ref.read(onboardingProvider.notifier).advanceStep();
+        context.go('/onboarding/creators');
       }
     } on DioException catch (e) {
       if (mounted) {
@@ -181,67 +201,46 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     }
   }
 
-  IconData _iconForVertical(String name) {
-    final key = name.toLowerCase().trim();
-    return _verticalIcons[key] ?? PhosphorIconsFill.sparkle;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final canContinue = _selectedIds.length >= _minRequired;
+    final canContinue = _selectedSlugs.length >= _minRequired;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress bar
-            const OnboardingProgressBar(currentStep: 2, totalSteps: 4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Layout.screenPaddingH,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const OnboardingProgressBar(currentStep: 2, totalSteps: 4),
+              const SizedBox(height: Spacing.xl),
 
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Layout.screenPaddingH,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: Spacing.xxl),
+              // Title
+              Text('What are you into?', style: typ.AppTypography.h2),
+              const SizedBox(height: Spacing.xs),
 
-                    // Title
-                    Text(
-                      'What interests you?',
-                      style: typ.AppTypography.h2,
-                    ),
-                    const SizedBox(height: Spacing.sm),
-
-                    // Subtitle / helper text
-                    Text(
-                      canContinue
-                          ? '${_selectedIds.length} selected'
-                          : 'Pick at least $_minRequired to personalize your feed',
-                      style: typ.AppTypography.body.copyWith(
-                        color:
-                            canContinue ? AppColors.success : AppColors.muted,
-                        fontWeight:
-                            canContinue ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xl),
-
-                    // Grid content
-                    Expanded(child: _buildContent()),
-                  ],
+              // Subtitle with dynamic count
+              Text(
+                canContinue
+                    ? '${_selectedSlugs.length} picked \u2014 looking good!'
+                    : 'Pick at least $_minRequired to shape your feed.',
+                style: typ.AppTypography.bodySmall.copyWith(
+                  color: canContinue ? AppColors.success : AppColors.muted,
+                  fontWeight: canContinue ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
-            ),
+              const SizedBox(height: Spacing.lg),
 
-            // Continue button
-            Padding(
-              padding: const EdgeInsets.all(Layout.screenPaddingH),
-              child: AppButton(
+              // Grid — fills remaining space, no scrolling
+              Expanded(child: _buildContent()),
+
+              const SizedBox(height: Spacing.md),
+
+              // Continue button
+              AppButton(
                 label: 'Continue',
                 onPressed: canContinue ? _onContinue : null,
                 variant: AppButtonVariant.primary,
@@ -249,8 +248,9 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                 fullWidth: true,
                 isLoading: _isSaving,
               ),
-            ),
-          ],
+              const SizedBox(height: Spacing.md),
+            ],
+          ),
         ),
       ),
     );
@@ -295,59 +295,98 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
       );
     }
 
-    return GridView.count(
-      crossAxisCount: 2,
-      mainAxisSpacing: Spacing.md,
-      crossAxisSpacing: Spacing.md,
-      childAspectRatio: 1.3,
-      children: _verticals.map((vertical) {
-        final isSelected = _selectedIds.contains(vertical.id);
-        return _VerticalTile(
-          vertical: vertical,
-          icon: _iconForVertical(vertical.name),
-          isSelected: isSelected,
-          onTap: () => _toggleVertical(vertical.id),
-        );
-      }).toList(),
+    // Build 4 rows x 2 columns, each row Expanded to fill space equally
+    final rows = <Widget>[];
+    for (int row = 0; row < (_verticals.length / 2).ceil(); row++) {
+      final leftIndex = row * 2;
+      final rightIndex = row * 2 + 1;
+
+      rows.add(
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: row < (_verticals.length / 2).ceil() - 1 ? _gridGap : 0,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildTile(_verticals[leftIndex]),
+                ),
+                const SizedBox(width: _gridGap),
+                Expanded(
+                  child: rightIndex < _verticals.length
+                      ? _buildTile(_verticals[rightIndex])
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(children: rows);
+  }
+
+  Widget _buildTile(_Vertical vertical) {
+    final isSelected = _selectedSlugs.contains(vertical.slug);
+    return _VerticalTile(
+      vertical: vertical,
+      isSelected: isSelected,
+      onTap: () => _toggleVertical(vertical.slug),
     );
   }
 
   Widget _buildSkeletonGrid() {
-    return SkeletonLoader(
-      child: GridView.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: Spacing.md,
-        crossAxisSpacing: Spacing.md,
-        childAspectRatio: 1.3,
-        physics: const NeverScrollableScrollPhysics(),
-        children: List.generate(
-          8,
-          (_) => const SkeletonRect(
-            height: double.infinity,
-            borderRadius: Layout.cardRadius,
+    final rows = <Widget>[];
+    for (int row = 0; row < 4; row++) {
+      rows.add(
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: row < 3 ? _gridGap : 0),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: SkeletonRect(
+                    height: double.infinity,
+                    borderRadius: Layout.cardRadius,
+                  ),
+                ),
+                const SizedBox(width: _gridGap),
+                const Expanded(
+                  child: SkeletonRect(
+                    height: double.infinity,
+                    borderRadius: Layout.cardRadius,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    return SkeletonLoader(child: Column(children: rows));
   }
 }
 
-/// Individual vertical tile widget.
+/// Individual vertical tile — centered icon + name + count.
+/// Selected state: coral border + offset shadow. No checkmark.
 class _VerticalTile extends StatelessWidget {
   final _Vertical vertical;
-  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _VerticalTile({
     required this.vertical,
-    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = vertical.accentColor;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -355,66 +394,64 @@ class _VerticalTile extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.coralSurface : AppColors.sunken,
-          borderRadius: BorderRadius.circular(Layout.cardRadius),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? AppColors.coral : AppColors.border,
             width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.coral.withValues(alpha: 0.12),
+                    offset: const Offset(3, 3),
+                    blurRadius: 0,
+                  ),
+                ]
+              : null,
         ),
-        padding: const EdgeInsets.all(Layout.cardPaddingCompact),
-        child: Stack(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Content
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color: isSelected ? AppColors.coral : AppColors.ink,
-                ),
-                const SizedBox(height: Spacing.sm),
-                Text(
-                  vertical.name,
-                  style: typ.AppTypography.h4.copyWith(
-                    color: isSelected ? AppColors.coral : AppColors.ink,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: Spacing.xs),
-                Text(
-                  vertical.creatorCount > 0
-                      ? '${vertical.creatorCount} creators'
-                      : 'Coming soon',
-                  style: typ.AppTypography.caption.copyWith(
-                    color: AppColors.softInk,
-                  ),
-                ),
-              ],
-            ),
-
-            // Checkmark overlay (top-right)
-            if (isSelected)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: AppColors.coral,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    PhosphorIconsFill.check,
-                    size: 14,
-                    color: AppColors.white,
-                  ),
-                ),
+            // Icon in tinted container
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(
+                vertical.icon,
+                size: 22,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: Spacing.sm),
+
+            // Name
+            Text(
+              vertical.name,
+              style: typ.AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Fraunces',
+                color: AppColors.ink,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 1),
+
+            // Creator count
+            Text(
+              vertical.creatorCount > 0
+                  ? '${vertical.creatorCount} creators'
+                  : 'Coming soon',
+              style: typ.AppTypography.caption.copyWith(
+                color: AppColors.softInk,
+                fontSize: 11,
+              ),
+            ),
           ],
         ),
       ),

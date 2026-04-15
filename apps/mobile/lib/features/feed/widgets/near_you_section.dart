@@ -46,7 +46,7 @@ class _NearYouContent extends StatelessWidget {
         if (result.fallbackLevel > 0 && result.fallbackCities.isNotEmpty)
           _FallbackBanner(cities: result.fallbackCities),
         SizedBox(
-          height: 220,
+          height: 230,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -109,7 +109,7 @@ class _NearYouSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 220,
+          height: 230,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -38,7 +38,7 @@ class VerticalSection extends ConsumerWidget {
               onSeeAll: () {},
             ),
             SizedBox(
-              height: 220,
+              height: 230,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -78,7 +78,7 @@ class _VerticalSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 220,
+          height: 230,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),

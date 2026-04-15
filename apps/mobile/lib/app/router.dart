@@ -20,9 +20,20 @@ import '../features/studio/screens/studio_tab_screen.dart';
 import '../features/profile/screens/you_tab_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_view_screen.dart';
+import '../features/kyc/screens/kyc_status_screen.dart';
+import '../features/kyc/screens/kyc_wizard_screen.dart';
 import '../features/notifications/screens/notification_preferences_screen.dart';
 import '../features/saved/screens/saved_lists_screen.dart';
 import '../features/saved/screens/saved_list_detail_screen.dart';
+import '../features/experiences/screens/experience_detail_screen.dart';
+import '../features/experiences/screens/create_experience_wizard.dart';
+import '../features/reviews/screens/write_review_screen.dart';
+import '../features/reviews/screens/review_detail_screen.dart';
+import '../features/booking/screens/my_bookings_screen.dart';
+import '../features/booking/screens/booking_detail_screen.dart';
+import '../features/booking/screens/booking_confirmation_screen.dart';
+import '../features/legal/screens/legal_screen.dart';
+import '../features/settings/screens/privacy_settings_screen.dart';
 import 'main_shell.dart';
 
 /// Notifier that triggers GoRouter redirect re-evaluation when auth state changes.
@@ -220,6 +231,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
+      // Experiences
+      GoRoute(
+        path: '/experiences/create',
+        builder: (context, state) => const CreateExperienceWizard(),
+      ),
+      GoRoute(
+        path: '/experiences/:id',
+        builder: (context, state) => ExperienceDetailScreen(
+          id: state.pathParameters['id']!,
+        ),
+      ),
+
       // Content creation
       GoRoute(
         path: '/content/create',
@@ -242,6 +265,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
+      // KYC
+      GoRoute(
+        path: '/kyc',
+        builder: (context, state) => const KycStatusScreen(),
+      ),
+      GoRoute(
+        path: '/kyc/wizard',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final resubmit = extra?['resubmit'] as bool? ?? false;
+          return KycWizardScreen(resubmit: resubmit);
+        },
+      ),
+
       // Notifications
       GoRoute(
         path: '/notifications/preferences',
@@ -257,6 +294,52 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/saved/:listId',
         builder: (context, state) => SavedListDetailScreen(
           listId: state.pathParameters['listId']!,
+        ),
+      ),
+
+      // Bookings
+      GoRoute(
+        path: '/bookings',
+        builder: (context, state) => const MyBookingsScreen(),
+      ),
+      GoRoute(
+        path: '/bookings/:id',
+        builder: (context, state) => BookingDetailScreen(
+          bookingId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/bookings/:id/confirmed',
+        builder: (context, state) => BookingConfirmationScreen(
+          bookingId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Reviews
+      GoRoute(
+        path: '/reviews/write/:bookingId',
+        builder: (context, state) => WriteReviewScreen(
+          bookingId: state.pathParameters['bookingId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/reviews/:id',
+        builder: (context, state) => ReviewDetailScreen(
+          reviewId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Privacy & Data (DPDPA)
+      GoRoute(
+        path: '/privacy-settings',
+        builder: (context, state) => const PrivacySettingsScreen(),
+      ),
+
+      // Legal documents
+      GoRoute(
+        path: '/legal/:type',
+        builder: (context, state) => LegalScreen(
+          type: state.pathParameters['type']!,
         ),
       ),
 

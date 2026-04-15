@@ -52,6 +52,13 @@ String formatDate(DateTime date) {
   return DateFormat('d MMM y').format(date);
 }
 
+/// Format count for display: "1.2K", "3.4M", or raw number if < 1000.
+String formatCount(int n) {
+  if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+  return n.toString();
+}
+
 /// Format relative time: "2m ago", "3h ago", "5d ago".
 String formatTimeAgo(DateTime dateTime) {
   final diff = DateTime.now().difference(dateTime);

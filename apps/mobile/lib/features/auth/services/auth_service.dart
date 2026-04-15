@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io' show Platform;
@@ -81,16 +82,24 @@ class AuthService {
 
   // ── Phone OTP ─────────────────────────────────────────────────
 
-  /// Send OTP to phone number via Firebase.
-  /// Returns verificationId for OTP verification.
+  // Emulator config for debug-mode phone auth
+  static const _emulatorHost = 'localhost';
+  static const _emulatorPort = 9099;
+
+  /// Send OTP to phone number.
+  /// In debug mode, uses the Auth Emulator REST API to bypass the native iOS SDK
+  /// crash (missing CLIENT_ID in GoogleService-Info.plist → reCAPTCHA nil crash).
   Future<String> sendOtp(String phoneNumber) async {
+    if (kDebugMode) {
+      return _sendOtpViaEmulator(phoneNumber);
+    }
+
     final completer = Completer<String>();
 
     await _auth.verifyPhoneNumber(
       phoneNumber: '+91$phoneNumber',
       timeout: const Duration(seconds: 60),
       verificationCompleted: (fb.PhoneAuthCredential credential) async {
-        // Auto-verification (Android only)
         await _auth.signInWithCredential(credential);
         if (!completer.isCompleted) {
           completer.complete('auto');
@@ -106,27 +115,89 @@ class AuthService {
           completer.complete(verificationId);
         }
       },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        // Timeout is not an error — user can still enter OTP manually
-      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
     );
 
     return completer.future;
   }
 
-  /// Verify OTP and sign in with Firebase, then register with our API.
+  /// Send verification code via Auth Emulator REST API.
+  Future<String> _sendOtpViaEmulator(String phoneNumber) async {
+    final emulatorDio = Dio(BaseOptions(
+      baseUrl: 'http://$_emulatorHost:$_emulatorPort',
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+      headers: {'Content-Type': 'application/json'},
+    ));
+
+    final response = await emulatorDio.post(
+      '/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode',
+      queryParameters: {'key': 'fake-api-key'},
+      data: {'phoneNumber': '+91$phoneNumber'},
+    );
+
+    final sessionInfo = response.data['sessionInfo'] as String;
+
+    // Print the verification code from emulator so dev doesn't have to check UI
+    try {
+      final codesResponse = await emulatorDio.get(
+        '/emulator/v1/projects/${_auth.app.options.projectId}/verificationCodes',
+      );
+      final codes = codesResponse.data['verificationCodes'] as List?;
+      if (codes != null && codes.isNotEmpty) {
+        final latest = codes.last as Map<String, dynamic>;
+        debugPrint(
+          '🔐 [Auth Emulator] OTP for +91$phoneNumber: ${latest['code']}',
+        );
+      }
+    } catch (_) {
+      debugPrint(
+        '🔐 [Auth Emulator] Check OTP at http://$_emulatorHost:$_emulatorPort',
+      );
+    }
+
+    return sessionInfo;
+  }
+
+  /// Verify OTP and sign in, then register with our API.
+  /// In debug mode, uses the Auth Emulator REST API.
   Future<Map<String, dynamic>> verifyOtp(
     String verificationId,
     String otp,
   ) async {
+    if (kDebugMode) {
+      return _verifyOtpViaEmulator(verificationId, otp);
+    }
+
     final credential = fb.PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: otp,
     );
 
-    final userCredential =
-        await _auth.signInWithCredential(credential);
+    final userCredential = await _auth.signInWithCredential(credential);
     return _registerWithApi(userCredential);
+  }
+
+  /// Verify phone OTP via Auth Emulator REST API.
+  Future<Map<String, dynamic>> _verifyOtpViaEmulator(
+    String sessionInfo,
+    String otp,
+  ) async {
+    final emulatorDio = Dio(BaseOptions(
+      baseUrl: 'http://$_emulatorHost:$_emulatorPort',
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+      headers: {'Content-Type': 'application/json'},
+    ));
+
+    final response = await emulatorDio.post(
+      '/identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber',
+      queryParameters: {'key': 'fake-api-key'},
+      data: {'sessionInfo': sessionInfo, 'code': otp},
+    );
+
+    final idToken = response.data['idToken'] as String;
+    return _registerWithApiToken(idToken);
   }
 
   // ── Social Login ──────────────────────────────────────────────
@@ -176,7 +247,10 @@ class AuthService {
   ) async {
     final idToken = await userCredential.user?.getIdToken();
     if (idToken == null) throw Exception('Failed to get Firebase ID token');
+    return _registerWithApiToken(idToken);
+  }
 
+  Future<Map<String, dynamic>> _registerWithApiToken(String idToken) async {
     final platform = Platform.isIOS ? 'ios' : 'android';
 
     final response = await _dio.post('/api/v1/auth/register', data: {
@@ -191,7 +265,6 @@ class AuthService {
     final tokens = data['tokens'] as Map<String, dynamic>;
     final user = data['user'] as Map<String, dynamic>;
 
-    // Store tokens securely
     await _storage.saveTokens(
       accessToken: tokens['access_token'] as String,
       refreshToken: tokens['refresh_token'] as String,

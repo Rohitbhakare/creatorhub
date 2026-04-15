@@ -20,11 +20,20 @@ import placesRoutes from './routes/places.routes.js'
 import postsRoutes from './routes/posts.routes.js'
 import itinerariesRoutes from './routes/itineraries.routes.js'
 import eventsRoutes from './routes/events.routes.js'
+import experiencesRoutes from './routes/experiences.routes.js'
 import feedRoutes from './routes/feed.routes.js'
 import usersRoutes from './routes/users.routes.js'
 import socialRoutes from './routes/social.routes.js'
 import studioRoutes from './routes/studio.routes.js'
 import notificationsRoutes from './routes/notifications.routes.js'
+import kycRoutes from './routes/kyc.routes.js'
+import taxRoutes from './routes/tax.routes.js'
+import bookingsRoutes from './routes/bookings.routes.js'
+import trustRoutes from './routes/trust.routes.js'
+import reviewsRoutes, { contentReviewsRoutes } from './routes/reviews.routes.js'
+import dpdpaRoutes from './routes/dpdpa.routes.js'
+import refundsRoutes from './routes/refunds.routes.js'
+import adminRoutes from './routes/admin.routes.js'
 
 const app = new Hono()
 
@@ -87,11 +96,21 @@ app.route('/api/v1/places', placesRoutes)
 app.route('/api/v1/posts', postsRoutes)
 app.route('/api/v1/itineraries', itinerariesRoutes)
 app.route('/api/v1/events', eventsRoutes)
+app.route('/api/v1/experiences', experiencesRoutes)
 app.route('/api/v1/feed', feedRoutes)
 app.route('/api/v1/users', usersRoutes)
 app.route('/api/v1', socialRoutes)
 app.route('/api/v1/studio', studioRoutes)
 app.route('/api/v1/notifications', notificationsRoutes)
+app.route('/api/v1/kyc', kycRoutes)
+app.route('/api/v1/tax', taxRoutes)
+app.route('/api/v1/bookings', bookingsRoutes)
+app.route('/api/v1', trustRoutes)
+app.route('/api/v1/reviews', reviewsRoutes)
+app.route('/api/v1/content', contentReviewsRoutes)
+app.route('/api/v1/dpdpa', dpdpaRoutes)
+app.route('/api/v1', refundsRoutes)
+app.route('/api/v1/admin', adminRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

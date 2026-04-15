@@ -10,7 +10,19 @@ export interface CityResult {
 export async function searchCities(query: string, limit: number = 10): Promise<CityResult[]> {
   // Sanitize query - strip special chars
   const sanitized = query.replace(/[^a-zA-Z0-9\s]/g, '').trim()
-  if (!sanitized) return []
+
+  // Empty query → return popular cities (by population)
+  if (!sanitized) {
+    const { data, error } = await supabase
+      .from('cities')
+      .select('id, name, state')
+      .eq('active', true)
+      .order('population', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (error) throw new AppError('db-error', 500, 'Failed to load popular cities')
+    return data ?? []
+  }
 
   const { data, error } = await supabase
     .rpc('search_cities', { search_query: sanitized, result_limit: limit })

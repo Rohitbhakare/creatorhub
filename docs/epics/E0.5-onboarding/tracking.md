@@ -1,9 +1,9 @@
 # E0.5 — Tracking
 
-**Status:** DONE
-**Progress:** 10/10 tasks (100%)
+**Status:** DONE (with open bugs + enhancement)
+**Progress:** 10/10 tasks (100%) + 1 bug open + 1 enhancement open
 **Branch:** `dev`
-**Last Updated:** 2026-04-12
+**Last Updated:** 2026-04-15
 
 ---
 
@@ -35,9 +35,22 @@
 
 ---
 
+## Bugs & Enhancements
+
+| ID | Type | Title | Status | Severity | SRS Ref |
+|----|------|-------|--------|----------|---------|
+| BUG-001 | Bug | Location "Continue" does nothing — no navigation to next screen | `FIXED` | P0 | ONB-FR-002 |
+| BUG-002 | Bug | Auth emulator tokens rejected by API (missing `FIREBASE_AUTH_EMULATOR_HOST`) | `FIXED` | P0 | IAM-FR-001 |
+| FEAT-001 | Enhancement | Popular cities 3x3 grid with landmark icons on location screen | `OPEN` | — | NOT IN SRS |
+
+Details: `docs/epics/E0.5-onboarding/bugs/`
+
+---
+
 ## Changelog
 
 | Date | Change |
 |------|--------|
 | 2026-04-12 | Epic created, 10 tasks defined |
 | 2026-04-12 | All 10 tasks completed via 4 parallel agents (API + 3 Flutter). flutter analyze: 0 issues, tsc: 0 errors |
+| 2026-04-15 | BUG-001 filed: Location screen Continue button has no navigation. BUG-002 filed+fixed: Auth emulator env var missing. FEAT-001 filed: Popular cities grid (not in SRS — founder-directed enhancement) |

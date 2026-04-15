@@ -57,6 +57,7 @@ creatorhub/
 | `.claude/instructions/testing.md` | Before writing any test |
 | `.claude/instructions/infosec.md` | Before touching auth, payments, user data, or external services |
 | `.claude/instructions/documentation.md` | Before creating docs, ADRs, or commit messages |
+| `.claude/instructions/logging.md` | Before adding any logging to API or mobile |
 | `.claude/instructions/precommit.md` | Before declaring any task or epic DONE — mandatory checklist |
 
 ## Key Document References

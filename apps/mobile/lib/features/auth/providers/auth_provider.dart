@@ -88,8 +88,8 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Send OTP to phone number.
+  /// Does NOT change auth status — user is still unauthenticated until OTP is verified.
   Future<String> sendOtp(String phoneNumber) async {
-    state = state.copyWith(status: AuthStatus.loading, error: null);
     try {
       return await _authService.sendOtp(phoneNumber);
     } catch (e) {

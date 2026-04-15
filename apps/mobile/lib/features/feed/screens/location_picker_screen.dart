@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
@@ -13,15 +16,11 @@ import '../providers/vertical_section_provider.dart';
 
 final _citySearchResultsProvider = FutureProvider.autoDispose
     .family<List<_CityResult>, String>((ref, query) async {
-  if (query.trim().isEmpty) {
-    // Popular cities
-    final dio = ref.read(authServiceProvider).dio;
-    final res = await dio.get('/api/v1/cities', queryParameters: {'limit': '10'});
-    final items = (res.data as Map<String, dynamic>)['data'] as List<dynamic>;
-    return items.map(_CityResult.fromJson).toList();
-  }
   final dio = ref.read(authServiceProvider).dio;
-  final res = await dio.get('/api/v1/cities', queryParameters: {'q': query, 'limit': '15'});
+  final res = await dio.get('/api/v1/cities', queryParameters: {
+    if (query.trim().isNotEmpty) 'q': query,
+    'limit': '12',
+  });
   final items = (res.data as Map<String, dynamic>)['data'] as List<dynamic>;
   return items.map(_CityResult.fromJson).toList();
 });
@@ -46,7 +45,7 @@ class _CityResult {
 // ── Screen ────────────────────────────────────────────────────
 
 /// Location picker bottom sheet (DISC-FR-026).
-/// Search or pick from popular cities; updates user's current city.
+/// "Use current location" + search + popular cities.
 class LocationPickerScreen extends ConsumerStatefulWidget {
   const LocationPickerScreen({super.key});
 
@@ -58,6 +57,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   final _controller = TextEditingController();
   String _query = '';
   bool _isSaving = false;
+  bool _isLocating = false;
 
   @override
   void dispose() {
@@ -65,11 +65,68 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     super.dispose();
   }
 
+  Future<void> _useCurrentLocation() async {
+    setState(() => _isLocating = true);
+
+    try {
+      // Check / request permission
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permission denied. Please enable it in Settings.')),
+          );
+        }
+        return;
+      }
+
+      // Get position
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      if (!mounted) return;
+
+      // Resolve to nearest city via API
+      final dio = ref.read(authServiceProvider).dio;
+      final res = await dio.get('/api/v1/cities/nearby', queryParameters: {
+        'lat': position.latitude.toString(),
+        'lng': position.longitude.toString(),
+      });
+      final cityData = (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+      final city = _CityResult.fromJson(cityData);
+
+      await _selectCity(city);
+    } on DioException catch (e) {
+      if (mounted) {
+        final msg = e.response?.statusCode == 404
+            ? 'No city found near your location.'
+            : 'Could not detect location. Try searching instead.';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not detect location. Try searching instead.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
+  }
+
   Future<void> _selectCity(_CityResult city) async {
+    await HapticFeedback.selectionClick();
     setState(() => _isSaving = true);
     try {
       await ref.read(userCityProvider.notifier).updateCity(city.id, city.name);
-      // Invalidate feed sections so they reload with the new city
       ref.invalidate(nearYouProvider);
       ref.invalidate(verticalSectionProvider('travel'));
       ref.invalidate(verticalSectionProvider('stories'));
@@ -126,6 +183,52 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // Use current location button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GestureDetector(
+              onTap: _isLocating ? null : _useCurrentLocation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.coralSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.coral.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      PhosphorIconsFill.navigationArrow,
+                      size: 18,
+                      color: _isLocating ? AppColors.softInk : AppColors.coral,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _isLocating ? 'Detecting location...' : 'Use current location',
+                        style: AppTypography.body.copyWith(
+                          color: _isLocating ? AppColors.softInk : AppColors.coral,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (_isLocating)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.coral,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
           // Search input
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -144,7 +247,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      autofocus: true,
                       style: AppTypography.body.copyWith(color: AppColors.ink),
                       decoration: InputDecoration(
                         hintText: 'Search for your city',
@@ -158,6 +260,17 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                       onChanged: (v) => setState(() => _query = v),
                     ),
                   ),
+                  if (_query.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        _controller.clear();
+                        setState(() => _query = '');
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.only(right: 12),
+                        child: Icon(Icons.close, size: 18, color: AppColors.softInk),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -177,9 +290,9 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
               ),
             ),
           ),
-          // Results list — constrained height
+          // Results list
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 320),
+            constraints: const BoxConstraints(maxHeight: 260),
             child: resultsAsync.when(
               loading: () => const _CityListSkeleton(),
               error: (_, _) => Padding(

@@ -297,6 +297,10 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                       color: AppColors.softInk,
                     ),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
                     counterText: '',
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: Spacing.lg,

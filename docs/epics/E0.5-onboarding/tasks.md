@@ -117,3 +117,24 @@
 - Step validation: cannot advance to step N without completing step N-1
 - "Browse as guest" bypasses onboarding entirely (no steps stored)
 - Onboarding data cleared from local state after completion (server is source of truth)
+
+---
+
+## Bugs (Post-Completion)
+
+### BUG-001: Location "Continue" does nothing (P0)
+**Files:** `apps/mobile/lib/features/onboarding/screens/location_screen.dart`
+**SRS:** ONB-FR-002
+**Description:** `_onContinue()` calls `advanceStep()` which updates the provider state, but does NOT navigate to the next route (`/onboarding/verticals`). User is stuck on the location screen.
+**Fix:** Add `context.go('/onboarding/verticals')` after `advanceStep()`. Verify same pattern on all onboarding screens (vertical_picker → `/onboarding/creators`, suggested_creators → `/onboarding/celebration`, celebration → `/`).
+**Status:** OPEN
+
+---
+
+## Enhancements (Post-Completion, NOT in SRS)
+
+### FEAT-001: Popular cities 3x3 grid with landmark icons
+**Files:** `apps/mobile/lib/features/onboarding/screens/location_screen.dart`, new city icon assets
+**SRS:** NOT IN SRS — founder-directed UX enhancement to ONB-FR-002
+**Description:** Add "POPULAR CITIES" section showing top 10 Indian cities (Mumbai, Delhi-NCR, Bengaluru, Hyderabad, Chandigarh, Ahmedabad, Pune, Chennai, Kolkata, Kochi) in a 3-column grid with city landmark icons. Below that, an "OTHER CITIES" alphabetical list. Selected city shown with green dot + coral highlight. One-tap selection without search.
+**Status:** OPEN

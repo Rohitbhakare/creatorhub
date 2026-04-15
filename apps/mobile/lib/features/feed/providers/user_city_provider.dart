@@ -34,10 +34,11 @@ final userCityProvider = NotifierProvider<UserCityNotifier, UserCityState>(
 class UserCityNotifier extends Notifier<UserCityState> {
   @override
   UserCityState build() {
-    // Seed from auth user data if available
+    // Seed from auth user data — API returns current_city as nested object
     final user = ref.watch(authProvider).user;
-    final cityName = user?['current_city_name'] as String?;
-    final cityId = user?['current_city_id'] as String?;
+    final currentCity = user?['current_city'] as Map<String, dynamic>?;
+    final cityName = currentCity?['name'] as String?;
+    final cityId = currentCity?['id'] as String?;
     return UserCityState(cityId: cityId, cityName: cityName);
   }
 

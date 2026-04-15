@@ -32,7 +32,9 @@ export async function registerOrSignIn(
   userAgent?: string | null,
 ): Promise<{ result: AuthResult; isNew: boolean }> {
   // 1. Verify Firebase ID token
-  const decoded = await firebaseAuth.verifyIdToken(firebaseToken).catch(() => {
+  const decoded = await firebaseAuth.verifyIdToken(firebaseToken).catch((err) => {
+    console.error('❌ Firebase verifyIdToken failed:', err.message ?? err)
+    console.error('   FIREBASE_AUTH_EMULATOR_HOST:', process.env.FIREBASE_AUTH_EMULATOR_HOST ?? 'NOT SET')
     throw new AppError('invalid-token', 401, 'Invalid or expired Firebase token')
   })
 
@@ -40,30 +42,60 @@ export async function registerOrSignIn(
   const phone = decoded.phone_number ?? null
   const email = decoded.email ?? null
   const displayName = decoded.name ?? decoded.display_name ?? null
+  const phoneOrSocial = phone ?? `social:${firebaseUid}`
 
-  // 2. Upsert user — INSERT ON CONFLICT UPDATE
-  const { data: user, error: upsertError } = await supabase
+  // 2. Find existing user by firebase_uid OR phone (handles emulator UID changes + re-registration)
+  const { data: existing } = await supabase
     .from('users')
-    .upsert(
-      {
+    .select('*')
+    .or(`firebase_uid.eq.${firebaseUid},phone.eq.${phoneOrSocial}`)
+    .limit(1)
+    .maybeSingle()
+
+  let user: Record<string, unknown>
+  let isNew = false
+
+  if (existing) {
+    // Update existing user — sync firebase_uid + phone in case either changed
+    const { data: updated, error: updateError } = await supabase
+      .from('users')
+      .update({
         firebase_uid: firebaseUid,
-        phone: phone ?? `social:${firebaseUid}`, // social logins might not have phone
+        phone: phoneOrSocial,
+        email: email ?? (existing.email as string | null),
+        display_name: displayName ?? (existing.display_name as string | null),
+        last_login_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id as string)
+      .select('*')
+      .single()
+
+    if (updateError || !updated) {
+      console.error('[auth.register] User update failed:', updateError?.message, updateError?.details)
+      throw new AppError('db-error', 500, 'Failed to update user record')
+    }
+    user = updated
+  } else {
+    // Insert new user
+    const { data: inserted, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        firebase_uid: firebaseUid,
+        phone: phoneOrSocial,
         email,
         display_name: displayName,
         last_login_at: new Date().toISOString(),
-      },
-      { onConflict: 'firebase_uid' },
-    )
-    .select('*')
-    .single()
+      })
+      .select('*')
+      .single()
 
-  if (upsertError || !user) {
-    throw new AppError('db-error', 500, 'Failed to create or update user record')
+    if (insertError || !inserted) {
+      console.error('[auth.register] User insert failed:', insertError?.message, insertError?.details)
+      throw new AppError('db-error', 500, 'Failed to create user record')
+    }
+    user = inserted
+    isNew = true
   }
-
-  // Detect if this is a new user (created_at ~ now, no onboarding)
-  const createdAt = new Date(user.created_at as string)
-  const isNew = Date.now() - createdAt.getTime() < 5000 // created within last 5 seconds
 
   // 3. Generate device ID and tokens
   const platform = deviceInfo?.platform ?? 'android'
@@ -74,18 +106,31 @@ export async function registerOrSignIn(
     signRefreshToken(user.id as string, deviceId, platform),
   ])
 
-  // 4. Store device + refresh token hash
-  await supabase.from('user_devices').upsert(
-    {
+  // 4. Store device + refresh token hash (insert new, or update if device exists)
+  const { error: deviceError } = await supabase
+    .from('user_devices')
+    .insert({
       user_id: user.id,
       device_id: deviceId,
       platform,
       app_version: deviceInfo?.app_version ?? null,
       refresh_token_hash: hashToken(refreshToken),
       last_active_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,device_id', ignoreDuplicates: false },
-  )
+    })
+
+  if (deviceError) {
+    // Device row might already exist — update it
+    await supabase
+      .from('user_devices')
+      .update({
+        refresh_token_hash: hashToken(refreshToken),
+        platform,
+        app_version: deviceInfo?.app_version ?? null,
+        last_active_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id as string)
+      .eq('device_id', deviceId)
+  }
 
   // 5. Log audit event (fire-and-forget)
   void logAuditEvent(

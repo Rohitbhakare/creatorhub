@@ -46,6 +46,7 @@ class YouTabScreen extends ConsumerWidget {
                   onEditProfile: () => context.push('/profile/edit'),
                   onNotifications: () => context.push('/notifications/preferences'),
                   onSaved: () => context.push('/saved'),
+                  onPrivacy: () => context.push('/privacy-settings'),
                   onSignOut: () => _confirmSignOut(context, ref),
                 ),
               ),
@@ -248,12 +249,14 @@ class _SettingsCard extends StatelessWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onNotifications;
   final VoidCallback onSaved;
+  final VoidCallback onPrivacy;
   final VoidCallback onSignOut;
 
   const _SettingsCard({
     required this.onEditProfile,
     required this.onNotifications,
     required this.onSaved,
+    required this.onPrivacy,
     required this.onSignOut,
   });
 
@@ -284,6 +287,12 @@ class _SettingsCard extends StatelessWidget {
             icon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
             label: 'Saved',
             onTap: onSaved,
+          ),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          _SettingsRow(
+            icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.regular),
+            label: 'Privacy & Data',
+            onTap: onPrivacy,
           ),
           const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
           _SettingsRow(

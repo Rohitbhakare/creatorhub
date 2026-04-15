@@ -11,6 +11,7 @@ import '../../../shared/theme/layout.dart';
 import '../../../shared/components/button.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/utils/format.dart';
+import '../../social/widgets/engagement_bar.dart';
 import '../providers/itinerary_detail_provider.dart';
 import '../providers/itinerary_wizard_provider.dart';
 
@@ -66,6 +67,29 @@ class _ItineraryDetailScreenState
             : null;
     final isLocked = !detail.isFree && _selectedDayIndex > 0;
 
+    return Column(
+      children: [
+        Expanded(child: _buildScrollContent(context, detail, days, selectedDay, isLocked)),
+        EngagementBar(
+          contentId: widget.itineraryId,
+          contentType: 'itinerary',
+          contentTitle: detail.title,
+          initialIsLiked: detail.isLiked,
+          initialLikeCount: detail.likeCount,
+          commentCount: detail.commentCount,
+          initialIsSaved: detail.isSaved,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollContent(
+    BuildContext context,
+    ItineraryDetail detail,
+    List<DayState> days,
+    DayState? selectedDay,
+    bool isLocked,
+  ) {
     return CustomScrollView(
       slivers: [
         // Map placeholder
@@ -221,19 +245,6 @@ class _ItineraryDetailScreenState
               0,
             ),
             child: _CreatorHeader(creator: detail.creator),
-          ),
-        ),
-
-        // Engagement bar
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Layout.screenPaddingH,
-              Spacing.lg,
-              Layout.screenPaddingH,
-              0,
-            ),
-            child: _EngagementBar(detail: detail),
           ),
         ),
 
@@ -458,115 +469,6 @@ class _AvatarPlaceholder extends StatelessWidget {
   }
 }
 
-// ── Engagement Bar ────────────────────────────────────────────
-
-class _EngagementBar extends StatelessWidget {
-  final ItineraryDetail detail;
-
-  const _EngagementBar({required this.detail});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.lg,
-        vertical: Spacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.sunken,
-        borderRadius: BorderRadius.circular(Layout.cardRadius),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _EngagementAction(
-            icon: detail.isLiked
-                ? PhosphorIconsFill.heart
-                : PhosphorIconsFill.heart,
-            label: '${detail.likeCount}',
-            isActive: detail.isLiked,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement like
-            },
-          ),
-          _EngagementAction(
-            icon: PhosphorIconsFill.chatCircle,
-            label: '${detail.commentCount}',
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement comment
-            },
-          ),
-          _EngagementAction(
-            icon: PhosphorIconsFill.shareFat,
-            label: 'Share',
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement share
-            },
-          ),
-          _EngagementAction(
-            icon: detail.isSaved
-                ? PhosphorIconsFill.bookmarkSimple
-                : PhosphorIconsFill.bookmarkSimple,
-            label: 'Save',
-            isActive: detail.isSaved,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: implement save
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EngagementAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _EngagementAction({
-    required this.icon,
-    required this.label,
-    this.isActive = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.sm,
-          vertical: Spacing.xs,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isActive ? AppColors.coral : AppColors.muted,
-            ),
-            const SizedBox(height: Spacing.xs),
-            Text(
-              label,
-              style: typ.AppTypography.caption.copyWith(
-                color: isActive ? AppColors.coral : AppColors.muted,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ── Read-Only Spot Card ───────────────────────────────────────
 

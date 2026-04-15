@@ -5,7 +5,7 @@ import '../../../shared/theme/typography.dart';
 import '../../../shared/utils/format.dart';
 import '../models/feed_models.dart';
 
-/// Horizontal rail card (200px wide, 4:3 aspect).
+/// Horizontal rail card (200px wide).
 /// Used in Near You and per-vertical section rails.
 class FeedRailCard extends StatelessWidget {
   final FeedContentItem item;
@@ -17,17 +17,22 @@ class FeedRailCard extends StatelessWidget {
     switch (item.type) {
       case 'post':
         return 'Story';
+      case 'self_paced_itinerary':
       case 'itinerary':
         return 'Itinerary';
+      case 'scheduled_experience':
+        return 'Experience';
       case 'event':
         return 'Event';
       default:
-        return item.type;
+        return item.type.replaceAll('_', ' ');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final creatorName = item.creator?.displayName;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -41,14 +46,23 @@ class FeedRailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 4:3 cover image
+            // Cover image — 16:10 aspect
             AspectRatio(
-              aspectRatio: 4 / 3,
+              aspectRatio: 16 / 10,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(color: AppColors.sunken),
-                  // Type pill
+                  // Placeholder gradient (replaced by real image when available)
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.sunken, AppColors.border],
+                      ),
+                    ),
+                  ),
+                  // Type pill (top-left)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -58,56 +72,104 @@ class FeedRailCard extends StatelessWidget {
               ),
             ),
             // Card body
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      item.title,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      if (item.startingCityId != null) ...[
-                        const Icon(
-                          Icons.location_on,
-                          size: 11,
-                          color: AppColors.softInk,
-                        ),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(
-                            item.startingCityId!.split('.').last,
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.softInk),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    const Spacer(),
+                    // Bottom row: creator + price
+                    Row(
+                      children: [
+                        // Creator avatar
+                        if (creatorName != null) ...[
+                          _CreatorInitial(name: creatorName),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              creatorName,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.softInk,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else
+                          const Spacer(),
+                        const SizedBox(width: 6),
+                        // Price tag
+                        Text(
+                          formatPrice(item.pricePaisa),
+                          style: AppTypography.caption.copyWith(
+                            color: item.pricePaisa == 0
+                                ? AppColors.success
+                                : AppColors.ink,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ] else
-                        const Spacer(),
-                      Text(
-                        formatPrice(item.pricePaisa),
-                        style: AppTypography.caption.copyWith(
-                          color: item.pricePaisa == 0
-                              ? AppColors.success
-                              : AppColors.ink,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Small colored circle with first initial — for card creator row.
+class _CreatorInitial extends StatelessWidget {
+  final String name;
+  const _CreatorInitial({required this.name});
+
+  // Stable color from name hash
+  static const _colors = [
+    Color(0xFFB8860B), // amber
+    Color(0xFF5A7247), // olive
+    Color(0xFF7C5CBF), // violet
+    Color(0xFFE15A41), // coral
+    Color(0xFF3B7DD8), // blue
+    Color(0xFF2D8F6F), // jade
+    Color(0xFF8B4F8B), // plum
+    Color(0xFF888888), // gray
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _colors[name.hashCode.abs() % _colors.length];
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: color,
+          height: 1,
         ),
       ),
     );
@@ -121,18 +183,18 @@ class _TypePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.ink.withValues(alpha: 0.75),
+        color: AppColors.ink.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppTypography.caption.copyWith(
           color: AppColors.white,
           fontWeight: FontWeight.w600,
-          fontSize: 9,
-          letterSpacing: 0.5,
+          fontSize: 10,
+          letterSpacing: 0.3,
         ),
       ),
     );
@@ -181,7 +243,8 @@ class DiscoverCreatorCard extends StatelessWidget {
                       imageUrl: avatarUrl!,
                       fit: BoxFit.cover,
                       placeholder: (_, _) => Container(color: AppColors.sunken),
-                      errorWidget: (_, _, _) => _InitialsAvatar(name: displayName),
+                      errorWidget: (_, _, _) =>
+                          _InitialsAvatar(name: displayName),
                     )
                   : _InitialsAvatar(name: displayName),
             ),

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
 import '../../../shared/theme/colors.dart';
@@ -156,6 +157,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
 
       if (mounted) {
         ref.read(onboardingProvider.notifier).advanceStep();
+        context.go('/onboarding/verticals');
       }
     } on DioException catch (e) {
       if (mounted) {

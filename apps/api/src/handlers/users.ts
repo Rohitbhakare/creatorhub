@@ -59,7 +59,7 @@ export async function handleSetDnd(c: Context): Promise<Response> {
 
 // ─── GET /users/:id ─────────────────────────────────────────────
 export async function handleGetPublicProfile(c: Context): Promise<Response> {
-  const targetId = c.req.param('id')
+  const targetId = c.req.param('id')!
 
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

@@ -110,6 +110,7 @@ class _AppButtonState extends State<AppButton>
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,

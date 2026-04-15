@@ -57,7 +57,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
               ),
               // ── Vertical Filter Chips (DD-011) ──────────────
               const SliverToBoxAdapter(child: _VerticalChipRow()),
-              const SliverToBoxAdapter(child: SizedBox(height: 20)),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
               // ── Near You ─────────────────────────────────────
               const SliverToBoxAdapter(child: NearYouSection()),
               // ── Travel vertical rail ─────────────────────────

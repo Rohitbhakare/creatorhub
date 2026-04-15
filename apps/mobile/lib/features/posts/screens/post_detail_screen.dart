@@ -15,6 +15,8 @@ import '../../../shared/components/button.dart';
 import '../../../shared/components/empty_state.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/utils/format.dart';
+import '../../social/providers/follow_provider.dart';
+import '../../social/widgets/engagement_bar.dart';
 import '../providers/post_detail_provider.dart';
 
 /// Full post detail screen.
@@ -103,6 +105,7 @@ class _PostDetailContent extends ConsumerWidget {
 
                       // Creator header
                       _CreatorHeader(
+                        creatorId: post.creatorId,
                         avatarUrl: post.creatorAvatarUrl,
                         displayName: post.creatorName,
                         username: post.creatorUsername,
@@ -163,13 +166,14 @@ class _PostDetailContent extends ConsumerWidget {
         ),
 
         // Engagement bar
-        _EngagementBar(
-          postId: postId,
-          likeCount: post.likeCount,
+        EngagementBar(
+          contentId: postId,
+          contentType: 'post',
+          contentTitle: post.title,
+          initialIsLiked: post.isLiked,
+          initialLikeCount: post.likeCount,
           commentCount: post.commentCount,
-          shareCount: post.shareCount,
-          isLiked: post.isLiked,
-          isSaved: post.isSaved,
+          initialIsSaved: post.isSaved,
         ),
       ],
     );
@@ -257,13 +261,15 @@ class _HeroImage extends StatelessWidget {
 }
 
 /// Creator header with avatar, name, username, and follow button.
-class _CreatorHeader extends StatelessWidget {
+class _CreatorHeader extends ConsumerWidget {
+  final String? creatorId;
   final String? avatarUrl;
   final String displayName;
   final String? username;
   final DateTime? createdAt;
 
   const _CreatorHeader({
+    this.creatorId,
     this.avatarUrl,
     required this.displayName,
     this.username,
@@ -271,7 +277,13 @@ class _CreatorHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Seed follow provider with false — actual state managed optimistically by provider
+    final followKey = creatorId != null
+        ? (targetUserId: creatorId!, isFollowing: false, followerCount: 0)
+        : null;
+    final followState = followKey != null ? ref.watch(followProvider(followKey)) : null;
+
     return Row(
       children: [
         AppAvatar(
@@ -286,8 +298,7 @@ class _CreatorHeader extends StatelessWidget {
             children: [
               Text(
                 displayName,
-                style: typ.AppTypography.body
-                    .copyWith(fontWeight: FontWeight.w600),
+                style: typ.AppTypography.body.copyWith(fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -304,16 +315,22 @@ class _CreatorHeader extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: Spacing.md),
-        AppButton(
-          label: 'Follow',
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            // TODO: wire up follow API in E1.7 Social
-          },
-          variant: AppButtonVariant.secondary,
-          size: AppButtonSize.small,
-        ),
+        if (creatorId != null) ...[
+          const SizedBox(width: Spacing.md),
+          AppButton(
+            label: (followState?.isFollowing ?? false) ? 'Following' : 'Follow',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              if (followKey != null) {
+                ref.read(followProvider(followKey).notifier).toggle();
+              }
+            },
+            variant: (followState?.isFollowing ?? false)
+                ? AppButtonVariant.secondary
+                : AppButtonVariant.primary,
+            size: AppButtonSize.small,
+          ),
+        ],
       ],
     );
   }
@@ -405,150 +422,6 @@ class _LocationChip extends StatelessWidget {
   }
 }
 
-/// Bottom engagement bar with like, comment, share, save actions.
-class _EngagementBar extends ConsumerWidget {
-  final String postId;
-  final int likeCount;
-  final int commentCount;
-  final int shareCount;
-  final bool isLiked;
-  final bool isSaved;
-
-  const _EngagementBar({
-    required this.postId,
-    required this.likeCount,
-    required this.commentCount,
-    required this.shareCount,
-    required this.isLiked,
-    required this.isSaved,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: Layout.screenPaddingH,
-        right: Layout.screenPaddingH,
-        top: Spacing.md,
-        bottom: Spacing.md + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.border, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Like
-          _EngagementAction(
-            icon: isLiked
-                ? PhosphorIconsFill.heart
-                : PhosphorIconsFill.heart,
-            label: _formatCount(likeCount),
-            isActive: isLiked,
-            activeColor: AppColors.danger,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              ref.read(postDetailProvider(postId).notifier).toggleLike();
-            },
-          ),
-          const SizedBox(width: Spacing.xl),
-
-          // Comment
-          _EngagementAction(
-            icon: PhosphorIconsFill.chatCircle,
-            label: _formatCount(commentCount),
-            isActive: false,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: open comment sheet (E1.7 Social)
-            },
-          ),
-          const SizedBox(width: Spacing.xl),
-
-          // Share
-          _EngagementAction(
-            icon: PhosphorIconsFill.shareFat,
-            label: '',
-            isActive: false,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // TODO: share sheet (E1.7 Social)
-            },
-          ),
-
-          const Spacer(),
-
-          // Save/Bookmark
-          _EngagementAction(
-            icon: isSaved
-                ? PhosphorIconsFill.bookmarkSimple
-                : PhosphorIconsFill.bookmarkSimple,
-            label: '',
-            isActive: isSaved,
-            activeColor: AppColors.coral,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              ref.read(postDetailProvider(postId).notifier).toggleSave();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatCount(int count) {
-    if (count <= 0) return '';
-    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
-    return count.toString();
-  }
-}
-
-/// Single engagement action button.
-class _EngagementAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final Color? activeColor;
-  final VoidCallback onTap;
-
-  const _EngagementAction({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    this.activeColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive
-        ? (activeColor ?? AppColors.coral)
-        : AppColors.muted;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        height: Layout.minTapTarget,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 22, color: color),
-            if (label.isNotEmpty) ...[
-              const SizedBox(width: Spacing.xs),
-              Text(
-                label,
-                style: typ.AppTypography.bodySmall.copyWith(color: color),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Skeleton shimmer loading for post detail.
 class _PostDetailSkeleton extends StatelessWidget {
