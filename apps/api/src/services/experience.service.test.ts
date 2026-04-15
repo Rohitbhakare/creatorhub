@@ -210,6 +210,10 @@ describe('getExperienceDetail', () => {
       .mockReturnValueOnce(mockChain(creator) as never)
       // meeting_point
       .mockReturnValueOnce(mockChain(null) as never)
+      // like check (userId is provided, even for owner)
+      .mockReturnValueOnce(mockChain(null) as never)
+      // save check
+      .mockReturnValueOnce(mockChain(null) as never)
 
     const result = await getExperienceDetail(CONTENT_ID, USER_ID)
 
@@ -268,6 +272,10 @@ describe('getExperienceDetail', () => {
       .mockReturnValueOnce(mockChain([farDateRow]) as never)
       .mockReturnValueOnce(mockChain(creator) as never)
       .mockReturnValueOnce(mockChain(meetingPointRow) as never)
+      // like check (userId provided even for owner)
+      .mockReturnValueOnce(mockChain(null) as never)
+      // save check
+      .mockReturnValueOnce(mockChain(null) as never)
 
     const result = await getExperienceDetail(CONTENT_ID, USER_ID)
 

@@ -72,8 +72,10 @@ const OTHER_USER_ID = 'user-002'
 const CONTENT_ID = 'event-001'
 const BOOKING_ID = 'booking-001'
 
-const FUTURE_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-const FUTURE_END = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString()
+// Fixed future timestamps safely on the same calendar day in all timezones (incl. Asia/Kolkata UTC+5:30).
+// Using a date far enough in the future and a midday UTC time so +5:30 offset never crosses midnight.
+const FUTURE_DATE = '2027-06-15T06:00:00.000Z' // 11:30 IST — midday
+const FUTURE_END = '2027-06-15T08:00:00.000Z'  // 13:30 IST — same day, 2 h later
 const PAST_DATE = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
 const draftEvent = {
@@ -108,7 +110,7 @@ const publishedEvent = { ...draftEvent, status: 'published' }
 // ─── createEventDraft ──────────────────────────────────────────────────────
 
 describe('createEventDraft', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   it('delegates to createDraft with type=event and free pricing', async () => {
     vi.mocked(createDraft).mockResolvedValue({ id: CONTENT_ID, type: 'event' } as never)
@@ -150,7 +152,7 @@ describe('createEventDraft', () => {
 // ─── updateEvent ───────────────────────────────────────────────────────────
 
 describe('updateEvent', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   it('updates event fields and returns id + updated_at', async () => {
     // verifyEventOwnership fetch
@@ -191,7 +193,7 @@ describe('updateEvent', () => {
 // ─── publishEvent ──────────────────────────────────────────────────────────
 
 describe('publishEvent', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   // Helper: sets up the standard happy-path mock sequence
   function setupHappyPath() {
@@ -317,7 +319,7 @@ describe('publishEvent', () => {
 // ─── rsvpEvent ─────────────────────────────────────────────────────────────
 
 describe('rsvpEvent', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   function setupRsvpHappyPath() {
     vi.mocked(supabase.from)
@@ -407,7 +409,7 @@ describe('rsvpEvent', () => {
 // ─── cancelRsvp ────────────────────────────────────────────────────────────
 
 describe('cancelRsvp', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   it('happy path: deletes booking and decrements spots_booked', async () => {
     vi.mocked(supabase.from)
@@ -448,7 +450,7 @@ describe('cancelRsvp', () => {
 // ─── listEvents ────────────────────────────────────────────────────────────
 
 describe('listEvents', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   it('returns upcoming events only by default', async () => {
     const items = [
@@ -508,7 +510,7 @@ describe('listEvents', () => {
 // ─── getEventDetail ────────────────────────────────────────────────────────
 
 describe('getEventDetail', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => vi.resetAllMocks())
 
   it('returns event detail with has_rsvpd=true when requester has booking', async () => {
     vi.mocked(supabase.from)

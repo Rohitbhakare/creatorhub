@@ -188,7 +188,9 @@ class SaveStatusNotifier extends Notifier<Set<String>> {
 
   @override
   Set<String> build() {
-    _fetch();
+    // Only fetch when authenticated — avoids spurious network calls in guest mode and tests
+    final isAuth = ref.watch(authProvider.select((s) => s.isAuthenticated));
+    if (isAuth) _fetch();
     return const {};
   }
 

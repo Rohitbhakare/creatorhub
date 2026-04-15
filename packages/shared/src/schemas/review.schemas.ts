@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { uuidSchema, cursorSchema, limitSchema } from './index.js'
+
+// Inline to avoid circular dependency with index.ts
+const uuidSchema = z.string().uuid()
+const cursorSchema = z.string().optional()
+const limitSchema = z.coerce.number().int().min(1).max(50).default(20)
 
 export const submitReviewSchema = z.object({
   booking_id: uuidSchema,

@@ -5,6 +5,10 @@ import { Hono } from 'hono'
 
 vi.mock('../utils/tokens.js', () => ({ verifyAccessToken: vi.fn() }))
 vi.mock('../lib/supabase.js', () => ({ supabase: { from: vi.fn(), rpc: vi.fn() } }))
+vi.mock('../lib/firebase.js', () => ({
+  firebaseAuth: { verifyIdToken: vi.fn() },
+  firebaseMessaging: { send: vi.fn(), sendEachForMulticast: vi.fn() },
+}))
 
 vi.mock('../services/feed.service.js', () => ({
   getNearYouSection: vi.fn(),

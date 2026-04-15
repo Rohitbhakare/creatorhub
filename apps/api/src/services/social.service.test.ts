@@ -7,6 +7,11 @@ vi.mock('../lib/supabase.js', () => {
   return { supabase: mockSupabase }
 })
 
+vi.mock('../lib/firebase.js', () => ({
+  firebaseAuth: { verifyIdToken: vi.fn() },
+  firebaseMessaging: { send: vi.fn(), sendEachForMulticast: vi.fn() },
+}))
+
 import {
   followUser,
   unfollowUser,
