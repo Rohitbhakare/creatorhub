@@ -80,6 +80,14 @@
 
 ---
 
+## M3 — Quality & Launch Readiness
+
+| Epic | Name | Status | Tasks | Notes |
+|------|------|--------|-------|-------|
+| E3.1 | E2E Tests (Patrol + Gherkin) | `IN PROGRESS` | 1/13 (T1 planning done) | 11 feature files, 38 scenarios written |
+
+---
+
 ## M2 — Public MVP
 
 | Epic | Name | Status | Tasks | Tests | Lint | Type | Review Gate | API Boot | DB | Flutter | Commit |
