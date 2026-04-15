@@ -1,0 +1,8 @@
+app_name: CreatorHub
+app_id: in.creatorhub.app
+android:
+  app_id: in.creatorhub.app
+ios:
+  app_id: in.creatorhub.app
+# Timeout per test scenario (seconds)
+timeout: 120
