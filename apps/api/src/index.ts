@@ -4,9 +4,9 @@ import './env.js'
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
 import { env } from './env.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { requestLogger } from './middleware/requestLogger.js'
 import { generalRateLimit } from './middleware/rateLimit.js'
 import { supabase } from './lib/supabase.js'
 import { firebaseAuth } from './lib/firebase.js'
@@ -22,6 +22,8 @@ import itinerariesRoutes from './routes/itineraries.routes.js'
 import eventsRoutes from './routes/events.routes.js'
 import feedRoutes from './routes/feed.routes.js'
 import usersRoutes from './routes/users.routes.js'
+import socialRoutes from './routes/social.routes.js'
+import studioRoutes from './routes/studio.routes.js'
 
 const app = new Hono()
 
@@ -36,7 +38,7 @@ app.use(
   }),
 )
 
-app.use('*', logger())
+app.use('*', requestLogger)
 
 // ─── Health Checks ───────────────────────────────────────────
 // No auth — infra endpoints for Fly.io + CI/CD
@@ -86,6 +88,8 @@ app.route('/api/v1/itineraries', itinerariesRoutes)
 app.route('/api/v1/events', eventsRoutes)
 app.route('/api/v1/feed', feedRoutes)
 app.route('/api/v1/users', usersRoutes)
+app.route('/api/v1', socialRoutes)
+app.route('/api/v1/studio', studioRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

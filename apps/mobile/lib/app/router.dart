@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
@@ -13,15 +15,34 @@ import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
+import '../features/feed/screens/search_placeholder_screen.dart';
+import '../features/studio/screens/studio_tab_screen.dart';
+import '../features/profile/screens/you_tab_screen.dart';
+import '../features/profile/screens/edit_profile_screen.dart';
+import '../features/profile/screens/profile_view_screen.dart';
+import '../features/saved/screens/saved_lists_screen.dart';
+import '../features/saved/screens/saved_list_detail_screen.dart';
+import 'main_shell.dart';
 
-// GoRouter provider — rebuilds on auth state changes
+/// Notifier that triggers GoRouter redirect re-evaluation when auth state changes.
+class _AuthChangeNotifier extends ChangeNotifier {
+  _AuthChangeNotifier(Ref ref) {
+    ref.listen(authProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+}
+
+// GoRouter provider — created once, redirects re-evaluate via refreshListenable
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final refreshNotifier = _AuthChangeNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/welcome',
     debugLogDiagnostics: false,
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isAuth = authState.isAuthenticated;
       final isGuest = authState.isGuest;
       final isLoading = authState.isLoading;
@@ -31,16 +52,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnOnboarding = location.startsWith('/onboarding');
       final isOnContent = location.startsWith('/content');
 
+      if (kDebugMode) {
+        final onbComplete = authState.user?['onboarding_completed_at'];
+        debugPrint('[Router] redirect: location=$location '
+            'auth=${authState.status.name} '
+            'onboarding_completed=${onbComplete != null}');
+      }
+
       // Still loading — stay put
       if (isLoading) return null;
 
       // Content creation requires authentication (not guest)
       if (isOnContent && !isAuth) {
+        if (kDebugMode) debugPrint('[Router] → /auth (content needs auth)');
         return '/auth';
       }
 
       // Not authenticated and not guest — redirect to welcome
       if (!isAuth && !isGuest && !isOnAuthScreen && !isOnWelcome) {
+        if (kDebugMode) debugPrint('[Router] → /welcome (not authenticated)');
         return '/welcome';
       }
 
@@ -49,9 +79,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         final user = authState.user;
         final onboardingCompleted = user?['onboarding_completed_at'];
         if (onboardingCompleted == null) {
-          // Onboarding not complete — redirect to location step
-          // (unless already on auth/welcome, let them finish auth first)
           if (!isOnAuthScreen && !isOnWelcome) {
+            if (kDebugMode) debugPrint('[Router] → /onboarding/location (onboarding incomplete)');
             return '/onboarding/location';
           }
         }
@@ -59,18 +88,20 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Authenticated or guest trying to go to auth or welcome — redirect home
       if ((isAuth || isGuest) && (isOnAuthScreen || isOnWelcome)) {
-        // If authenticated but onboarding not done, go to onboarding
         if (isAuth) {
           final user = authState.user;
           final onboardingCompleted = user?['onboarding_completed_at'];
           if (onboardingCompleted == null) {
+            if (kDebugMode) debugPrint('[Router] → /onboarding/location (from welcome/auth)');
             return '/onboarding/location';
           }
         }
-        return '/';
+        if (kDebugMode) debugPrint('[Router] → /home (already authed, go home)');
+        return '/home';
       }
 
-      return null; // No redirect
+      if (kDebugMode) debugPrint('[Router] → no redirect');
+      return null;
     },
     routes: [
       // Welcome
@@ -102,6 +133,67 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding/celebration',
         builder: (context, state) => const CelebrationScreen(),
       ),
+
+      // ── Main Tab Shell ────────────────────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainShell(
+            currentIndex: navigationShell.currentIndex,
+            child: navigationShell,
+            onTabTap: (index) {
+              if (index == 2) {
+                // Create+ tab — navigate to content picker instead of tab switch
+                context.push('/content/create');
+                return;
+              }
+              navigationShell.goBranch(
+                index > 2 ? index - 1 : index, // Adjust for Create+ not being a real branch
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
+          );
+        },
+        branches: [
+          // Tab 0: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const HomeFeedScreen(),
+              ),
+            ],
+          ),
+          // Tab 1: Search
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/search',
+                builder: (context, state) => const SearchPlaceholderScreen(),
+              ),
+            ],
+          ),
+          // Tab 3: Studio (index 2 in branches, but tab index 3 — Create+ is virtual)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/studio',
+                builder: (context, state) => const StudioTabScreen(),
+              ),
+            ],
+          ),
+          // Tab 4: You (index 3 in branches)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/you',
+                builder: (context, state) => const YouTabScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // ── Overlay routes (pushed on top of tabs) ────────────
 
       // Posts
       GoRoute(
@@ -137,10 +229,34 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const WizardShellScreen(),
       ),
 
-      // Home feed
+      // Profile
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile/:id',
+        builder: (context, state) => ProfileViewScreen(
+          userId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Saved lists
+      GoRoute(
+        path: '/saved',
+        builder: (context, state) => const SavedListsScreen(),
+      ),
+      GoRoute(
+        path: '/saved/:listId',
+        builder: (context, state) => SavedListDetailScreen(
+          listId: state.pathParameters['listId']!,
+        ),
+      ),
+
+      // Legacy root redirect
       GoRoute(
         path: '/',
-        builder: (context, state) => const HomeFeedScreen(),
+        redirect: (_, __) => '/home',
       ),
     ],
   );
