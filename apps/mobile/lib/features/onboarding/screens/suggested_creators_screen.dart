@@ -104,7 +104,7 @@ class _SuggestedCreatorsScreenState
     final onboarding = ref.watch(onboardingProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +126,7 @@ class _SuggestedCreatorsScreenState
                   Text(
                     'Follow creators you like \u2014 you can skip this',
                     style: typ.AppTypography.bodyLarge.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                   const SizedBox(height: Spacing.xl),
@@ -151,7 +151,7 @@ class _SuggestedCreatorsScreenState
                       child: Text(
                         'Skip',
                         style: typ.AppTypography.body.copyWith(
-                          color: AppColors.softInk,
+                          color: AppColors.inkMuted,
                         ),
                       ),
                     ),
@@ -271,7 +271,7 @@ class _SuggestedCreatorsScreenState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: AppColors.softInk),
+            Icon(icon, size: 56, color: AppColors.inkMuted),
             const SizedBox(height: Spacing.lg),
             Text(
               title,
@@ -282,7 +282,7 @@ class _SuggestedCreatorsScreenState
             Text(
               subtitle,
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
               textAlign: TextAlign.center,
             ),
@@ -325,9 +325,9 @@ class _CreatorTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPaddingCompact),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         children: [
@@ -352,7 +352,7 @@ class _CreatorTile extends StatelessWidget {
                   Text(
                     bio,
                     style: typ.AppTypography.bodySmall.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

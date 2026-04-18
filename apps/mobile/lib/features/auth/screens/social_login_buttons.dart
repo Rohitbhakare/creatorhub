@@ -90,7 +90,7 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
           children: [
             const Expanded(
               child: Divider(
-                color: AppColors.border,
+                color: AppColors.hairline,
               ),
             ),
             Padding(
@@ -98,13 +98,13 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
               child: Text(
                 'or continue with',
                 style: typ.AppTypography.bodySmall.copyWith(
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
               ),
             ),
             const Expanded(
               child: Divider(
-                color: AppColors.border,
+                color: AppColors.hairline,
               ),
             ),
           ],
@@ -193,7 +193,7 @@ class _SocialButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(Layout.buttonRadius),
           ),
           side: const BorderSide(
-            color: AppColors.border,
+            color: AppColors.hairline,
           ),
         ),
         icon: isLoading
@@ -238,7 +238,7 @@ class _OAuthPermissionsCard extends StatelessWidget {
                 width: Layout.sheetHandleWidth,
                 height: Layout.sheetHandleHeight,
                 decoration: BoxDecoration(
-                  color: AppColors.line,
+                  color: AppColors.hairlineStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -254,7 +254,7 @@ class _OAuthPermissionsCard extends StatelessWidget {
             Text(
               'CreatorHub will receive:',
               style: typ.AppTypography.body.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
             const SizedBox(height: Spacing.md),

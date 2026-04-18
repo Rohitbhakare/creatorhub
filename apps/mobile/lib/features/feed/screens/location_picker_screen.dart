@@ -148,7 +148,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.bg,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -161,7 +161,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.line,
+              color: AppColors.hairlineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -179,7 +179,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               'We use your location to show trips near you.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             ),
           ),
           const SizedBox(height: 16),
@@ -201,14 +201,14 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                     Icon(
                       PhosphorIconsFill.navigationArrow,
                       size: 18,
-                      color: _isLocating ? AppColors.softInk : AppColors.coral,
+                      color: _isLocating ? AppColors.inkMuted : AppColors.coral,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         _isLocating ? 'Detecting location...' : 'Use current location',
                         style: AppTypography.body.copyWith(
-                          color: _isLocating ? AppColors.softInk : AppColors.coral,
+                          color: _isLocating ? AppColors.inkMuted : AppColors.coral,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -234,15 +234,15 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.hairline),
               ),
               child: Row(
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(left: 12),
-                    child: Icon(Icons.search, size: 18, color: AppColors.softInk),
+                    child: Icon(Icons.search, size: 18, color: AppColors.inkMuted),
                   ),
                   Expanded(
                     child: TextField(
@@ -250,7 +250,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                       style: AppTypography.body.copyWith(color: AppColors.ink),
                       decoration: InputDecoration(
                         hintText: 'Search for your city',
-                        hintStyle: AppTypography.body.copyWith(color: AppColors.softInk),
+                        hintStyle: AppTypography.body.copyWith(color: AppColors.inkMuted),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -268,7 +268,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                       },
                       child: const Padding(
                         padding: EdgeInsets.only(right: 12),
-                        child: Icon(Icons.close, size: 18, color: AppColors.softInk),
+                        child: Icon(Icons.close, size: 18, color: AppColors.inkMuted),
                       ),
                     ),
                 ],
@@ -284,7 +284,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
               child: Text(
                 _query.isEmpty ? 'POPULAR IN INDIA' : 'RESULTS',
                 style: AppTypography.label.copyWith(
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -299,7 +299,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Text(
                   'Failed to load cities.',
-                  style: AppTypography.body.copyWith(color: AppColors.muted),
+                  style: AppTypography.body.copyWith(color: AppColors.inkSoft),
                 ),
               ),
               data: (cities) {
@@ -308,7 +308,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                     padding: const EdgeInsets.all(20),
                     child: Text(
                       'No cities found for "$_query".',
-                      style: AppTypography.body.copyWith(color: AppColors.muted),
+                      style: AppTypography.body.copyWith(color: AppColors.inkSoft),
                     ),
                   );
                 }
@@ -318,7 +318,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                   separatorBuilder: (_, _) => const Divider(
                     height: 0.5,
                     thickness: 0.5,
-                    color: AppColors.border,
+                    color: AppColors.hairline,
                     indent: 56,
                   ),
                   itemBuilder: (context, i) {
@@ -363,10 +363,10 @@ class _CityTile extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.location_on_outlined, size: 18, color: AppColors.muted),
+              child: const Icon(Icons.location_on_outlined, size: 18, color: AppColors.inkSoft),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -382,7 +382,7 @@ class _CityTile extends StatelessWidget {
                   ),
                   Text(
                     city.state,
-                    style: AppTypography.caption.copyWith(color: AppColors.muted),
+                    style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
                   ),
                 ],
               ),
@@ -403,7 +403,7 @@ class _CityListSkeleton extends StatelessWidget {
       shrinkWrap: true,
       itemCount: 5,
       separatorBuilder: (_, _) =>
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 56),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 56),
       itemBuilder: (_, _) => const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(

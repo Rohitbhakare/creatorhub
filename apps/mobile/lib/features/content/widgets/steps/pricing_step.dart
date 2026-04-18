@@ -94,7 +94,7 @@ class _PricingStepState extends ConsumerState<PricingStep> {
           const SizedBox(height: Spacing.sm),
           Text(
             'Choose how to price your content',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -105,9 +105,9 @@ class _PricingStepState extends ConsumerState<PricingStep> {
               vertical: Spacing.md,
             ),
             decoration: BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(Layout.cardRadius),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.hairline),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,7 +160,7 @@ class _PricingStepState extends ConsumerState<PricingStep> {
                 child: Text(
                   '\u20B9',
                   style: typ.AppTypography.h4.copyWith(
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               ),
@@ -179,9 +179,9 @@ class _PricingStepState extends ConsumerState<PricingStep> {
               Container(
                 padding: const EdgeInsets.all(Layout.cardPadding),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(Layout.cardRadius),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.hairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,11 +203,11 @@ class _PricingStepState extends ConsumerState<PricingStep> {
                     _PricingRow(
                       label: '+ GST (18%)',
                       value: formatPrice(gstPaisa),
-                      valueColor: AppColors.muted,
+                      valueColor: AppColors.inkSoft,
                     ),
                     const SizedBox(height: Spacing.sm),
 
-                    const Divider(color: AppColors.border),
+                    const Divider(color: AppColors.hairline),
                     const SizedBox(height: Spacing.sm),
 
                     // Buyer total
@@ -223,7 +223,7 @@ class _PricingStepState extends ConsumerState<PricingStep> {
                     _PricingRow(
                       label: '- Platform fee (17%)',
                       value: '- ${formatPrice(platformFeePaisa)}',
-                      valueColor: AppColors.muted,
+                      valueColor: AppColors.inkSoft,
                     ),
                     const SizedBox(height: Spacing.sm),
 
@@ -231,11 +231,11 @@ class _PricingStepState extends ConsumerState<PricingStep> {
                     _PricingRow(
                       label: '- TDS (1%)',
                       value: '- ${formatPrice(tdsPaisa)}',
-                      valueColor: AppColors.muted,
+                      valueColor: AppColors.inkSoft,
                     ),
                     const SizedBox(height: Spacing.sm),
 
-                    const Divider(color: AppColors.border),
+                    const Divider(color: AppColors.hairline),
                     const SizedBox(height: Spacing.sm),
 
                     // Take-home
@@ -283,7 +283,7 @@ class _PricingRow extends StatelessWidget {
             style: (isBold ? typ.AppTypography.body : typ.AppTypography.bodySmall)
                 .copyWith(
               fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-              color: isBold ? AppColors.ink : AppColors.muted,
+              color: isBold ? AppColors.ink : AppColors.inkSoft,
             ),
           ),
         ),
@@ -292,7 +292,7 @@ class _PricingRow extends StatelessWidget {
           style: (isBold ? typ.AppTypography.body : typ.AppTypography.bodySmall)
               .copyWith(
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-            color: valueColor ?? (isBold ? AppColors.ink : AppColors.muted),
+            color: valueColor ?? (isBold ? AppColors.ink : AppColors.inkSoft),
           ),
         ),
       ],

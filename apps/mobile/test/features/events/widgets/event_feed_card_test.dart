@@ -193,7 +193,7 @@ void main() {
             w is Container &&
             w.decoration is BoxDecoration &&
             (w.decoration as BoxDecoration).color ==
-                AppColors.white.withValues(alpha: 0.9)),
+                AppColors.surface.withValues(alpha: 0.9)),
         findsNothing,
       );
     });

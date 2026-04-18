@@ -115,7 +115,7 @@ class _CreateExperienceWizardState
           content: Text(
             error ?? 'Failed to publish. Please try again.',
             style: typ.AppTypography.bodySmall
-                .copyWith(color: AppColors.white),
+                .copyWith(color: AppColors.surface),
           ),
           backgroundColor: AppColors.danger,
           behavior: SnackBarBehavior.floating,
@@ -131,14 +131,14 @@ class _CreateExperienceWizardState
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Layout.cardRadius),
         ),
         title: Text('Discard experience?', style: typ.AppTypography.h3),
         content: Text(
           'Your unsaved changes will be lost.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
           TextButton(
@@ -180,7 +180,7 @@ class _CreateExperienceWizardState
     final canAdvance = _stepCanAdvance(state);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -219,7 +219,7 @@ class _CreateExperienceWizardState
                           height: 12,
                           child: CircularProgressIndicator(
                             strokeWidth: 1.5,
-                            color: AppColors.muted,
+                            color: AppColors.inkSoft,
                           ),
                         ),
                         const SizedBox(width: Spacing.xs),
@@ -329,7 +329,7 @@ class _WizardStepIndicator extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: currentStep / totalSteps,
-              backgroundColor: AppColors.sunken,
+              backgroundColor: AppColors.surfaceAlt,
               color: AppColors.ink,
               minHeight: 3,
             ),
@@ -375,7 +375,7 @@ class _BasicsStep extends ConsumerWidget {
           const SizedBox(height: Spacing.xs),
           Text(
             'Tell travellers what your experience is about.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xxl),
 
@@ -461,7 +461,7 @@ class _CoverPricingStep extends ConsumerWidget {
           const SizedBox(height: Spacing.xs),
           Text(
             'Add a cover image and set your price.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xxl),
 
@@ -477,10 +477,10 @@ class _CoverPricingStep extends ConsumerWidget {
               width: double.infinity,
               height: 200,
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(Layout.cardRadius),
                 border: Border.all(
-                  color: AppColors.border,
+                  color: AppColors.hairline,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -500,13 +500,13 @@ class _CoverPricingStep extends ConsumerWidget {
                         const Icon(
                           PhosphorIconsFill.imageSquare,
                           size: 40,
-                          color: AppColors.softInk,
+                          color: AppColors.inkMuted,
                         ),
                         const SizedBox(height: Spacing.md),
                         Text(
                           'Tap to add cover image',
                           style: typ.AppTypography.body
-                              .copyWith(color: AppColors.muted),
+                              .copyWith(color: AppColors.inkSoft),
                         ),
                         const SizedBox(height: Spacing.xs),
                         Text(
@@ -643,7 +643,7 @@ class _DatesStepState extends ConsumerState<_DatesStep> {
               const SizedBox(height: Spacing.xs),
               Text(
                 'Add the dates when you\'ll run this experience.',
-                style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+                style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               ),
               const SizedBox(height: Spacing.xl),
 
@@ -674,7 +674,7 @@ class _DatesStepState extends ConsumerState<_DatesStep> {
                       const Icon(
                         PhosphorIconsFill.calendarPlus,
                         size: 40,
-                        color: AppColors.softInk,
+                        color: AppColors.inkMuted,
                       ),
                       const SizedBox(height: Spacing.lg),
                       Text(
@@ -685,7 +685,7 @@ class _DatesStepState extends ConsumerState<_DatesStep> {
                       Text(
                         'Add your first available date',
                         style: typ.AppTypography.body
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                       ),
                     ],
                   ),
@@ -740,16 +740,16 @@ class _DateListTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         children: [
           const Icon(
             PhosphorIconsFill.calendarBlank,
             size: 20,
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
           ),
           const SizedBox(width: Spacing.md),
           Expanded(
@@ -764,7 +764,7 @@ class _DateListTile extends StatelessWidget {
                 Text(
                   '${date.capacity} spots',
                   style:
-                      typ.AppTypography.caption.copyWith(color: AppColors.muted),
+                      typ.AppTypography.caption.copyWith(color: AppColors.inkSoft),
                 ),
               ],
             ),
@@ -779,7 +779,7 @@ class _DateListTile extends StatelessWidget {
                 child: Icon(
                   PhosphorIconsFill.x,
                   size: 18,
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
               ),
             ),
@@ -891,7 +891,7 @@ class _MeetingPointStepState extends ConsumerState<_MeetingPointStep> {
           const SizedBox(height: Spacing.xs),
           Text(
             'Share where travellers should meet you.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xxl),
 
@@ -973,7 +973,7 @@ class _MeetingPointStepState extends ConsumerState<_MeetingPointStep> {
               vertical: Spacing.sm,
             ),
             decoration: BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -981,7 +981,7 @@ class _MeetingPointStepState extends ConsumerState<_MeetingPointStep> {
                 const Icon(
                   PhosphorIconsFill.lock,
                   size: 14,
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
                 const SizedBox(width: Spacing.xs),
                 Flexible(
@@ -1025,7 +1025,7 @@ class _DayPlanStep extends ConsumerWidget {
             const Icon(
               PhosphorIconsFill.mapTrifold,
               size: 48,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(height: Spacing.lg),
             Text('Day-by-Day Plan', style: typ.AppTypography.h3),
@@ -1035,7 +1035,7 @@ class _DayPlanStep extends ConsumerWidget {
               'This step will be fully enabled in a future sprint — '
               'you can skip it now and add the day plan after publishing.',
               style:
-                  typ.AppTypography.body.copyWith(color: AppColors.muted),
+                  typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),
@@ -1079,7 +1079,7 @@ class _PublishStep extends ConsumerWidget {
           const SizedBox(height: Spacing.xs),
           Text(
             'Review your experience before going live.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -1088,9 +1088,9 @@ class _PublishStep extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(Layout.cardPadding),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(Layout.cardRadius),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.hairline),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1183,12 +1183,12 @@ class _PublishStep extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: state.tncAccepted
                             ? AppColors.ink
-                            : AppColors.surface,
+                            : AppColors.bg,
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
                           color: state.tncAccepted
                               ? AppColors.ink
-                              : AppColors.line,
+                              : AppColors.hairlineStrong,
                           width: 1.5,
                         ),
                       ),
@@ -1196,7 +1196,7 @@ class _PublishStep extends ConsumerWidget {
                           ? const Icon(
                               PhosphorIconsFill.check,
                               size: 14,
-                              color: AppColors.white,
+                              color: AppColors.surface,
                             )
                           : null,
                     ),
@@ -1209,7 +1209,7 @@ class _PublishStep extends ConsumerWidget {
                     child: Text(
                       'I agree to the CreatorHub Terms & Conditions for experience creators.',
                       style: typ.AppTypography.bodySmall
-                          .copyWith(color: AppColors.muted),
+                          .copyWith(color: AppColors.inkSoft),
                     ),
                   ),
                 ),
@@ -1239,7 +1239,7 @@ class _SummaryRow extends StatelessWidget {
           child: Text(
             label,
             style: typ.AppTypography.bodySmall
-                .copyWith(color: AppColors.muted),
+                .copyWith(color: AppColors.inkSoft),
           ),
         ),
         Expanded(
@@ -1283,8 +1283,8 @@ class _BottomNavBar extends StatelessWidget {
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        color: AppColors.bg,
+        border: Border(top: BorderSide(color: AppColors.hairline, width: 1)),
       ),
       child: Row(
         children: [
@@ -1373,20 +1373,20 @@ class _StyledTextFieldState extends State<_StyledTextField> {
       style: typ.AppTypography.body,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: typ.AppTypography.body.copyWith(color: AppColors.softInk),
+        hintStyle: typ.AppTypography.body.copyWith(color: AppColors.inkMuted),
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg,
           vertical: Spacing.md,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
@@ -1425,10 +1425,10 @@ class _VerticalChip extends StatelessWidget {
         ),
         constraints: const BoxConstraints(minHeight: Layout.minTapTarget),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.ink : AppColors.sunken,
+          color: isSelected ? AppColors.ink : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
           border: Border.all(
-            color: isSelected ? AppColors.ink : AppColors.border,
+            color: isSelected ? AppColors.ink : AppColors.hairline,
           ),
         ),
         child: Row(
@@ -1437,14 +1437,14 @@ class _VerticalChip extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? AppColors.white : AppColors.ink,
+              color: isSelected ? AppColors.surface : AppColors.ink,
             ),
             const SizedBox(width: Spacing.sm),
             Text(
               label,
               style: typ.AppTypography.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppColors.white : AppColors.ink,
+                color: isSelected ? AppColors.surface : AppColors.ink,
               ),
             ),
           ],
@@ -1494,7 +1494,7 @@ class _PriceFieldState extends State<_PriceField> {
       style: typ.AppTypography.body,
       decoration: InputDecoration(
         hintText: '0',
-        hintStyle: typ.AppTypography.body.copyWith(color: AppColors.softInk),
+        hintStyle: typ.AppTypography.body.copyWith(color: AppColors.inkMuted),
         prefixText: '₹ ',
         prefixStyle: typ.AppTypography.body.copyWith(
           fontWeight: FontWeight.w600,
@@ -1502,18 +1502,18 @@ class _PriceFieldState extends State<_PriceField> {
         suffixText: 'per person',
         suffixStyle: typ.AppTypography.caption,
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg,
           vertical: Spacing.md,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),

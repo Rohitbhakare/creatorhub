@@ -69,7 +69,7 @@ class _BasicsStepState extends ConsumerState<BasicsStep> {
             isPost
                 ? 'Give your post a compelling title'
                 : 'A great title helps travelers find your itinerary',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -160,7 +160,7 @@ class _CharacterCounter extends StatelessWidget {
     } else if (percentage >= 85) {
       color = AppColors.warning;
     } else {
-      color = AppColors.muted;
+      color = AppColors.inkSoft;
     }
 
     return Padding(

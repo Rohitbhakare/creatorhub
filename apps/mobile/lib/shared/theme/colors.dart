@@ -1,35 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// CreatorHub color system.
-/// Monochrome warm neutrals + single coral accent (8 contexts only).
-/// All colors pass 4.5:1 contrast ratio against their backgrounds.
+/// CreatorHub color system — v2 "Paper White + Coral" (SRS C-25).
+/// Pure white surfaces on a barely-warm page; coral `#E15A41` is the sole
+/// decorative accent. Semantic hues appear only on functional status.
 abstract final class AppColors {
-  // ── Core Neutrals ────────────────────────────────────────────
-  /// Page background
-  static const surface = Color(0xFFFAF7F4);
+  // ── Surfaces ────────────────────────────────────────────────
+  /// Page / behind cards.
+  static const bg = Color(0xFFF7F7F5);
 
-  /// Chips, inactive tiles, secondary surfaces
-  static const sunken = Color(0xFFF2EEE8);
+  /// Cards, sheets, nav.
+  static const surface = Color(0xFFFFFFFF);
 
-  /// All borders and dividers
-  static const border = Color(0xFFE5E0D7);
+  /// Sunken rows, toolbars, chips.
+  static const surfaceAlt = Color(0xFFF2F1EE);
 
-  /// Heavier dividers, drag handles
-  static const line = Color(0xFFC9C3B6);
+  /// Info blocks, code blocks, sunken inserts inside cards.
+  static const surfaceSunk = Color(0xFFECEAE5);
 
-  /// Metadata, counts, placeholders
-  static const softInk = Color(0xFF9C9689);
+  // ── Ink hierarchy ───────────────────────────────────────────
+  /// Body / primary text.
+  static const ink = Color(0xFF16161A);
 
-  /// Secondary text, subheads
-  static const muted = Color(0xFF6B6660);
+  /// Secondary text, subheads.
+  static const inkSoft = Color(0xFF3A3A40);
 
-  /// Primary text, filled pills, icons
-  static const ink = Color(0xFF2C2823);
+  /// Metadata, counts, placeholders.
+  static const inkMuted = Color(0xFF7A7A82);
 
-  /// Pure white for overlays, cards on dark surfaces
-  static const white = Color(0xFFFFFFFF);
+  /// Disabled, hairline emphasis, tertiary meta.
+  static const inkFaint = Color(0xFFB4B4BA);
 
-  // ── Coral Accent ─────────────────────────────────────────────
+  // ── Hairlines ───────────────────────────────────────────────
+  /// Borders and dividers (SRS C-26 rest state).
+  static const hairline = Color(0xFFE8E6E1);
+
+  /// Heavier dividers, drag handles, selection-tile rest border.
+  static const hairlineStrong = Color(0xFFD8D5CE);
+
+  // ── Coral Accent (SRS C-17 + C-25) ──────────────────────────
   /// Used in EXACTLY 8 contexts (DD-013):
   /// 1. Primary CTA button (one per screen)
   /// 2. Active save/bookmark icon (filled state)
@@ -41,35 +49,89 @@ abstract final class AppColors {
   /// 8. Booking status "In Progress" pill
   static const coral = Color(0xFFE15A41);
 
-  /// Lighter coral for pressed/hover states
+  /// Deep coral — pressed / hover states.
+  static const coralDeep = Color(0xFFB9401E);
+
+  /// Pale opaque coral wash — SelectionTile halo, active BottomNav pill,
+  /// coral-background chips. Opaque, not alpha. (SRS C-26, C-28)
+  static const primaryTint = Color(0xFFFCEBE6);
+
+  /// Soft-press coral used in pressed button states.
   static const coralLight = Color(0xFFF4A899);
 
-  /// Coral with reduced opacity for subtle backgrounds
+  /// Translucent coral wash (8% alpha) — for large-area tints where
+  /// an opaque wash would be too heavy. Keep for backwards compatibility
+  /// with existing call sites.
   static const coralSurface = Color(0x14E15A41); // 8% opacity
 
-  // ── Semantic Colors ──────────────────────────────────────────
-  /// Verified badges, confirmed bookings
+  // ── Semantic Colors (functional-only per SRS C-25) ──────────
+  /// Verified badges, confirmed bookings.
   static const success = Color(0xFF1D9E75);
   static const successSurface = Color(0x141D9E75);
 
-  /// Caution flags, disputed bookings
+  /// Caution flags, disputed bookings.
   static const warning = Color(0xFFBA7517);
   static const warningSurface = Color(0x14BA7517);
 
-  /// Error toasts, cancelled bookings, danger buttons
+  /// Error toasts, cancelled bookings, danger buttons.
   static const danger = Color(0xFFC2362F);
   static const dangerSurface = Color(0x14C2362F);
 
-  /// Informational states
+  /// Informational states.
   static const info = Color(0xFF185FA5);
   static const infoSurface = Color(0x14185FA5);
 
-  // ── Shimmer Colors ───────────────────────────────────────────
+  // ── Shimmer Colors ──────────────────────────────────────────
   static const shimmerBase = Color(0xFFEBEADF);
   static const shimmerHighlight = Color(0xFFD8D5C9);
 
-  // ── Vertical / Sub-Category Colors ───────────────────────────
-  /// 12 travel sub-category colors for badges
+  // ── Elevation Shadows (SRS C-27) ────────────────────────────
+  /// Layered shadow stack for `AppCard` raised default.
+  /// Use this list directly in `BoxDecoration.boxShadow`.
+  static const List<BoxShadow> cardRaisedShadow = [
+    BoxShadow(
+      color: Color(0x0D101828), // rgba(16,24,40,0.05)
+      offset: Offset(0, 1),
+      blurRadius: 2,
+    ),
+    BoxShadow(
+      color: Color(0x0A101828), // rgba(16,24,40,0.04)
+      offset: Offset(0, 1),
+      blurRadius: 4,
+    ),
+    BoxShadow(
+      color: Color(0x0A101828), // rgba(16,24,40,0.04)
+      offset: Offset(0, 4),
+      blurRadius: 12,
+    ),
+  ];
+
+  /// Top-edge shadow for BottomNav (SRS C-28).
+  /// Applied as a Container decoration above the bar.
+  static const List<BoxShadow> bottomNavTopShadow = [
+    BoxShadow(
+      color: Color(0x0F101828), // rgba(16,24,40,0.06)
+      offset: Offset(0, -8),
+      blurRadius: 24,
+    ),
+    BoxShadow(
+      color: Color(0x08101828), // rgba(16,24,40,0.03)
+      offset: Offset(0, -1),
+      blurRadius: 2,
+    ),
+  ];
+
+  /// Coral-tinted glow for the Create FAB (SRS C-28).
+  static const List<BoxShadow> fabGlowShadow = [
+    BoxShadow(
+      color: Color(0x54E15A41), // rgba(225,90,65,0.33)
+      offset: Offset(0, 8),
+      blurRadius: 20,
+    ),
+  ];
+
+  // ── Vertical / Sub-Category Colors ──────────────────────────
+  /// 12 travel sub-category colors for badges.
   static const Map<String, Color> verticalColors = {
     'city_guides': Color(0xFF4A90D9),
     'hidden_gems': Color(0xFF7B61FF),
@@ -85,7 +147,7 @@ abstract final class AppColors {
     'family': Color(0xFFD47B5A),
   };
 
-  /// Stories sub-category colors
+  /// Stories sub-category colors.
   static const Map<String, Color> storyColors = {
     'travel_stories': Color(0xFF5B8FCC),
     'local_culture': Color(0xFFCA8842),
@@ -94,29 +156,29 @@ abstract final class AppColors {
     'tips_guides': Color(0xFF4A9E7E),
   };
 
-  // ── ColorScheme Factory ──────────────────────────────────────
+  // ── ColorScheme Factory ─────────────────────────────────────
   static ColorScheme get colorScheme => const ColorScheme(
         brightness: Brightness.light,
         primary: coral,
-        onPrimary: white,
-        primaryContainer: coralSurface,
-        onPrimaryContainer: coral,
+        onPrimary: surface,
+        primaryContainer: primaryTint,
+        onPrimaryContainer: coralDeep,
         secondary: ink,
-        onSecondary: white,
-        secondaryContainer: sunken,
+        onSecondary: surface,
+        secondaryContainer: surfaceAlt,
         onSecondaryContainer: ink,
-        tertiary: muted,
-        onTertiary: white,
+        tertiary: inkSoft,
+        onTertiary: surface,
         error: danger,
-        onError: white,
+        onError: surface,
         errorContainer: dangerSurface,
         onErrorContainer: danger,
-        surface: surface,
+        surface: bg,
         onSurface: ink,
-        onSurfaceVariant: muted,
-        outline: border,
-        outlineVariant: line,
-        shadow: Color(0x1A2C2823),
+        onSurfaceVariant: inkSoft,
+        outline: hairline,
+        outlineVariant: hairlineStrong,
+        shadow: Color(0x1A16161A),
         inverseSurface: ink,
         onInverseSurface: surface,
       );

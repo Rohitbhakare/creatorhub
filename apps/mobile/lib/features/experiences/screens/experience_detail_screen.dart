@@ -40,7 +40,7 @@ class _ExperienceDetailScreenState
     final datesAsync = ref.watch(experienceDatesProvider(widget.id));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: detailAsync.when(
         loading: () => const SafeArea(child: _LoadingSkeleton()),
         error: (error, _) => SafeArea(
@@ -81,7 +81,7 @@ class _ExperienceDetailScreenState
               expandedHeight: 260,
               pinned: false,
               floating: false,
-              backgroundColor: AppColors.sunken,
+              backgroundColor: AppColors.surfaceAlt,
               automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background: detail.coverImageUrl != null
@@ -393,7 +393,7 @@ class _PriceBadge extends StatelessWidget {
         isFree ? 'FREE' : '${formatPrice(pricePaisa)}/person',
         style: typ.AppTypography.bodySmall.copyWith(
           fontWeight: FontWeight.w700,
-          color: AppColors.white,
+          color: AppColors.surface,
         ),
       ),
     );
@@ -478,9 +478,9 @@ class _AvatarPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(PhosphorIconsFill.user, size: 20, color: AppColors.softInk),
+        child: Icon(PhosphorIconsFill.user, size: 20, color: AppColors.inkMuted),
       ),
     );
   }
@@ -507,7 +507,7 @@ class _LocationChip extends StatelessWidget {
         Flexible(
           child: Text(
             locationName,
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -567,11 +567,11 @@ class _DateChip extends StatelessWidget {
           color: isSelected
               ? AppColors.ink
               : soldOut
-                  ? AppColors.sunken.withValues(alpha: 0.6)
-                  : AppColors.sunken,
+                  ? AppColors.surfaceAlt.withValues(alpha: 0.6)
+                  : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
           border: Border.all(
-            color: isSelected ? AppColors.ink : AppColors.border,
+            color: isSelected ? AppColors.ink : AppColors.hairline,
           ),
         ),
         child: Column(
@@ -582,9 +582,9 @@ class _DateChip extends StatelessWidget {
               style: typ.AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
                 color: isSelected
-                    ? AppColors.white
+                    ? AppColors.surface
                     : soldOut
-                        ? AppColors.softInk
+                        ? AppColors.inkMuted
                         : AppColors.ink,
               ),
             ),
@@ -592,10 +592,10 @@ class _DateChip extends StatelessWidget {
               soldOut ? 'Sold Out' : '${date.spotsLeft} spots left',
               style: typ.AppTypography.caption.copyWith(
                 color: isSelected
-                    ? AppColors.white.withValues(alpha: 0.7)
+                    ? AppColors.surface.withValues(alpha: 0.7)
                     : soldOut
-                        ? AppColors.softInk
-                        : AppColors.muted,
+                        ? AppColors.inkMuted
+                        : AppColors.inkSoft,
               ),
             ),
           ],
@@ -616,9 +616,9 @@ class _MeetingPointCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -628,7 +628,7 @@ class _MeetingPointCard extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 100,
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -645,7 +645,7 @@ class _MeetingPointCard extends StatelessWidget {
                         '${info.lat!.toStringAsFixed(4)}, '
                         '${info.lng!.toStringAsFixed(4)}',
                         style: typ.AppTypography.caption
-                            .copyWith(color: AppColors.softInk),
+                            .copyWith(color: AppColors.inkMuted),
                       ),
                     ),
                 ],
@@ -679,7 +679,7 @@ class _MeetingPointCard extends StatelessWidget {
                         Text(
                           info.privateExactName!,
                           style: typ.AppTypography.bodySmall
-                              .copyWith(color: AppColors.muted),
+                              .copyWith(color: AppColors.inkSoft),
                         ),
                       ] else ...[
                         Row(
@@ -687,13 +687,13 @@ class _MeetingPointCard extends StatelessWidget {
                             const Icon(
                               PhosphorIconsFill.lock,
                               size: 13,
-                              color: AppColors.softInk,
+                              color: AppColors.inkMuted,
                             ),
                             const SizedBox(width: Spacing.xs),
                             Text(
                               'Exact location shared 24h before',
                               style: typ.AppTypography.caption
-                                  .copyWith(color: AppColors.softInk),
+                                  .copyWith(color: AppColors.inkMuted),
                             ),
                           ],
                         ),
@@ -728,9 +728,9 @@ class _DayCardState extends State<_DayCard> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -758,7 +758,7 @@ class _DayCardState extends State<_DayCard> {
                         '${widget.day.dayNumber}',
                         style: typ.AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.white,
+                          color: AppColors.surface,
                         ),
                       ),
                     ),
@@ -787,7 +787,7 @@ class _DayCardState extends State<_DayCard> {
                         ? PhosphorIconsFill.caretUp
                         : PhosphorIconsFill.caretDown,
                     size: 16,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ],
               ),
@@ -798,7 +798,7 @@ class _DayCardState extends State<_DayCard> {
           if (_expanded && widget.day.spots.isNotEmpty) ...[
             const Divider(
               height: 1,
-              color: AppColors.border,
+              color: AppColors.hairline,
             ),
             ...widget.day.spots.asMap().entries.map((entry) {
               return _SpotRow(
@@ -895,11 +895,11 @@ class _SpotRow extends StatelessWidget {
                       errorWidget: (_, _, _) => Container(
                         width: 52,
                         height: 52,
-                        color: AppColors.sunken,
+                        color: AppColors.surfaceAlt,
                         child: const Icon(
                           PhosphorIconsFill.mapPin,
                           size: 20,
-                          color: AppColors.softInk,
+                          color: AppColors.inkMuted,
                         ),
                       ),
                     ),
@@ -953,7 +953,7 @@ class _SpotRow extends StatelessWidget {
                       Text(
                         spot.creatorNote!,
                         style: typ.AppTypography.bodySmall
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -965,7 +965,7 @@ class _SpotRow extends StatelessWidget {
           ),
         ),
         if (!isLast)
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.hairline),
       ],
     );
   }
@@ -986,13 +986,13 @@ class _TagChip extends StatelessWidget {
         vertical: Spacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.chipRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Text(
         '#$label',
-        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
       ),
     );
   }
@@ -1016,8 +1016,8 @@ class _BookNowBar extends StatelessWidget {
         MediaQuery.of(context).padding.bottom + Spacing.md,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        color: AppColors.bg,
+        border: Border(top: BorderSide(color: AppColors.hairline, width: 1)),
       ),
       child: Row(
         children: [
@@ -1073,12 +1073,12 @@ class _CoverPlaceholder extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 260,
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: Center(
         child: Icon(
           PhosphorIconsFill.compass,
           size: 48,
-          color: AppColors.softInk.withValues(alpha: 0.5),
+          color: AppColors.inkMuted.withValues(alpha: 0.5),
         ),
       ),
     );
@@ -1101,7 +1101,7 @@ class _CircleIconButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.9),
+          color: AppColors.surface.withValues(alpha: 0.9),
           shape: BoxShape.circle,
           boxShadow: const [
             BoxShadow(
@@ -1125,16 +1125,16 @@ class _EmptyDatesCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Spacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         children: [
           const Icon(
             PhosphorIconsFill.calendarX,
             size: 36,
-            color: AppColors.softInk,
+            color: AppColors.inkMuted,
           ),
           const SizedBox(height: Spacing.md),
           Text(
@@ -1145,7 +1145,7 @@ class _EmptyDatesCard extends StatelessWidget {
           const SizedBox(height: Spacing.xs),
           Text(
             'The creator hasn\'t added any upcoming dates yet.',
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1254,7 +1254,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

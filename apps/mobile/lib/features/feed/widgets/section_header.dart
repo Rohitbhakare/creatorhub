@@ -29,7 +29,7 @@ class SectionHeader extends StatelessWidget {
                 Text(
                   eyebrow,
                   style: AppTypography.label.copyWith(
-                    color: AppColors.softInk,
+                    color: AppColors.inkMuted,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -48,10 +48,10 @@ class SectionHeader extends StatelessWidget {
                 children: [
                   Text(
                     'See all',
-                    style: AppTypography.caption.copyWith(color: AppColors.muted),
+                    style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
                   ),
                   const SizedBox(width: 2),
-                  const Icon(Icons.chevron_right, size: 14, color: AppColors.muted),
+                  const Icon(Icons.chevron_right, size: 14, color: AppColors.inkSoft),
                 ],
               ),
             ),

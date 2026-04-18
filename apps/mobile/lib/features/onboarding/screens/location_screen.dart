@@ -128,7 +128,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       SnackBar(
         content: Text(
           'GPS feature coming soon. Search for your city below.',
-          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.white),
+          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
         ),
         backgroundColor: AppColors.ink,
         behavior: SnackBarBehavior.floating,
@@ -166,7 +166,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             content: Text(
               e.response?.statusMessage ?? 'Failed to save city. Try again.',
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.white),
+                  .copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -183,7 +183,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             content: Text(
               'Something went wrong. Try again.',
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.white),
+                  .copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -207,7 +207,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     final hasCity = cityId != null && cityId.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +235,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                     Text(
                       'We\'ll show you experiences and creators nearby',
                       style: typ.AppTypography.body.copyWith(
-                        color: AppColors.muted,
+                        color: AppColors.inkSoft,
                       ),
                     ),
                     const SizedBox(height: Spacing.xl),
@@ -250,10 +250,10 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                           vertical: Spacing.md,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.sunken,
+                          color: AppColors.surfaceAlt,
                           borderRadius:
                               BorderRadius.circular(Layout.inputRadius),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: AppColors.hairline),
                         ),
                         child: Row(
                           children: [
@@ -279,7 +279,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                     Row(
                       children: [
                         const Expanded(
-                          child: Divider(color: AppColors.border),
+                          child: Divider(color: AppColors.hairline),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -291,7 +291,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                           ),
                         ),
                         const Expanded(
-                          child: Divider(color: AppColors.border),
+                          child: Divider(color: AppColors.hairline),
                         ),
                       ],
                     ),
@@ -378,7 +378,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
               const Icon(
                 PhosphorIconsFill.mapPinArea,
                 size: 48,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
               const SizedBox(height: Spacing.md),
               Text(
@@ -389,7 +389,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
               Text(
                 'Try a different spelling or search term',
                 style: typ.AppTypography.bodySmall.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
               ),
             ],
@@ -406,7 +406,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       padding: const EdgeInsets.only(top: Spacing.sm),
       itemCount: _searchResults.length,
       separatorBuilder: (_, _) =>
-          const Divider(color: AppColors.border, height: 1),
+          const Divider(color: AppColors.hairline, height: 1),
       itemBuilder: (context, index) {
         final city = _searchResults[index];
         return _CityResultTile(
@@ -468,7 +468,7 @@ class _SelectedCityChip extends StatelessWidget {
               child: Icon(
                 PhosphorIconsFill.xCircle,
                 size: 18,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
           ),

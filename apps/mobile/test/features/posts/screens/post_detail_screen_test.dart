@@ -6,20 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:creatorhub/features/posts/providers/post_detail_provider.dart';
 import 'package:creatorhub/features/posts/screens/post_detail_screen.dart';
 
-// ── Fake notifier ─────────────────────────────────────────────────
-
-/// Returns a pre-built [PostDetailState] without making any HTTP calls.
-/// Must extend [PostDetailNotifier] to satisfy the overrideWith type constraint.
-class _FakePostNotifier extends PostDetailNotifier {
-  final PostDetailState _initialState;
-
-  // Pass a dummy ID to the parent — it's never used since we override build().
-  _FakePostNotifier(this._initialState) : super('fake-id');
-
-  @override
-  PostDetailState build() => _initialState;
-}
-
 // ── Helpers ───────────────────────────────────────────────────────
 
 PostDetailState _loadedState({
@@ -37,7 +23,6 @@ PostDetailState _loadedState({
   bool isSaved = false,
 }) {
   return PostDetailState(
-    status: PostDetailStatus.loaded,
     id: id,
     title: title,
     body: body,
@@ -67,8 +52,30 @@ Widget _wrap(String postId, PostDetailState state) {
 
   return ProviderScope(
     overrides: [
-      postDetailProvider(postId)
-          .overrideWith(() => _FakePostNotifier(state)),
+      // Override FutureProvider to return a pre-built state synchronously.
+      postDetailProvider(postId).overrideWith((ref) async => state),
+    ],
+    child: MaterialApp.router(routerConfig: router),
+  );
+}
+
+Widget _wrapError(String postId, String errorMsg) {
+  final router = GoRouter(
+    initialLocation: '/posts/$postId',
+    routes: [
+      GoRoute(
+        path: '/posts/:id',
+        builder: (_, routeState) =>
+            PostDetailScreen(postId: routeState.pathParameters['id']!),
+      ),
+    ],
+  );
+
+  return ProviderScope(
+    overrides: [
+      postDetailProvider(postId).overrideWith(
+        (ref) async => throw Exception(errorMsg),
+      ),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -154,23 +161,15 @@ void main() {
     });
 
     testWidgets('shows error state with "Post not found" title', (tester) async {
-      const errorState = PostDetailState(
-        status: PostDetailStatus.error,
-        error: 'Network request failed',
-      );
-      await tester.pumpWidget(_wrap('post-bad', errorState));
-      await tester.pump();
+      await tester.pumpWidget(_wrapError('post-bad', 'Network request failed'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Post not found'), findsOneWidget);
     });
 
     testWidgets('shows retry button in error state', (tester) async {
-      const errorState = PostDetailState(
-        status: PostDetailStatus.error,
-        error: 'Network request failed',
-      );
-      await tester.pumpWidget(_wrap('post-bad', errorState));
-      await tester.pump();
+      await tester.pumpWidget(_wrapError('post-bad', 'Network request failed'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Try again'), findsOneWidget);
     });

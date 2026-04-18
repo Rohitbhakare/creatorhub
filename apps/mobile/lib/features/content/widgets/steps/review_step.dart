@@ -43,16 +43,16 @@ class ReviewStep extends ConsumerWidget {
           const SizedBox(height: Spacing.sm),
           Text(
             'Make sure everything looks good before publishing',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
           // Validation checklist
           Container(
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(Layout.cardRadius),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.hairline),
             ),
             child: Column(
               children: [
@@ -70,7 +70,7 @@ class ReviewStep extends ConsumerWidget {
                   ),
                   if (i < items.length - 1)
                     const Divider(
-                      color: AppColors.border,
+                      color: AppColors.hairline,
                       height: 1,
                       indent: Layout.cardPadding,
                       endIndent: Layout.cardPadding,
@@ -85,7 +85,7 @@ class ReviewStep extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(Layout.cardPadding),
             decoration: BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(Layout.cardRadius),
             ),
             child: Column(
@@ -153,7 +153,7 @@ class ReviewStep extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       side: const BorderSide(
-                        color: AppColors.border,
+                        color: AppColors.hairline,
                         width: 1.5,
                       ),
                     ),
@@ -299,7 +299,7 @@ class _ChecklistRow extends StatelessWidget {
               const Icon(
                 PhosphorIconsFill.arrowRight,
                 size: 16,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
           ],
         ),

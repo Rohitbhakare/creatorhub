@@ -6,7 +6,7 @@ import '../../../shared/theme/layout.dart';
 ///
 /// Shows [totalSteps] segments. Completed segments are solid coral,
 /// the current segment has an animated coral fill, and upcoming
-/// segments use [AppColors.sunken].
+/// segments use [AppColors.surfaceAlt].
 class OnboardingProgressBar extends StatelessWidget {
   final int currentStep; // 1-based
   final int totalSteps;
@@ -63,7 +63,7 @@ class _Segment extends StatelessWidget {
             // Background track
             Container(
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

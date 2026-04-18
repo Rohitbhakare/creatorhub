@@ -71,7 +71,7 @@ class AppBottomSheet extends StatelessWidget {
                 width: Layout.sheetHandleWidth,
                 height: Layout.sheetHandleHeight,
                 decoration: BoxDecoration(
-                  color: AppColors.line.withValues(alpha: 0.3),
+                  color: AppColors.hairlineStrong.withValues(alpha: 0.3),
                   borderRadius:
                       BorderRadius.circular(Layout.sheetHandleHeight / 2),
                 ),
@@ -101,13 +101,13 @@ class AppBottomSheet extends StatelessWidget {
                           width: 32,
                           height: 32,
                           decoration: const BoxDecoration(
-                            color: AppColors.sunken,
+                            color: AppColors.surfaceAlt,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.close,
                             size: 18,
-                            color: AppColors.muted,
+                            color: AppColors.inkSoft,
                           ),
                         ),
                       ),

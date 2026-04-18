@@ -238,7 +238,7 @@ class _BookingSheetState extends ConsumerState<BookingSheet> {
     return Container(
       margin: const EdgeInsets.only(top: 60),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.bg,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Layout.sheetRadius),
         ),
@@ -331,7 +331,7 @@ class _DragHandle extends StatelessWidget {
           width: Layout.sheetHandleWidth,
           height: Layout.sheetHandleHeight,
           decoration: BoxDecoration(
-            color: AppColors.line,
+            color: AppColors.hairlineStrong,
             borderRadius: BorderRadius.circular(Layout.sheetHandleHeight / 2),
           ),
         ),
@@ -361,7 +361,7 @@ class _SheetHeader extends StatelessWidget {
             child: Icon(
               PhosphorIconsRegular.x,
               size: 22,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
         ),
@@ -386,9 +386,9 @@ class _ExperienceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPaddingCompact),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         children: [
@@ -439,12 +439,12 @@ class _ImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
         child: Icon(
           PhosphorIconsFill.mountains,
           size: 24,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );
@@ -463,13 +463,13 @@ class _DateRow extends StatelessWidget {
         const Icon(
           PhosphorIconsFill.calendarBlank,
           size: 18,
-          color: AppColors.muted,
+          color: AppColors.inkSoft,
         ),
         const SizedBox(width: Spacing.sm),
         Expanded(
           child: Text(
             label,
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
         ),
       ],
@@ -495,9 +495,9 @@ class _PriceBreakdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         children: [
@@ -516,7 +516,7 @@ class _PriceBreakdown extends StatelessWidget {
             amount: formatPrice(gstPaisa),
           ),
           const SizedBox(height: Spacing.md),
-          const Divider(color: AppColors.border, height: 1),
+          const Divider(color: AppColors.hairline, height: 1),
           const SizedBox(height: Spacing.md),
           _PriceLine(
             label: 'Total',
@@ -544,7 +544,7 @@ class _PriceLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelStyle = isTotal
         ? typ.AppTypography.h4
-        : typ.AppTypography.body.copyWith(color: AppColors.muted);
+        : typ.AppTypography.body.copyWith(color: AppColors.inkSoft);
     final amountStyle = isTotal
         ? typ.AppTypography.h4
         : typ.AppTypography.body.copyWith(color: AppColors.ink);
@@ -566,12 +566,12 @@ class _PaymentMethodRow extends StatelessWidget {
         const Icon(
           PhosphorIconsFill.creditCard,
           size: 18,
-          color: AppColors.muted,
+          color: AppColors.inkSoft,
         ),
         const SizedBox(width: Spacing.sm),
         Text(
           'Payment method',
-          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
         ),
         const Spacer(),
         // UPI badge

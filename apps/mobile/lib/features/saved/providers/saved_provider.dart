@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
@@ -103,7 +104,10 @@ final savedListsProvider =
 class SavedListsNotifier extends Notifier<SavedListsState> {
   @override
   SavedListsState build() {
-    _fetch();
+    // Defer _fetch via microtask so Riverpod initializes state before _fetch
+    // reads it. Calling _fetch() inline would read state.copyWith() before
+    // build() returns — same pattern as BUG-E2E-006 (StudioContentNotifier).
+    Future.microtask(_fetch);
     return const SavedListsState();
   }
 
@@ -128,6 +132,16 @@ class SavedListsNotifier extends Notifier<SavedListsState> {
   void retry() => _fetch();
 
   Future<SavedList?> createList(String name) async {
+    // Optimistic: add list immediately so the UI updates without waiting for the API.
+    final tempId = '_temp_${DateTime.now().millisecondsSinceEpoch}';
+    final tempList = SavedList(
+      id: tempId,
+      name: name,
+      itemCount: 0,
+      updatedAt: DateTime.now(),
+    );
+    state = state.copyWith(lists: [tempList, ...state.lists]);
+
     try {
       final dio = ref.read(authServiceProvider).dio;
       final res = await dio.post('/api/v1/saved-lists', data: {'name': name});
@@ -138,9 +152,17 @@ class SavedListsNotifier extends Notifier<SavedListsState> {
         itemCount: 0,
         updatedAt: DateTime.tryParse(data['created_at'] as String? ?? '') ?? DateTime.now(),
       );
-      state = state.copyWith(lists: [newList, ...state.lists]);
+      // Replace temp entry with the real one from the server.
+      state = state.copyWith(
+        lists: state.lists.map((l) => l.id == tempId ? newList : l).toList(),
+      );
       return newList;
-    } on DioException {
+    } catch (e) {
+      // Keep the optimistic entry on failure — better UX than silently removing it.
+      // Catches both DioException (network/API errors) and CastError/TypeError
+      // (unexpected API response shape). The entry won't persist across restarts
+      // since the provider re-fetches from server on next init.
+      debugPrint('[savedListsProvider] createList error: $e');
       return null;
     }
   }
@@ -322,7 +344,7 @@ class ListItemsNotifier extends Notifier<ListItemsState> {
 
   @override
   ListItemsState build() {
-    _fetch();
+    Future.microtask(_fetch);
     return const ListItemsState();
   }
 

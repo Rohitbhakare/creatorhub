@@ -43,7 +43,7 @@ class _ItineraryDetailScreenState
     );
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: detailAsync.when(
         loading: () => const SafeArea(child: _LoadingSkeleton()),
         error: (error, _) => SafeArea(
@@ -100,7 +100,7 @@ class _ItineraryDetailScreenState
               Container(
                 width: double.infinity,
                 height: 280,
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -108,13 +108,13 @@ class _ItineraryDetailScreenState
                       Icon(
                         PhosphorIconsFill.mapTrifold,
                         size: 48,
-                        color: AppColors.softInk.withValues(alpha: 0.5),
+                        color: AppColors.inkMuted.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: Spacing.sm),
                       Text(
                         'Map',
                         style: typ.AppTypography.body
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                       ),
                     ],
                   ),
@@ -134,7 +134,7 @@ class _ItineraryDetailScreenState
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                      color: AppColors.surface.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                       boxShadow: const [
                         BoxShadow(
@@ -172,7 +172,7 @@ class _ItineraryDetailScreenState
                     formatPrice(detail.pricePaisa),
                     style: typ.AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: AppColors.surface,
                     ),
                   ),
                 ),
@@ -199,7 +199,7 @@ class _ItineraryDetailScreenState
                   Text(
                     detail.description,
                     style: typ.AppTypography.body
-                        .copyWith(color: AppColors.muted),
+                        .copyWith(color: AppColors.inkSoft),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -282,13 +282,13 @@ class _ItineraryDetailScreenState
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.ink
-                              : AppColors.sunken,
+                              : AppColors.surfaceAlt,
                           borderRadius:
                               BorderRadius.circular(Layout.chipRadius),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.ink
-                                : AppColors.border,
+                                : AppColors.hairline,
                           ),
                         ),
                         child: Center(
@@ -297,7 +297,7 @@ class _ItineraryDetailScreenState
                             style: typ.AppTypography.bodySmall.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isSelected
-                                  ? AppColors.white
+                                  ? AppColors.surface
                                   : AppColors.ink,
                             ),
                           ),
@@ -367,11 +367,11 @@ class _StatChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: AppColors.muted),
+        Icon(icon, size: 14, color: AppColors.inkSoft),
         const SizedBox(width: Spacing.xs),
         Text(
           label,
-          style: typ.AppTypography.caption.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.caption.copyWith(color: AppColors.inkSoft),
         ),
       ],
     );
@@ -457,12 +457,12 @@ class _AvatarPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
         child: Icon(
           PhosphorIconsFill.user,
           size: 20,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );
@@ -486,9 +486,9 @@ class _ReadOnlySpotCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,11 +532,11 @@ class _ReadOnlySpotCard extends StatelessWidget {
                   errorWidget: (_, _, _) => Container(
                     width: 56,
                     height: 56,
-                    color: AppColors.sunken,
+                    color: AppColors.surfaceAlt,
                     child: const Icon(
                       PhosphorIconsFill.mapPin,
                       size: 22,
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                   ),
                 ),
@@ -590,7 +590,7 @@ class _ReadOnlySpotCard extends StatelessWidget {
                   Text(
                     spot.creatorNote!,
                     style: typ.AppTypography.bodySmall
-                        .copyWith(color: AppColors.muted),
+                        .copyWith(color: AppColors.inkSoft),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -633,16 +633,16 @@ class _PaywallOverlay extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(Spacing.xxl),
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: Column(
           children: [
             const Icon(
               PhosphorIconsFill.lock,
               size: 40,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
             const SizedBox(height: Spacing.lg),
             Text(
@@ -654,7 +654,7 @@ class _PaywallOverlay extends StatelessWidget {
             Text(
               'Day 1 is free to preview. Get the complete itinerary with all days and spots.',
               style:
-                  typ.AppTypography.body.copyWith(color: AppColors.muted),
+                  typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),
@@ -764,7 +764,7 @@ class _ErrorView extends StatelessWidget {
             Text(
               message,
               style:
-                  typ.AppTypography.body.copyWith(color: AppColors.muted),
+                  typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

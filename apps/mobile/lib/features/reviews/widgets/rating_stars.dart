@@ -78,7 +78,7 @@ class _RatingStarsState extends State<RatingStars> {
               ? PhosphorIconsFill.star
               : PhosphorIcons.star(),
           size: widget.size,
-          color: isFilled ? AppColors.coral : AppColors.border,
+          color: isFilled ? AppColors.coral : AppColors.hairline,
         );
 
         if (!widget.interactive) {
@@ -121,7 +121,7 @@ class RatingBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.chipRadius),
       ),
       child: Row(
@@ -147,7 +147,7 @@ class RatingBadge extends StatelessWidget {
               '($reviewCount)',
               style: const TextStyle(
                 fontSize: 12,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
             ),
           ],

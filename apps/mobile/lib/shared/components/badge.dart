@@ -37,7 +37,7 @@ class CategoryBadge extends StatelessWidget {
   Color _colorForSlug(String slug) {
     return AppColors.verticalColors[slug] ??
         AppColors.storyColors[slug] ??
-        AppColors.muted;
+        AppColors.inkSoft;
   }
 }
 
@@ -72,7 +72,7 @@ class StatusBadge extends StatelessWidget {
 }
 
 enum StatusBadgeType {
-  neutral(AppColors.sunken, AppColors.muted),
+  neutral(AppColors.surfaceAlt, AppColors.inkSoft),
   success(AppColors.successSurface, AppColors.success),
   warning(AppColors.warningSurface, AppColors.warning),
   danger(AppColors.dangerSurface, AppColors.danger),
@@ -125,7 +125,7 @@ class CountBadge extends StatelessWidget {
       child: Text(
         display,
         style: typ.AppTypography.label.copyWith(
-          color: AppColors.white,
+          color: AppColors.surface,
           fontSize: 10,
         ),
         textAlign: TextAlign.center,

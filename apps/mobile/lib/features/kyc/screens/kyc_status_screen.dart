@@ -21,9 +21,9 @@ class KycStatusScreen extends ConsumerWidget {
     final statusAsync = ref.watch(kycStatusProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: GestureDetector(
@@ -85,13 +85,13 @@ class _NoneView extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: const BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               PhosphorIconsFill.identificationCard,
               size: 56,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
           const SizedBox(height: Spacing.xxl),
@@ -103,7 +103,7 @@ class _NoneView extends StatelessWidget {
           const SizedBox(height: Spacing.lg),
           Text(
             'Complete a one-time KYC verification to start publishing paid experiences and earning on CreatorHub.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: Spacing.xxl),
@@ -175,7 +175,7 @@ class _PendingView extends StatelessWidget {
           const SizedBox(height: Spacing.lg),
           Text(
             'Your documents are being reviewed. Usually takes 1–2 business days.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: Spacing.xl),
@@ -184,9 +184,9 @@ class _PendingView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.hairline),
               ),
               child: Column(
                 children: [
@@ -207,7 +207,7 @@ class _PendingView extends StatelessWidget {
           const Spacer(flex: 3),
           Text(
             "We'll notify you once the review is complete.",
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: Spacing.xxl),
@@ -259,7 +259,7 @@ class _VerifiedView extends StatelessWidget {
           const SizedBox(height: Spacing.lg),
           Text(
             'You can now publish paid experiences and earn on CreatorHub.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: Spacing.xxl),
@@ -379,7 +379,7 @@ class _RejectedView extends StatelessWidget {
           ],
           Text(
             'Please correct the issues above and resubmit your documents.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
           const Spacer(flex: 3),
@@ -483,7 +483,7 @@ class _KycErrorView extends StatelessWidget {
             const Icon(
               PhosphorIconsFill.wifiSlash,
               size: 48,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(height: Spacing.lg),
             Text(
@@ -494,7 +494,7 @@ class _KycErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),
@@ -523,12 +523,12 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.muted),
+        Icon(icon, size: 18, color: AppColors.inkSoft),
         const SizedBox(width: Spacing.md),
         Expanded(
           child: Text(
             text,
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
         ),
       ],

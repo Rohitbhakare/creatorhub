@@ -127,13 +127,13 @@ class _AppButtonState extends State<AppButton>
     return switch (widget.variant) {
       AppButtonVariant.primary => _buildFilled(
           bgColor: AppColors.coral,
-          fgColor: AppColors.white,
+          fgColor: AppColors.surface,
         ),
       AppButtonVariant.secondary => _buildOutlined(),
       AppButtonVariant.ghost => _buildGhost(),
       AppButtonVariant.danger => _buildFilled(
           bgColor: AppColors.danger,
-          fgColor: AppColors.white,
+          fgColor: AppColors.surface,
         ),
     };
   }
@@ -157,8 +157,8 @@ class _AppButtonState extends State<AppButton>
       decoration: BoxDecoration(
         border: Border.all(
           color: widget._isDisabled
-              ? AppColors.border.withValues(alpha: 0.4)
-              : AppColors.border,
+              ? AppColors.hairline.withValues(alpha: 0.4)
+              : AppColors.hairline,
         ),
         borderRadius: BorderRadius.circular(Layout.buttonRadius),
       ),

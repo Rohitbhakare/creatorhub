@@ -31,9 +31,9 @@ class ReviewDetailScreen extends ConsumerWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           elevation: 0,
           title: Text('Review', style: typ.AppTypography.h3),
           leading: IconButton(
@@ -111,7 +111,7 @@ class _ReviewDetailContent extends StatelessWidget {
           ),
 
           const SizedBox(height: Spacing.lg),
-          const Divider(color: AppColors.border),
+          const Divider(color: AppColors.hairline),
           const SizedBox(height: Spacing.lg),
 
           // ── Review text ───────────────────────────────────────
@@ -172,16 +172,16 @@ class _CreatorResponseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Creator response',
-            style: typ.AppTypography.label.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.label.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.sm),
           Text(response, style: typ.AppTypography.body),
@@ -204,17 +204,17 @@ class _PendingRevealPlaceholder extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
         border: Border.all(
-          color: AppColors.border,
+          color: AppColors.hairline,
           style: BorderStyle.solid,
         ),
       ),
       child: Text(
         label,
         style: typ.AppTypography.bodySmall.copyWith(
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
           fontStyle: FontStyle.italic,
         ),
       ),
@@ -321,7 +321,7 @@ class _ReviewDetailError extends StatelessWidget {
         padding: const EdgeInsets.all(Layout.screenPaddingH),
         child: Text(
           'Unable to load review.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.softInk),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkMuted),
           textAlign: TextAlign.center,
         ),
       ),

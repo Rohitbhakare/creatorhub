@@ -55,7 +55,7 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
           content: Text(
             msg,
             style: typ.AppTypography.bodySmall
-                .copyWith(color: AppColors.white),
+                .copyWith(color: AppColors.surface),
           ),
           backgroundColor: AppColors.danger,
           behavior: SnackBarBehavior.floating,
@@ -72,11 +72,11 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         title: Text('Cancel RSVP?', style: typ.AppTypography.h3),
         content: Text(
           'You will lose your spot at this event.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
           TextButton(
@@ -145,8 +145,8 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
         Spacing.md + MediaQuery.of(context).padding.bottom,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        color: AppColors.bg,
+        border: Border(top: BorderSide(color: AppColors.hairline)),
       ),
       child: Row(
         children: [
@@ -166,7 +166,7 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
                 Text(
                   event.capacityLabel,
                   style: typ.AppTypography.caption.copyWith(
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               ],

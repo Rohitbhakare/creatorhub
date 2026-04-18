@@ -47,7 +47,7 @@ class EmptyState extends StatelessWidget {
                 Icon(
                   icon ?? PhosphorIconsFill.mountains,
                   size: 64,
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
               const SizedBox(height: Spacing.xl),
 
@@ -63,7 +63,7 @@ class EmptyState extends StatelessWidget {
               Text(
                 description,
                 style: typ.AppTypography.body.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,

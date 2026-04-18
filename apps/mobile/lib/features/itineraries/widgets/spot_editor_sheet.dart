@@ -124,7 +124,7 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
                     width: Layout.sheetHandleWidth,
                     height: Layout.sheetHandleHeight,
                     decoration: BoxDecoration(
-                      color: AppColors.line.withValues(alpha: 0.3),
+                      color: AppColors.hairlineStrong.withValues(alpha: 0.3),
                       borderRadius:
                           BorderRadius.circular(Layout.sheetHandleHeight / 2),
                     ),
@@ -152,13 +152,13 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
                         width: 32,
                         height: 32,
                         decoration: const BoxDecoration(
-                          color: AppColors.sunken,
+                          color: AppColors.surfaceAlt,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.close,
                           size: 18,
-                          color: AppColors.muted,
+                          color: AppColors.inkSoft,
                         ),
                       ),
                     ),
@@ -172,7 +172,7 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
                 child: Container(
                   padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.sunken,
+                    color: AppColors.surfaceAlt,
                     borderRadius: BorderRadius.circular(Layout.cardRadius),
                   ),
                   child: Row(
@@ -252,7 +252,7 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
                       'Duration',
                       style: typ.AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.muted,
+                        color: AppColors.inkSoft,
                       ),
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -303,7 +303,7 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
                       'Stop type',
                       style: typ.AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.muted,
+                        color: AppColors.inkSoft,
                       ),
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -368,17 +368,17 @@ class _DurationChip extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.ink : AppColors.sunken,
+          color: isSelected ? AppColors.ink : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
           border: Border.all(
-            color: isSelected ? AppColors.ink : AppColors.border,
+            color: isSelected ? AppColors.ink : AppColors.hairline,
           ),
         ),
         child: Text(
           label,
           style: typ.AppTypography.bodySmall.copyWith(
             fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.white : AppColors.ink,
+            color: isSelected ? AppColors.surface : AppColors.ink,
           ),
           textAlign: TextAlign.center,
         ),
@@ -413,10 +413,10 @@ class _StopTypeChip extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : AppColors.sunken,
+          color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
           border: Border.all(
-            color: isSelected ? color : AppColors.border,
+            color: isSelected ? color : AppColors.hairline,
           ),
         ),
         child: Row(
@@ -425,7 +425,7 @@ class _StopTypeChip extends StatelessWidget {
             Icon(
               _stopTypeChipIcon(type),
               size: 16,
-              color: isSelected ? color : AppColors.muted,
+              color: isSelected ? color : AppColors.inkSoft,
             ),
             const SizedBox(width: Spacing.xs),
             Text(
@@ -447,12 +447,12 @@ class _PlaceholderIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
         child: Icon(
           PhosphorIconsFill.mapPin,
           size: 24,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );

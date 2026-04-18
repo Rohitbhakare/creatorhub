@@ -84,9 +84,9 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           elevation: 0,
           title: Text('Write a Review', style: typ.AppTypography.h3),
           leading: IconButton(
@@ -162,19 +162,19 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
                   hintText:
                       'Share your experience — what did you enjoy most?',
                   hintStyle: typ.AppTypography.body.copyWith(
-                    color: AppColors.softInk,
+                    color: AppColors.inkMuted,
                   ),
                   filled: true,
-                  fillColor: AppColors.sunken,
+                  fillColor: AppColors.surfaceAlt,
                   border: OutlineInputBorder(
                     borderRadius:
                         BorderRadius.circular(Layout.inputRadius),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.hairline),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius:
                         BorderRadius.circular(Layout.inputRadius),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.hairline),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius:

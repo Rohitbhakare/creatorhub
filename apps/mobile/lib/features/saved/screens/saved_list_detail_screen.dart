@@ -25,9 +25,9 @@ class SavedListDetailScreen extends ConsumerWidget {
     final state = ref.watch(listItemsProvider(listId));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -47,7 +47,7 @@ class SavedListDetailScreen extends ConsumerWidget {
         children: [
           // Filter bar (sort + type chips)
           _FilterBar(listId: listId, state: state),
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.hairline),
 
           // Content
           Expanded(
@@ -143,7 +143,7 @@ class _SortChip extends StatelessWidget {
         HapticFeedback.lightImpact();
         showModalBottomSheet<String>(
           context: context,
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
           ),
@@ -173,7 +173,7 @@ class _SortChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -184,7 +184,7 @@ class _SortChip extends StatelessWidget {
               style: typ.AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
             ),
             const SizedBox(width: Spacing.xs),
-            const Icon(PhosphorIconsFill.caretDown, size: 14, color: AppColors.muted),
+            const Icon(PhosphorIconsFill.caretDown, size: 14, color: AppColors.inkSoft),
           ],
         ),
       ),
@@ -209,13 +209,13 @@ class _TypeChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.coral : AppColors.sunken,
+          color: isActive ? AppColors.coral : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Text(
           label,
           style: typ.AppTypography.bodySmall.copyWith(
-            color: isActive ? AppColors.white : AppColors.ink,
+            color: isActive ? AppColors.surface : AppColors.ink,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -229,7 +229,7 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 20, color: AppColors.border);
+    return Container(width: 1, height: 20, color: AppColors.hairline);
   }
 }
 
@@ -290,9 +290,9 @@ class _SavedItemCard extends StatelessWidget {
       child: Container(
         height: 100,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         clipBehavior: Clip.antiAlias,
         child: Row(
@@ -408,8 +408,8 @@ class _ThumbnailPlaceholder extends StatelessWidget {
       _ => PhosphorIconsFill.bookmarkSimple,
     };
     return Container(
-      color: AppColors.sunken,
-      child: Center(child: Icon(icon, size: 24, color: AppColors.softInk)),
+      color: AppColors.surfaceAlt,
+      child: Center(child: Icon(icon, size: 24, color: AppColors.inkMuted)),
     );
   }
 }

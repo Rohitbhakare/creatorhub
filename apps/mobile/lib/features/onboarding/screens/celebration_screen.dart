@@ -82,7 +82,7 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen>
     final reduceMotion = Anim.shouldReduceMotion(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -122,7 +122,7 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen>
                 Text(
                   "Let's explore what India has to offer",
                   style: typ.AppTypography.bodyLarge.copyWith(
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                   textAlign: TextAlign.center,
                 ),

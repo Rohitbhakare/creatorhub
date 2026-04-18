@@ -91,9 +91,9 @@ class _PostFeedCardState extends State<PostFeedCard>
 
     Widget card = Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -133,7 +133,7 @@ class _PostFeedCardState extends State<PostFeedCard>
                       child: Text(
                         widget.creatorName,
                         style: typ.AppTypography.bodySmall
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -148,7 +148,7 @@ class _PostFeedCardState extends State<PostFeedCard>
                     const Icon(
                       PhosphorIconsFill.heart,
                       size: 14,
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                     const SizedBox(width: Spacing.xs),
                     Text(
@@ -159,7 +159,7 @@ class _PostFeedCardState extends State<PostFeedCard>
                     const Icon(
                       PhosphorIconsFill.chatCircle,
                       size: 14,
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                     const SizedBox(width: Spacing.xs),
                     Text(
@@ -245,12 +245,12 @@ class _CoverImage extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
         child: Icon(
           PhosphorIconsFill.article,
           size: 36,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );

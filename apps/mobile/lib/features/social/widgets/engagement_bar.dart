@@ -13,7 +13,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../saved/providers/saved_provider.dart';
 import '../../saved/widgets/save_to_list_sheet.dart';
 import '../providers/like_provider.dart';
-import '../utils/share_utils.dart';
+import '../utils/share_utils.dart' show shareWhatsApp, shareNative, copyLink;
 import 'comments_sheet.dart';
 
 /// Shared bottom engagement bar used in post, itinerary, and event detail screens.
@@ -54,6 +54,7 @@ class EngagementBar extends ConsumerWidget {
     final isAuth = ref.watch(authProvider.select((s) => s.isAuthenticated));
 
     return Container(
+      key: const Key('engagement_bar'),
       padding: EdgeInsets.only(
         left: Layout.screenPaddingH,
         right: Layout.screenPaddingH,
@@ -61,15 +62,19 @@ class EngagementBar extends ConsumerWidget {
         bottom: Spacing.md + MediaQuery.of(context).padding.bottom,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        color: AppColors.bg,
+        border: Border(top: BorderSide(color: AppColors.hairline, width: 1)),
       ),
       child: Row(
         children: [
           // ── Like ────────────────────────────────────────────
           _EngagementAction(
-            icon: likeState.isLiked ? PhosphorIconsFill.heart : PhosphorIconsFill.heart,
+            key: likeState.isLiked
+                ? const Key('btn_like_active')
+                : const Key('btn_like'),
+            icon: PhosphorIconsFill.heart,
             label: likeState.likeCount > 0 ? formatCount(likeState.likeCount) : '',
+            labelKey: const Key('like_count'),
             isActive: likeState.isLiked,
             activeColor: AppColors.danger,
             onTap: () {
@@ -95,19 +100,29 @@ class EngagementBar extends ConsumerWidget {
           ),
           const SizedBox(width: Spacing.xl),
 
-          // ── WhatsApp share ───────────────────────────────────
+          // ── Share options sheet ──────────────────────────────
           _EngagementAction(
+            key: const Key('btn_share'),
             icon: PhosphorIconsFill.shareNetwork,
             label: '',
             isActive: false,
             activeColor: const Color(0xFF25D366),
             onTap: () {
               HapticFeedback.lightImpact();
-              shareWhatsApp(
-                title: contentTitle,
-                contentId: contentId,
-                contentType: contentType,
-                ref: ref,
+              showModalBottomSheet<void>(
+                context: context,
+                backgroundColor: AppColors.bg,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(Layout.sheetRadius),
+                  ),
+                ),
+                builder: (_) => _ShareOptionsSheet(
+                  contentId: contentId,
+                  contentType: contentType,
+                  contentTitle: contentTitle,
+                  widgetRef: ref,
+                ),
               );
             },
           ),
@@ -132,6 +147,9 @@ class EngagementBar extends ConsumerWidget {
 
           // ── Save/Bookmark ────────────────────────────────────
           _EngagementAction(
+            key: isSaved
+                ? const Key('btn_save_active')
+                : const Key('btn_save'),
             icon: PhosphorIconsFill.bookmarkSimple,
             label: '',
             isActive: isSaved,
@@ -159,18 +177,21 @@ class _EngagementAction extends StatelessWidget {
   final bool isActive;
   final Color? activeColor;
   final VoidCallback onTap;
+  final Key? labelKey;
 
   const _EngagementAction({
+    super.key,
     required this.icon,
     required this.label,
     required this.isActive,
     this.activeColor,
     required this.onTap,
+    this.labelKey,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? (activeColor ?? AppColors.coral) : AppColors.muted;
+    final color = isActive ? (activeColor ?? AppColors.coral) : AppColors.inkSoft;
 
     return GestureDetector(
       onTap: onTap,
@@ -185,6 +206,7 @@ class _EngagementAction extends StatelessWidget {
               const SizedBox(width: Spacing.xs),
               Text(
                 label,
+                key: labelKey,
                 style: typ.AppTypography.bodySmall.copyWith(color: color),
               ),
             ],
@@ -195,3 +217,63 @@ class _EngagementAction extends StatelessWidget {
   }
 }
 
+// ── Share Options Sheet ───────────────────────────────────────────
+
+/// Bottom sheet showing WhatsApp and Copy-link share options.
+class _ShareOptionsSheet extends StatelessWidget {
+  final String contentId;
+  final String contentType;
+  final String contentTitle;
+  final WidgetRef widgetRef;
+
+  const _ShareOptionsSheet({
+    required this.contentId,
+    required this.contentType,
+    required this.contentTitle,
+    required this.widgetRef,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: Spacing.sm),
+          ListTile(
+            leading: const Icon(
+              PhosphorIconsFill.shareNetwork,
+              color: Color(0xFF25D366),
+            ),
+            title: const Text('WhatsApp'),
+            onTap: () {
+              Navigator.pop(context);
+              shareWhatsApp(
+                title: contentTitle,
+                contentId: contentId,
+                contentType: contentType,
+                ref: widgetRef,
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(
+              PhosphorIconsFill.link,
+              color: AppColors.inkMuted,
+            ),
+            title: const Text('Copy link'),
+            onTap: () {
+              Navigator.pop(context);
+              copyLink(
+                contentId: contentId,
+                contentType: contentType,
+                ref: widgetRef,
+              );
+            },
+          ),
+          const SizedBox(height: Spacing.md),
+        ],
+      ),
+    );
+  }
+}

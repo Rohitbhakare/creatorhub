@@ -30,9 +30,9 @@ class ProfileViewScreen extends ConsumerWidget {
     final profileAsync = ref.watch(publicProfileProvider(userId));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.sunken,
+        backgroundColor: AppColors.surfaceAlt,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -56,12 +56,12 @@ class ProfileViewScreen extends ConsumerWidget {
               Icon(
                 PhosphorIcons.userCircle(PhosphorIconsStyle.regular),
                 size: 48,
-                color: AppColors.line,
+                color: AppColors.hairlineStrong,
               ),
               const SizedBox(height: 12),
               Text(
                 'Profile not found',
-                style: AppTypography.h4.copyWith(color: AppColors.muted),
+                style: AppTypography.h4.copyWith(color: AppColors.inkSoft),
               ),
               const SizedBox(height: 16),
               TextButton(
@@ -80,7 +80,7 @@ class ProfileViewScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   'Content coming in E1.7+',
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
                 ),
               ),
             ],
@@ -100,7 +100,7 @@ class _PublicHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       child: Column(
         children: [
@@ -108,7 +108,7 @@ class _PublicHeroCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: profile.isCreator ? AppColors.coral : AppColors.line,
+                color: profile.isCreator ? AppColors.coral : AppColors.hairlineStrong,
                 width: profile.isCreator ? 2.5 : 1.5,
                 strokeAlign: BorderSide.strokeAlignOutside,
               ),
@@ -132,7 +132,7 @@ class _PublicHeroCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               '@${profile.username}',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             ),
           ],
           if (profile.bio != null && profile.bio!.isNotEmpty) ...[
@@ -142,7 +142,7 @@ class _PublicHeroCard extends StatelessWidget {
               style: GoogleFonts.fraunces(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -168,7 +168,7 @@ class _PublicHeroCard extends StatelessWidget {
                       // TODO: unfollow in E1.7
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.border),
+                      side: const BorderSide(color: AppColors.hairline),
                       foregroundColor: AppColors.ink,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -186,7 +186,7 @@ class _PublicHeroCard extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.coral,
-                      foregroundColor: AppColors.white,
+                      foregroundColor: AppColors.surface,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -195,7 +195,7 @@ class _PublicHeroCard extends StatelessWidget {
                     child: Text(
                       'Follow',
                       style: AppTypography.body.copyWith(
-                        color: AppColors.white,
+                        color: AppColors.surface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -216,7 +216,7 @@ class _ProfileSkeleton extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
           child: const Column(
             children: [

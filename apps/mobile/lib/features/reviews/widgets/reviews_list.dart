@@ -78,7 +78,7 @@ class _ReviewsContent extends StatelessWidget {
           itemCount: result.items.length,
           separatorBuilder: (context, index) => const Divider(
             height: 1,
-            color: AppColors.border,
+            color: AppColors.hairline,
             indent: Layout.screenPaddingH,
             endIndent: Layout.screenPaddingH,
           ),
@@ -147,7 +147,7 @@ class _ReviewTile extends StatelessWidget {
               const SizedBox(height: Spacing.sm),
               Text(
                 review.reviewerText!,
-                style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+                style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -156,7 +156,7 @@ class _ReviewTile extends StatelessWidget {
               Text(
                 'Review pending reveal',
                 style: typ.AppTypography.bodySmall.copyWith(
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -260,7 +260,7 @@ class _ReviewsErrorState extends StatelessWidget {
       padding: const EdgeInsets.all(Layout.screenPaddingH),
       child: Text(
         'Unable to load reviews.',
-        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
       ),
     );
   }

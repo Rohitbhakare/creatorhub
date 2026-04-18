@@ -30,24 +30,23 @@ class PostDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final post = ref.watch(postDetailProvider(postId));
+    final postAsync = ref.watch(postDetailProvider(postId));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         top: false, // Let hero image extend behind status bar
-        child: switch (post.status) {
-          PostDetailStatus.loading => const _PostDetailSkeleton(),
-          PostDetailStatus.error => _PostDetailError(
-              error: post.error ?? 'Failed to load post',
-              onRetry: () =>
-                  ref.read(postDetailProvider(postId).notifier).retry(),
-            ),
-          PostDetailStatus.loaded => _PostDetailContent(
-              postId: postId,
-              post: post,
-            ),
-        },
+        child: postAsync.when(
+          loading: () => const _PostDetailSkeleton(),
+          error: (e, _) => _PostDetailError(
+            error: e.toString().replaceFirst('Exception: ', ''),
+            onRetry: () => ref.invalidate(postDetailProvider(postId)),
+          ),
+          data: (post) => _PostDetailContent(
+            postId: postId,
+            post: post,
+          ),
+        ),
       ),
     );
   }
@@ -142,14 +141,14 @@ class _PostDetailContent extends ConsumerWidget {
                                 vertical: Spacing.xs,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.sunken,
+                                color: AppColors.surfaceAlt,
                                 borderRadius:
                                     BorderRadius.circular(Layout.chipRadius),
                               ),
                               child: Text(
                                 '#$tag',
                                 style: typ.AppTypography.caption
-                                    .copyWith(color: AppColors.muted),
+                                    .copyWith(color: AppColors.inkSoft),
                               ),
                             );
                           }).toList(),
@@ -208,12 +207,12 @@ class _HeroImage extends StatelessWidget {
               fit: BoxFit.cover,
               placeholder: (_, _) => const SkeletonRect(height: 300),
               errorWidget: (_, _, _) => Container(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 child: const Center(
                   child: Icon(
                     PhosphorIconsFill.imageSquare,
                     size: 48,
-                    color: AppColors.softInk,
+                    color: AppColors.inkMuted,
                   ),
                 ),
               ),
@@ -223,12 +222,12 @@ class _HeroImage extends StatelessWidget {
           Container(
             width: screenWidth,
             height: screenWidth * 0.5,
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             child: const Center(
               child: Icon(
                 PhosphorIconsFill.article,
                 size: 48,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
             ),
           ),
@@ -250,7 +249,7 @@ class _HeroImage extends StatelessWidget {
               child: const Icon(
                 PhosphorIconsFill.arrowLeft,
                 size: 20,
-                color: AppColors.white,
+                color: AppColors.surface,
               ),
             ),
           ),
@@ -366,11 +365,11 @@ class _ImageGallery extends StatelessWidget {
               errorWidget: (_, _, _) => Container(
                 width: 200,
                 height: 200,
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 child: const Icon(
                   PhosphorIconsFill.imageSquare,
                   size: 32,
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
               ),
             ),
@@ -395,7 +394,7 @@ class _LocationChip extends StatelessWidget {
         vertical: Spacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.chipRadius),
       ),
       child: Row(
@@ -411,7 +410,7 @@ class _LocationChip extends StatelessWidget {
             child: Text(
               location,
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.muted),
+                  .copyWith(color: AppColors.inkSoft),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

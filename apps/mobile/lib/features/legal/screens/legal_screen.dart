@@ -19,9 +19,9 @@ class LegalScreen extends StatelessWidget {
     final config = _legalContent[type] ?? _fallbackContent(type);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -261,7 +261,7 @@ class _SectionBlock extends StatelessWidget {
           Text(
             section.body,
             style: AppTypography.body.copyWith(
-              color: section.heading == null ? AppColors.muted : AppColors.ink,
+              color: section.heading == null ? AppColors.inkSoft : AppColors.ink,
               height: 1.6,
             ),
           ),

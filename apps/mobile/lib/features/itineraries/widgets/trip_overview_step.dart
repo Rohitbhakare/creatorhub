@@ -173,7 +173,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
           const SizedBox(height: Spacing.sm),
           Text(
             'Set up the basics of your itinerary',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -182,7 +182,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
             'Number of days',
             style: typ.AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
           const SizedBox(height: Spacing.sm),
@@ -198,7 +198,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
             'Starting city',
             style: typ.AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
           const SizedBox(height: Spacing.sm),
@@ -247,7 +247,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
             'Destinations',
             style: typ.AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
           const SizedBox(height: Spacing.sm),
@@ -307,7 +307,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
             width: double.infinity,
             padding: const EdgeInsets.all(Layout.cardPadding),
             decoration: BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(Layout.cardRadius),
             ),
             child: Row(
@@ -315,7 +315,7 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
                 const Icon(
                   PhosphorIconsFill.mapTrifold,
                   size: 20,
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
                 const SizedBox(width: Spacing.md),
                 Text(
@@ -327,14 +327,14 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
                   Text(
                     '\u00B7',
                     style:
-                        typ.AppTypography.body.copyWith(color: AppColors.muted),
+                        typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
                   ),
                   const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Text(
                       itinWizard.destinationCityNames.join(', '),
                       style: typ.AppTypography.bodySmall
-                          .copyWith(color: AppColors.muted),
+                          .copyWith(color: AppColors.inkSoft),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -371,9 +371,9 @@ class _DayCountStepper extends StatelessWidget {
         vertical: Spacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.inputRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -386,16 +386,16 @@ class _DayCountStepper extends StatelessWidget {
               width: Layout.minTapTarget,
               height: Layout.minTapTarget,
               decoration: BoxDecoration(
-                color: count > 1 ? AppColors.white : AppColors.sunken,
+                color: count > 1 ? AppColors.surface : AppColors.surfaceAlt,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: count > 1 ? AppColors.border : AppColors.border,
+                  color: count > 1 ? AppColors.hairline : AppColors.hairline,
                 ),
               ),
               child: Icon(
                 PhosphorIconsFill.minus,
                 size: 18,
-                color: count > 1 ? AppColors.ink : AppColors.softInk,
+                color: count > 1 ? AppColors.ink : AppColors.inkMuted,
               ),
             ),
           ),
@@ -422,16 +422,16 @@ class _DayCountStepper extends StatelessWidget {
               width: Layout.minTapTarget,
               height: Layout.minTapTarget,
               decoration: BoxDecoration(
-                color: count < 30 ? AppColors.white : AppColors.sunken,
+                color: count < 30 ? AppColors.surface : AppColors.surfaceAlt,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: count < 30 ? AppColors.border : AppColors.border,
+                  color: count < 30 ? AppColors.hairline : AppColors.hairline,
                 ),
               ),
               child: Icon(
                 PhosphorIconsFill.plus,
                 size: 18,
-                color: count < 30 ? AppColors.ink : AppColors.softInk,
+                color: count < 30 ? AppColors.ink : AppColors.inkMuted,
               ),
             ),
           ),
@@ -492,7 +492,7 @@ class _CityChip extends StatelessWidget {
               child: Icon(
                 PhosphorIconsFill.xCircle,
                 size: 18,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
           ),
@@ -518,9 +518,9 @@ class _CityResultsList extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: Spacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       constraints: const BoxConstraints(maxHeight: 200),
       child: ListView.separated(
@@ -528,7 +528,7 @@ class _CityResultsList extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: results.length,
         separatorBuilder: (_, _) =>
-            const Divider(color: AppColors.border, height: 1),
+            const Divider(color: AppColors.hairline, height: 1),
         itemBuilder: (context, index) {
           final city = results[index];
           final name = city['name'] as String? ?? '';

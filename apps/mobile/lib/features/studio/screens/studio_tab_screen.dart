@@ -29,7 +29,7 @@ class StudioTabScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.coral,
@@ -164,7 +164,7 @@ class _QuietStateCard extends StatelessWidget {
             const SizedBox(height: Spacing.xs),
             Text(
               'Post a short write-up or put together your first itinerary.',
-              style: AppTypography.body.copyWith(color: AppColors.muted),
+              style: AppTypography.body.copyWith(color: AppColors.inkSoft),
             ),
             const SizedBox(height: Spacing.lg),
             Row(
@@ -251,7 +251,7 @@ class _ActionAlertCard extends ConsumerWidget {
                 const SizedBox(height: Spacing.xs),
                 Text(
                   alert.body,
-                  style: AppTypography.body.copyWith(color: AppColors.muted),
+                  style: AppTypography.body.copyWith(color: AppColors.inkSoft),
                 ),
               ],
             ),
@@ -266,7 +266,7 @@ class _ActionAlertCard extends ConsumerWidget {
                   child: Icon(
                     Icons.close,
                     size: 18,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               ),
@@ -344,9 +344,9 @@ class _StatTile extends StatelessWidget {
           vertical: Spacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -509,17 +509,17 @@ class _FilterChips extends StatelessWidget {
                 vertical: Spacing.sm,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.coral : AppColors.white,
+                color: isSelected ? AppColors.coral : AppColors.surface,
                 borderRadius: BorderRadius.circular(Layout.chipRadius),
                 border: Border.all(
                   color:
-                      isSelected ? AppColors.coral : AppColors.border,
+                      isSelected ? AppColors.coral : AppColors.hairline,
                 ),
               ),
               child: Text(
                 label,
                 style: AppTypography.bodySmall.copyWith(
-                  color: isSelected ? AppColors.white : AppColors.ink,
+                  color: isSelected ? AppColors.surface : AppColors.ink,
                   fontWeight:
                       isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
@@ -555,7 +555,7 @@ class _ContentList extends StatelessWidget {
       itemCount: items.length + (isLoadingMore ? 1 : 0),
       separatorBuilder: (_, __) => const Divider(
         height: 1,
-        color: AppColors.border,
+        color: AppColors.hairline,
       ),
       itemBuilder: (context, i) {
         if (i == items.length) {
@@ -633,7 +633,7 @@ class _ContentRow extends ConsumerWidget {
                       placeholder: (_, __) => Container(
                         width: 56,
                         height: 56,
-                        color: AppColors.sunken,
+                        color: AppColors.surfaceAlt,
                       ),
                       errorWidget: (_, __, ___) => _ThumbnailPlaceholder(
                         contentType: item.contentType,
@@ -676,7 +676,7 @@ class _ContentRow extends ConsumerWidget {
                 Icon(
                   PhosphorIcons.heart(PhosphorIconsStyle.regular),
                   size: 13,
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
                 const SizedBox(width: 3),
                 Text(
@@ -687,7 +687,7 @@ class _ContentRow extends ConsumerWidget {
                 Icon(
                   PhosphorIcons.chatCircle(PhosphorIconsStyle.regular),
                   size: 13,
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
                 const SizedBox(width: 3),
                 Text(
@@ -721,10 +721,10 @@ class _ThumbnailPlaceholder extends StatelessWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(icon, size: 20, color: AppColors.softInk),
+      child: Icon(icon, size: 20, color: AppColors.inkMuted),
     );
   }
 }
@@ -838,8 +838,8 @@ class _EarningsInfoCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          border: Border.all(color: AppColors.border),
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.hairline),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -849,13 +849,13 @@ class _EarningsInfoCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 PhosphorIcons.wallet(PhosphorIconsStyle.regular),
                 size: 20,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
             const SizedBox(width: Spacing.md),
@@ -873,7 +873,7 @@ class _EarningsInfoCard extends StatelessWidget {
                   Text(
                     'Set up bank account payouts when you start publishing paid experiences.',
                     style:
-                        AppTypography.caption.copyWith(color: AppColors.muted),
+                        AppTypography.caption.copyWith(color: AppColors.inkSoft),
                   ),
                   const SizedBox(height: Spacing.sm),
                   GestureDetector(

@@ -58,17 +58,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Discard changes?', style: AppTypography.h4),
         content: Text(
           'You have unsaved changes. Are you sure you want to go back?',
-          style: AppTypography.body.copyWith(color: AppColors.muted),
+          style: AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Keep Editing', style: AppTypography.body.copyWith(color: AppColors.muted)),
+            child: Text('Keep Editing', style: AppTypography.body.copyWith(color: AppColors.inkSoft)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -144,9 +144,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         if (shouldPop && mounted) context.pop();
       },
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: IconButton(
@@ -195,7 +195,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 1.5),
+                        border: Border.all(color: AppColors.hairline, width: 1.5),
                       ),
                       child: AppAvatar(
                         imageUrl: avatarUrl,
@@ -212,12 +212,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.coral,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.white, width: 2),
+                          border: Border.all(color: AppColors.surface, width: 2),
                         ),
                         child: const Icon(
                           Icons.camera_alt_rounded,
                           size: 14,
-                          color: AppColors.white,
+                          color: AppColors.surface,
                         ),
                       ),
                     ),
@@ -302,7 +302,7 @@ class _FormField extends StatelessWidget {
             Text(
               label,
               style: AppTypography.label.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
                 letterSpacing: 0.3,
               ),
             ),
@@ -317,21 +317,21 @@ class _FormField extends StatelessWidget {
           maxLines: maxLines,
           enabled: enabled,
           keyboardType: keyboardType,
-          style: AppTypography.body.copyWith(color: enabled ? AppColors.ink : AppColors.softInk),
+          style: AppTypography.body.copyWith(color: enabled ? AppColors.ink : AppColors.inkMuted),
           decoration: InputDecoration(
             filled: true,
-            fillColor: enabled ? AppColors.white : AppColors.sunken,
+            fillColor: enabled ? AppColors.surface : AppColors.surfaceAlt,
             hintText: hint,
-            hintStyle: AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+            hintStyle: AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
             counterStyle: AppTypography.caption,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: const BorderSide(color: AppColors.hairline),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: const BorderSide(color: AppColors.hairline),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -339,7 +339,7 @@ class _FormField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: const BorderSide(color: AppColors.hairline),
             ),
           ),
         ),

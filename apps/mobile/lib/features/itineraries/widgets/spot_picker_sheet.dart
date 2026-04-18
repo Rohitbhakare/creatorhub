@@ -162,7 +162,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                 width: Layout.sheetHandleWidth,
                 height: Layout.sheetHandleHeight,
                 decoration: BoxDecoration(
-                  color: AppColors.line.withValues(alpha: 0.3),
+                  color: AppColors.hairlineStrong.withValues(alpha: 0.3),
                   borderRadius:
                       BorderRadius.circular(Layout.sheetHandleHeight / 2),
                 ),
@@ -188,13 +188,13 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                       width: 32,
                       height: 32,
                       decoration: const BoxDecoration(
-                        color: AppColors.sunken,
+                        color: AppColors.surfaceAlt,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.close,
                         size: 18,
-                        color: AppColors.muted,
+                        color: AppColors.inkSoft,
                       ),
                     ),
                   ),
@@ -216,7 +216,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                 decoration: InputDecoration(
                   hintText: 'Search places...',
                   prefixIcon: const Icon(Icons.search,
-                      size: 20, color: AppColors.softInk),
+                      size: 20, color: AppColors.inkMuted),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? GestureDetector(
                           onTap: () {
@@ -224,7 +224,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                             _onSearchChanged('');
                           },
                           child: const Icon(Icons.close,
-                              size: 18, color: AppColors.softInk),
+                              size: 18, color: AppColors.inkMuted),
                         )
                       : null,
                   contentPadding: const EdgeInsets.symmetric(
@@ -233,13 +233,13 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                     borderRadius:
                         BorderRadius.circular(Layout.inputRadius),
                     borderSide:
-                        const BorderSide(color: AppColors.border),
+                        const BorderSide(color: AppColors.hairline),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius:
                         BorderRadius.circular(Layout.inputRadius),
                     borderSide:
-                        const BorderSide(color: AppColors.border),
+                        const BorderSide(color: AppColors.hairline),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius:
@@ -248,7 +248,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
                         color: AppColors.coral, width: 1.5),
                   ),
                   filled: true,
-                  fillColor: AppColors.sunken,
+                  fillColor: AppColors.surfaceAlt,
                 ),
               ),
             ),
@@ -267,7 +267,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
               child: Text(
                 'Powered by Google',
                 style: typ.AppTypography.caption
-                    .copyWith(color: AppColors.softInk),
+                    .copyWith(color: AppColors.inkMuted),
               ),
             ),
           ],
@@ -315,7 +315,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
             const Icon(
               PhosphorIconsFill.mapPinArea,
               size: 40,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(height: Spacing.md),
             Text('No places found', style: typ.AppTypography.h4),
@@ -323,7 +323,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
             Text(
               'Try a different search term',
               style:
-                  typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+                  typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             ),
           ],
         ),
@@ -335,7 +335,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
         padding: const EdgeInsets.all(Spacing.xl),
         child: Text(
           'Search for a place to add as a spot',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           textAlign: TextAlign.center,
         ),
       );
@@ -346,7 +346,7 @@ class _SpotPickerSheetState extends ConsumerState<SpotPickerSheet> {
       padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
       itemCount: _results.length,
       separatorBuilder: (_, _) =>
-          const Divider(color: AppColors.border, height: 1),
+          const Divider(color: AppColors.hairline, height: 1),
       itemBuilder: (context, index) {
         final place = _results[index];
         return GestureDetector(

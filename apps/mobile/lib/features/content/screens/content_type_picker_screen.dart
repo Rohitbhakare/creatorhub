@@ -20,7 +20,7 @@ class ContentTypePickerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -62,7 +62,7 @@ class ContentTypePickerScreen extends ConsumerWidget {
               Text(
                 'Choose a content type to get started',
                 style: typ.AppTypography.body.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
               ),
               const SizedBox(height: Spacing.xxl),
@@ -127,7 +127,7 @@ class ContentTypePickerScreen extends ConsumerWidget {
                       title: 'Experience',
                       subtitle: 'Lead an experience',
                       badgeText: 'Coming in M2',
-                      badgeColor: AppColors.muted,
+                      badgeColor: AppColors.inkSoft,
                       enabled: false,
                     ),
                   ],

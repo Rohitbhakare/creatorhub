@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +23,7 @@ Future<void> showSaveToListSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: AppColors.bg,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
     ),
@@ -32,6 +33,11 @@ Future<void> showSaveToListSheet(
 
 /// Pinterest-style multi-select save sheet.
 class SaveToListSheet extends ConsumerStatefulWidget {
+  /// Test seam: set before tapping btn_create_list to bypass iOS
+  /// TextInput platform channel resets (LiveTestWidgetsFlutterBinding issue).
+  @visibleForTesting
+  static String? testOverrideName;
+
   final String contentId;
 
   const SaveToListSheet({super.key, required this.contentId});
@@ -41,6 +47,7 @@ class SaveToListSheet extends ConsumerStatefulWidget {
 }
 
 class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
+
   late Set<String> _selected;
   bool _initialized = false;
   bool _isSaving = false;
@@ -72,15 +79,29 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
   }
 
   Future<void> _createAndSelect() async {
-    final name = _createController.text.trim();
+    // SaveToListSheet.testOverrideName bypasses iOS TextInput platform channel
+    // resets that occur in LiveTestWidgetsFlutterBinding E2E tests.
+    final override = SaveToListSheet.testOverrideName;
+    final controllerText = _createController.text.trim();
+    final name = (override?.isNotEmpty == true ? override! : controllerText);
+    SaveToListSheet.testOverrideName = null; // consume once
     if (name.isEmpty) return;
-    final newList = await ref.read(savedListsProvider.notifier).createList(name);
-    if (newList != null) {
-      setState(() {
-        _selected.add(newList.id);
-        _showCreateInput = false;
-        _createController.clear();
-      });
+    // Hide create input immediately. createList adds the item optimistically so
+    // the new list appears in the ListView before the API responds.
+    setState(() {
+      _showCreateInput = false;
+      _createController.clear();
+    });
+    // Await so we get the real server ID for auto-selection.
+    // The optimistic update inside createList shows the list immediately.
+    try {
+      final newList = await ref.read(savedListsProvider.notifier).createList(name);
+      if (newList != null && mounted) {
+        // Auto-select the newly created list so pressing Done saves to it.
+        setState(() => _selected.add(newList.id));
+      }
+    } catch (e) {
+      // Don't propagate — sheet stays open with the optimistic list in state.
     }
   }
 
@@ -108,7 +129,7 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
               width: Layout.sheetHandleWidth,
               height: Layout.sheetHandleHeight,
               decoration: BoxDecoration(
-                color: AppColors.line.withValues(alpha: 0.3),
+                color: AppColors.hairlineStrong.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(Layout.sheetHandleHeight / 2),
               ),
             ),
@@ -126,7 +147,7 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                       Text('Save to…', style: typ.AppTypography.h4),
                       Text(
                         'Pick one or more of your wishlists',
-                        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+                        style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
                       ),
                     ],
                   ),
@@ -139,8 +160,8 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                   child: Container(
                     width: 32,
                     height: 32,
-                    decoration: const BoxDecoration(color: AppColors.sunken, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                    decoration: const BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, size: 18, color: AppColors.inkSoft),
                   ),
                 ),
               ],
@@ -172,17 +193,18 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
           // Create new list row
           if (!_showCreateInput)
             ListTile(
+              key: const Key('btn_new_list'),
               contentPadding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
               leading: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.sunken,
+                  color: AppColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(Layout.cardRadius),
                 ),
-                child: const Icon(PhosphorIconsFill.plus, size: 20, color: AppColors.muted),
+                child: const Icon(PhosphorIconsFill.plus, size: 20, color: AppColors.inkSoft),
               ),
-              title: Text('Create new list', style: typ.AppTypography.bodySmall),
+              title: Text('New list', style: typ.AppTypography.bodySmall),
               onTap: () {
                 HapticFeedback.lightImpact();
                 setState(() => _showCreateInput = true);
@@ -195,13 +217,13 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                 children: [
                   Expanded(
                     child: TextField(
+                      key: const Key('new_list_name_field'),
                       controller: _createController,
-                      autofocus: true,
                       maxLength: 100,
                       style: typ.AppTypography.bodySmall,
                       decoration: InputDecoration(
                         hintText: 'e.g. Spiti valley ideas',
-                        hintStyle: typ.AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+                        hintStyle: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
                         counterText: '',
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -218,17 +240,21 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                     ),
                   ),
                   const SizedBox(width: Spacing.sm),
-                  GestureDetector(
-                    onTap: _createAndSelect,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: AppColors.coral,
-                        shape: BoxShape.circle,
+                  TextButton(
+                    key: const Key('btn_create_list'),
+                    onPressed: _createAndSelect,
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.coral,
+                      foregroundColor: AppColors.surface,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md,
+                        vertical: Spacing.sm,
                       ),
-                      child: const Icon(PhosphorIconsFill.check, size: 18, color: AppColors.white),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
+                    child: Text('Create', style: typ.AppTypography.bodySmall.copyWith(color: AppColors.surface)),
                   ),
                   const SizedBox(width: Spacing.xs),
                   GestureDetector(
@@ -240,17 +266,17 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                       width: 36,
                       height: 36,
                       decoration: const BoxDecoration(
-                        color: AppColors.sunken,
+                        color: AppColors.surfaceAlt,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                      child: const Icon(Icons.close, size: 18, color: AppColors.inkSoft),
                     ),
                   ),
                 ],
               ),
             ),
 
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.hairline),
 
           // Done button
           Padding(
@@ -309,7 +335,7 @@ class _ListRow extends StatelessWidget {
       ),
       subtitle: Text(
         '${list.itemCount} item${list.itemCount == 1 ? '' : 's'} · updated ${_relativeTime(list.updatedAt)}',
-        style: typ.AppTypography.caption.copyWith(color: AppColors.softInk),
+        style: typ.AppTypography.caption.copyWith(color: AppColors.inkMuted),
       ),
       trailing: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
@@ -318,13 +344,13 @@ class _ListRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: isChecked ? AppColors.coral : Colors.transparent,
           border: Border.all(
-            color: isChecked ? AppColors.coral : AppColors.border,
+            color: isChecked ? AppColors.coral : AppColors.hairline,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(6),
         ),
         child: isChecked
-            ? const Icon(PhosphorIconsFill.check, size: 14, color: AppColors.white)
+            ? const Icon(PhosphorIconsFill.check, size: 14, color: AppColors.surface)
             : null,
       ),
     );
@@ -343,8 +369,8 @@ class _Placeholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
-      child: const Center(child: Icon(PhosphorIconsFill.bookmarkSimple, size: 20, color: AppColors.softInk)),
+      color: AppColors.surfaceAlt,
+      child: const Center(child: Icon(PhosphorIconsFill.bookmarkSimple, size: 20, color: AppColors.inkMuted)),
     );
   }
 }

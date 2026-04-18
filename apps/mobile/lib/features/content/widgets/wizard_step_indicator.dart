@@ -59,7 +59,7 @@ class WizardStepIndicator extends StatelessWidget {
           child: Text(
             'Step $currentStep of $totalSteps: $stepName',
             style: typ.AppTypography.caption.copyWith(
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
         ),
@@ -91,7 +91,7 @@ class _Segment extends StatelessWidget {
             // Background track
             Container(
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

@@ -190,7 +190,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
             content: Text(
               'Failed to publish. Please try again.',
               style:
-                  typ.AppTypography.bodySmall.copyWith(color: AppColors.white),
+                  typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -207,14 +207,14 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Layout.cardRadius),
         ),
         title: Text('Discard draft?', style: typ.AppTypography.h3),
         content: Text(
           'Your unsaved changes will be lost.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
           TextButton(
@@ -254,7 +254,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     final wizard = ref.watch(wizardProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -386,14 +386,14 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
             const Icon(
               PhosphorIconsFill.wrench,
               size: 48,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(height: Spacing.lg),
             Text(title, style: typ.AppTypography.h3),
             const SizedBox(height: Spacing.sm),
             Text(
               subtitle,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.sm),
@@ -426,7 +426,7 @@ class _SaveStatusIndicator extends StatelessWidget {
             height: 12,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
           const SizedBox(width: Spacing.xs),
@@ -511,9 +511,9 @@ class _BottomNavBar extends StatelessWidget {
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.bg,
         border: Border(
-          top: BorderSide(color: AppColors.border, width: 1),
+          top: BorderSide(color: AppColors.hairline, width: 1),
         ),
       ),
       child: Row(

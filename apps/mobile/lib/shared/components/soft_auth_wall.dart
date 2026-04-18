@@ -66,7 +66,7 @@ class _SoftAuthWallSheet extends StatelessWidget {
               width: Layout.sheetHandleWidth,
               height: Layout.sheetHandleHeight,
               decoration: BoxDecoration(
-                color: AppColors.line,
+                color: AppColors.hairlineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -100,7 +100,7 @@ class _SoftAuthWallSheet extends StatelessWidget {
               'Create a free account to $sanitized and unlock the full experience.',
               textAlign: TextAlign.center,
               style: typ.AppTypography.body.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
             const SizedBox(height: 28),
@@ -141,7 +141,7 @@ class _SoftAuthWallSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(Layout.buttonRadius),
                   ),
                   side: const BorderSide(
-                    color: AppColors.border,
+                    color: AppColors.hairline,
                   ),
                 ),
                 child: const Text('I already have an account'),
@@ -158,7 +158,7 @@ class _SoftAuthWallSheet extends StatelessWidget {
               child: Text(
                 'Not now',
                 style: typ.AppTypography.body.copyWith(
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
               ),
             ),

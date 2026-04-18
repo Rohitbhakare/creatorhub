@@ -46,9 +46,9 @@ class SpotListTile extends StatelessWidget {
           vertical: Spacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: Row(
           children: [
@@ -57,9 +57,9 @@ class SpotListTile extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.hairline),
               ),
               child: Center(
                 child: Text(
@@ -145,7 +145,7 @@ class SpotListTile extends StatelessWidget {
                     Text(
                       spot.creatorNote!,
                       style: typ.AppTypography.caption
-                          .copyWith(color: AppColors.muted),
+                          .copyWith(color: AppColors.inkSoft),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -167,7 +167,7 @@ class SpotListTile extends StatelessWidget {
                   child: Icon(
                     PhosphorIconsFill.trash,
                     size: 18,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               ),
@@ -176,7 +176,7 @@ class SpotListTile extends StatelessWidget {
               const Icon(
                 PhosphorIconsFill.dotsSixVertical,
                 size: 20,
-                color: AppColors.line,
+                color: AppColors.hairlineStrong,
               ),
             ],
           ],
@@ -214,12 +214,12 @@ class _SpotPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: Center(
         child: Icon(
           _stopTypeIcon(stopType),
           size: 22,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );

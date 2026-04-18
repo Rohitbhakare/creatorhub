@@ -20,7 +20,7 @@ Future<void> showCommentsSheet(BuildContext context, String contentId, int initi
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: AppColors.bg,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
     ),
@@ -51,7 +51,7 @@ class CommentsSheet extends ConsumerWidget {
         children: [
           // Header
           _Header(contentId: contentId, count: commentsState.items.length),
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.hairline),
 
           // Comment list
           Expanded(
@@ -62,7 +62,7 @@ class CommentsSheet extends ConsumerWidget {
             ),
           ),
 
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.hairline),
 
           // Input bar
           _CommentInput(contentId: contentId, state: commentsState),
@@ -100,8 +100,8 @@ class _Header extends ConsumerWidget {
             child: Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(color: AppColors.sunken, shape: BoxShape.circle),
-              child: const Icon(Icons.close, size: 18, color: AppColors.muted),
+              decoration: const BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
+              child: const Icon(Icons.close, size: 18, color: AppColors.inkSoft),
             ),
           ),
         ],
@@ -213,7 +213,7 @@ class _CommentTile extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: Spacing.xs, left: -Spacing.lg),
               width: 2,
               height: 16,
-              color: AppColors.border,
+              color: AppColors.hairline,
             ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,13 +242,13 @@ class _CommentTile extends ConsumerWidget {
                             padding: const EdgeInsets.only(left: Spacing.xs),
                             child: Text(
                               '· Edited',
-                              style: typ.AppTypography.caption.copyWith(color: AppColors.softInk),
+                              style: typ.AppTypography.caption.copyWith(color: AppColors.inkMuted),
                             ),
                           ),
                         const Spacer(),
                         Text(
                           formatTimeAgo(comment.createdAt),
-                          style: typ.AppTypography.caption.copyWith(color: AppColors.softInk),
+                          style: typ.AppTypography.caption.copyWith(color: AppColors.inkMuted),
                         ),
                       ],
                     ),
@@ -259,7 +259,7 @@ class _CommentTile extends ConsumerWidget {
                         ? Text(
                             '[Deleted]',
                             style: typ.AppTypography.bodySmall
-                                .copyWith(color: AppColors.softInk, fontStyle: FontStyle.italic),
+                                .copyWith(color: AppColors.inkMuted, fontStyle: FontStyle.italic),
                           )
                         : Text(comment.body ?? '', style: typ.AppTypography.bodySmall),
 
@@ -392,7 +392,7 @@ class _ActionButton extends StatelessWidget {
       child: Text(
         label,
         style: typ.AppTypography.caption.copyWith(
-          color: isDestructive ? AppColors.danger : AppColors.muted,
+          color: isDestructive ? AppColors.danger : AppColors.inkSoft,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -456,7 +456,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
             // Reply indicator
             if (replyToName != null)
               Container(
-                color: AppColors.sunken,
+                color: AppColors.surfaceAlt,
                 padding: const EdgeInsets.symmetric(
                   horizontal: Layout.screenPaddingH,
                   vertical: Spacing.xs,
@@ -465,7 +465,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                   children: [
                     Text(
                       'Replying to @$replyToName',
-                      style: typ.AppTypography.caption.copyWith(color: AppColors.muted),
+                      style: typ.AppTypography.caption.copyWith(color: AppColors.inkSoft),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -473,7 +473,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                         HapticFeedback.lightImpact();
                         ref.read(commentsProvider(widget.contentId).notifier).clearReplyTo();
                       },
-                      child: const Icon(Icons.close, size: 16, color: AppColors.muted),
+                      child: const Icon(Icons.close, size: 16, color: AppColors.inkSoft),
                     ),
                   ],
                 ),
@@ -505,14 +505,14 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                           hintText: replyToName != null
                               ? '@$replyToName '
                               : 'Add a comment…',
-                          hintStyle: typ.AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+                          hintStyle: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: const BorderSide(color: AppColors.border),
+                            borderSide: const BorderSide(color: AppColors.hairline),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
-                            borderSide: const BorderSide(color: AppColors.border),
+                            borderSide: const BorderSide(color: AppColors.hairline),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
@@ -524,7 +524,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                           ),
                           counterText: _charCount > 450 ? '${500 - _charCount}' : '',
                           counterStyle: typ.AppTypography.caption.copyWith(
-                            color: _charCount > 480 ? AppColors.danger : AppColors.softInk,
+                            color: _charCount > 480 ? AppColors.danger : AppColors.inkMuted,
                           ),
                         ),
                       ),
@@ -541,18 +541,18 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: _charCount > 0 ? AppColors.coral : AppColors.sunken,
+                        color: _charCount > 0 ? AppColors.coral : AppColors.surfaceAlt,
                         shape: BoxShape.circle,
                       ),
                       child: _isSending
                           ? const Padding(
                               padding: EdgeInsets.all(8),
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.surface),
                             )
                           : Icon(
                               PhosphorIconsFill.paperPlaneTilt,
                               size: 18,
-                              color: _charCount > 0 ? AppColors.white : AppColors.softInk,
+                              color: _charCount > 0 ? AppColors.surface : AppColors.inkMuted,
                             ),
                     ),
                   ),

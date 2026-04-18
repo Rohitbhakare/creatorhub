@@ -27,9 +27,9 @@ class BookingDetailScreen extends ConsumerWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -134,7 +134,7 @@ class _BookingDetailContent extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: Spacing.md),
-              const Divider(color: AppColors.border, height: 1),
+              const Divider(color: AppColors.hairline, height: 1),
               const SizedBox(height: Spacing.md),
               _PriceLine(
                 label: 'Total Paid',
@@ -189,9 +189,9 @@ class _SectionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +213,7 @@ class _InfoRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
         ),
         const Spacer(),
         Text(
@@ -242,7 +242,7 @@ class _PriceLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelStyle = isTotal
         ? typ.AppTypography.h4
-        : typ.AppTypography.body.copyWith(color: AppColors.muted);
+        : typ.AppTypography.body.copyWith(color: AppColors.inkSoft);
     final amountStyle = isTotal
         ? typ.AppTypography.h4
         : typ.AppTypography.body.copyWith(color: AppColors.ink);
@@ -287,18 +287,18 @@ class _StatusBadge extends StatelessWidget {
         ),
       'cancelled' => (
           'Cancelled',
-          AppColors.muted,
-          AppColors.sunken,
+          AppColors.inkSoft,
+          AppColors.surfaceAlt,
         ),
       'refunded' => (
           'Refunded',
-          AppColors.muted,
-          AppColors.sunken,
+          AppColors.inkSoft,
+          AppColors.surfaceAlt,
         ),
       _ => (
           'Unknown',
-          AppColors.muted,
-          AppColors.sunken,
+          AppColors.inkSoft,
+          AppColors.surfaceAlt,
         ),
     };
 
@@ -406,7 +406,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

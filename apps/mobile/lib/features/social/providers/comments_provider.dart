@@ -149,7 +149,8 @@ class CommentsNotifier extends Notifier<CommentsState> {
 
   @override
   CommentsState build() {
-    _fetch();
+    // Defer the fetch past build() so the state getter is available.
+    Future.microtask(_fetch);
     return const CommentsState();
   }
 

@@ -87,7 +87,7 @@ abstract final class AppTypography {
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.4,
-        color: AppColors.softInk,
+        color: AppColors.inkMuted,
       );
 
   /// 11px / 600 / 1.27 line height
@@ -95,7 +95,7 @@ abstract final class AppTypography {
         fontSize: 11,
         fontWeight: FontWeight.w600,
         height: 1.27,
-        color: AppColors.muted,
+        color: AppColors.inkSoft,
       );
 
   // ── TextTheme Factory ────────────────────────────────────────

@@ -67,9 +67,9 @@ class _CreatorCardState extends State<CreatorCard>
     Widget card = Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Row(
         children: [
@@ -98,7 +98,7 @@ class _CreatorCardState extends State<CreatorCard>
                   Text(
                     widget.verticals.join(' · '),
                     style: typ.AppTypography.caption.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

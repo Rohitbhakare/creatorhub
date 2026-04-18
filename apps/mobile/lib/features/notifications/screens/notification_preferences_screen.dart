@@ -46,9 +46,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     final notifState = ref.watch(notificationPrefsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -66,7 +66,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
         centerTitle: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.5),
-          child: Container(height: 0.5, color: AppColors.border),
+          child: Container(height: 0.5, color: AppColors.hairline),
         ),
       ),
       body: SafeArea(
@@ -116,7 +116,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                               const Divider(
                                 height: 0.5,
                                 thickness: 0.5,
-                                color: AppColors.border,
+                                color: AppColors.hairline,
                               ),
                               ..._orderedCategories.map((category) {
                                 return _CategoryRow(
@@ -183,14 +183,14 @@ class _DndSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.lg,
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 0.5),
+          bottom: BorderSide(color: AppColors.hairline, width: 0.5),
         ),
       ),
       child: Row(
@@ -198,7 +198,7 @@ class _DndSection extends StatelessWidget {
           Icon(
             PhosphorIcons.bellSlash(PhosphorIconsStyle.regular),
             size: 24,
-            color: enabled ? AppColors.coral : AppColors.muted,
+            color: enabled ? AppColors.coral : AppColors.inkSoft,
           ),
           const SizedBox(width: Spacing.md),
           Expanded(
@@ -214,7 +214,7 @@ class _DndSection extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Pauses push & WhatsApp. Booking alerts always come through.',
-                  style: AppTypography.caption.copyWith(color: AppColors.muted),
+                  style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
                 ),
               ],
             ),
@@ -250,14 +250,14 @@ class _QuietHoursRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.lg,
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 0.5),
+          bottom: BorderSide(color: AppColors.hairline, width: 0.5),
         ),
       ),
       child: Row(
@@ -265,13 +265,13 @@ class _QuietHoursRow extends StatelessWidget {
           Icon(
             PhosphorIcons.clock(PhosphorIconsStyle.regular),
             size: 22,
-            color: AppColors.softInk,
+            color: AppColors.inkMuted,
           ),
           const SizedBox(width: Spacing.md),
           Expanded(
             child: Text(
               'Quiet Hours',
-              style: AppTypography.body.copyWith(color: AppColors.softInk),
+              style: AppTypography.body.copyWith(color: AppColors.inkMuted),
             ),
           ),
           Container(
@@ -280,14 +280,14 @@ class _QuietHoursRow extends StatelessWidget {
               vertical: Spacing.xs,
             ),
             decoration: BoxDecoration(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               'Coming soon',
               style: AppTypography.label.copyWith(
                 fontSize: 10,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
             ),
           ),
@@ -316,7 +316,7 @@ class _MatrixHeader extends StatelessWidget {
     };
 
     return Container(
-      color: AppColors.white,
+      color: AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.lg,
         vertical: Spacing.sm,
@@ -334,14 +334,14 @@ class _MatrixHeader extends StatelessWidget {
                   Icon(
                     channelIcons[ch],
                     size: 16,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     channelLabels[ch] ?? ch,
                     style: AppTypography.caption.copyWith(
                       fontSize: 9,
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                 ],
@@ -383,9 +383,9 @@ class _CategoryRow extends StatelessWidget {
       opacity: isDimmed ? 0.5 : 1.0,
       child: Container(
         decoration: const BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           border: Border(
-            bottom: BorderSide(color: AppColors.border, width: 0.5),
+            bottom: BorderSide(color: AppColors.hairline, width: 0.5),
           ),
         ),
         padding: const EdgeInsets.symmetric(
@@ -447,7 +447,7 @@ class _MatrixSkeleton extends StatelessWidget {
           return Container(
             height: 52,
             margin: const EdgeInsets.only(bottom: 0.5),
-            color: AppColors.white,
+            color: AppColors.surface,
             padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg,
               vertical: Spacing.sm,
@@ -494,7 +494,7 @@ class _ErrorState extends StatelessWidget {
             Icon(
               PhosphorIcons.wifiSlash(PhosphorIconsStyle.regular),
               size: 48,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(height: Spacing.lg),
             Text(
@@ -505,7 +505,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               'Check your connection and try again.',
-              style: AppTypography.body.copyWith(color: AppColors.muted),
+              style: AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

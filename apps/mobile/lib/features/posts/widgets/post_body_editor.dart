@@ -98,7 +98,7 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
           const SizedBox(height: Spacing.sm),
           Text(
             'Share your experience with the community',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -158,10 +158,10 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
                 width: double.infinity,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.sunken,
+                  color: AppColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(Layout.cardRadius),
                   border: Border.all(
-                    color: AppColors.border,
+                    color: AppColors.hairline,
                     style: BorderStyle.solid,
                   ),
                 ),
@@ -171,7 +171,7 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
                     const Icon(
                       PhosphorIconsFill.images,
                       size: 28,
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                     const SizedBox(height: Spacing.sm),
                     Text(
@@ -179,7 +179,7 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
                           ? 'Add images'
                           : 'Add more images',
                       style: typ.AppTypography.bodySmall
-                          .copyWith(color: AppColors.muted),
+                          .copyWith(color: AppColors.inkSoft),
                     ),
                   ],
                 ),
@@ -212,7 +212,7 @@ class _CharacterCounter extends StatelessWidget {
     } else if (current >= 850) {
       color = AppColors.warning;
     } else {
-      color = AppColors.muted;
+      color = AppColors.inkSoft;
     }
 
     return Padding(
@@ -245,9 +245,9 @@ class _LocationTagChip extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -255,13 +255,13 @@ class _LocationTagChip extends StatelessWidget {
             const Icon(
               PhosphorIconsFill.mapPin,
               size: 16,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
             const SizedBox(width: Spacing.sm),
             Text(
               'Add location',
               style:
-                  typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+                  typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             ),
           ],
         ),
@@ -325,12 +325,12 @@ class _ImageTile extends StatelessWidget {
             File(item.uri),
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => Container(
-              color: AppColors.sunken,
+              color: AppColors.surfaceAlt,
               child: const Center(
                 child: Icon(
                   PhosphorIconsFill.imageSquare,
                   size: 32,
-                  color: AppColors.softInk,
+                  color: AppColors.inkMuted,
                 ),
               ),
             ),
@@ -353,7 +353,7 @@ class _ImageTile extends StatelessWidget {
                 child: const Icon(
                   PhosphorIconsFill.x,
                   size: 14,
-                  color: AppColors.white,
+                  color: AppColors.surface,
                 ),
               ),
             ),

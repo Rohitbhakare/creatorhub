@@ -238,7 +238,7 @@ class _DayBuilderStepState extends ConsumerState<DayBuilderStep> {
                 child: const Icon(
                   PhosphorIconsFill.plus,
                   size: 24,
-                  color: AppColors.white,
+                  color: AppColors.surface,
                 ),
               ),
             ),
@@ -275,10 +275,10 @@ class _DayTab extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.ink : AppColors.sunken,
+          color: isSelected ? AppColors.ink : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
           border: Border.all(
-            color: isSelected ? AppColors.ink : AppColors.border,
+            color: isSelected ? AppColors.ink : AppColors.hairline,
           ),
         ),
         child: Row(
@@ -288,7 +288,7 @@ class _DayTab extends StatelessWidget {
               label,
               style: typ.AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppColors.white : AppColors.ink,
+                color: isSelected ? AppColors.surface : AppColors.ink,
               ),
             ),
             if (spotCount > 0) ...[
@@ -300,14 +300,14 @@ class _DayTab extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.white.withValues(alpha: 0.2)
-                      : AppColors.border,
+                      ? AppColors.surface.withValues(alpha: 0.2)
+                      : AppColors.hairline,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '$spotCount',
                   style: typ.AppTypography.label.copyWith(
-                    color: isSelected ? AppColors.white : AppColors.muted,
+                    color: isSelected ? AppColors.surface : AppColors.inkSoft,
                     fontSize: 10,
                   ),
                 ),
@@ -340,7 +340,7 @@ class _DaySummaryBar extends StatelessWidget {
         vertical: Spacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
       ),
       child: Row(
@@ -348,7 +348,7 @@ class _DaySummaryBar extends StatelessWidget {
           const Icon(
             PhosphorIconsFill.path,
             size: 16,
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
           ),
           const SizedBox(width: Spacing.sm),
           Text(
@@ -365,7 +365,7 @@ class _DaySummaryBar extends StatelessWidget {
             Text(
               '${distanceKm.toStringAsFixed(1)} km',
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.muted),
+                  .copyWith(color: AppColors.inkSoft),
             ),
           ],
           if (totalMinutes > 0) ...[
@@ -376,7 +376,7 @@ class _DaySummaryBar extends StatelessWidget {
             Text(
               formatDuration(totalMinutes),
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.muted),
+                  .copyWith(color: AppColors.inkSoft),
             ),
           ],
         ],

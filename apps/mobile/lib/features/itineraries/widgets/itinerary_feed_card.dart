@@ -82,9 +82,9 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
 
     Widget card = Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -125,7 +125,7 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
                     child: Text(
                       'ITINERARY',
                       style: typ.AppTypography.label.copyWith(
-                        color: AppColors.white,
+                        color: AppColors.surface,
                         fontSize: 10,
                         letterSpacing: 0.5,
                       ),
@@ -143,7 +143,7 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
                       vertical: Spacing.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                      color: AppColors.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
@@ -200,20 +200,20 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
                                   color: AppColors.shimmerBase,
                                 ),
                                 errorWidget: (_, _, _) => Container(
-                                  color: AppColors.sunken,
+                                  color: AppColors.surfaceAlt,
                                   child: const Icon(
                                     PhosphorIconsFill.user,
                                     size: 12,
-                                    color: AppColors.softInk,
+                                    color: AppColors.inkMuted,
                                   ),
                                 ),
                               )
                             : Container(
-                                color: AppColors.sunken,
+                                color: AppColors.surfaceAlt,
                                 child: const Icon(
                                   PhosphorIconsFill.user,
                                   size: 12,
-                                  color: AppColors.softInk,
+                                  color: AppColors.inkMuted,
                                 ),
                               ),
                       ),
@@ -223,7 +223,7 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
                       child: Text(
                         widget.creatorName,
                         style: typ.AppTypography.caption
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -240,7 +240,7 @@ class _ItineraryFeedCardState extends State<ItineraryFeedCard>
                       child: Text(
                         _buildStatsText(),
                         style: typ.AppTypography.caption
-                            .copyWith(color: AppColors.softInk),
+                            .copyWith(color: AppColors.inkMuted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -313,12 +313,12 @@ class _CoverPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: Center(
         child: Icon(
           PhosphorIconsFill.mapTrifold,
           size: 40,
-          color: AppColors.softInk.withValues(alpha: 0.5),
+          color: AppColors.inkMuted.withValues(alpha: 0.5),
         ),
       ),
     );

@@ -37,7 +37,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final detailAsync = ref.watch(eventDetailProvider(widget.eventId));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: detailAsync.when(
         loading: () => const SafeArea(child: _LoadingSkeleton()),
         error: (error, _) => SafeArea(
@@ -79,7 +79,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       Text(
                         event.description,
                         style: typ.AppTypography.body
-                            .copyWith(color: AppColors.muted),
+                            .copyWith(color: AppColors.inkSoft),
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -231,7 +231,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.9),
+                color: AppColors.surface.withValues(alpha: 0.9),
                 shape: BoxShape.circle,
                 boxShadow: const [
                   BoxShadow(
@@ -270,12 +270,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       return Container(
         width: double.infinity,
         height: 280,
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         child: Center(
           child: Icon(
             PhosphorIconsFill.calendarBlank,
             size: 48,
-            color: AppColors.softInk.withValues(alpha: 0.5),
+            color: AppColors.inkMuted.withValues(alpha: 0.5),
           ),
         ),
       );
@@ -292,12 +292,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ),
       errorWidget: (_, _, _) => Container(
         height: 280,
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         child: const Center(
           child: Icon(
             PhosphorIconsFill.calendarBlank,
             size: 48,
-            color: AppColors.softInk,
+            color: AppColors.inkMuted,
           ),
         ),
       ),
@@ -320,9 +320,9 @@ class _WhatToBringChip extends StatelessWidget {
         vertical: Spacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.chipRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -407,9 +407,9 @@ class _AvatarPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(PhosphorIconsFill.user, size: 20, color: AppColors.softInk),
+        child: Icon(PhosphorIconsFill.user, size: 20, color: AppColors.inkMuted),
       ),
     );
   }
@@ -495,7 +495,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

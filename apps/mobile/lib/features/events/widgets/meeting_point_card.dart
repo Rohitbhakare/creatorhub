@@ -29,9 +29,9 @@ class MeetingPointCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -41,7 +41,7 @@ class MeetingPointCard extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 120,
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -58,7 +58,7 @@ class MeetingPointCard extends StatelessWidget {
                         '${venueLat!.toStringAsFixed(4)}, '
                         '${venueLng!.toStringAsFixed(4)}',
                         style: typ.AppTypography.caption
-                            .copyWith(color: AppColors.softInk),
+                            .copyWith(color: AppColors.inkMuted),
                       ),
                     ),
                 ],
@@ -93,7 +93,7 @@ class MeetingPointCard extends StatelessWidget {
                         Text(
                           venueAddress!,
                           style: typ.AppTypography.bodySmall
-                              .copyWith(color: AppColors.muted),
+                              .copyWith(color: AppColors.inkSoft),
                         ),
                       ],
                     ],

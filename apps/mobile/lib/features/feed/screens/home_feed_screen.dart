@@ -29,6 +29,7 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final _refreshKey = GlobalKey<RefreshIndicatorState>();
+  String _feedFilter = 'all';
 
   Future<void> _refresh() async {
     ref.invalidate(nearYouProvider);
@@ -39,8 +40,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showTravel = _feedFilter == 'all' || _feedFilter == 'travel';
+    final showStories = _feedFilter == 'all' || _feedFilter == 'stories';
+
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: RefreshIndicator(
           key: _refreshKey,
@@ -56,26 +60,33 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 ),
               ),
               // ── Vertical Filter Chips (DD-011) ──────────────
-              const SliverToBoxAdapter(child: _VerticalChipRow()),
+              SliverToBoxAdapter(
+                child: _VerticalChipRow(
+                  selected: _feedFilter,
+                  onSelect: (id) => setState(() => _feedFilter = id),
+                ),
+              ),
               const SliverToBoxAdapter(child: SizedBox(height: 16)),
               // ── Near You ─────────────────────────────────────
               const SliverToBoxAdapter(child: NearYouSection()),
-              // ── Travel vertical rail ─────────────────────────
-              const SliverToBoxAdapter(
-                child: VerticalSection(
-                  vertical: 'travel',
-                  eyebrow: 'TRAVEL',
-                  sectionTitle: 'Trips worth your weekend',
+              // ── Travel vertical rail (hidden when Stories filter active) ─
+              if (showTravel)
+                const SliverToBoxAdapter(
+                  child: VerticalSection(
+                    vertical: 'travel',
+                    eyebrow: 'TRAVEL',
+                    sectionTitle: 'Trips worth your weekend',
+                  ),
                 ),
-              ),
-              // ── Stories vertical rail ────────────────────────
-              const SliverToBoxAdapter(
-                child: VerticalSection(
-                  vertical: 'stories',
-                  eyebrow: 'STORIES WORTH READING',
-                  sectionTitle: 'From the people who go',
+              // ── Stories vertical rail (hidden when Travel filter active) ─
+              if (showStories)
+                const SliverToBoxAdapter(
+                  child: VerticalSection(
+                    vertical: 'stories',
+                    eyebrow: 'STORIES WORTH READING',
+                    sectionTitle: 'From the people who go',
+                  ),
                 ),
-              ),
               // ── Discover creators ────────────────────────────
               const SliverToBoxAdapter(child: DiscoverSection()),
               // ── Honesty footer (DISC-FR-001) ─────────────────
@@ -113,7 +124,7 @@ class _FeedTopBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       height: maxExtent,
-      color: AppColors.surface,
+      color: AppColors.bg,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
@@ -142,9 +153,9 @@ class _LocationChip extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          border: Border.all(color: AppColors.hairline, width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -160,7 +171,7 @@ class _LocationChip extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.expand_more, size: 14, color: AppColors.muted),
+            const Icon(Icons.expand_more, size: 14, color: AppColors.inkSoft),
           ],
         ),
       ),
@@ -178,9 +189,9 @@ class _IconBtn extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Icon(icon, size: 18, color: AppColors.ink),
     );
@@ -189,15 +200,11 @@ class _IconBtn extends StatelessWidget {
 
 // ── Vertical Filter Chips (DISC-FR-031) ────────────────────────
 
-class _VerticalChipRow extends StatefulWidget {
-  const _VerticalChipRow();
+class _VerticalChipRow extends StatelessWidget {
+  final String selected;
+  final void Function(String) onSelect;
 
-  @override
-  State<_VerticalChipRow> createState() => _VerticalChipRowState();
-}
-
-class _VerticalChipRowState extends State<_VerticalChipRow> {
-  String _selected = 'all';
+  const _VerticalChipRow({required this.selected, required this.onSelect});
 
   static const _chips = [
     _Chip('all', 'All', null),
@@ -216,18 +223,18 @@ class _VerticalChipRowState extends State<_VerticalChipRow> {
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final chip = _chips[i];
-          final isActive = _selected == chip.id;
+          final isActive = selected == chip.id;
 
           return GestureDetector(
-            onTap: () => setState(() => _selected = chip.id),
+            onTap: () => onSelect(chip.id),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.ink : AppColors.sunken,
+                color: isActive ? AppColors.ink : AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: isActive ? AppColors.ink : AppColors.border,
+                  color: isActive ? AppColors.ink : AppColors.hairline,
                   width: 0.5,
                 ),
               ),
@@ -238,14 +245,14 @@ class _VerticalChipRowState extends State<_VerticalChipRow> {
                     Icon(
                       chip.icon,
                       size: 12,
-                      color: isActive ? AppColors.white : AppColors.muted,
+                      color: isActive ? AppColors.surface : AppColors.inkSoft,
                     ),
                     const SizedBox(width: 5),
                   ],
                   Text(
                     chip.label,
                     style: AppTypography.label.copyWith(
-                      color: isActive ? AppColors.white : AppColors.muted,
+                      color: isActive ? AppColors.surface : AppColors.inkSoft,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -277,7 +284,7 @@ class _HonestyFooter extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -286,7 +293,7 @@ class _HonestyFooter extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(PhosphorIconsRegular.heart, size: 14, color: AppColors.ink),
@@ -303,7 +310,7 @@ class _HonestyFooter extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Refreshed every Monday · CreatorHub',
-            style: AppTypography.caption.copyWith(color: AppColors.softInk),
+            style: AppTypography.caption.copyWith(color: AppColors.inkMuted),
             textAlign: TextAlign.center,
           ),
         ],

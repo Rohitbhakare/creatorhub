@@ -38,9 +38,9 @@ class FeedRailCard extends StatelessWidget {
       child: Container(
         width: 200,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          border: Border.all(color: AppColors.hairline, width: 0.5),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -58,7 +58,7 @@ class FeedRailCard extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.sunken, AppColors.border],
+                        colors: [AppColors.surfaceAlt, AppColors.hairline],
                       ),
                     ),
                   ),
@@ -101,7 +101,7 @@ class FeedRailCard extends StatelessWidget {
                             child: Text(
                               creatorName,
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.softInk,
+                                color: AppColors.inkMuted,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -191,7 +191,7 @@ class _TypePill extends StatelessWidget {
       child: Text(
         label,
         style: AppTypography.caption.copyWith(
-          color: AppColors.white,
+          color: AppColors.surface,
           fontWeight: FontWeight.w600,
           fontSize: 10,
           letterSpacing: 0.3,
@@ -222,9 +222,9 @@ class DiscoverCreatorCard extends StatelessWidget {
       width: 130,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -242,7 +242,7 @@ class DiscoverCreatorCard extends StatelessWidget {
                   ? CachedNetworkImage(
                       imageUrl: avatarUrl!,
                       fit: BoxFit.cover,
-                      placeholder: (_, _) => Container(color: AppColors.sunken),
+                      placeholder: (_, _) => Container(color: AppColors.surfaceAlt),
                       errorWidget: (_, _, _) =>
                           _InitialsAvatar(name: displayName),
                     )
@@ -264,7 +264,7 @@ class DiscoverCreatorCard extends StatelessWidget {
           Text(
             vertical.toUpperCase(),
             style: AppTypography.caption.copyWith(
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
               fontSize: 9,
               letterSpacing: 0.5,
             ),
@@ -308,12 +308,12 @@ class _InitialsAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       alignment: Alignment.center,
       child: Text(
         _initials,
         style: AppTypography.label.copyWith(
-          color: AppColors.muted,
+          color: AppColors.inkSoft,
           fontWeight: FontWeight.w600,
         ),
       ),

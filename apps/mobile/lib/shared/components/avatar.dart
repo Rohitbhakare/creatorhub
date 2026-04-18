@@ -54,12 +54,12 @@ class AppAvatar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.coral,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.white, width: 1.5),
+                  border: Border.all(color: AppColors.surface, width: 1.5),
                 ),
                 child: Icon(
                   Icons.check,
                   size: _badgeSize * 0.6,
-                  color: AppColors.white,
+                  color: AppColors.surface,
                 ),
               ),
             ),
@@ -73,14 +73,14 @@ class AppAvatar extends StatelessWidget {
     final fontSize = size * 0.4;
 
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       alignment: Alignment.center,
       child: Text(
         initial,
         style: typ.AppTypography.body.copyWith(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
-          color: AppColors.muted,
+          color: AppColors.inkSoft,
         ),
       ),
     );

@@ -21,7 +21,7 @@ class YouTabScreen extends ConsumerWidget {
     final completionAsync = ref.watch(profileCompletionProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -62,17 +62,17 @@ class YouTabScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Sign Out', style: AppTypography.h4),
         content: Text(
           'Are you sure you want to sign out?',
-          style: AppTypography.body.copyWith(color: AppColors.muted),
+          style: AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel', style: AppTypography.body.copyWith(color: AppColors.muted)),
+            child: Text('Cancel', style: AppTypography.body.copyWith(color: AppColors.inkSoft)),
           ),
           TextButton(
             onPressed: () {
@@ -106,7 +106,7 @@ class _HeroCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       child: Column(
         children: [
@@ -114,7 +114,7 @@ class _HeroCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isCreator ? AppColors.coral : AppColors.line,
+                color: isCreator ? AppColors.coral : AppColors.hairlineStrong,
                 width: isCreator ? 2.5 : 1.5,
                 strokeAlign: BorderSide.strokeAlignOutside,
               ),
@@ -131,14 +131,14 @@ class _HeroCard extends StatelessWidget {
             style: GoogleFonts.fraunces(
               fontSize: 22,
               fontWeight: FontWeight.w600,
-              color: displayName.isNotEmpty ? AppColors.ink : AppColors.softInk,
+              color: displayName.isNotEmpty ? AppColors.ink : AppColors.inkMuted,
             ),
           ),
           if (username != null) ...[
             const SizedBox(height: 2),
             Text(
               '@$username',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
             ),
           ],
           if (bio != null && bio.isNotEmpty) ...[
@@ -148,7 +148,7 @@ class _HeroCard extends StatelessWidget {
               style: GoogleFonts.fraunces(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -180,9 +180,9 @@ class _CompletionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +210,7 @@ class _CompletionCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: completion.percentage / 100,
               minHeight: 6,
-              backgroundColor: AppColors.sunken,
+              backgroundColor: AppColors.surfaceAlt,
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.coral),
             ),
           ),
@@ -224,13 +224,13 @@ class _CompletionCard extends StatelessWidget {
                           ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
                           : PhosphorIcons.circle(PhosphorIconsStyle.regular),
                       size: 18,
-                      color: item.done ? AppColors.success : AppColors.line,
+                      color: item.done ? AppColors.success : AppColors.hairlineStrong,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       item.label,
                       style: AppTypography.bodySmall.copyWith(
-                        color: item.done ? AppColors.muted : AppColors.ink,
+                        color: item.done ? AppColors.inkSoft : AppColors.ink,
                         decoration: item.done ? TextDecoration.lineThrough : null,
                       ),
                     ),
@@ -264,9 +264,9 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -276,31 +276,31 @@ class _SettingsCard extends StatelessWidget {
             label: 'Edit Profile',
             onTap: onEditProfile,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _SettingsRow(
             icon: PhosphorIcons.bell(PhosphorIconsStyle.regular),
             label: 'Notifications',
             onTap: onNotifications,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _SettingsRow(
             icon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
             label: 'Saved',
             onTap: onSaved,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _SettingsRow(
             icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.regular),
             label: 'Privacy & Data',
             onTap: onPrivacy,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _SettingsRow(
             icon: PhosphorIcons.question(PhosphorIconsStyle.regular),
             label: 'Help',
             onTap: () {},
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _SettingsRow(
             icon: PhosphorIcons.signOut(PhosphorIconsStyle.regular),
             label: 'Sign Out',
@@ -351,7 +351,7 @@ class _SettingsRow extends StatelessWidget {
               Icon(
                 PhosphorIcons.caretRight(PhosphorIconsStyle.regular),
                 size: 16,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
           ],
         ),

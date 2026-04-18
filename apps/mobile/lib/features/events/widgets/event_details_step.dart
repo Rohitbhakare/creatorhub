@@ -247,7 +247,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
           const SizedBox(height: Spacing.sm),
           Text(
             'When and where is it happening?',
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.xl),
 
@@ -354,7 +354,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
           Text(
             'Help attendees come prepared',
             style:
-                typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+                typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: Spacing.md),
 
@@ -405,7 +405,7 @@ class _SectionLabel extends StatelessWidget {
       text,
       style: typ.AppTypography.bodySmall.copyWith(
         fontWeight: FontWeight.w600,
-        color: AppColors.muted,
+        color: AppColors.inkSoft,
       ),
     );
   }
@@ -445,10 +445,10 @@ class _DateTimeButton extends StatelessWidget {
             vertical: Spacing.md,
           ),
           decoration: BoxDecoration(
-            color: hasValue ? AppColors.coralSurface : AppColors.sunken,
+            color: hasValue ? AppColors.coralSurface : AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(Layout.inputRadius),
             border: Border.all(
-              color: hasValue ? AppColors.coral : AppColors.border,
+              color: hasValue ? AppColors.coral : AppColors.hairline,
             ),
           ),
           child: Row(
@@ -456,7 +456,7 @@ class _DateTimeButton extends StatelessWidget {
               Icon(
                 PhosphorIconsFill.calendarBlank,
                 size: 18,
-                color: hasValue ? AppColors.coral : AppColors.softInk,
+                color: hasValue ? AppColors.coral : AppColors.inkMuted,
               ),
               const SizedBox(width: Spacing.sm),
               Expanded(
@@ -467,14 +467,14 @@ class _DateTimeButton extends StatelessWidget {
                       dateStr,
                       style: typ.AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: hasValue ? AppColors.ink : AppColors.muted,
+                        color: hasValue ? AppColors.ink : AppColors.inkSoft,
                       ),
                     ),
                     Text(
                       timeStr,
                       style: typ.AppTypography.caption.copyWith(
                         color:
-                            hasValue ? AppColors.muted : AppColors.softInk,
+                            hasValue ? AppColors.inkSoft : AppColors.inkMuted,
                       ),
                     ),
                   ],
@@ -509,9 +509,9 @@ class _CapacityStepper extends StatelessWidget {
         vertical: Spacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.inputRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -523,14 +523,14 @@ class _CapacityStepper extends StatelessWidget {
               width: Layout.minTapTarget,
               height: Layout.minTapTarget,
               decoration: BoxDecoration(
-                color: count > 1 ? AppColors.white : AppColors.sunken,
+                color: count > 1 ? AppColors.surface : AppColors.surfaceAlt,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.hairline),
               ),
               child: Icon(
                 PhosphorIconsFill.minus,
                 size: 18,
-                color: count > 1 ? AppColors.ink : AppColors.softInk,
+                color: count > 1 ? AppColors.ink : AppColors.inkMuted,
               ),
             ),
           ),
@@ -547,14 +547,14 @@ class _CapacityStepper extends StatelessWidget {
               width: Layout.minTapTarget,
               height: Layout.minTapTarget,
               decoration: BoxDecoration(
-                color: count < 10000 ? AppColors.white : AppColors.sunken,
+                color: count < 10000 ? AppColors.surface : AppColors.surfaceAlt,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.hairline),
               ),
               child: Icon(
                 PhosphorIconsFill.plus,
                 size: 18,
-                color: count < 10000 ? AppColors.ink : AppColors.softInk,
+                color: count < 10000 ? AppColors.ink : AppColors.inkMuted,
               ),
             ),
           ),
@@ -608,7 +608,7 @@ class _CityChip extends StatelessWidget {
               child: Icon(
                 PhosphorIconsFill.xCircle,
                 size: 18,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
           ),
@@ -634,9 +634,9 @@ class _ItemChip extends StatelessWidget {
         vertical: Spacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.chipRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -654,7 +654,7 @@ class _ItemChip extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(Spacing.xs),
-              child: Icon(PhosphorIconsFill.x, size: 14, color: AppColors.muted),
+              child: Icon(PhosphorIconsFill.x, size: 14, color: AppColors.inkSoft),
             ),
           ),
         ],
@@ -676,9 +676,9 @@ class _CityResultsList extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: Spacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       constraints: const BoxConstraints(maxHeight: 200),
       child: ListView.separated(
@@ -686,7 +686,7 @@ class _CityResultsList extends StatelessWidget {
         padding: EdgeInsets.zero,
         itemCount: results.length,
         separatorBuilder: (_, _) =>
-            const Divider(color: AppColors.border, height: 1),
+            const Divider(color: AppColors.hairline, height: 1),
         itemBuilder: (context, index) {
           final city = results[index];
           final name = city['name'] as String? ?? '';
@@ -801,7 +801,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
         Text(
           'Suggested for ${widget.vertical}',
           style: typ.AppTypography.bodySmall.copyWith(
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -828,12 +828,12 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
                     height: 22,
                     decoration: BoxDecoration(
                       color:
-                          checked ? AppColors.coral : AppColors.white,
+                          checked ? AppColors.coral : AppColors.surface,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: checked
                             ? AppColors.coral
-                            : AppColors.border,
+                            : AppColors.hairline,
                         width: 1.5,
                       ),
                     ),
@@ -841,7 +841,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
                         ? const Icon(
                             Icons.check,
                             size: 14,
-                            color: AppColors.white,
+                            color: AppColors.surface,
                           )
                         : null,
                   ),
@@ -856,7 +856,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
         }),
 
         const SizedBox(height: Spacing.xl),
-        const Divider(color: AppColors.border),
+        const Divider(color: AppColors.hairline),
         const SizedBox(height: Spacing.lg),
 
         // Custom item input
@@ -864,7 +864,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
           'Add your own',
           style: typ.AppTypography.bodySmall.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
           ),
         ),
         const SizedBox(height: Spacing.sm),
@@ -892,7 +892,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
                 child: const Icon(
                   PhosphorIconsFill.plus,
                   size: 20,
-                  color: AppColors.white,
+                  color: AppColors.surface,
                 ),
               ),
             ),

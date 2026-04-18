@@ -46,7 +46,7 @@ class WhosGoing extends StatelessWidget {
           child: Text(
             _buildLabel(),
             style: typ.AppTypography.bodySmall.copyWith(
-              color: AppColors.muted,
+              color: AppColors.inkSoft,
             ),
           ),
         ),
@@ -78,7 +78,7 @@ class _AttendeeAvatar extends StatelessWidget {
       height: 32,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.surface, width: 2),
+        border: Border.all(color: AppColors.bg, width: 2),
       ),
       child: ClipOval(
         child: attendee.avatarUrl != null
@@ -98,12 +98,12 @@ class _Placeholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
         child: Icon(
           PhosphorIconsFill.user,
           size: 16,
-          color: AppColors.softInk,
+          color: AppColors.inkMuted,
         ),
       ),
     );

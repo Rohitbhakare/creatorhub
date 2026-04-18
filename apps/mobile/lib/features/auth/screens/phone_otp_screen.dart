@@ -164,7 +164,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -205,7 +205,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                     ? 'Enter the 6-digit code sent to +91 ${_phoneController.text}'
                     : 'Enter your phone number to get started',
                 style: typ.AppTypography.bodyLarge.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
               ),
               const SizedBox(height: Spacing.xxl),
@@ -239,7 +239,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                     child: Text(
                       'Browse as guest',
                       style: typ.AppTypography.body.copyWith(
-                        color: AppColors.softInk,
+                        color: AppColors.inkMuted,
                       ),
                     ),
                   ),
@@ -259,7 +259,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
         // Phone input with +91 prefix
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.hairline),
             borderRadius: BorderRadius.circular(Layout.inputRadius),
           ),
           child: Row(
@@ -272,7 +272,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                 ),
                 decoration: const BoxDecoration(
                   border: Border(
-                    right: BorderSide(color: AppColors.border),
+                    right: BorderSide(color: AppColors.hairline),
                   ),
                 ),
                 child: Text(
@@ -294,7 +294,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
                   decoration: InputDecoration(
                     hintText: 'Phone number',
                     hintStyle: typ.AppTypography.bodyLarge.copyWith(
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -335,7 +335,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
         fontWeight: FontWeight.w600,
       ),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
         borderRadius: BorderRadius.circular(Layout.inputRadius),
       ),
     );
@@ -372,7 +372,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
           Text(
             'Resend OTP in ${_resendCooldown}s',
             style: typ.AppTypography.bodySmall.copyWith(
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
           )
         else if (_resendCount < _maxResends)

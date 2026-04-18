@@ -175,7 +175,11 @@ class StudioContentNotifier extends Notifier<StudioContentState> {
 
   @override
   StudioContentState build() {
-    _fetch();
+    // Defer the initial fetch to a microtask so that build() returns first
+    // and Riverpod sets the initial state before _fetch() reads state.statusFilter.
+    // Calling _fetch() synchronously in build() causes "uninitialized provider"
+    // because state is not accessible until after build() completes.
+    Future.microtask(_fetch);
     return const StudioContentState();
   }
 

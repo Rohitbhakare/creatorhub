@@ -10,6 +10,7 @@ import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/components/button.dart';
+import '../../../shared/components/selection_tile.dart';
 import '../../../shared/components/skeleton.dart';
 import '../providers/onboarding_provider.dart';
 import '../components/onboarding_progress_bar.dart';
@@ -59,7 +60,7 @@ class _Vertical {
   }
 
   Color get accentColor =>
-      _verticalAccentColors[slug.toLowerCase()] ?? AppColors.muted;
+      _verticalAccentColors[slug.toLowerCase()] ?? AppColors.inkSoft;
 
   IconData get icon =>
       _verticalIcons[slug.toLowerCase()] ?? PhosphorIconsFill.sparkle;
@@ -167,7 +168,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
               e.response?.statusMessage ??
                   'Failed to save interests. Try again.',
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.white),
+                  .copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -184,7 +185,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
             content: Text(
               'Something went wrong. Try again.',
               style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.white),
+                  .copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -206,7 +207,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     final canContinue = _selectedSlugs.length >= _minRequired;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -228,7 +229,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                     ? '${_selectedSlugs.length} picked \u2014 looking good!'
                     : 'Pick at least $_minRequired to shape your feed.',
                 style: typ.AppTypography.bodySmall.copyWith(
-                  color: canContinue ? AppColors.success : AppColors.muted,
+                  color: canContinue ? AppColors.success : AppColors.inkSoft,
                   fontWeight: canContinue ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
@@ -271,13 +272,13 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
               const Icon(
                 PhosphorIconsFill.warningCircle,
                 size: 48,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
               const SizedBox(height: Spacing.md),
               Text(
                 _loadError!,
                 style: typ.AppTypography.body.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -370,8 +371,9 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
   }
 }
 
-/// Individual vertical tile — centered icon + name + count.
-/// Selected state: coral border + offset shadow. No checkmark.
+/// Individual vertical tile — uses the shared `SelectionTile` (SRS C-26).
+/// Icon rendered in a vertical-specific tinted container; SelectionTile
+/// handles rest/selected border + halo + coral check badge.
 class _VerticalTile extends StatelessWidget {
   final _Vertical vertical;
   final bool isSelected;
@@ -387,74 +389,27 @@ class _VerticalTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = vertical.accentColor;
 
-    return GestureDetector(
+    return SelectionTile(
+      selected: isSelected,
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeInOut,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      leading: Container(
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? AppColors.coral : AppColors.border,
-            width: isSelected ? 1.5 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.coral.withValues(alpha: 0.12),
-                    offset: const Offset(3, 3),
-                    blurRadius: 0,
-                  ),
-                ]
-              : null,
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon in tinted container
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                vertical.icon,
-                size: 22,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-
-            // Name
-            Text(
-              vertical.name,
-              style: typ.AppTypography.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Fraunces',
-                color: AppColors.ink,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 1),
-
-            // Creator count
-            Text(
-              vertical.creatorCount > 0
-                  ? '${vertical.creatorCount} creators'
-                  : 'Coming soon',
-              style: typ.AppTypography.caption.copyWith(
-                color: AppColors.softInk,
-                fontSize: 11,
-              ),
-            ),
-          ],
+        child: Icon(
+          vertical.icon,
+          size: 22,
+          color: color,
         ),
       ),
+      label: vertical.name,
+      sublabel: vertical.creatorCount > 0
+          ? '${vertical.creatorCount} creators'
+          : 'Coming soon',
     );
   }
 }

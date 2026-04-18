@@ -27,6 +27,12 @@ class AppInput extends StatelessWidget {
   final Widget? suffix;
   final bool obscureText;
 
+  /// Whether the field is read-only. When null (the default), the field
+  /// auto-resolves to read-only if neither a `controller` nor `onChanged`
+  /// is provided — enforcing SRS C-20's rule that every input must either
+  /// capture typed text or declare itself display-only.
+  final bool? readOnly;
+
   const AppInput({
     super.key,
     this.controller,
@@ -48,7 +54,11 @@ class AppInput extends StatelessWidget {
     this.prefix,
     this.suffix,
     this.obscureText = false,
+    this.readOnly,
   });
+
+  bool get _effectiveReadOnly =>
+      readOnly ?? (controller == null && onChanged == null);
 
   @override
   Widget build(BuildContext context) {
@@ -63,13 +73,14 @@ class AppInput extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(label!, style: typ.AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               )),
             ),
           TextField(
             controller: controller,
             focusNode: focusNode,
             enabled: enabled,
+            readOnly: _effectiveReadOnly,
             autofocus: autofocus,
             maxLines: maxLines,
             maxLength: maxLength,
@@ -155,29 +166,29 @@ class _AppSearchInputState extends State<AppSearchInput> {
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
         hintText: widget.hint,
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.softInk),
+        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.inkMuted),
         suffixIcon: _controller.text.isNotEmpty
             ? GestureDetector(
                 onTap: _clear,
-                child: const Icon(Icons.close, size: 18, color: AppColors.softInk),
+                child: const Icon(Icons.close, size: 18, color: AppColors.inkMuted),
               )
             : null,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.hairline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Layout.inputRadius),
           borderSide: const BorderSide(color: AppColors.coral, width: 1.5),
         ),
         filled: true,
-        fillColor: AppColors.sunken,
+        fillColor: AppColors.surfaceAlt,
       ),
     );
   }

@@ -44,9 +44,9 @@ class _KycWizardScreenState extends ConsumerState<KycWizardScreen> {
     final state = ref.watch(kycWizardProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: GestureDetector(
@@ -193,7 +193,7 @@ class _StepProgressIndicator extends StatelessWidget {
             return Expanded(
               child: Container(
                 height: 2,
-                color: isCompleted ? AppColors.ink : AppColors.border,
+                color: isCompleted ? AppColors.ink : AppColors.hairline,
               ),
             );
           } else {
@@ -231,10 +231,10 @@ class _StepCircle extends StatelessWidget {
 
     if (isCompleted || isActive) {
       bg = AppColors.ink;
-      fg = AppColors.white;
+      fg = AppColors.surface;
     } else {
-      bg = AppColors.sunken;
-      fg = AppColors.softInk;
+      bg = AppColors.surfaceAlt;
+      fg = AppColors.inkMuted;
     }
 
     return Container(
@@ -369,7 +369,7 @@ class _Step1PanState extends ConsumerState<_Step1Pan> {
             content: Text(
               'Upload failed. Please try again.',
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
+                color: AppColors.surface,
               ),
             ),
             backgroundColor: AppColors.danger,
@@ -392,7 +392,7 @@ class _Step1PanState extends ConsumerState<_Step1Pan> {
         const SizedBox(height: Spacing.sm),
         Text(
           'Enter your PAN card details exactly as they appear on the card.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         const SizedBox(height: Spacing.xxl),
 
@@ -428,7 +428,7 @@ class _Step1PanState extends ConsumerState<_Step1Pan> {
           'PAN Document',
           style: typ.AppTypography.bodySmall.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
           ),
         ),
         const SizedBox(height: Spacing.sm),
@@ -499,7 +499,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
             content: Text(
               'Upload failed. Please try again.',
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
+                color: AppColors.surface,
               ),
             ),
             backgroundColor: AppColors.danger,
@@ -522,7 +522,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
         const SizedBox(height: Spacing.sm),
         Text(
           'We only store the last 4 digits of your Aadhaar for privacy.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         const SizedBox(height: Spacing.xxl),
 
@@ -544,7 +544,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(Layout.cardRadius),
           ),
           child: Row(
@@ -553,7 +553,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
               Icon(
                 PhosphorIcons.lockSimple(PhosphorIconsStyle.fill),
                 size: 16,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
               SizedBox(width: Spacing.sm),
               Expanded(
@@ -561,7 +561,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
                   'We only store the last 4 digits for privacy. Your full Aadhaar number is never stored.',
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               ),
@@ -575,7 +575,7 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
           'Aadhaar Document (Optional)',
           style: typ.AppTypography.bodySmall.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.muted,
+            color: AppColors.inkSoft,
           ),
         ),
         const SizedBox(height: Spacing.sm),
@@ -657,7 +657,7 @@ class _Step3BankState extends ConsumerState<_Step3Bank> {
         const SizedBox(height: Spacing.sm),
         Text(
           'Add your bank account to receive payouts from CreatorHub.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         const SizedBox(height: Spacing.xxl),
 
@@ -740,7 +740,7 @@ class _Step4SelfieState extends ConsumerState<_Step4Selfie> {
             content: Text(
               'Upload failed. Please try again.',
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
+                color: AppColors.surface,
               ),
             ),
             backgroundColor: AppColors.danger,
@@ -763,7 +763,7 @@ class _Step4SelfieState extends ConsumerState<_Step4Selfie> {
         const SizedBox(height: Spacing.sm),
         Text(
           'Hold your PAN card next to your face and take a clear photo.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         const SizedBox(height: Spacing.xxl),
 
@@ -808,12 +808,12 @@ class _Step4SelfieState extends ConsumerState<_Step4Selfie> {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(Layout.cardRadius),
           ),
           child: Text(
             'This is a one-time verification requirement. Your selfie is used only for identity verification.',
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
         ),
         const SizedBox(height: Spacing.xl),
@@ -845,7 +845,7 @@ class _Step5ReviewState extends ConsumerState<_Step5Review> {
         const SizedBox(height: Spacing.sm),
         Text(
           'Please review your details before submitting.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         const SizedBox(height: Spacing.xxl),
 
@@ -881,7 +881,7 @@ class _Step5ReviewState extends ConsumerState<_Step5Review> {
               value: state.aadhaarDocUrl != null ? 'Uploaded' : 'Not uploaded',
               valueColor: state.aadhaarDocUrl != null
                   ? AppColors.success
-                  : AppColors.muted,
+                  : AppColors.inkSoft,
             ),
           ],
         ),
@@ -938,7 +938,7 @@ class _Step5ReviewState extends ConsumerState<_Step5Review> {
                     decoration: BoxDecoration(
                       color: _confirmed ? AppColors.ink : Colors.transparent,
                       border: Border.all(
-                        color: _confirmed ? AppColors.ink : AppColors.border,
+                        color: _confirmed ? AppColors.ink : AppColors.hairline,
                         width: 1.5,
                       ),
                       borderRadius: BorderRadius.circular(4),
@@ -947,7 +947,7 @@ class _Step5ReviewState extends ConsumerState<_Step5Review> {
                         ? Icon(
                             PhosphorIcons.check(PhosphorIconsStyle.fill),
                             size: 14,
-                            color: AppColors.white,
+                            color: AppColors.surface,
                           )
                         : null,
                   ),
@@ -960,7 +960,7 @@ class _Step5ReviewState extends ConsumerState<_Step5Review> {
                   child: Text(
                     'By submitting, I confirm all details are accurate and belong to me.',
                     style: typ.AppTypography.bodySmall.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                 ),
@@ -996,10 +996,10 @@ class _UploadButton extends StatelessWidget {
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
           border: Border.all(
-            color: AppColors.border,
+            color: AppColors.hairline,
           ),
         ),
         child: isLoading
@@ -1009,19 +1009,19 @@ class _UploadButton extends StatelessWidget {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 22, color: AppColors.muted),
+                  Icon(icon, size: 22, color: AppColors.inkSoft),
                   const SizedBox(width: Spacing.md),
                   Text(
                     label,
                     style: typ.AppTypography.body.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                 ],
@@ -1075,7 +1075,7 @@ class _DocumentPreview extends StatelessWidget {
             child: Text(
               'Replace',
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
                 decoration: TextDecoration.underline,
               ),
             ),
@@ -1099,9 +1099,9 @@ class _SelfieCaptureButton extends StatelessWidget {
       child: Container(
         height: 200,
         decoration: BoxDecoration(
-          color: AppColors.sunken,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: isLoading
             ? const Center(
@@ -1110,7 +1110,7 @@ class _SelfieCaptureButton extends StatelessWidget {
                   height: 32,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 ),
               )
@@ -1121,27 +1121,27 @@ class _SelfieCaptureButton extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: const BoxDecoration(
-                      color: AppColors.border,
+                      color: AppColors.hairline,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       PhosphorIcons.camera(PhosphorIconsStyle.fill),
                       size: 28,
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                   const SizedBox(height: Spacing.md),
                   Text(
                     'Tap to open camera',
                     style: typ.AppTypography.body.copyWith(
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                   const SizedBox(height: Spacing.xs),
                   Text(
                     'Hold PAN card next to your face',
                     style: typ.AppTypography.bodySmall.copyWith(
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                   ),
                 ],
@@ -1165,7 +1165,7 @@ class _SelfiePreview extends StatelessWidget {
           height: 200,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.sunken,
+            color: AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(Layout.cardRadius),
             border: Border.all(
               color: AppColors.success.withValues(alpha: 0.3),
@@ -1181,7 +1181,7 @@ class _SelfiePreview extends StatelessWidget {
                 return const Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.muted,
+                    color: AppColors.inkSoft,
                   ),
                 );
               },
@@ -1211,14 +1211,14 @@ class _SelfiePreview extends StatelessWidget {
                   Icon(
                     PhosphorIcons.camera(PhosphorIconsStyle.fill),
                     size: 14,
-                    color: AppColors.white,
+                    color: AppColors.surface,
                   ),
                   SizedBox(width: Spacing.xs),
                   Text(
                     'Retake',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.white,
+                      color: AppColors.surface,
                     ),
                   ),
                 ],
@@ -1242,12 +1242,12 @@ class _TipRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.muted),
+        Icon(icon, size: 16, color: AppColors.inkSoft),
         const SizedBox(width: Spacing.sm),
         Expanded(
           child: Text(
             text,
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
         ),
       ],
@@ -1265,9 +1265,9 @@ class _ReviewSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1281,7 +1281,7 @@ class _ReviewSection extends StatelessWidget {
               style: typ.AppTypography.h4,
             ),
           ),
-          const Divider(color: AppColors.border, height: 1),
+          const Divider(color: AppColors.hairline, height: 1),
           ...items,
         ],
       ),
@@ -1314,7 +1314,7 @@ class _ReviewItem extends StatelessWidget {
             child: Text(
               label,
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
           ),
@@ -1371,7 +1371,7 @@ class _SuccessSheet extends StatelessWidget {
           const SizedBox(height: Spacing.md),
           Text(
             "Your KYC application is under review. We'll notify you once it's verified — usually within 1–2 business days.",
-            style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: Spacing.xxl),

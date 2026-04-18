@@ -31,9 +31,9 @@ class DateBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Row(
         children: [
@@ -51,14 +51,14 @@ class DateBlock extends StatelessWidget {
                 Text(
                   dayOfWeek,
                   style: typ.AppTypography.label.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.8),
+                    color: AppColors.surface.withValues(alpha: 0.8),
                     fontSize: 9,
                   ),
                 ),
                 Text(
                   DateFormat('d').format(startAt),
                   style: typ.AppTypography.h3.copyWith(
-                    color: AppColors.white,
+                    color: AppColors.surface,
                     height: 1.1,
                   ),
                 ),
@@ -83,7 +83,7 @@ class DateBlock extends StatelessWidget {
                     const Icon(
                       PhosphorIconsFill.clock,
                       size: 14,
-                      color: AppColors.muted,
+                      color: AppColors.inkSoft,
                     ),
                     const SizedBox(width: Spacing.xs),
                     Text(
@@ -91,7 +91,7 @@ class DateBlock extends StatelessWidget {
                           ? '$startTime – $endTime'
                           : startTime,
                       style: typ.AppTypography.bodySmall
-                          .copyWith(color: AppColors.muted),
+                          .copyWith(color: AppColors.inkSoft),
                     ),
                   ],
                 ),
@@ -103,7 +103,7 @@ class DateBlock extends StatelessWidget {
           const Icon(
             PhosphorIconsFill.calendarPlus,
             size: 20,
-            color: AppColors.softInk,
+            color: AppColors.inkMuted,
           ),
         ],
       ),

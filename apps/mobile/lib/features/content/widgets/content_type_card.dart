@@ -93,9 +93,9 @@ class _ContentTypeCardState extends State<ContentTypeCard>
             minHeight: Layout.minTapTarget,
           ),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(Layout.cardRadius),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.hairline),
             boxShadow: widget.enabled
                 ? const [
                     BoxShadow(
@@ -115,7 +115,7 @@ class _ContentTypeCardState extends State<ContentTypeCard>
               Icon(
                 widget.icon,
                 size: 64,
-                color: widget.enabled ? AppColors.coral : AppColors.softInk,
+                color: widget.enabled ? AppColors.coral : AppColors.inkMuted,
               ),
               const SizedBox(height: Spacing.md),
 
@@ -145,14 +145,14 @@ class _ContentTypeCardState extends State<ContentTypeCard>
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: (widget.badgeColor ?? AppColors.muted)
+                    color: (widget.badgeColor ?? AppColors.inkSoft)
                         .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     widget.badgeText!,
                     style: typ.AppTypography.label.copyWith(
-                      color: widget.badgeColor ?? AppColors.muted,
+                      color: widget.badgeColor ?? AppColors.inkSoft,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

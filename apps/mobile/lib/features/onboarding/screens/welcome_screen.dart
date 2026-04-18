@@ -20,7 +20,7 @@ class WelcomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -46,7 +46,7 @@ class WelcomeScreen extends ConsumerWidget {
               Text(
                 'Discover incredible travel experiences\ncrafted by local creators across India.',
                 style: typ.AppTypography.body.copyWith(
-                  color: AppColors.muted,
+                  color: AppColors.inkSoft,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -77,7 +77,7 @@ class WelcomeScreen extends ConsumerWidget {
                 child: Text(
                   'Browse as guest',
                   style: typ.AppTypography.body.copyWith(
-                    color: AppColors.softInk,
+                    color: AppColors.inkMuted,
                   ),
                 ),
               ),

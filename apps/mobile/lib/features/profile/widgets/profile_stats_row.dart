@@ -54,7 +54,7 @@ class _StatItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
+            style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
           ),
         ],
       ),
@@ -67,6 +67,6 @@ class _StatDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 24, color: AppColors.line);
+    return Container(width: 1, height: 24, color: AppColors.hairlineStrong);
   }
 }

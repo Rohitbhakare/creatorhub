@@ -161,7 +161,7 @@ class _ContentCardState extends State<ContentCard>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.9),
+                    color: AppColors.surface.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -214,7 +214,7 @@ class _ContentCardState extends State<ContentCard>
             child: Text(
               widget.creatorName,
               style: typ.AppTypography.bodySmall.copyWith(
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -226,10 +226,10 @@ class _ContentCardState extends State<ContentCard>
   }
 
   Color get _verticalColor {
-    if (widget.verticalSlug == null) return AppColors.softInk;
+    if (widget.verticalSlug == null) return AppColors.inkMuted;
     return AppColors.verticalColors[widget.verticalSlug] ??
         AppColors.storyColors[widget.verticalSlug] ??
-        AppColors.softInk;
+        AppColors.inkMuted;
   }
 }
 
@@ -246,7 +246,7 @@ class _PriceBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.92),
+        color: AppColors.surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

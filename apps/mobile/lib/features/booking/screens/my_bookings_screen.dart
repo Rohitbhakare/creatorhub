@@ -26,9 +26,9 @@ class MyBookingsScreen extends ConsumerWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.bg,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -116,9 +116,9 @@ class _BookingCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0A2C2823),
@@ -139,12 +139,12 @@ class _BookingCard extends StatelessWidget {
                 width: 80,
                 height: 88,
                 child: Container(
-                  color: AppColors.sunken,
+                  color: AppColors.surfaceAlt,
                   child: const Center(
                     child: Icon(
                       PhosphorIconsFill.mountains,
                       size: 28,
-                      color: AppColors.softInk,
+                      color: AppColors.inkMuted,
                     ),
                   ),
                 ),
@@ -200,7 +200,7 @@ class _BookingCard extends StatelessWidget {
               child: Icon(
                 PhosphorIconsRegular.caretRight,
                 size: 18,
-                color: AppColors.softInk,
+                color: AppColors.inkMuted,
               ),
             ),
           ],
@@ -271,13 +271,13 @@ class _StatusBadge extends StatelessWidget {
         ),
       'cancelled' || 'refunded' => (
           status == 'refunded' ? 'Refunded' : 'Cancelled',
-          AppColors.muted,
-          AppColors.sunken,
+          AppColors.inkSoft,
+          AppColors.surfaceAlt,
         ),
       _ => (
           'Unknown',
-          AppColors.muted,
-          AppColors.sunken,
+          AppColors.inkSoft,
+          AppColors.surfaceAlt,
         ),
     };
   }
@@ -341,7 +341,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

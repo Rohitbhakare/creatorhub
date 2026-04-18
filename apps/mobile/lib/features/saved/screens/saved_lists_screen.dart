@@ -25,9 +25,9 @@ class SavedListsScreen extends ConsumerWidget {
     final state = ref.watch(savedListsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -66,7 +66,7 @@ class SavedListsScreen extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
       ),
@@ -121,9 +121,9 @@ class _ListCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.hairline),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -160,7 +160,7 @@ class _ListCard extends StatelessWidget {
                       child: Text(
                         '${list.itemCount}',
                         style: typ.AppTypography.caption.copyWith(
-                          color: AppColors.white,
+                          color: AppColors.surface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -185,7 +185,7 @@ class _ListCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     _formatUpdatedAt(list.updatedAt),
-                    style: typ.AppTypography.caption.copyWith(color: AppColors.softInk),
+                    style: typ.AppTypography.caption.copyWith(color: AppColors.inkMuted),
                     maxLines: 1,
                   ),
                 ],
@@ -211,9 +211,9 @@ class _CoverPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sunken,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(PhosphorIconsFill.bookmarkSimple, size: 32, color: AppColors.softInk),
+        child: Icon(PhosphorIconsFill.bookmarkSimple, size: 32, color: AppColors.inkMuted),
       ),
     );
   }
@@ -240,10 +240,10 @@ class _NewListCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.bg,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
           border: Border.all(
-            color: AppColors.border,
+            color: AppColors.hairline,
             width: 1.5,
             style: BorderStyle.solid,
           ),
@@ -251,14 +251,14 @@ class _NewListCard extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(PhosphorIconsFill.plus, size: 28, color: AppColors.muted),
+            Icon(PhosphorIconsFill.plus, size: 28, color: AppColors.inkSoft),
             SizedBox(height: Spacing.sm),
             Text(
               'New list',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppColors.muted,
+                color: AppColors.inkSoft,
               ),
             ),
           ],
@@ -272,7 +272,7 @@ class _NewListCard extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
       ),
@@ -334,7 +334,7 @@ class _CreateListSheetState extends State<_CreateListSheet> {
               width: Layout.sheetHandleWidth,
               height: Layout.sheetHandleHeight,
               decoration: BoxDecoration(
-                color: AppColors.line.withValues(alpha: 0.3),
+                color: AppColors.hairlineStrong.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(Layout.sheetHandleHeight / 2),
               ),
             ),

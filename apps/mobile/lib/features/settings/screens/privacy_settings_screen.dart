@@ -20,9 +20,9 @@ class PrivacySettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -87,7 +87,7 @@ class _SectionHeader extends StatelessWidget {
     return Text(
       title.toUpperCase(),
       style: AppTypography.label.copyWith(
-        color: AppColors.softInk,
+        color: AppColors.inkMuted,
         letterSpacing: 0.8,
       ),
     );
@@ -105,9 +105,9 @@ class _DataExportCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +131,7 @@ class _DataExportCard extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             'Export a copy of your profile, content, bookings, and reviews as JSON.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: 14),
           AppButton(
@@ -155,7 +155,7 @@ class _DataExportCard extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Data export ready — check your downloads.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -168,7 +168,7 @@ class _DataExportCard extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Failed to export data. Please try again.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -222,7 +222,7 @@ class _DeletionSection extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Deletion scheduled for $date. You can cancel within 30 days.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.warning,
             behavior: SnackBarBehavior.floating,
@@ -236,7 +236,7 @@ class _DeletionSection extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Failed to schedule deletion. Please try again.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -255,7 +255,7 @@ class _DeletionSection extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Account deletion cancelled. Your account is safe.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -268,7 +268,7 @@ class _DeletionSection extends ConsumerWidget {
           SnackBar(
             content: Text(
               'Failed to cancel deletion. Please try again.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.white),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.surface),
             ),
             backgroundColor: AppColors.danger,
             behavior: SnackBarBehavior.floating,
@@ -288,9 +288,9 @@ class _DeleteAccountCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,7 +317,7 @@ class _DeleteAccountCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Permanently delete your account and all associated data. A 30-day grace period applies.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: 14),
           AppButton(
@@ -409,13 +409,13 @@ class _DeletionError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.sunken,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       child: Text(
         'Unable to load deletion status. Please try again later.',
-        style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+        style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
       ),
     );
   }
@@ -430,21 +430,21 @@ class _DeleteAccountDialog extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     return AlertDialog(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text('Delete Account?', style: AppTypography.h4),
       content: Text(
         'Your account will be scheduled for permanent deletion in 30 days. '
         'All your content, bookings, and data will be erased. '
         'You can cancel within this grace period.',
-        style: AppTypography.body.copyWith(color: AppColors.muted, height: 1.5),
+        style: AppTypography.body.copyWith(color: AppColors.inkSoft, height: 1.5),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(buildContext).pop(false),
           child: Text(
             'Keep account',
-            style: AppTypography.body.copyWith(color: AppColors.muted),
+            style: AppTypography.body.copyWith(color: AppColors.inkSoft),
           ),
         ),
         TextButton(
@@ -471,9 +471,9 @@ class _ConsentHistoryCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: consentAsync.when(
@@ -493,7 +493,7 @@ class _ConsentHistoryCard extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Text(
             'Unable to load consent history.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
           ),
         ),
         data: (status) => Column(
@@ -502,12 +502,12 @@ class _ConsentHistoryCard extends ConsumerWidget {
               label: 'Terms of Service',
               version: status.termsOfService,
             ),
-            const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 16),
+            const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 16),
             _ConsentRow(
               label: 'Privacy Policy',
               version: status.privacyPolicy,
             ),
-            const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 16),
+            const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 16),
             _ConsentRow(
               label: 'Content T&C',
               version: status.contentTnc,
@@ -537,7 +537,7 @@ class _ConsentRow extends StatelessWidget {
           Text(
             version != null ? 'Accepted $version' : 'Not yet accepted',
             style: AppTypography.bodySmall.copyWith(
-              color: version != null ? AppColors.success : AppColors.softInk,
+              color: version != null ? AppColors.success : AppColors.inkMuted,
             ),
           ),
         ],
@@ -553,9 +553,9 @@ class _LegalLinksCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: AppColors.hairline, width: 0.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -564,12 +564,12 @@ class _LegalLinksCard extends StatelessWidget {
             label: 'Terms of Service',
             onTap: () => context.push('/legal/terms'),
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _LegalRow(
             label: 'Privacy Policy',
             onTap: () => context.push('/legal/privacy'),
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.border, indent: 48),
+          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
           _LegalRow(
             label: 'Community Guidelines',
             onTap: () => context.push('/legal/guidelines'),
@@ -609,7 +609,7 @@ class _LegalRow extends StatelessWidget {
             Icon(
               PhosphorIcons.caretRight(PhosphorIconsStyle.regular),
               size: 16,
-              color: AppColors.softInk,
+              color: AppColors.inkMuted,
             ),
           ],
         ),

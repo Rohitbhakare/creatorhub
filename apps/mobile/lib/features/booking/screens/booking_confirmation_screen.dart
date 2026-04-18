@@ -27,7 +27,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.bg,
         body: bookingAsync.when(
           loading: () => const _LoadingSkeleton(),
           error: (error, _) => _ErrorView(
@@ -173,9 +173,9 @@ class _DetailsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A2C2823),
@@ -270,11 +270,11 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.softInk),
+        Icon(icon, size: 16, color: AppColors.inkMuted),
         const SizedBox(width: Spacing.sm),
         Text(
           label,
-          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.muted),
+          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
         ),
         const Spacer(),
         Text(
@@ -378,7 +378,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: Spacing.sm),
             Text(
               message,
-              style: typ.AppTypography.body.copyWith(color: AppColors.muted),
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Spacing.xl),

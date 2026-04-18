@@ -10,7 +10,7 @@ class SearchPlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -19,17 +19,17 @@ class SearchPlaceholderScreen extends StatelessWidget {
               Icon(
                 PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
                 size: 48,
-                color: AppColors.line,
+                color: AppColors.hairlineStrong,
               ),
               const SizedBox(height: 12),
               Text(
                 'Search',
-                style: AppTypography.h3.copyWith(color: AppColors.muted),
+                style: AppTypography.h3.copyWith(color: AppColors.inkSoft),
               ),
               const SizedBox(height: 4),
               Text(
                 'Coming soon',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.softInk),
+                style: AppTypography.bodySmall.copyWith(color: AppColors.inkMuted),
               ),
             ],
           ),

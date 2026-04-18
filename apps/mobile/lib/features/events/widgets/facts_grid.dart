@@ -38,11 +38,11 @@ class FactsGrid extends StatelessWidget {
   }
 
   Color _capacityColor(EventDetail event) {
-    if (event.capacity == null) return AppColors.muted;
+    if (event.capacity == null) return AppColors.inkSoft;
     final remaining = event.capacity! - event.spotsBooked;
     if (remaining <= 0) return AppColors.danger;
     if (remaining <= 5) return AppColors.warning;
-    return AppColors.muted;
+    return AppColors.inkSoft;
   }
 }
 
