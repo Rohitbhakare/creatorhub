@@ -11,9 +11,12 @@ docs/
 │       └── srs-v1.2.md        # SRS v1.2.1 — all functional requirements, design decisions, DDL
 │
 ├── 01_wireframes/             # Visual specifications
-│   └── v1/
-│       ├── wireframes_html/   # 21 screen wireframes (HTML)
-│       └── prototype.jsx      # Interactive prototype with flows
+│   ├── README.md              # Index — v2 active, archive/v1 historical
+│   ├── v2/                    # CANONICAL design (Pure White + Coral, April 2026)
+│   │   ├── README.md          #   Handoff readme — read first
+│   │   ├── chats/             #   Design chat transcript
+│   │   └── project/           #   CreatorHub Redesign.html + 9 pack JSX files
+│   └── archive/v1/            # Historical HTML prototypes (do not implement against)
 │
 ├── engineering/               # Technical design documents
 │   ├── HLD.md                 # High-Level Design — architecture, data flows, deployment, ADRs
@@ -37,7 +40,7 @@ docs/
 ### Building a feature?
 
 1. **Start with the SRS** — `00_SRS/v1.2/srs-v1.2.md` has every requirement with IDs (e.g., `IAM-FR-001`). Search by feature area.
-2. **Check the wireframes** — `01_wireframes/v1/wireframes_html/` shows the exact screen layout.
+2. **Check the wireframes** — start at `01_wireframes/v2/README.md`, then open the specific `v2/project/pack-*.jsx` for your screen. `archive/v1/` is historical only.
 3. **Read the HLD** — `engineering/HLD.md` covers system architecture, data flows, and architecture decisions (ADRs).
 4. **Check the API contract** — `engineering/openapi.yaml` defines exact request/response shapes. Code against this spec.
 5. **Find your epic** — `epics/E*.*/tasks.md` has per-task acceptance criteria and edge cases.

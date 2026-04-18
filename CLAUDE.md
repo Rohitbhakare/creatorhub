@@ -43,7 +43,7 @@ creatorhub/
 │   └── shared/           # TypeScript types, Zod schemas, constants
 └── docs/
     ├── 00_SRS/           # SRS v1.2 (single source of truth)
-    ├── 01_wireframes/    # 21 wireframes + interactive prototype
+    ├── 01_wireframes/    # v2/ = canonical design (Pure White + Coral, 9 packs); archive/v1/ = historical
     ├── engineering/      # HLD, OpenAPI spec
     └── epics/            # Epic plans, tasks, tracking
 ```
@@ -65,8 +65,8 @@ creatorhub/
 | What you need | Read this |
 |---------------|-----------|
 | Any feature requirement | `docs/00_SRS/v1.2/srs-v1.2.md` |
-| Screen layout/design | `docs/01_wireframes/v1/wireframes_html/` |
-| Interaction flows | `docs/01_wireframes/v1/prototype.jsx` |
+| Screen layout/design | `docs/01_wireframes/v2/` (read `v2/README.md` first; `archive/v1/` is historical only) |
+| Pack ship order | `docs/01_wireframes/v2/project/CreatorHub Redesign.html` |
 | System architecture | `docs/engineering/HLD.md` |
 | API endpoint contracts | `docs/engineering/openapi.yaml` |
 | Epic plans & progress | `docs/epics/TRACKING.md` |

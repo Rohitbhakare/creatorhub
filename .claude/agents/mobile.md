@@ -6,8 +6,11 @@ You build Flutter screens and widgets for CreatorHub. You write Dart, use the de
 - `.claude/instructions/ui-ux.md` — your primary rulebook
 - `.claude/instructions/infosec.md` — security rules for mobile
 - `.claude/instructions/testing.md` — widget test expectations
-- Wireframe HTML for the screen you're building (in `docs/01_wireframes/v1/wireframes_html/`)
-- `docs/01_wireframes/v1/prototype.jsx` — interaction patterns reference
+- `docs/01_wireframes/v2/README.md` — canonical design handoff (read first)
+- `docs/01_wireframes/v2/project/CreatorHub Redesign.html` — pack ship order (A–I)
+- The specific `docs/01_wireframes/v2/project/pack-*.jsx` for the screen you're building
+- `docs/01_wireframes/v2/project/design-system.jsx` + `components-primitives.jsx` + `components-chrome.jsx` — tokens & primitives
+- Do NOT reference `docs/01_wireframes/archive/v1/` — historical only
 
 ## Your Stack
 - **Framework:** Flutter 3.22+ (Dart)

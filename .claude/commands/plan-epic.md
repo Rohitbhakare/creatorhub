@@ -25,10 +25,13 @@ The plan is the single artifact the founder reviews and approves. No implementat
 - For each requirement, capture: description, acceptance criteria, design decisions referenced (DD-XXX)
 - Do not stop at the first mention — search for all occurrences
 
-### Step 2 — Study wireframes
-- List all wireframe files in `docs/01_wireframes/v1/wireframes_html/` that cover this epic
-- Read each wireframe HTML in full — extract: screen layout, component names, state labels, interaction flows, exact copy (button labels, empty state text, error messages)
-- Map each wireframe element to a Flutter screen or widget
+### Step 2 — Study wireframes (v2 is canonical)
+- Start at `docs/01_wireframes/v2/README.md` and `docs/01_wireframes/v2/chats/chat1.md` for design intent
+- Open `docs/01_wireframes/v2/project/CreatorHub Redesign.html` to locate which pack (A–I) this epic belongs to
+- Read the relevant `docs/01_wireframes/v2/project/pack-*.jsx` in full — extract: screen layout, component names, state labels, interaction flows, exact copy (button labels, empty state text, error messages)
+- Follow imports through `design-system.jsx` → `components-primitives.jsx` → `components-chrome.jsx` for tokens and shared primitives
+- Map each wireframe screen to a Flutter screen or widget (reuse `apps/mobile/lib/shared/components/` primitives — do not mirror React structure)
+- Do NOT reference `docs/01_wireframes/archive/v1/` — it is historical only
 
 ### Step 3 — Read instruction files
 - `.claude/instructions/api.md` — note route patterns, error format, auth middleware, SQL style

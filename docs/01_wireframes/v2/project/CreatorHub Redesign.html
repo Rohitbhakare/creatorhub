@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CreatorHub — Redesign</title>
+<meta name="viewport" content="width=1400"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; font-family: 'Geist', -apple-system, sans-serif; overscroll-behavior: none; }
+  * { box-sizing: border-box; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 999px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="design-system.jsx"></script>
+<script type="text/babel" src="components-primitives.jsx"></script>
+<script type="text/babel" src="components-chrome.jsx"></script>
+<script type="text/babel" src="pack-a-onboarding.jsx"></script>
+<script type="text/babel" src="pack-b-discover.jsx"></script>
+<script type="text/babel" src="pack-c-detail.jsx"></script>
+<script type="text/babel" src="pack-d-booking.jsx"></script>
+<script type="text/babel" src="pack-e-publish.jsx"></script>
+<script type="text/babel" src="pack-f-kyc.jsx"></script>
+<script type="text/babel" src="pack-g-you.jsx"></script>
+<script type="text/babel" src="pack-h-creator-studio.jsx"></script>
+<script type="text/babel" src="pack-i-website.jsx"></script>
+<script type="text/babel" src="pack-ds-reference.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [cfg, setCfg] = React.useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ch_cfg'));
+      // If saved uses the old default 'paper', treat as stale and use new defaults
+      if (saved && saved.theme === 'paper' && !localStorage.getItem('ch_cfg_v2')) {
+        localStorage.setItem('ch_cfg_v2', '1');
+        return CH_DEFAULTS;
+      }
+      return saved ? { ...CH_DEFAULTS, ...saved } : CH_DEFAULTS;
+    } catch { return CH_DEFAULTS; }
+  });
+  const [tweaksOn, setTweaksOn] = React.useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem('ch_cfg', JSON.stringify(cfg));
+  }, [cfg]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const d = e.data || {};
+      if (d.type === '__activate_edit_mode') setTweaksOn(true);
+      if (d.type === '__deactivate_edit_mode') setTweaksOn(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const patch = (k, v) => {
+    setCfg(c => ({ ...c, [k]: v }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*');
+  };
+
+  const tk = resolveTokens(cfg);
+  const { t, typ } = tk;
+
+  return (
+    <>
+      <DesignCanvas>
+        {/* INTRO */}
+        <div style={{ padding: '20px 60px 0', maxWidth: 960 }}>
+          <div style={{ fontFamily: typ.mono, fontSize: 11, color: t.primary, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+            CreatorHub · Redesign · Apr 2026
+          </div>
+          <h1 style={{
+            margin: '10px 0 14px', fontFamily: typ.display, fontSize: 72, lineHeight: 0.94,
+            color: t.ink, fontWeight: typ.displayWeight, letterSpacing: typ.displayTrack,
+          }}>
+            Pure white.<em style={{ fontStyle: 'italic', color: t.primary }}> Coral only.</em>
+          </h1>
+          <p style={{ margin: 0, fontFamily: typ.body, fontSize: 17, lineHeight: 1.55, color: t.inkSoft, maxWidth: 720 }}>
+            A monetisation-first home for Indian creators — chapters, experiences, tips and sponsorships,
+            stitched together by storytelling and a single decorative hue. SRS-traced across 9 packs, 40+ screens.
+          </p>
+          <div style={{ marginTop: 22, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {['IAM','Discover','Detail','Booking','Publish','KYC','You','Studio','Web'].map(p => (
+              <div key={p} style={{
+                padding: '7px 12px', borderRadius: tk.radius.pill, background: t.surface,
+                border: `1px solid ${t.hairline}`, fontFamily: typ.mono, fontSize: 11, fontWeight: 600, color: t.ink, letterSpacing: '0.04em',
+              }}>{p}</div>
+            ))}
+          </div>
+        </div>
+
+        <DCSection title="A · Onboarding & auth" subtitle="IAM-FR-001..011 · first-run, phone + OTP, location, interests, celebrate, soft wall">
+          <S_Welcome tk={tk}/>
+          <S_Phone tk={tk}/>
+          <S_Otp tk={tk}/>
+          <S_OnbLocation tk={tk}/>
+          <S_OnbVerticals tk={tk}/>
+          <S_OnbCreators tk={tk}/>
+          <S_OnbCelebrate tk={tk}/>
+          <S_AuthWall tk={tk}/>
+        </DCSection>
+
+        <DCSection title="B · Discover & create" subtitle="Home feed, tile discover, search, filter sheet, create sheet, quests">
+          <S_Home tk={tk}/>
+          <S_Discover tk={tk}/>
+          <S_Search tk={tk}/>
+          <S_Filter tk={tk}/>
+          <S_Create tk={tk}/>
+          <S_Quests tk={tk}/>
+        </DCSection>
+
+        <DCSection title="C · Detail · chapter storytelling" subtitle="Itineraries, reader mode, bookable experiences, save sheet">
+          <S_Itinerary tk={tk}/>
+          <S_Story tk={tk}/>
+          <S_Experience tk={tk}/>
+          <S_SaveSheet tk={tk}/>
+        </DCSection>
+
+        <DCSection title="D · Booking flow" subtitle="BKG-FR-001..012 · review → seat-hold payment → confirmation">
+          <S_BookingReview tk={tk}/>
+          <S_BookingPay tk={tk}/>
+          <S_BookingConfirm tk={tk}/>
+        </DCSection>
+
+        <DCSection title="E · Publishing wizard" subtitle="CRT-FR-015..020 · outline → stops → media → meta → review">
+          <S_PubOutline tk={tk}/>
+          <S_PubStops tk={tk}/>
+          <S_PubMedia tk={tk}/>
+          <S_PubMeta tk={tk}/>
+          <S_PubReview tk={tk}/>
+        </DCSection>
+
+        <DCSection title="F · Creator KYC" subtitle="KYC-FR-005..030 · PAN, Aadhaar eKYC, selfie liveness, bank, review — plus 4 status states">
+          <S_KycIntro tk={tk}/>
+          <S_KycPan tk={tk}/>
+          <S_KycAadhaar tk={tk}/>
+          <S_KycSelfie tk={tk}/>
+          <S_KycBank tk={tk}/>
+          <S_KycReview tk={tk}/>
+          <S_KycStatus tk={tk} state="submitted"/>
+          <S_KycStatus tk={tk} state="pending"/>
+          <S_KycStatus tk={tk} state="approved"/>
+          <S_KycStatus tk={tk} state="needs"/>
+        </DCSection>
+
+        <DCSection title="G · You / Profile" subtitle="PRF-FR-001..020 · profile, edit, connected accounts, notifications, bookings">
+          <S_You tk={tk}/>
+          <S_YouEdit tk={tk}/>
+          <S_YouConnected tk={tk}/>
+          <S_YouNotifs tk={tk}/>
+          <S_YouBookings tk={tk}/>
+        </DCSection>
+
+        <DCSection title="H · Creator · public & Studio" subtitle="CRT-FR-001 + STUDIO-FR-* · public page, home, insights, payouts, messages, booking detail">
+          <S_CreatorPublic tk={tk}/>
+          <S_StudioHome tk={tk}/>
+          <S_StudioInsights tk={tk}/>
+          <S_StudioPayouts tk={tk}/>
+          <S_StudioMessages tk={tk}/>
+          <S_StudioBooking tk={tk}/>
+        </DCSection>
+
+        <DCSection title="I · Web mini-site" subtitle="CRT-FR-040 · auto-generated public creator site · desktop">
+          <S_Website tk={tk}/>
+          <S_WebsiteExperience tk={tk}/>
+        </DCSection>
+
+        <DCSection title="Design system · reference" subtitle="Palette · type · buttons · tags · motion · voice">
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <S_DS_Color tk={tk}/>
+            <S_DS_Type tk={tk}/>
+            <S_DS_Buttons tk={tk}/>
+            <S_DS_Tags tk={tk}/>
+            <S_DS_Motion tk={tk}/>
+            <S_DS_Voice tk={tk}/>
+          </div>
+        </DCSection>
+
+        <div style={{ padding: '0 60px 80px', color: t.inkMuted, fontFamily: typ.body, fontSize: 13, maxWidth: 760 }}>
+          Scroll horizontally inside each section. Pinch / scroll-wheel zooms; drag background pans.
+          Toggle <strong style={{ color: t.ink }}>Tweaks</strong> in the toolbar to switch theme, type pair, coral hue, corner radius and density.
+        </div>
+      </DesignCanvas>
+
+      {tweaksOn && (
+        <TweaksPanel cfg={cfg} patch={patch} tk={tk}/>
+      )}
+    </>
+  );
+}
+
+function TweaksPanel({ cfg, patch, tk }) {
+  const { t, typ } = tk;
+  const Sec = ({ label, children }) => (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontFamily: typ.mono, fontSize: 9, color: t.inkMuted, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
+      {children}
+    </div>
+  );
+  const Chip = ({ active, onClick, children }) => (
+    <button onClick={onClick} style={{
+      flex: 1, padding: '8px 6px', borderRadius: 6, border: 'none', cursor: 'pointer',
+      fontFamily: typ.body, fontSize: 11, fontWeight: 600,
+      background: active ? t.ink : t.surfaceAlt,
+      color: active ? t.surface : t.inkSoft,
+      transition: 'all 0.12s',
+    }}>{children}</button>
+  );
+  return (
+    <div style={{
+      position: 'fixed', bottom: 20, right: 20, zIndex: 1000,
+      width: 280, background: t.surface, borderRadius: 14, padding: 16,
+      boxShadow: '0 24px 64px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.06)',
+      fontFamily: typ.body,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 12 }}>
+        <div style={{ flex: 1, fontFamily: typ.display, fontSize: 17, fontWeight: typ.displayWeightBold, color: t.ink, letterSpacing: typ.displayTrack }}>
+          Tweaks
+        </div>
+        <div style={{ fontFamily: typ.mono, fontSize: 9, color: t.primary, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>live</div>
+      </div>
+
+      <Sec label="Theme">
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(CH_THEMES).map(k => (
+            <Chip key={k} active={cfg.theme === k} onClick={() => patch('theme', k)}>{CH_THEMES[k].name.split(' ')[0]}</Chip>
+          ))}
+        </div>
+      </Sec>
+
+      <Sec label="Type pair">
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(CH_TYPE_PAIRS).map(k => (
+            <Chip key={k} active={cfg.typePair === k} onClick={() => patch('typePair', k)}>{CH_TYPE_PAIRS[k].name}</Chip>
+          ))}
+        </div>
+      </Sec>
+
+      <Sec label="Coral hue">
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(CH_CORAL_HUES).map(k => (
+            <button key={k} onClick={() => patch('coralHue', k)} style={{
+              flex: 1, padding: '6px 4px', borderRadius: 6,
+              border: cfg.coralHue === k ? `2px solid ${t.ink}` : `1px solid ${t.hairline}`,
+              background: CH_CORAL_HUES[k].value, cursor: 'pointer',
+              fontFamily: typ.mono, fontSize: 9, fontWeight: 700, color: '#fff',
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>{CH_CORAL_HUES[k].name}</button>
+          ))}
+        </div>
+      </Sec>
+
+      <Sec label="Corner radius">
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(CH_RADII).map(k => (
+            <Chip key={k} active={cfg.radius === k} onClick={() => patch('radius', k)}>{k}</Chip>
+          ))}
+        </div>
+      </Sec>
+
+      <Sec label="Density">
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(CH_DENSITIES).map(k => (
+            <Chip key={k} active={cfg.density === k} onClick={() => patch('density', k)}>{k}</Chip>
+          ))}
+        </div>
+      </Sec>
+
+      <div style={{ marginTop: 12, padding: '10px 12px', background: t.surfaceAlt, borderRadius: 8, fontFamily: typ.body, fontSize: 11, color: t.inkMuted, lineHeight: 1.5 }}>
+        Changes persist · refresh to see them re-apply. The design system at the bottom of the canvas reflects live tokens.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

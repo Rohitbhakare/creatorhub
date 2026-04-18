@@ -6,8 +6,11 @@
 
 - **Mobile:** Flutter 3.22+ (Dart)
 - **Web (MVP minimal):** Next.js 14+ App Router (TypeScript, Tailwind CSS)
-- **Design reference:** SRS Appendix F + wireframes in `docs/01_wireframes/v1/wireframes_html/`
-- **Interactive prototype:** `docs/01_wireframes/v1/prototype.jsx`
+- **Design reference (canonical):** `docs/01_wireframes/v2/` — read `v2/README.md` first, then the relevant `v2/project/pack-*.jsx`
+- **Pack ship order:** `docs/01_wireframes/v2/project/CreatorHub Redesign.html`
+- **Tokens & primitives (React reference):** `v2/project/design-system.jsx` + `components-primitives.jsx` + `components-chrome.jsx`
+- **Flutter primitives already live in:** `apps/mobile/lib/shared/components/` — reuse these; do not mirror React structure
+- **Archived (do not implement against):** `docs/01_wireframes/archive/v1/`
 
 ---
 
