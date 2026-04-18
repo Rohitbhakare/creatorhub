@@ -58,7 +58,7 @@
 | E0.2 | Database Schema | `DONE` | 12/12 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.3 | Authentication | `DONE` | 10/10 | `[~]` auth middleware (15 tests) | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.4 | Design System | `DONE` | 12/12 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
-| E0.4b | Design System v2 (Paper White + Coral) | `IN REVIEW` | 13/13 | `[x]` 13 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5 + existing 1) | `[x]` 0 new issues | `[x]` | `[ ]` pending | `[ ]` pending |
+| E0.4b | Design System v2 (Paper White + Coral) | `IN REVIEW` (boot pending) | 13/13 | `[x]` 12 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5) · Flutter 102/102 · API 708/708 | `[x]` 0 new issues | `[x]` | `[x]` passed | `[x]` `348d62d` |
 | E0.5 | Onboarding | `DONE` (1 bug + 1 feat open) | 10/10 | `[ ]` none written | `[x]` | `[x]` | `[x]` passed | `[x]` |
 
 > **Note on M0 tests:** M0 epics were committed before the test-required process was established. Tests for auth middleware (E0.3) have since been backfilled and are now passing (15/15). Remaining M0 tests are tech debt — will be addressed in a dedicated "test backfill" session before M1 gate.
@@ -203,7 +203,7 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | T13 | Boot verification (iOS simulator) + 4-step review gate + commit to `dev` | `[ ]` pending | — |
 
 **Pre-commit status:**
-`[x]` 13 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5 + 1 existing selection test) · `[x]` Full suite 102/102 passing · `[x]` `flutter analyze` — no new issues (57 pre-existing info-level, all in E3.1 / unrelated files) · `[x]` Lint 0 errors · `[x]` Types 0 errors · `[ ]` Review gate pending · `[ ]` iOS boot pending · `[ ]` Commit pending
+`[x]` 12 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5) · `[x]` Full Flutter suite 102/102 · `[x]` Full API suite 708/708 (re-verified, unaffected by this epic) · `[x]` `flutter analyze` — 0 new issues (57 pre-existing info-level, all in E3.1 / unrelated files) · `[x]` Lint 0 errors · `[x]` Types 0 errors · `[x]` 4-step review gate passed · `[ ]` iOS boot pending · `[x]` Commit `348d62d` pushed to `dev`
 
 ---
 
