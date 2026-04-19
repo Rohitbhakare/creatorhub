@@ -228,6 +228,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
               // Display name
               _FormField(
+                fieldKey: const ValueKey('edit_profile_display_name'),
                 label: 'Display Name',
                 controller: _nameController,
                 maxLength: 50,
@@ -280,6 +281,7 @@ class _FormField extends StatelessWidget {
   final bool isRequired;
   final String? hint;
   final TextInputType? keyboardType;
+  final Key? fieldKey;
 
   const _FormField({
     required this.label,
@@ -290,6 +292,7 @@ class _FormField extends StatelessWidget {
     this.isRequired = false,
     this.hint,
     this.keyboardType,
+    this.fieldKey,
   });
 
   @override
@@ -312,6 +315,7 @@ class _FormField extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         TextField(
+          key: fieldKey,
           controller: controller,
           maxLength: maxLength,
           maxLines: maxLines,

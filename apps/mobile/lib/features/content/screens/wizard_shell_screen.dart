@@ -176,6 +176,27 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       ref.read(wizardProvider.notifier).markSaved();
 
       if (mounted) {
+        final successMessage = switch (wizard.contentType) {
+          ContentType.post => 'Post published!',
+          ContentType.selfPacedItinerary => 'Itinerary published!',
+          ContentType.event => 'Event published!',
+          ContentType.scheduledExperience => 'Experience published!',
+        };
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              successMessage,
+              style:
+                  typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Layout.cardRadius),
+            ),
+          ),
+        );
         // Navigate back to home or content list
         context.go('/');
       }

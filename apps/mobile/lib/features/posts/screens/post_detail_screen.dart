@@ -292,26 +292,37 @@ class _CreatorHeader extends ConsumerWidget {
         ),
         const SizedBox(width: Spacing.md),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                displayName,
-                style: typ.AppTypography.body.copyWith(fontWeight: FontWeight.w600),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (username != null || createdAt != null)
+          child: GestureDetector(
+            key: const ValueKey('creator_name_link'),
+            onTap: creatorId == null
+                ? null
+                : () {
+                    HapticFeedback.selectionClick();
+                    context.push('/profile/$creatorId');
+                  },
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  [
-                    if (username != null) '@$username',
-                    if (createdAt != null) formatTimeAgo(createdAt!),
-                  ].join(' · '),
-                  style: typ.AppTypography.caption,
+                  displayName,
+                  style: typ.AppTypography.body
+                      .copyWith(fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-            ],
+                if (username != null || createdAt != null)
+                  Text(
+                    [
+                      if (username != null) '@$username',
+                      if (createdAt != null) formatTimeAgo(createdAt!),
+                    ].join(' · '),
+                    style: typ.AppTypography.caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           ),
         ),
         if (creatorId != null) ...[

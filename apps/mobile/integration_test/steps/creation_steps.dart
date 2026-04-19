@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 import 'package:creatorhub/features/content/screens/content_type_picker_screen.dart';
+import 'package:creatorhub/features/content/screens/wizard_shell_screen.dart';
 
 // ── Content type picker ───────────────────────────────────────────
 
@@ -16,10 +17,19 @@ Future<void> thenIShouldSeeContentTypePicker(PatrolIntegrationTester $) async {
 
 /// Assert the post creation wizard is on screen.
 /// Maps to: "Then I should be on the post creation wizard".
+///
+/// The wizard has no "Create Post" title — instead it shows a step indicator
+/// "Step 1 of 3: Basics". We wait for the WizardShellScreen widget and then
+/// verify the step indicator.
 Future<void> thenIShouldBeOnPostCreationWizard(
   PatrolIntegrationTester $,
 ) async {
-  await $('Create Post').waitUntilVisible();
+  await $(WizardShellScreen).waitUntilVisible(
+    timeout: const Duration(seconds: 10),
+  );
+  await $('Step 1 of 3: Basics').waitUntilVisible(
+    timeout: const Duration(seconds: 5),
+  );
 }
 
 /// Enter the post title.
@@ -50,10 +60,17 @@ Future<void> whenIEnterBodyText(PatrolIntegrationTester $, String body) async {
 
 /// Assert the itinerary creation wizard is on screen.
 /// Maps to: "Then I should be on the itinerary creation wizard".
+///
+/// Itinerary wizard has 6 steps — first step label: "Step 1 of 6: Basics".
 Future<void> thenIShouldBeOnItineraryCreationWizard(
   PatrolIntegrationTester $,
 ) async {
-  await $('Create Itinerary').waitUntilVisible();
+  await $(WizardShellScreen).waitUntilVisible(
+    timeout: const Duration(seconds: 10),
+  );
+  await $('Step 1 of 6: Basics').waitUntilVisible(
+    timeout: const Duration(seconds: 5),
+  );
 }
 
 /// Tap "Add spot" in the itinerary builder.
@@ -104,10 +121,17 @@ Future<void> whenITapSaveSpot(PatrolIntegrationTester $) async {
 
 /// Assert the event creation wizard is on screen.
 /// Maps to: "Then I should be on the event creation wizard".
+///
+/// Event wizard has 5 steps — first step label: "Step 1 of 5: Basics".
 Future<void> thenIShouldBeOnEventCreationWizard(
   PatrolIntegrationTester $,
 ) async {
-  await $('Create Event').waitUntilVisible();
+  await $(WizardShellScreen).waitUntilVisible(
+    timeout: const Duration(seconds: 10),
+  );
+  await $('Step 1 of 5: Basics').waitUntilVisible(
+    timeout: const Duration(seconds: 5),
+  );
 }
 
 /// Enter the venue name field.

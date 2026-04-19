@@ -50,14 +50,19 @@ Future<void> thenIShouldBeOnEditProfileScreen(PatrolIntegrationTester $) async {
   await $('Edit Profile').waitUntilVisible();
 }
 
+/// Targets the Display Name TextField on the Edit Profile screen by stable key.
+/// The label 'Display Name' is a sibling Text widget (not part of TextField),
+/// so find.widgetWithText() does not match — use ValueKey instead.
+final Finder _displayNameField =
+    find.byKey(const ValueKey('edit_profile_display_name'));
+
 /// Clear the display name field.
 /// Maps to: "When I clear the display name field".
 Future<void> whenIClearDisplayNameField(PatrolIntegrationTester $) async {
-  final field = find.widgetWithText(TextField, 'Display name');
-  await $.tester.tap(field);
+  await $.tester.tap(_displayNameField);
   await $.tester.pumpAndSettle();
   final editableText = $.tester.widget<EditableText>(
-    find.descendant(of: field, matching: find.byType(EditableText)),
+    find.descendant(of: _displayNameField, matching: find.byType(EditableText)),
   );
   editableText.controller.clear();
   await $.tester.pumpAndSettle();
@@ -69,10 +74,7 @@ Future<void> whenIEnterDisplayName(
   PatrolIntegrationTester $,
   String name,
 ) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Display name'),
-    name,
-  );
+  await $.tester.enterText(_displayNameField, name);
   await $.tester.pumpAndSettle();
 }
 

@@ -9,7 +9,16 @@ import 'package:patrol/src/native/contracts/contracts.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
+import 'scenarios/auth_scenarios_test.dart' as scenarios__auth_scenarios_test;
+import 'scenarios/booking_scenarios_test.dart' as scenarios__booking_scenarios_test;
+import 'scenarios/creation_scenarios_test.dart' as scenarios__creation_scenarios_test;
+import 'scenarios/feed_scenarios_test.dart' as scenarios__feed_scenarios_test;
+import 'scenarios/kyc_scenarios_test.dart' as scenarios__kyc_scenarios_test;
 import 'scenarios/navigation_scenarios_test.dart' as scenarios__navigation_scenarios_test;
+import 'scenarios/onboarding_scenarios_test.dart' as scenarios__onboarding_scenarios_test;
+import 'scenarios/profile_scenarios_test.dart' as scenarios__profile_scenarios_test;
+import 'scenarios/screenshots_test.dart' as scenarios__screenshots_test;
+import 'scenarios/social_scenarios_test.dart' as scenarios__social_scenarios_test;
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
@@ -69,7 +78,16 @@ Future<void> main() async {
   });
 
   // START: GENERATED TEST GROUPS
+  group('scenarios.auth_scenarios_test', scenarios__auth_scenarios_test.main);
+  group('scenarios.booking_scenarios_test', scenarios__booking_scenarios_test.main);
+  group('scenarios.creation_scenarios_test', scenarios__creation_scenarios_test.main);
+  group('scenarios.feed_scenarios_test', scenarios__feed_scenarios_test.main);
+  group('scenarios.kyc_scenarios_test', scenarios__kyc_scenarios_test.main);
   group('scenarios.navigation_scenarios_test', scenarios__navigation_scenarios_test.main);
+  group('scenarios.onboarding_scenarios_test', scenarios__onboarding_scenarios_test.main);
+  group('scenarios.profile_scenarios_test', scenarios__profile_scenarios_test.main);
+  group('scenarios.screenshots_test', scenarios__screenshots_test.main);
+  group('scenarios.social_scenarios_test', scenarios__social_scenarios_test.main);
   // END: GENERATED TEST GROUPS
 
   final dartTestGroup = await testExplorationCompleter.future;

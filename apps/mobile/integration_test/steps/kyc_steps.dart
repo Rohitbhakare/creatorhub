@@ -7,15 +7,15 @@ import 'package:creatorhub/features/kyc/screens/kyc_wizard_screen.dart';
 
 // ── KYC preconditions ─────────────────────────────────────────────
 
-/// Navigate to the KYC wizard at step 1 (PAN Details).
+/// Navigate to the KYC wizard at step 1 (PAN Card Details).
 /// Maps to: "Given I am on the KYC wizard at step 1".
 Future<void> givenIAmOnKycWizardStep1(PatrolIntegrationTester $) async {
-  // Tap Studio → "Complete KYC" in the alert hero → "Start Verification"
+  // Tap Studio → "Complete KYC" alert hero → "Start KYC" CTA on status screen.
   await $('Studio').tap();
   await $.tester.pumpAndSettle();
   await $('Complete KYC').tap();
   await $.tester.pumpAndSettle();
-  await $('Start Verification').tap();
+  await $('Start KYC').tap();
   await $.tester.pumpAndSettle();
 }
 
@@ -47,9 +47,11 @@ Future<void> thenIShouldBeOnKycStep(
 
 /// Enter a PAN number.
 /// Maps to: "When I enter PAN {string}".
+///
+/// UI field: AppInput with label 'PAN Number' and hint 'ABCDE1234F'.
 Future<void> whenIEnterPan(PatrolIntegrationTester $, String pan) async {
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'PAN number'),
+    find.widgetWithText(TextField, 'PAN Number'),
     pan,
   );
   await $.tester.pumpAndSettle();
@@ -58,7 +60,7 @@ Future<void> whenIEnterPan(PatrolIntegrationTester $, String pan) async {
 /// Clear the PAN field.
 /// Maps to: "When I clear the PAN field".
 Future<void> whenIClearPanField(PatrolIntegrationTester $) async {
-  final field = find.widgetWithText(TextField, 'PAN number');
+  final field = find.widgetWithText(TextField, 'PAN Number');
   final editable = $.tester.widget<EditableText>(
     find.descendant(of: field, matching: find.byType(EditableText)),
   );
@@ -68,8 +70,10 @@ Future<void> whenIClearPanField(PatrolIntegrationTester $) async {
 
 /// Assert a PAN format error message is NOT visible.
 /// Maps to: "Then I should not see a PAN format error".
+///
+/// Actual UI error text: 'Invalid PAN format (e.g. ABCDE1234F)'.
 Future<void> thenIShouldNotSeePanFormatError(PatrolIntegrationTester $) async {
-  expect(find.text('Invalid PAN format. Expected: AAAAA9999A'), findsNothing);
+  expect(find.text('Invalid PAN format (e.g. ABCDE1234F)'), findsNothing);
 }
 
 // ── Step 2: Aadhaar ───────────────────────────────────────────────
