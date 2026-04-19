@@ -102,12 +102,14 @@ void creationScenarios() {
       await givenTheAppIsLaunched($);
       await givenIAmNotLoggedIn($);
 
-      await whenITap($, 'Browse as guest');
+      await whenIBrowseAsGuest($);
       await givenIAmOnTheHomeFeed($);
       await whenITapTheCreateTab($);
 
+      // Post-E0.4c: Create+ for guests routes to /auth (PhoneOtpScreen) which
+      // shows the 'Send code' CTA (the A2 phone entry screen).
       await thenIShouldBeOnTheScreen($, 'auth');
-      await thenIShouldSee($, 'Get Started');
+      await thenIShouldSee($, 'Send code');
     },
   );
 }

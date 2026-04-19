@@ -56,7 +56,10 @@ class MainShell extends StatelessWidget {
                   isActive: currentIndex == 1,
                   onTap: () => _handleTap(1),
                 ),
-                _CreateFab(onTap: () => _handleTap(2)),
+                _CreateFab(
+                  key: const ValueKey('nav_fab_create'),
+                  onTap: () => _handleTap(2),
+                ),
                 _TabItem(
                   icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.regular),
                   activeIcon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
@@ -144,7 +147,7 @@ class _TabItem extends StatelessWidget {
 class _CreateFab extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _CreateFab({required this.onTap});
+  const _CreateFab({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

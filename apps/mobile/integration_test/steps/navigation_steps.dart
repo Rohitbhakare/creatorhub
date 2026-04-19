@@ -22,11 +22,16 @@ Future<void> whenITapTheTab(PatrolIntegrationTester $, String tabLabel) async {
   await $.tester.pump(const Duration(milliseconds: 500));
 }
 
-/// Tap the Create+ tab (the raised coral button in the centre of the nav bar).
-/// The tab label text is "Create" in the production UI.
+/// Tap the Create+ tab (the raised coral FAB in the centre of the nav bar).
+///
+/// Post-E0.4c: the FAB has no text label — only a plus icon. It's keyed as
+/// 'nav_fab_create' in production so tests can target it stably.
 /// Maps to: "When I tap the Create+ tab".
 Future<void> whenITapTheCreateTab(PatrolIntegrationTester $) async {
-  await $.tester.tap(find.text('Create').first, warnIfMissed: false);
+  await $.tester.tap(
+    find.byKey(const ValueKey('nav_fab_create')),
+    warnIfMissed: false,
+  );
   await $.tester.pump(const Duration(milliseconds: 500));
 }
 

@@ -15,13 +15,9 @@
 //   The test asserts StudioTabScreen is visible (the 'Studio' heading text),
 //   confirming the router allows guest access to the tab.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 import 'package:creatorhub/features/studio/screens/studio_tab_screen.dart';
-import 'package:creatorhub/features/onboarding/screens/location_screen.dart';
-import 'package:creatorhub/features/onboarding/screens/vertical_picker_screen.dart';
 
 import '../hooks/global_hooks.dart';
 import '../steps/auth_steps.dart';
@@ -100,8 +96,9 @@ void navigationScenarios() {
       await givenTheAppIsLaunched($);
       await givenIAmNotLoggedIn($);
 
-      // Enter guest mode via 'Browse as guest' button on WelcomeScreen.
-      await whenITap($, 'Browse as guest');
+      // Post-E0.4c: guest mode is set programmatically since WelcomeScreen
+      // no longer exposes a 'Browse as guest' CTA.
+      await whenIBrowseAsGuest($);
       await thenIShouldSeeTheHomeFeed($);
 
       // Tap the Studio tab — router allows guests here (no guard).
@@ -127,24 +124,21 @@ void navigationScenarios() {
   // ── NAV-S03: Onboarding flow navigation (new user) ────────────────────────
   //
   // Scenario: A brand-new user completes phone OTP login and the router
-  // redirects them to the onboarding flow (LocationScreen first).
-  // The user searches for a city, selects it, taps 'Continue', and reaches
-  // VerticalPickerScreen (step 2 of 4).
+  // redirects them to the onboarding flow. Post-E0.4c (A2c), the first
+  // onboarding step is ProfileBootstrapScreen (username + first name + email),
+  // which sits *before* LocationScreen.
   //
   // Pre-condition teardown:
   //   ApiHelper.deleteUserByPhone removes any existing row for 9999999999 so
   //   the emulator registration always produces onboarding_completed_at = NULL.
   //
-  // LocationScreen button:
-  //   The 'Continue' AppButton is disabled until a city is selected.
-  //   We type a city name into the search field, wait for results, tap the
-  //   first result, and only then tap 'Continue'.
+  // Router behavior (see apps/mobile/lib/app/router.dart):
+  //   onboarding_completed_at == NULL → redirect('/onboarding/profile').
   //
-  // Bounded delays:
-  //   The Supabase city search is a live HTTP call; we use Future.delayed
-  //   to give it time rather than pumpAndSettle (which deadlocks on streams).
+  // The scenario no longer exercises the city search — the intent is to prove
+  // the redirect fires and the new-user onboarding starts correctly.
   patrolTest(
-    'NAV-S03: New user OTP login redirects to onboarding LocationScreen',
+    'NAV-S03: New user OTP login redirects to onboarding ProfileBootstrap',
     tags: ['navigation', 'onboarding', 'newuser'],
     ($) async {
       await beforeScenario($);
@@ -156,63 +150,11 @@ void navigationScenarios() {
       await givenIAmNotLoggedIn($);
 
       // Step 1: OTP login triggers new-user registration.
-      // loginWithOtp taps 'Get Started', enters number, fetches OTP from
-      // the Firebase Auth Emulator, and waits for the API to register the user.
       await loginWithOtp($, TestData.newUserPhone);
 
       // Step 2: Router sees onboarding_completed_at = NULL → redirects to
-      // /onboarding/location. Assert LocationScreen is visible.
-      await thenIShouldBeOnTheScreen($, 'onboarding location');
-
-      // Step 3: The 'Continue' button on LocationScreen is disabled until a city
-      // is selected. Search for a city, tap the first result, then continue.
-      //
-      // The AppSearchInput has hint 'Search for your city...' — enter text to
-      // trigger the debounced search (_onSearchChanged with 400 ms debounce).
-      await $.tester.enterText(
-        find.widgetWithText(TextField, 'Search for your city...'),
-        'Mumbai',
-      );
-      await $.tester.pump(const Duration(milliseconds: 500)); // past debounce
-
-      // Wait for the HTTP response (city search API at /api/v1/cities).
-      await Future.delayed(const Duration(seconds: 3));
-      await $.tester.pump(const Duration(milliseconds: 200));
-
-      // If results appear, tap the first city tile; otherwise skip city
-      // selection and assert LocationScreen is still present (API unavailable).
-      //
-      // LocationScreen uses _CityResultTile (a GestureDetector wrapping a Row
-      // with the city name Text and a MapPin icon) — NOT Flutter's ListTile.
-      // We find by the text we just typed; the first match that is NOT the
-      // search field itself will be a result row.
-      final cityResults = find.text('Mumbai');
-      // The search TextField also contains 'Mumbai', so evaluate() may return
-      // 2 widgets (field + result). A result tile exists when count >= 2.
-      final hasResults = cityResults.evaluate().length >= 2;
-      if (hasResults) {
-        // Tap last occurrence — the result tile sits below the search field.
-        await $.tester.tap(cityResults.last, warnIfMissed: false);
-        await $.tester.pump(const Duration(milliseconds: 300));
-
-        // 'Continue' button is now enabled — tap to advance.
-        await whenITap($, 'Continue');
-
-        // Wait for PUT /api/v1/onboarding/city + navigation to /onboarding/verticals.
-        await Future.delayed(const Duration(seconds: 4));
-        await $.tester.pump(const Duration(milliseconds: 200));
-
-        // Step 4: VerticalPickerScreen should be visible (onboarding step 2).
-        await $(VerticalPickerScreen).waitUntilVisible(
-          timeout: const Duration(seconds: 10),
-        );
-      } else {
-        // City search returned nothing (emulator/API not seeded).
-        // At minimum assert LocationScreen is still the active screen.
-        await $(LocationScreen).waitUntilVisible(
-          timeout: const Duration(seconds: 5),
-        );
-      }
+      // /onboarding/profile. Assert ProfileBootstrapScreen is visible.
+      await thenIShouldBeOnTheScreen($, 'onboarding profile');
 
       // Guard: no crash widgets.
       await thenTheAppShouldNotHaveCrashed($);

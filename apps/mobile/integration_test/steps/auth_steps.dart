@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 import 'package:pinput/pinput.dart';
 
+import 'package:creatorhub/features/auth/providers/auth_provider.dart';
 import 'package:creatorhub/features/feed/screens/home_feed_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/location_screen.dart';
+import 'package:creatorhub/features/onboarding/screens/profile_bootstrap_screen.dart';
 import 'package:creatorhub/features/auth/screens/phone_otp_screen.dart';
 
 import '../support/app_driver.dart';
@@ -30,6 +33,28 @@ Future<void> givenTheAppIsLaunched(PatrolIntegrationTester $) async {
 /// Ensure no session exists. Maps to: "Given I am not logged in".
 Future<void> givenIAmNotLoggedIn(PatrolIntegrationTester $) async {
   await clearAuthState($);
+}
+
+/// Enter guest mode programmatically.
+///
+/// Post-E0.4c Pack A redesign, WelcomeScreen no longer has a "Browse as guest"
+/// CTA — guests are created implicitly when users tap "Keep browsing" on the
+/// SoftAuthSheet. For scenarios that assert guest-mode behavior end-to-end,
+/// this helper flips the auth provider into `AuthStatus.guest` so the router
+/// admits the user to /home without a real auth session.
+///
+/// Reaches into the running app's ProviderScope via a mounted widget's
+/// BuildContext, then calls `authProvider.enterGuestMode()`.
+///
+/// Maps to: "When I browse as guest".
+Future<void> whenIBrowseAsGuest(PatrolIntegrationTester $) async {
+  final element = $.tester.element(find.byType(MaterialApp).first);
+  final container = ProviderScope.containerOf(element, listen: false);
+  container.read(authProvider.notifier).enterGuestMode();
+  // Give GoRouter's refreshListenable time to re-evaluate the redirect.
+  await $.tester.pump(const Duration(milliseconds: 500));
+  await Future.delayed(const Duration(seconds: 2));
+  await $.tester.pump(const Duration(milliseconds: 300));
 }
 
 // ── Internal OTP login helper ─────────────────────────────────────
@@ -177,7 +202,7 @@ Future<void> whenIEnterMyPhoneNumber(
     timeout: const Duration(seconds: 10),
   );
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'Phone number'),
+    find.widgetWithText(TextField, '98765 43210'),
     number,
   );
   await $.tester.pump(const Duration(milliseconds: 300));
@@ -264,6 +289,10 @@ Future<void> thenIShouldBeOnTheScreen(
     case 'phone otp':
       await $(PhoneOtpScreen).waitUntilVisible(
         timeout: const Duration(seconds: 10),
+      );
+    case 'onboarding profile':
+      await $(ProfileBootstrapScreen).waitUntilVisible(
+        timeout: const Duration(seconds: 15),
       );
     case 'onboarding location':
       await $(LocationScreen).waitUntilVisible(

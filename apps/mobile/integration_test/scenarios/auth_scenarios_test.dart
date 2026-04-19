@@ -36,12 +36,14 @@ void authScenarios() {
       await givenTheAppIsLaunched($);
       await givenIAmNotLoggedIn($);
 
-      await whenITap($, 'Get Started');
+      await whenITap($, 'Get started');
       await whenIEnterMyPhoneNumber($, '+91${TestData.newUserPhone}');
-      await whenITap($, 'Continue');
+      await whenITap($, 'Send code');
       await whenIEnterOtp($, '123456'); // EmulatorHelper fetches real code
 
-      await thenIShouldBeOnTheScreen($, 'onboarding location');
+      // Post-A2c: new users redirect to ProfileBootstrapScreen
+      // (/onboarding/profile) before LocationScreen.
+      await thenIShouldBeOnTheScreen($, 'onboarding profile');
     },
   );
 
@@ -63,9 +65,9 @@ void authScenarios() {
       await givenTheAppIsLaunched($);
       await givenIHavePreviouslyCompletedOnboarding($);
 
-      await whenITap($, 'Get Started');
+      await whenITap($, 'Get started');
       await whenIEnterMyPhoneNumber($, '+919090909090');
-      await whenITap($, 'Continue');
+      await whenITap($, 'Send code');
       await whenIEnterOtp($, '123456');
 
       await thenIShouldSeeTheHomeFeed($);
@@ -88,7 +90,7 @@ void authScenarios() {
       await givenTheAppIsLaunched($);
       await givenIAmNotLoggedIn($);
 
-      await whenITap($, 'Browse as guest'); // actual UI text
+      await whenIBrowseAsGuest($);
       await thenIShouldSeeTheHomeFeed($);
       await thenTheTabShouldBeVisible($, 'Studio');
     },
@@ -111,7 +113,7 @@ void authScenarios() {
       await givenTheAppIsLaunched($);
       await givenIAmNotLoggedIn($);
 
-      await whenITap($, 'Browse as guest');
+      await whenIBrowseAsGuest($);
 
       // Wait for the home feed to load
       await $.tester.pumpAndSettle(const Duration(seconds: 5));
@@ -122,8 +124,9 @@ void authScenarios() {
       if (likeBtn.evaluate().isNotEmpty) {
         await $.tester.tap(likeBtn.first, warnIfMissed: false);
         await $.tester.pumpAndSettle(const Duration(seconds: 2));
-        // Auth wall should be visible: either a bottom sheet or dialog with 'Get Started'.
-        await thenIShouldSee($, 'Get Started');
+        // Auth wall should be visible: post-E0.4c SoftAuthSheet renders
+        // 'Continue with phone' as its primary CTA.
+        await thenIShouldSee($, 'Continue with phone');
       } else {
         // No feed content (seed data not applied) — verify guest feed is visible.
         await thenIShouldSeeTheHomeFeed($);
@@ -153,9 +156,9 @@ void authScenarios() {
       await givenIAmNotLoggedIn($);
 
       // Navigate to auth and submit the phone number.
-      await whenITap($, 'Get Started');
+      await whenITap($, 'Get started');
       await whenIEnterMyPhoneNumber($, '+91${TestData.newUserPhone}');
-      await whenITap($, 'Continue');
+      await whenITap($, 'Send code');
 
       // Wait for OTP step — emulator processes sendVerificationCode in real time.
       await $(find.byType(Pinput)).waitUntilVisible(
@@ -205,7 +208,7 @@ void authScenarios() {
       await givenIAmNotLoggedIn($);
 
       // Open the auth screen.
-      await whenITap($, 'Get Started');
+      await whenITap($, 'Get started');
 
       // Wait for PhoneOtpScreen to be visible before interacting.
       await $(PhoneOtpScreen).waitUntilVisible(
@@ -215,14 +218,14 @@ void authScenarios() {
       // Enter a 3-digit number — fails the 10-digit length check in
       // _validatePhone() without any Firebase or network call.
       await $.tester.enterText(
-        find.widgetWithText(TextField, 'Phone number'),
+        find.widgetWithText(TextField, '98765 43210'),
         '123',
       );
       await $.tester.pump(const Duration(milliseconds: 300));
 
       // Tap Continue — _sendOtp() calls _validatePhone, sets _error, returns
       // early. No loading state, no Firebase call.
-      await whenITap($, 'Continue');
+      await whenITap($, 'Send code');
 
       // One extra pump to flush the setState that shows the error.
       await $.tester.pump(const Duration(milliseconds: 500));
@@ -261,19 +264,20 @@ void authScenarios() {
       await givenIAmNotLoggedIn($);
 
       // Navigate to auth and advance to the OTP step.
-      await whenITap($, 'Get Started');
+      await whenITap($, 'Get started');
       await whenIEnterMyPhoneNumber($, '+91${TestData.newUserPhone}');
-      await whenITap($, 'Continue');
+      await whenITap($, 'Send code');
 
       // Confirm OTP input step is shown.
       await $(find.byType(Pinput)).waitUntilVisible(
         timeout: const Duration(seconds: 15),
       );
 
-      // Tap the back arrow — GestureDetector wrapping Icons.arrow_back in
-      // _buildOtpInput(). HapticFeedback.lightImpact() fires then _goBackToPhone().
+      // Post-E0.4c: the OTP step no longer has an Icons.arrow_back.
+      // Instead, a 'Change' text button next to 'Sent to +91…' calls
+      // _goBackToPhone() on tap. Tap that to return to phone entry.
       await $.tester.tap(
-        find.byIcon(Icons.arrow_back),
+        find.text('Change'),
         warnIfMissed: false,
       );
 
@@ -291,7 +295,7 @@ void authScenarios() {
 
       // The phone TextField must be visible again (phone-entry step).
       expect(
-        find.widgetWithText(TextField, 'Phone number'),
+        find.widgetWithText(TextField, '98765 43210'),
         findsOneWidget,
       );
     },

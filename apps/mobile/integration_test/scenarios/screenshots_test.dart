@@ -41,6 +41,7 @@ import 'package:pinput/pinput.dart';
 
 import 'package:creatorhub/features/feed/screens/home_feed_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/location_screen.dart';
+import 'package:creatorhub/features/onboarding/screens/profile_bootstrap_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/vertical_picker_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/suggested_creators_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/celebration_screen.dart';
@@ -99,7 +100,7 @@ void _loggedInScreens() {
 
       // ── 02 Phone OTP ──────────────────────────────────────────────
       // Tap "Get Started" if visible to reach PhoneOtpScreen.
-      final getStartedFinder = find.text('Get Started');
+      final getStartedFinder = find.text('Get started');
       if (getStartedFinder.evaluate().isNotEmpty) {
         await $.tester.tap(getStartedFinder.first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 400));
@@ -112,11 +113,11 @@ void _loggedInScreens() {
       final e164 = '+91$number';
 
       await $.tester.enterText(
-        find.widgetWithText(TextField, 'Phone number'),
+        find.widgetWithText(TextField, '98765 43210'),
         number,
       );
       await $.tester.pump(const Duration(milliseconds: 300));
-      await $.tester.tap(find.text('Continue').first, warnIfMissed: false);
+      await $.tester.tap(find.text('Send code').first, warnIfMissed: false);
       await $.tester.pump(const Duration(milliseconds: 300));
 
       await $(find.byType(Pinput)).waitUntilVisible(
@@ -316,20 +317,20 @@ void _onboardingScreens() {
       // Wait for WelcomeScreen then tap "Get Started".
       bool onWelcome = false;
       for (var i = 0; i < 30 && !onWelcome; i++) {
-        onWelcome = find.text('Get Started').evaluate().isNotEmpty;
+        onWelcome = find.text('Get started').evaluate().isNotEmpty;
         if (!onWelcome) {
           await Future.delayed(const Duration(milliseconds: 300));
           await $.tester.pump(const Duration(milliseconds: 300));
         }
       }
-      if (find.text('Get Started').evaluate().isNotEmpty) {
-        await $.tester.tap(find.text('Get Started').first, warnIfMissed: false);
+      if (find.text('Get started').evaluate().isNotEmpty) {
+        await $.tester.tap(find.text('Get started').first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 500));
       }
 
       // Wait for PhoneOtpScreen to appear before entering number.
       for (var i = 0; i < 20; i++) {
-        if (find.widgetWithText(TextField, 'Phone number').evaluate().isNotEmpty) break;
+        if (find.widgetWithText(TextField, '98765 43210').evaluate().isNotEmpty) break;
         await Future.delayed(const Duration(milliseconds: 300));
         await $.tester.pump(const Duration(milliseconds: 300));
       }
@@ -341,11 +342,11 @@ void _onboardingScreens() {
       final e164 = '+91$number';
 
       await $.tester.enterText(
-        find.widgetWithText(TextField, 'Phone number'),
+        find.widgetWithText(TextField, '98765 43210'),
         number,
       );
       await $.tester.pump(const Duration(milliseconds: 300));
-      await $.tester.tap(find.text('Continue').first, warnIfMissed: false);
+      await $.tester.tap(find.text('Send code').first, warnIfMissed: false);
       await $.tester.pump(const Duration(milliseconds: 300));
 
       await $(find.byType(Pinput)).waitUntilVisible(
@@ -358,6 +359,33 @@ void _onboardingScreens() {
       await Future.delayed(const Duration(seconds: 8));
       await $.tester.pump(const Duration(milliseconds: 200));
 
+      // ── 13a Onboarding: Profile bootstrap (A2c, post-E0.4c) ───────
+      await $(ProfileBootstrapScreen).waitUntilVisible(
+        timeout: const Duration(seconds: 15),
+      );
+      await _ss($, '13a_onboarding_profile_bootstrap');
+
+      // Username + first name (hint texts per E0.4c A2c).
+      final stamp = DateTime.now().millisecondsSinceEpoch
+          .toString()
+          .substring(6);
+      final usernameField = find.widgetWithText(TextField, 'aarav_k');
+      if (usernameField.evaluate().isNotEmpty) {
+        await $.tester.enterText(usernameField, 'e2e_$stamp');
+        await $.tester.pump(const Duration(milliseconds: 400));
+      }
+      final firstNameField = find.widgetWithText(TextField, 'Aarav');
+      if (firstNameField.evaluate().isNotEmpty) {
+        await $.tester.enterText(firstNameField, 'Aarav');
+        await $.tester.pump(const Duration(milliseconds: 200));
+      }
+      await Future.delayed(const Duration(milliseconds: 600));
+      await $.tester.pump(const Duration(milliseconds: 200));
+      await $.tester.tap(find.text('Continue').first, warnIfMissed: false);
+      await $.tester.pump(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(seconds: 3));
+      await $.tester.pump(const Duration(milliseconds: 200));
+
       // ── 14 Onboarding: Location ───────────────────────────────────
       await $(LocationScreen).waitUntilVisible(
         timeout: const Duration(seconds: 15),
@@ -366,7 +394,7 @@ void _onboardingScreens() {
 
       // Select a city to continue.
       await $.tester.enterText(
-        find.widgetWithText(TextField, 'Search for your city...'),
+        find.widgetWithText(TextField, 'City or state'),
         'Mumbai',
       );
       await $.tester.pump(const Duration(milliseconds: 500));
