@@ -23,8 +23,8 @@
 
 ## Current Sprint
 
-**Milestone:** M2 — Public MVP — **COMPLETE**
-**Focus:** All epics E0.1 through E2.11 are DONE and committed to `dev` branch.
+**Milestone:** M2 — Public MVP + Payouts — **COMPLETE**
+**Focus:** All planned epics (E0.1 through E3.1 + E2.12) are DONE and committed to `dev` branch.
 
 **M2 completion summary:**
 1. `[x]` E2.1 Scheduled Experiences — 53 API tests passing
@@ -38,6 +38,13 @@
 9. `[x]` E2.9 Notifications Full — 10 API tests passing (WhatsApp + SendGrid)
 10. `[x]` E2.10 Web Minimal — SSR pages + OG tags + sitemap
 11. `[x]` E2.11 DPDPA & Legal — deletion lifecycle + data export + consent versioning
+12. `[x]` E2.12 Razorpay Route Payouts — 105 new API + 14 Flutter tests; linked-account + transfer-at-order + cron release + 4 lifecycle notifications + `/studio/earnings` UI
+
+**Post-M2 next steps (backlog, not yet scoped as epics):**
+- Live Razorpay account activation (Route production key swap)
+- Staging webhook signature verification against real Razorpay test events
+- PostHog wiring for `payout_processed` / `payout_failed` / `payouts_enabled`
+- Live SendGrid template QA for the 4 payout emails
 
 **All M1 blockers resolved (historical):**
 1. `[x]` ~~Deploy SQL migrations 001–013 to Supabase~~ — Done (48 tables deployed)
