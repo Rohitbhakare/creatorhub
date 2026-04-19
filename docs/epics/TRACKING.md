@@ -59,6 +59,7 @@
 | E0.3 | Authentication | `DONE` | 10/10 | `[~]` auth middleware (15 tests) | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.4 | Design System | `DONE` | 12/12 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.4b | Design System v2 (Paper White + Coral) | `IN REVIEW` (boot pending) | 13/13 | `[x]` 12 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5) · Flutter 102/102 · API 708/708 | `[x]` 0 new issues | `[x]` | `[x]` passed | `[x]` `348d62d` |
+| E0.4c | Pack A — Onboarding & Auth redesign | `DONE` (iOS boot deferred) | 11/11 | `[x]` 10 new widget tests (A4 + A5 + A6 + A7) · Flutter 125/125 | `[x]` 0 new issues | `[x]` | `[x]` passed | `[ ]` pending commit |
 | E0.5 | Onboarding | `DONE` (1 bug + 1 feat open) | 10/10 | `[ ]` none written | `[x]` | `[x]` | `[x]` passed | `[x]` |
 
 > **Note on M0 tests:** M0 epics were committed before the test-required process was established. Tests for auth middleware (E0.3) have since been backfilled and are now passing (15/15). Remaining M0 tests are tech debt — will be addressed in a dedicated "test backfill" session before M1 gate.

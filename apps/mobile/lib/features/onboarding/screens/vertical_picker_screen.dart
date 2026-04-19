@@ -3,71 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../shared/theme/colors.dart';
-import '../../../shared/theme/typography.dart' as typ;
-import '../../../shared/theme/spacing.dart';
-import '../../../shared/theme/layout.dart';
+import '../../../shared/components/app_header.dart';
 import '../../../shared/components/button.dart';
-import '../../../shared/components/selection_tile.dart';
-import '../../../shared/components/skeleton.dart';
-import '../providers/onboarding_provider.dart';
-import '../components/onboarding_progress_bar.dart';
+import '../../../shared/components/steps.dart';
+import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/onboarding_provider.dart';
 
-/// Per-vertical accent color from prototype (DD-013).
-const Map<String, Color> _verticalAccentColors = {
-  'travel': Color(0xFFB8860B),
-  'food': Color(0xFF5A7247),
-  'fitness': Color(0xFF7C5CBF),
-  'stories': Color(0xFFE15A41),
-  'photography': Color(0xFF3B7DD8),
-  'wellness': Color(0xFF2D8F6F),
-  'music': Color(0xFF8B4F8B),
-  'education': Color(0xFF888888),
-};
-
-const Map<String, IconData> _verticalIcons = {
-  'travel': PhosphorIconsFill.mountains,
-  'stories': PhosphorIconsFill.bookOpen,
-  'food': PhosphorIconsFill.forkKnife,
-  'fitness': PhosphorIconsFill.barbell,
-  'education': PhosphorIconsFill.graduationCap,
-  'photography': PhosphorIconsFill.camera,
-  'music': PhosphorIconsFill.musicNotes,
-  'wellness': PhosphorIconsFill.sun,
-};
-
-/// Vertical data model for the picker.
-class _Vertical {
-  final String slug;
-  final String name;
-  final int creatorCount;
-
-  const _Vertical({
-    required this.slug,
-    required this.name,
-    required this.creatorCount,
-  });
-
-  factory _Vertical.fromJson(Map<String, dynamic> json) {
-    return _Vertical(
-      slug: (json['slug'] ?? json['id'] ?? '').toString(),
-      name: (json['name'] ?? '').toString(),
-      creatorCount: (json['creator_count'] as num?)?.toInt() ?? 0,
-    );
-  }
-
-  Color get accentColor =>
-      _verticalAccentColors[slug.toLowerCase()] ?? AppColors.inkSoft;
-
-  IconData get icon =>
-      _verticalIcons[slug.toLowerCase()] ?? PhosphorIconsFill.sparkle;
-}
-
-/// Vertical interests picker screen (ONB-FR-003).
-/// Step 2 of the onboarding flow. User picks at least 3 interest verticals.
+/// A4 Interests (IAM-FR-007 · ONB-FR-003).
+/// Step 3 of 5. 2×4 SelectionTile grid, min-3 counter.
 class VerticalPickerScreen extends ConsumerStatefulWidget {
   const VerticalPickerScreen({super.key});
 
@@ -77,339 +24,279 @@ class VerticalPickerScreen extends ConsumerStatefulWidget {
 }
 
 class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
-  List<_Vertical> _verticals = [];
-  bool _isLoading = true;
-  String? _loadError;
+  final _cats = const <_Cat>[
+    _Cat('travel', 'Travel', _mountains),
+    _Cat('food', 'Food', _forkKnife),
+    _Cat('culture', 'Culture', _bookOpen),
+    _Cat('adventure', 'Adventure', _barbell),
+    _Cat('wildlife', 'Wildlife', _sun),
+    _Cat('music', 'Music', _musicNotes),
+    _Cat('photography', 'Photography', _camera),
+    _Cat('learning', 'Learning', _graduationCap),
+  ];
+
+  final Set<String> _selected = {};
   bool _isSaving = false;
-  final Set<String> _selectedSlugs = {};
+  static const _minRequired = 3;
 
-  static const int _minRequired = 3;
-  static const double _gridGap = 10;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchVerticals();
-  }
-
-  Future<void> _fetchVerticals() async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
-
-    try {
-      final dio = ref.read(authServiceProvider).dio;
-      final response = await dio.get('/api/v1/verticals');
-
-      final responseData = response.data as Map<String, dynamic>;
-      final data = (responseData['data'] as List<dynamic>)
-          .cast<Map<String, dynamic>>();
-
-      if (mounted) {
-        setState(() {
-          _verticals = data.map(_Vertical.fromJson).toList();
-          _isLoading = false;
-        });
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _loadError =
-              e.response?.statusMessage ?? 'Failed to load interests';
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _loadError = 'Something went wrong. Tap to retry.';
-        });
-      }
-    }
-  }
-
-  void _toggleVertical(String slug) {
+  void _toggle(String slug) {
     HapticFeedback.selectionClick();
     setState(() {
-      if (_selectedSlugs.contains(slug)) {
-        _selectedSlugs.remove(slug);
+      if (_selected.contains(slug)) {
+        _selected.remove(slug);
       } else {
-        _selectedSlugs.add(slug);
+        _selected.add(slug);
       }
     });
   }
 
   Future<void> _onContinue() async {
-    if (_selectedSlugs.length < _minRequired) return;
-
+    if (_selected.length < _minRequired) return;
     setState(() => _isSaving = true);
-
     try {
       final dio = ref.read(authServiceProvider).dio;
-      await dio.put(
-        '/api/v1/onboarding/verticals',
-        data: {'verticals': _selectedSlugs.toList()},
-      );
-
-      if (mounted) {
-        ref
-            .read(onboardingProvider.notifier)
-            .setVerticals(_selectedSlugs.toList());
-        ref.read(onboardingProvider.notifier).advanceStep();
-        context.go('/onboarding/creators');
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.response?.statusMessage ??
-                  'Failed to save interests. Try again.',
-              style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.surface),
-            ),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-          ),
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Something went wrong. Try again.',
-              style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.surface),
-            ),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
+      await dio.put('/api/v1/onboarding/verticals',
+          data: {'verticals': _selected.toList()});
+    } on DioException {
+      // Non-fatal for local flow; retried on next step.
+    } catch (_) {}
+    if (!mounted) return;
+    ref.read(onboardingProvider.notifier).setVerticals(_selected.toList());
+    ref.read(onboardingProvider.notifier).advanceStep();
+    setState(() => _isSaving = false);
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
+    context.go('/onboarding/creators');
   }
 
   @override
   Widget build(BuildContext context) {
-    final canContinue = _selectedSlugs.length >= _minRequired;
+    final canContinue = _selected.length >= _minRequired;
 
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Layout.screenPaddingH,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const OnboardingProgressBar(currentStep: 2, totalSteps: 4),
-              const SizedBox(height: Spacing.xl),
-
-              // Title
-              Text('What are you into?', style: typ.AppTypography.h2),
-              const SizedBox(height: Spacing.xs),
-
-              // Subtitle with dynamic count
-              Text(
-                canContinue
-                    ? '${_selectedSlugs.length} picked \u2014 looking good!'
-                    : 'Pick at least $_minRequired to shape your feed.',
-                style: typ.AppTypography.bodySmall.copyWith(
-                  color: canContinue ? AppColors.success : AppColors.inkSoft,
-                  fontWeight: canContinue ? FontWeight.w500 : FontWeight.w400,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: AppColors.surface,
+        body: Column(
+          children: [
+            AppHeader(
+              showBack: true,
+              onBack: () => context.canPop()
+                  ? context.pop()
+                  : context.go('/onboarding/location'),
+              title: '',
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: StepsBar(current: 3, total: 5),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _eyebrow('Step 3 of 5'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'What pulls you in?',
+                      style: GoogleFonts.fraunces(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                        height: 1.0,
+                        letterSpacing: -0.018 * 30,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Pick at least $_minRequired. We'll keep learning.",
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.inkMuted,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _grid(),
+                    const SizedBox(height: 18),
+                    Text(
+                      '${_selected.length} of ${_cats.length} selected · '
+                      'minimum $_minRequired',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.inkMuted,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: Spacing.lg),
-
-              // Grid — fills remaining space, no scrolling
-              Expanded(child: _buildContent()),
-
-              const SizedBox(height: Spacing.md),
-
-              // Continue button
-              AppButton(
-                label: 'Continue',
-                onPressed: canContinue ? _onContinue : null,
-                variant: AppButtonVariant.primary,
-                size: AppButtonSize.large,
-                fullWidth: true,
-                isLoading: _isSaving,
-              ),
-              const SizedBox(height: Spacing.md),
-            ],
-          ),
+            ),
+            _footerBar(canContinue),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return _buildSkeletonGrid();
-    }
-
-    if (_loadError != null) {
-      return Center(
-        child: GestureDetector(
-          onTap: _fetchVerticals,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                PhosphorIconsFill.warningCircle,
-                size: 48,
-                color: AppColors.inkMuted,
-              ),
-              const SizedBox(height: Spacing.md),
-              Text(
-                _loadError!,
-                style: typ.AppTypography.body.copyWith(
-                  color: AppColors.inkSoft,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: Spacing.sm),
-              Text(
-                'Tap to retry',
-                style: typ.AppTypography.bodySmall.copyWith(
-                  color: AppColors.coral,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Build 4 rows x 2 columns, each row Expanded to fill space equally
-    final rows = <Widget>[];
-    for (int row = 0; row < (_verticals.length / 2).ceil(); row++) {
-      final leftIndex = row * 2;
-      final rightIndex = row * 2 + 1;
-
-      rows.add(
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: row < (_verticals.length / 2).ceil() - 1 ? _gridGap : 0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTile(_verticals[leftIndex]),
-                ),
-                const SizedBox(width: _gridGap),
-                Expanded(
-                  child: rightIndex < _verticals.length
-                      ? _buildTile(_verticals[rightIndex])
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(children: rows);
-  }
-
-  Widget _buildTile(_Vertical vertical) {
-    final isSelected = _selectedSlugs.contains(vertical.slug);
-    return _VerticalTile(
-      vertical: vertical,
-      isSelected: isSelected,
-      onTap: () => _toggleVertical(vertical.slug),
+  Widget _grid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        mainAxisExtent: 96,
+      ),
+      itemCount: _cats.length,
+      itemBuilder: (_, i) {
+        final c = _cats[i];
+        final selected = _selected.contains(c.slug);
+        return _Tile(cat: c, selected: selected, onTap: () => _toggle(c.slug));
+      },
     );
   }
 
-  Widget _buildSkeletonGrid() {
-    final rows = <Widget>[];
-    for (int row = 0; row < 4; row++) {
-      rows.add(
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: row < 3 ? _gridGap : 0),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: SkeletonRect(
-                    height: double.infinity,
-                    borderRadius: Layout.cardRadius,
-                  ),
-                ),
-                const SizedBox(width: _gridGap),
-                const Expanded(
-                  child: SkeletonRect(
-                    height: double.infinity,
-                    borderRadius: Layout.cardRadius,
-                  ),
-                ),
-              ],
+  Widget _footerBar(bool canContinue) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.hairline)),
+      ),
+      child: Row(
+        children: [
+          AppButton(
+            label: 'Back',
+            variant: AppButtonVariant.outline,
+            size: AppButtonSize.medium,
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/onboarding/location'),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: AppButton(
+              label: 'Continue',
+              variant: AppButtonVariant.primary,
+              size: AppButtonSize.medium,
+              fullWidth: true,
+              trailingIcon: Icons.arrow_forward_rounded,
+              isLoading: _isSaving,
+              onPressed: canContinue && !_isSaving ? _onContinue : null,
             ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
+  }
 
-    return SkeletonLoader(child: Column(children: rows));
+  Widget _eyebrow(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: GoogleFonts.jetBrainsMono(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: AppColors.inkMuted,
+        letterSpacing: 0.12 * 10,
+      ),
+    );
   }
 }
 
-/// Individual vertical tile — uses the shared `SelectionTile` (SRS C-26).
-/// Icon rendered in a vertical-specific tinted container; SelectionTile
-/// handles rest/selected border + halo + coral check badge.
-class _VerticalTile extends StatelessWidget {
-  final _Vertical vertical;
-  final bool isSelected;
+class _Cat {
+  final String slug;
+  final String name;
+  final IconData Function() iconBuilder;
+  const _Cat(this.slug, this.name, this.iconBuilder);
+}
+
+IconData _mountains() => PhosphorIcons.mountains();
+IconData _forkKnife() => PhosphorIcons.forkKnife();
+IconData _bookOpen() => PhosphorIcons.bookOpen();
+IconData _barbell() => PhosphorIcons.barbell();
+IconData _sun() => PhosphorIcons.sun();
+IconData _musicNotes() => PhosphorIcons.musicNotes();
+IconData _camera() => PhosphorIcons.camera();
+IconData _graduationCap() => PhosphorIcons.graduationCap();
+
+class _Tile extends StatelessWidget {
+  final _Cat cat;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _VerticalTile({
-    required this.vertical,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _Tile({required this.cat, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final color = vertical.accentColor;
-
-    return SelectionTile(
-      selected: isSelected,
+    return GestureDetector(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      leading: Container(
-        width: 44,
-        height: 44,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
+          color: AppColors.surface,
+          border: Border.all(
+            color: selected ? AppColors.coral : AppColors.hairlineStrong,
+            width: 1.5,
+          ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: selected
+              ? [
+                  const BoxShadow(
+                    color: AppColors.primaryTint,
+                    blurRadius: 0,
+                    spreadRadius: 3,
+                  ),
+                  ...AppColors.cardRaisedShadow,
+                ]
+              : AppColors.cardRaisedShadow,
         ),
-        child: Icon(
-          vertical.icon,
-          size: 22,
-          color: color,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  cat.iconBuilder(),
+                  size: 22,
+                  color: selected ? AppColors.coral : AppColors.inkSoft,
+                ),
+                Text(
+                  cat.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                    letterSpacing: -0.005,
+                  ),
+                ),
+              ],
+            ),
+            if (selected)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: AppColors.coral,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    PhosphorIcons.check(PhosphorIconsStyle.bold),
+                    size: 11,
+                    color: AppColors.surface,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
-      label: vertical.name,
-      sublabel: vertical.creatorCount > 0
-          ? '${vertical.creatorCount} creators'
-          : 'Coming soon',
     );
   }
 }

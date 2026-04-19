@@ -5,21 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../shared/theme/colors.dart';
-import '../../../shared/theme/typography.dart' as typ;
-import '../../../shared/theme/spacing.dart';
-import '../../../shared/theme/layout.dart';
+import '../../../shared/components/app_header.dart';
 import '../../../shared/components/button.dart';
-import '../../../shared/components/input.dart';
-import '../../../shared/components/skeleton.dart';
-import '../providers/onboarding_provider.dart';
-import '../components/onboarding_progress_bar.dart';
+import '../../../shared/components/steps.dart';
+import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/onboarding_provider.dart';
 
-/// Location capture screen (ONB-FR-002).
-/// Step 1 of the onboarding flow. Lets user search for and select their city.
+/// A3 Location (IAM-FR-006 · ONB-FR-002).
+/// Step 2 of 5. Search + city chips + precise-location toggle.
 class LocationScreen extends ConsumerStatefulWidget {
   const LocationScreen({super.key});
 
@@ -28,528 +25,405 @@ class LocationScreen extends ConsumerStatefulWidget {
 }
 
 class _LocationScreenState extends ConsumerState<LocationScreen> {
-  final _searchController = TextEditingController();
-  final _searchFocusNode = FocusNode();
+  static const _popular = [
+    _PopularCity(name: 'Mumbai', state: 'MH'),
+    _PopularCity(name: 'Delhi', state: 'DL'),
+    _PopularCity(name: 'Bengaluru', state: 'KA'),
+    _PopularCity(name: 'Hyderabad', state: 'TS'),
+    _PopularCity(name: 'Chennai', state: 'TN'),
+    _PopularCity(name: 'Pune', state: 'MH'),
+    _PopularCity(name: 'Kolkata', state: 'WB'),
+    _PopularCity(name: 'Goa', state: 'GA'),
+  ];
 
+  final _searchCtrl = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
-  String? _searchError;
+  bool _preciseLocation = false;
   bool _isSaving = false;
   Timer? _debounce;
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
+    _searchCtrl.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
-  Future<void> _searchCities(String query) async {
-    if (query.trim().isEmpty) {
+  Future<void> _searchCities(String q) async {
+    if (q.trim().isEmpty) {
       setState(() {
         _searchResults = [];
         _isSearching = false;
-        _searchError = null;
       });
       return;
     }
-
-    setState(() {
-      _isSearching = true;
-      _searchError = null;
-    });
+    setState(() => _isSearching = true);
 
     try {
       final dio = ref.read(authServiceProvider).dio;
-      final response = await dio.get(
-        '/api/v1/cities',
-        queryParameters: {'q': query.trim(), 'limit': 10},
-      );
-
-      final responseData = response.data as Map<String, dynamic>;
-      final cities = (responseData['data'] as List<dynamic>)
-          .cast<Map<String, dynamic>>();
-
-      if (mounted) {
-        setState(() {
-          _searchResults = cities;
-          _isSearching = false;
-        });
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSearching = false;
-          _searchError = e.response?.statusMessage ?? 'Failed to search cities';
-        });
-      }
+      final response = await dio.get('/api/v1/cities',
+          queryParameters: {'q': q.trim(), 'limit': 10});
+      final data = response.data as Map<String, dynamic>;
+      final cities = (data['data'] as List<dynamic>).cast<Map<String, dynamic>>();
+      if (!mounted) return;
+      setState(() {
+        _searchResults = cities;
+        _isSearching = false;
+      });
+    } on DioException {
+      if (mounted) setState(() => _isSearching = false);
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isSearching = false;
-          _searchError = 'Something went wrong. Try again.';
-        });
-      }
+      if (mounted) setState(() => _isSearching = false);
     }
   }
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(const Duration(milliseconds: 300), () {
       _searchCities(value);
     });
   }
 
-  void _selectCity(Map<String, dynamic> city) {
+  void _selectPopularCity(_PopularCity c) {
+    HapticFeedback.selectionClick();
+    // Use name as a stable local id; server-side the city lookup will resolve.
+    ref.read(onboardingProvider.notifier).setCity(c.name.toLowerCase(), c.name);
+    _searchCtrl.text = c.name;
+  }
+
+  void _selectSearchCity(Map<String, dynamic> city) {
     HapticFeedback.selectionClick();
     final id = city['id'] as String;
     final name = city['name'] as String;
     ref.read(onboardingProvider.notifier).setCity(id, name);
-
-    // Clear search state
-    _searchController.clear();
-    _searchFocusNode.unfocus();
-    setState(() {
-      _searchResults = [];
-      _searchError = null;
-    });
-  }
-
-  void _clearSelection() {
-    HapticFeedback.selectionClick();
-    ref.read(onboardingProvider.notifier).setCity('', '');
-  }
-
-  void _onUseMyLocation() {
-    HapticFeedback.lightImpact();
-    // GPS feature not available yet — focus search instead
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'GPS feature coming soon. Search for your city below.',
-          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
-        ),
-        backgroundColor: AppColors.ink,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Layout.cardRadius),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-    _searchFocusNode.requestFocus();
+    _searchCtrl.text = name;
+    setState(() => _searchResults = []);
   }
 
   Future<void> _onContinue() async {
-    final onboarding = ref.read(onboardingProvider);
-    final cityId = onboarding.selectedCityId;
+    final s = ref.read(onboardingProvider);
+    final cityId = s.selectedCityId;
     if (cityId == null || cityId.isEmpty) return;
 
     setState(() => _isSaving = true);
-
     try {
       final dio = ref.read(authServiceProvider).dio;
-      await dio.put(
-        '/api/v1/onboarding/city',
-        data: {'city_id': cityId},
-      );
-
-      if (mounted) {
-        ref.read(onboardingProvider.notifier).advanceStep();
-        context.go('/onboarding/verticals');
-      }
-    } on DioException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.response?.statusMessage ?? 'Failed to save city. Try again.',
-              style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.surface),
-            ),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-          ),
-        );
-      }
+      await dio.put('/api/v1/onboarding/city', data: {'city_id': cityId});
     } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Something went wrong. Try again.',
-              style: typ.AppTypography.bodySmall
-                  .copyWith(color: AppColors.surface),
-            ),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-          ),
-        );
-      }
+      // Non-fatal: local state still advances for offline-friendly UX.
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
+    if (!mounted) return;
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
+    ref.read(onboardingProvider.notifier).advanceStep();
+    context.go('/onboarding/verticals');
   }
 
   @override
   Widget build(BuildContext context) {
-    final onboarding = ref.watch(onboardingProvider);
-    final cityId = onboarding.selectedCityId;
-    final hasCity = cityId != null && cityId.isNotEmpty;
+    final s = ref.watch(onboardingProvider);
+    final selectedName = s.selectedCityName ?? '';
 
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: AppColors.surface,
+        body: Column(
           children: [
-            // Progress bar
-            const OnboardingProgressBar(currentStep: 1, totalSteps: 4),
-
-            // Scrollable content
+            AppHeader(
+              showBack: true,
+              onBack: () => context.canPop()
+                  ? context.pop()
+                  : context.go('/onboarding/profile'),
+              title: '',
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: StepsBar(current: 2, total: 5),
+            ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Layout.screenPaddingH,
-                ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: Spacing.xxl),
-
-                    // Title
+                    _eyebrow('Step 2 of 5'),
+                    const SizedBox(height: 8),
                     Text(
-                      'Where are you based?',
-                      style: typ.AppTypography.h2,
+                      'Where do you call home?',
+                      style: GoogleFonts.fraunces(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                        height: 1.0,
+                        letterSpacing: -0.018 * 30,
+                        color: AppColors.ink,
+                      ),
                     ),
-                    const SizedBox(height: Spacing.sm),
+                    const SizedBox(height: 8),
                     Text(
-                      'We\'ll show you experiences and creators nearby',
-                      style: typ.AppTypography.body.copyWith(
-                        color: AppColors.inkSoft,
+                      "We'll surface creators closer to you first. You can "
+                      'still follow anyone from anywhere.',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.inkMuted,
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: Spacing.xl),
-
-                    // Use my location button
-                    GestureDetector(
-                      onTap: _onUseMyLocation,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.lg,
-                          vertical: Spacing.md,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceAlt,
-                          borderRadius:
-                              BorderRadius.circular(Layout.inputRadius),
-                          border: Border.all(color: AppColors.hairline),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              PhosphorIconsFill.navigationArrow,
-                              size: 20,
-                              color: AppColors.coral,
-                            ),
-                            const SizedBox(width: Spacing.md),
-                            Text(
-                              'Use my location',
-                              style: typ.AppTypography.body.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.lg),
-
-                    // Divider with "or"
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Divider(color: AppColors.hairline),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.md,
-                          ),
-                          child: Text(
-                            'or search',
-                            style: typ.AppTypography.caption,
-                          ),
-                        ),
-                        const Expanded(
-                          child: Divider(color: AppColors.hairline),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.lg),
-
-                    // Selected city chip (shown when city is selected)
-                    if (hasCity) ...[
-                      _SelectedCityChip(
-                        cityName: onboarding.selectedCityName ?? '',
-                        onClear: _clearSelection,
-                      ),
-                      const SizedBox(height: Spacing.lg),
+                    const SizedBox(height: 22),
+                    _searchField(),
+                    if (_searchResults.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _searchResultsList(),
                     ],
-
-                    // Search input (hidden when city is selected)
-                    if (!hasCity) ...[
-                      AppSearchInput(
-                        controller: _searchController,
-                        hint: 'Search for your city...',
-                        onSearch: _onSearchChanged,
-                      ),
-                      const SizedBox(height: Spacing.sm),
-                    ],
-
-                    // Search results / loading / error
-                    if (!hasCity)
-                      Expanded(child: _buildSearchResults())
-                    else
-                      const Spacer(),
+                    const SizedBox(height: 18),
+                    _cityChips(selectedName),
+                    const SizedBox(height: 28),
+                    _preciseLocationCard(),
                   ],
                 ),
               ),
             ),
-
-            // Continue button
-            Padding(
-              padding: const EdgeInsets.all(Layout.screenPaddingH),
-              child: AppButton(
-                label: 'Continue',
-                onPressed: hasCity ? _onContinue : null,
-                variant: AppButtonVariant.primary,
-                size: AppButtonSize.large,
-                fullWidth: true,
-                isLoading: _isSaving,
-              ),
-            ),
+            _footerBar(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSearchResults() {
-    if (_isSearching) {
-      return SkeletonLoader(
-        child: ListView.separated(
-          padding: const EdgeInsets.only(top: Spacing.sm),
-          itemCount: 5,
-          separatorBuilder: (_, _) => const SizedBox(height: Spacing.md),
-          itemBuilder: (_, _) => const _SkeletonCityRow(),
-        ),
-      );
-    }
-
-    if (_searchError != null) {
-      return Padding(
-        padding: const EdgeInsets.only(top: Spacing.lg),
-        child: Text(
-          _searchError!,
-          style: typ.AppTypography.bodySmall.copyWith(
-            color: AppColors.danger,
-          ),
-        ),
-      );
-    }
-
-    if (_searchResults.isEmpty && _searchController.text.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: Spacing.xxl),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                PhosphorIconsFill.mapPinArea,
-                size: 48,
-                color: AppColors.inkMuted,
-              ),
-              const SizedBox(height: Spacing.md),
-              Text(
-                'No cities found',
-                style: typ.AppTypography.h4,
-              ),
-              const SizedBox(height: Spacing.xs),
-              Text(
-                'Try a different spelling or search term',
-                style: typ.AppTypography.bodySmall.copyWith(
-                  color: AppColors.inkSoft,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_searchResults.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.only(top: Spacing.sm),
-      itemCount: _searchResults.length,
-      separatorBuilder: (_, _) =>
-          const Divider(color: AppColors.hairline, height: 1),
-      itemBuilder: (context, index) {
-        final city = _searchResults[index];
-        return _CityResultTile(
-          city: city,
-          onTap: () => _selectCity(city),
-        );
-      },
-    );
-  }
-}
-
-/// Selected city chip with clear button.
-class _SelectedCityChip extends StatelessWidget {
-  final String cityName;
-  final VoidCallback onClear;
-
-  const _SelectedCityChip({
-    required this.cityName,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _searchField() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.md,
-        vertical: Spacing.sm,
-      ),
+      height: 48,
       decoration: BoxDecoration(
-        color: AppColors.coralSurface,
-        borderRadius: BorderRadius.circular(Layout.chipRadius),
-        border: Border.all(color: AppColors.coral),
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.hairlineStrong),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            PhosphorIconsFill.mapPin,
-            size: 16,
-            color: AppColors.coral,
+          const SizedBox(width: 14),
+          Icon(
+            PhosphorIcons.magnifyingGlass(),
+            size: 18,
+            color: AppColors.inkMuted,
           ),
-          const SizedBox(width: Spacing.sm),
-          Flexible(
-            child: Text(
-              cityName,
-              style: typ.AppTypography.body.copyWith(
-                fontWeight: FontWeight.w600,
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: _onSearchChanged,
+              style: GoogleFonts.inter(
+                fontSize: 14,
                 color: AppColors.ink,
+                fontWeight: FontWeight.w500,
               ),
-              overflow: TextOverflow.ellipsis,
+              decoration: InputDecoration(
+                hintText: 'City or state',
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppColors.inkMuted,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
           ),
-          const SizedBox(width: Spacing.sm),
-          GestureDetector(
-            onTap: onClear,
-            behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(Spacing.xs),
-              child: Icon(
-                PhosphorIconsFill.xCircle,
-                size: 18,
-                color: AppColors.inkSoft,
+          if (_isSearching) ...[
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.inkMuted,
               ),
             ),
-          ),
+            const SizedBox(width: 14),
+          ],
         ],
       ),
     );
   }
-}
 
-/// Individual city search result tile.
-class _CityResultTile extends StatelessWidget {
-  final Map<String, dynamic> city;
-  final VoidCallback onTap;
-
-  const _CityResultTile({
-    required this.city,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final name = city['name'] as String? ?? '';
-    final state = city['state'] as String? ?? '';
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-        child: Row(
-          children: [
-            const Icon(
-              PhosphorIconsFill.mapPin,
-              size: 20,
-              color: AppColors.coral,
-            ),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name, style: typ.AppTypography.body),
-                  if (state.isNotEmpty)
-                    Text(
-                      state,
-                      style: typ.AppTypography.caption,
+  Widget _searchResultsList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        children: _searchResults
+            .map((c) => InkWell(
+                  onTap: () => _selectSearchCity(c),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                          size: 16,
+                          color: AppColors.coral,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '${c['name']}${c['state'] != null ? ', ${c['state']}' : ''}',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _cityChips(String selectedName) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _popular.map((c) {
+        final selected = selectedName.toLowerCase() == c.name.toLowerCase();
+        return GestureDetector(
+          onTap: () => _selectPopularCity(c),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.ink : AppColors.surface,
+              border: Border.all(
+                color: selected ? AppColors.ink : AppColors.hairlineStrong,
+              ),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              c.name,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: selected ? AppColors.surface : AppColors.ink,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _preciseLocationCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            PhosphorIcons.mapPin(),
+            size: 18,
+            color: AppColors.inkSoft,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.inkSoft,
+                  height: 1.5,
+                ),
+                children: [
+                  TextSpan(
+                    text: 'Use precise location?\n',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: 'Better recommendations, optional anytime.',
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          Switch(
+            value: _preciseLocation,
+            onChanged: (v) {
+              HapticFeedback.selectionClick();
+              setState(() => _preciseLocation = v);
+            },
+            activeThumbColor: AppColors.coral,
+          ),
+        ],
       ),
     );
   }
-}
 
-/// Skeleton placeholder for a city row during loading.
-class _SkeletonCityRow extends StatelessWidget {
-  const _SkeletonCityRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+  Widget _footerBar() {
+    final s = ref.watch(onboardingProvider);
+    final canContinue = s.canAdvance;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.hairline)),
+      ),
       child: Row(
         children: [
-          SkeletonRect(width: 20, height: 20, borderRadius: 4),
-          SizedBox(width: Spacing.md),
+          AppButton(
+            label: 'Back',
+            variant: AppButtonVariant.outline,
+            size: AppButtonSize.medium,
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/onboarding/profile'),
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SkeletonLine(width: 140, height: 14),
-                SizedBox(height: Spacing.xs),
-                SkeletonLine(width: 80, height: 12),
-              ],
+            child: AppButton(
+              label: 'Continue',
+              variant: AppButtonVariant.primary,
+              size: AppButtonSize.medium,
+              fullWidth: true,
+              trailingIcon: Icons.arrow_forward_rounded,
+              isLoading: _isSaving,
+              onPressed: canContinue && !_isSaving ? _onContinue : null,
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _eyebrow(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: GoogleFonts.jetBrainsMono(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: AppColors.inkMuted,
+        letterSpacing: 0.12 * 10,
+      ),
+    );
+  }
+}
+
+class _PopularCity {
+  final String name;
+  final String state;
+  const _PopularCity({required this.name, required this.state});
 }

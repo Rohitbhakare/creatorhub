@@ -5,7 +5,14 @@ import '../theme/layout.dart';
 import '../theme/animations.dart';
 
 /// Button variant.
-enum AppButtonVariant { primary, secondary, ghost, danger }
+///
+/// - `primary`: filled coral bg, white text
+/// - `secondary` / `outline`: hairline border, ink text (alias — same styling)
+/// - `ghost`: no bg/border, coral text
+/// - `dark`: filled ink bg, white text (e.g. Follow button)
+/// - `text`: plain ink text, no bg/border/padding (e.g. "Keep browsing as guest")
+/// - `danger`: filled red bg, white text
+enum AppButtonVariant { primary, secondary, outline, ghost, dark, text, danger }
 
 /// Button size.
 enum AppButtonSize {
@@ -129,8 +136,15 @@ class _AppButtonState extends State<AppButton>
           bgColor: AppColors.coral,
           fgColor: AppColors.surface,
         ),
-      AppButtonVariant.secondary => _buildOutlined(),
+      AppButtonVariant.secondary ||
+      AppButtonVariant.outline =>
+        _buildOutlined(),
       AppButtonVariant.ghost => _buildGhost(),
+      AppButtonVariant.dark => _buildFilled(
+          bgColor: AppColors.ink,
+          fgColor: AppColors.surface,
+        ),
+      AppButtonVariant.text => _buildText(),
       AppButtonVariant.danger => _buildFilled(
           bgColor: AppColors.danger,
           fgColor: AppColors.surface,
@@ -181,6 +195,20 @@ class _AppButtonState extends State<AppButton>
         widget._isDisabled
             ? AppColors.coral.withValues(alpha: 0.4)
             : AppColors.coral,
+      ),
+    );
+  }
+
+  Widget _buildText() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.size == AppButtonSize.small ? 4 : 8,
+      ),
+      alignment: Alignment.center,
+      child: _buildChild(
+        widget._isDisabled
+            ? AppColors.ink.withValues(alpha: 0.4)
+            : AppColors.ink,
       ),
     );
   }

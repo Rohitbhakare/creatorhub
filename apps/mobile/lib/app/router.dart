@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
@@ -10,6 +9,7 @@ import '../features/posts/screens/post_detail_screen.dart';
 import '../features/events/screens/event_detail_screen.dart';
 import '../features/itineraries/screens/itinerary_detail_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
+import '../features/onboarding/screens/profile_bootstrap_screen.dart';
 import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
@@ -39,7 +39,7 @@ import 'main_shell.dart';
 /// Notifier that triggers GoRouter redirect re-evaluation when auth state changes.
 class _AuthChangeNotifier extends ChangeNotifier {
   _AuthChangeNotifier(Ref ref) {
-    ref.listen(authProvider, (_, __) {
+    ref.listen(authProvider, (_, _) {
       notifyListeners();
     });
   }
@@ -92,8 +92,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         final onboardingCompleted = user?['onboarding_completed_at'];
         if (onboardingCompleted == null) {
           if (!isOnAuthScreen && !isOnWelcome) {
-            if (kDebugMode) debugPrint('[Router] → /onboarding/location (onboarding incomplete)');
-            return '/onboarding/location';
+            if (kDebugMode) debugPrint('[Router] → /onboarding/profile (onboarding incomplete)');
+            return '/onboarding/profile';
           }
         }
       }
@@ -104,8 +104,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           final user = authState.user;
           final onboardingCompleted = user?['onboarding_completed_at'];
           if (onboardingCompleted == null) {
-            if (kDebugMode) debugPrint('[Router] → /onboarding/location (from welcome/auth)');
-            return '/onboarding/location';
+            if (kDebugMode) debugPrint('[Router] → /onboarding/profile (from welcome/auth)');
+            return '/onboarding/profile';
           }
         }
         if (kDebugMode) debugPrint('[Router] → /home (already authed, go home)');
@@ -129,6 +129,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Onboarding flow
+      GoRoute(
+        path: '/onboarding/profile',
+        builder: (context, state) => const ProfileBootstrapScreen(),
+      ),
       GoRoute(
         path: '/onboarding/location',
         builder: (context, state) => const LocationScreen(),
@@ -346,7 +350,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Legacy root redirect
       GoRoute(
         path: '/',
-        redirect: (_, __) => '/home',
+        redirect: (_, _) => '/home',
       ),
     ],
   );

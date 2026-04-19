@@ -2,16 +2,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:pinput/pinput.dart';
-import '../providers/auth_provider.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/theme/typography.dart' as typ;
-import '../../../shared/theme/spacing.dart';
-import '../../../shared/theme/layout.dart';
-import '../../../shared/components/button.dart';
 
-/// Phone OTP authentication screen.
-/// Two-step flow: phone input → OTP verification.
+import '../../../shared/components/app_header.dart';
+import '../../../shared/components/button.dart';
+import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/layout.dart';
+import '../providers/auth_provider.dart';
+
+/// Phone + OTP authentication (S_Phone / S_Otp).
+/// SRS: IAM-FR-002 (phone), IAM-FR-003 (send), IAM-FR-004 (verify).
+/// Two-step flow: phone → OTP. WhatsApp OTP is rendered disabled (Q4 decision).
 class PhoneOtpScreen extends ConsumerStatefulWidget {
   const PhoneOtpScreen({super.key});
 
@@ -25,19 +29,17 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
   final _phoneFocus = FocusNode();
   final _otpFocus = FocusNode();
 
-  bool _showOtpInput = false;
+  bool _showOtpStep = false;
   bool _isLoading = false;
   String? _verificationId;
   String? _error;
 
-  // Resend timer
   Timer? _resendTimer;
   int _resendCooldown = 0;
   int _resendCount = 0;
   static const _maxResends = 3;
-  static const _cooldownSeconds = 30;
+  static const _cooldownSeconds = 42;
 
-  // OTP attempt tracking
   int _verifyAttempts = 0;
   static const _maxVerifyAttempts = 5;
 
@@ -59,9 +61,9 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
 
   Future<void> _sendOtp() async {
     final phone = _phoneController.text.trim();
-    final error = _validatePhone(phone);
-    if (error != null) {
-      setState(() => _error = error);
+    final err = _validatePhone(phone);
+    if (err != null) {
+      setState(() => _error = err);
       return;
     }
 
@@ -74,14 +76,11 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
       final notifier = ref.read(authProvider.notifier);
       final verificationId = await notifier.sendOtp(phone);
 
-      if (verificationId == 'auto') {
-        // Auto-verification completed (Android) — auth state will update
-        return;
-      }
+      if (verificationId == 'auto') return;
 
       setState(() {
         _verificationId = verificationId;
-        _showOtpInput = true;
+        _showOtpStep = true;
         _isLoading = false;
       });
       _startResendTimer();
@@ -100,8 +99,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
     if (_verificationId == null) return;
     if (_verifyAttempts >= _maxVerifyAttempts) {
       setState(() {
-        _error =
-            'Too many failed attempts. Please request a new OTP.';
+        _error = 'Too many failed attempts. Please request a new OTP.';
       });
       return;
     }
@@ -114,7 +112,6 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
     try {
       final notifier = ref.read(authProvider.notifier);
       await notifier.verifyOtp(_verificationId!, otp);
-      // Success — auth state will navigate away
     } catch (e) {
       _verifyAttempts++;
       setState(() {
@@ -133,16 +130,13 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _resendCooldown--;
-        if (_resendCooldown <= 0) {
-          timer.cancel();
-        }
+        if (_resendCooldown <= 0) timer.cancel();
       });
     });
   }
 
   Future<void> _resendOtp() async {
     if (_resendCooldown > 0 || _resendCount >= _maxResends) return;
-
     _resendCount++;
     _verifyAttempts = 0;
     _otpController.clear();
@@ -151,7 +145,7 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
 
   void _goBackToPhone() {
     setState(() {
-      _showOtpInput = false;
+      _showOtpStep = false;
       _verificationId = null;
       _error = null;
       _verifyAttempts = 0;
@@ -161,252 +155,523 @@ class _PhoneOtpScreenState extends ConsumerState<PhoneOtpScreen> {
     _phoneFocus.requestFocus();
   }
 
+  void _onHeaderBack() {
+    if (_showOtpStep) {
+      _goBackToPhone();
+    } else {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/welcome');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Layout.screenPaddingH + Spacing.sm,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: Spacing.xxxl),
-
-              // Back button (OTP step only)
-              if (_showOtpInput)
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    _goBackToPhone();
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.only(bottom: Spacing.lg),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 24,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ),
-
-              // Title
-              Text(
-                _showOtpInput ? 'Verify your number' : 'Welcome to CreatorHub',
-                style: typ.AppTypography.h3,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: AppColors.surface,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppHeader(
+              showBack: true,
+              onBack: _onHeaderBack,
+              title: _showOtpStep ? 'Verify' : 'Sign in',
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: _showOtpStep ? _OtpStep(parent: this) : _PhoneStep(parent: this),
               ),
-              const SizedBox(height: Spacing.sm),
-
-              // Subtitle
-              Text(
-                _showOtpInput
-                    ? 'Enter the 6-digit code sent to +91 ${_phoneController.text}'
-                    : 'Enter your phone number to get started',
-                style: typ.AppTypography.bodyLarge.copyWith(
-                  color: AppColors.inkSoft,
-                ),
-              ),
-              const SizedBox(height: Spacing.xxl),
-
-              // Phone input OR OTP input
-              if (!_showOtpInput) _buildPhoneInput(),
-              if (_showOtpInput) _buildOtpInput(),
-
-              // Error message
-              if (_error != null && _error!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: Spacing.md),
-                  child: Text(
-                    _error!,
-                    style: typ.AppTypography.bodySmall.copyWith(
-                      color: AppColors.danger,
-                    ),
-                  ),
-                ),
-
-              const Spacer(),
-
-              // Guest mode
-              if (!_showOtpInput)
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      ref.read(authProvider.notifier).enterGuestMode();
-                    },
-                    child: Text(
-                      'Browse as guest',
-                      style: typ.AppTypography.body.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: Spacing.xl),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildPhoneInput() {
+// ── Phone step ───────────────────────────────────────────────────────
+
+class _PhoneStep extends StatelessWidget {
+  final _PhoneOtpScreenState parent;
+  const _PhoneStep({required this.parent});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Phone input with +91 prefix
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.hairline),
-            borderRadius: BorderRadius.circular(Layout.inputRadius),
-          ),
-          child: Row(
-            children: [
-              // Country code
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Spacing.lg,
-                  vertical: Spacing.lg,
-                ),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    right: BorderSide(color: AppColors.hairline),
-                  ),
-                ),
-                child: Text(
-                  '+91',
-                  style: typ.AppTypography.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              // Phone number
-              Expanded(
-                child: TextField(
-                  controller: _phoneController,
-                  focusNode: _phoneFocus,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: typ.AppTypography.bodyLarge,
-                  decoration: InputDecoration(
-                    hintText: 'Phone number',
-                    hintStyle: typ.AppTypography.bodyLarge.copyWith(
-                      color: AppColors.inkMuted,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    counterText: '',
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: Spacing.lg,
-                    ),
-                  ),
-                  onSubmitted: (_) => _sendOtp(),
-                ),
-              ),
-            ],
+        Text(
+          "What's your number?",
+          style: GoogleFonts.fraunces(
+            fontSize: 28,
+            fontWeight: FontWeight.w500,
+            height: 1.05,
+            letterSpacing: -0.018 * 28,
+            color: AppColors.ink,
           ),
         ),
-        const SizedBox(height: Spacing.mlg),
-
-        // Continue button
+        const SizedBox(height: 8),
+        Text(
+          "We'll text you a 6-digit code. No passwords, ever.",
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            height: 1.5,
+            color: AppColors.inkMuted,
+          ),
+        ),
+        const SizedBox(height: 22),
+        _fieldLabel('Mobile number', required: true),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _CountryChip(),
+            const SizedBox(width: 8),
+            Expanded(child: _phoneInput()),
+          ],
+        ),
+        if (parent._error != null && parent._error!.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Text(
+            parent._error!,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: AppColors.danger,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        const SizedBox(height: 20),
         AppButton(
-          label: 'Continue',
-          onPressed: _isLoading ? null : _sendOtp,
+          label: 'Send code',
           variant: AppButtonVariant.primary,
           size: AppButtonSize.large,
-          isLoading: _isLoading,
           fullWidth: true,
+          isLoading: parent._isLoading,
+          onPressed: parent._isLoading ? null : parent._sendOtp,
+          trailingIcon: Icons.arrow_forward_rounded,
+        ),
+        const SizedBox(height: 24),
+        const _OrDivider(),
+        const SizedBox(height: 18),
+        _oauthRow(context),
+      ],
+    );
+  }
+
+  Widget _phoneInput() {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.hairlineStrong),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: TextField(
+        controller: parent._phoneController,
+        focusNode: parent._phoneFocus,
+        keyboardType: TextInputType.phone,
+        maxLength: 10,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.ink,
+        ),
+        decoration: InputDecoration(
+          hintText: '98765 43210',
+          hintStyle: GoogleFonts.inter(
+            fontSize: 14,
+            color: AppColors.inkMuted,
+            fontWeight: FontWeight.w500,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          isDense: true,
+          counterText: '',
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+        ),
+        onSubmitted: (_) => parent._sendOtp(),
+      ),
+    );
+  }
+
+  Widget _oauthRow(BuildContext context) {
+    return Column(
+      children: [
+        _oauthBtn(
+          context,
+          icon: Icons.g_mobiledata_rounded,
+          label: 'Continue with Google',
+          onTap: () async {
+            await HapticFeedback.lightImpact();
+            final notifier = parent.ref.read(authProvider.notifier);
+            try {
+              await notifier.signInWithGoogle();
+            } catch (_) {}
+          },
+        ),
+        const SizedBox(height: 8),
+        _oauthBtn(
+          context,
+          icon: Icons.apple,
+          label: 'Continue with Apple',
+          onTap: () async {
+            await HapticFeedback.lightImpact();
+            final notifier = parent.ref.read(authProvider.notifier);
+            try {
+              await notifier.signInWithApple();
+            } catch (_) {}
+          },
         ),
       ],
     );
   }
 
-  Widget _buildOtpInput() {
+  Widget _oauthBtn(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Layout.buttonRadius),
+          ),
+          side: const BorderSide(color: AppColors.hairlineStrong),
+          backgroundColor: AppColors.surface,
+        ),
+        icon: Icon(icon, size: 22, color: AppColors.ink),
+        label: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.ink,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _fieldLabel(String label, {bool required = false}) {
+  return Row(
+    children: [
+      Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.inkSoft,
+          letterSpacing: 0.005,
+        ),
+      ),
+      if (required) ...[
+        const SizedBox(width: 4),
+        Text(
+          '*',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppColors.coral,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+class _CountryChip extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.hairlineStrong),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🇮🇳', style: TextStyle(fontSize: 16)),
+          const SizedBox(width: 6),
+          Text(
+            '+91',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            PhosphorIcons.caretDown(),
+            size: 14,
+            color: AppColors.inkMuted,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: AppColors.hairline, height: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            'OR',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.inkMuted,
+              letterSpacing: 0.05 * 11,
+            ),
+          ),
+        ),
+        const Expanded(child: Divider(color: AppColors.hairline, height: 1)),
+      ],
+    );
+  }
+}
+
+// ── OTP step ─────────────────────────────────────────────────────────
+
+class _OtpStep extends StatelessWidget {
+  final _PhoneOtpScreenState parent;
+  const _OtpStep({required this.parent});
+
+  @override
+  Widget build(BuildContext context) {
+    final phone = parent._phoneController.text.trim();
+    final display = phone.isEmpty
+        ? '+91'
+        : '+91 ${phone.substring(0, phone.length >= 5 ? 5 : phone.length)}'
+            '${phone.length > 5 ? ' ${phone.substring(5)}' : ''}';
+
     final defaultPinTheme = PinTheme(
       width: 48,
       height: 56,
-      textStyle: typ.AppTypography.h4.copyWith(
+      textStyle: GoogleFonts.jetBrainsMono(
+        fontSize: 24,
         fontWeight: FontWeight.w600,
+        color: AppColors.ink,
       ),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.hairline),
-        borderRadius: BorderRadius.circular(Layout.inputRadius),
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.hairlineStrong, width: 1.5),
+        borderRadius: BorderRadius.circular(10),
       ),
     );
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 6-digit OTP input
+        Text(
+          'Enter the code',
+          style: GoogleFonts.fraunces(
+            fontSize: 28,
+            fontWeight: FontWeight.w500,
+            height: 1.05,
+            letterSpacing: -0.018 * 28,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                'Sent to $display · ',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.inkMuted,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                parent._goBackToPhone();
+              },
+              child: Text(
+                'Change',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.coral,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
         Pinput(
-          controller: _otpController,
-          focusNode: _otpFocus,
+          controller: parent._otpController,
+          focusNode: parent._otpFocus,
           length: 6,
           defaultPinTheme: defaultPinTheme,
           focusedPinTheme: defaultPinTheme.copyWith(
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.coral, width: 2),
-              borderRadius: BorderRadius.circular(Layout.inputRadius),
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.ink, width: 2),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
           submittedPinTheme: defaultPinTheme.copyWith(
             decoration: BoxDecoration(
-              color: AppColors.coralSurface,
-              border: Border.all(color: AppColors.coral),
-              borderRadius: BorderRadius.circular(Layout.inputRadius),
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.ink, width: 1.5),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          enabled: !_isLoading,
-          onCompleted: _verifyOtp,
+          separatorBuilder: (_) => const SizedBox(width: 8),
+          enabled: !parent._isLoading,
+          onCompleted: parent._verifyOtp,
           hapticFeedbackType: HapticFeedbackType.lightImpact,
         ),
-        const SizedBox(height: Spacing.xl),
-
-        // Resend OTP
-        if (_resendCooldown > 0)
-          Text(
-            'Resend OTP in ${_resendCooldown}s',
-            style: typ.AppTypography.bodySmall.copyWith(
-              color: AppColors.inkMuted,
+        const SizedBox(height: 18),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _resendText(),
+            const AppButton(
+              label: 'Get code via WhatsApp',
+              variant: AppButtonVariant.text,
+              size: AppButtonSize.small,
+              onPressed: null,
             ),
-          )
-        else if (_resendCount < _maxResends)
-          TextButton(
-            onPressed: _resendOtp,
-            child: Text(
-              'Resend OTP',
-              style: typ.AppTypography.body.copyWith(
-                color: AppColors.coral,
-              ),
-            ),
-          )
-        else
+          ],
+        ),
+        if (parent._error != null && parent._error!.isNotEmpty) ...[
+          const SizedBox(height: 12),
           Text(
-            'Maximum resend attempts reached',
-            style: typ.AppTypography.bodySmall.copyWith(
+            parent._error!,
+            style: GoogleFonts.inter(
+              fontSize: 12,
               color: AppColors.danger,
+              fontWeight: FontWeight.w500,
             ),
           ),
+        ],
+        const SizedBox(height: 24),
+        AppButton(
+          label: 'Verify',
+          variant: AppButtonVariant.primary,
+          size: AppButtonSize.large,
+          fullWidth: true,
+          isLoading: parent._isLoading,
+          onPressed: parent._isLoading
+              ? null
+              : () => parent._verifyOtp(parent._otpController.text),
+        ),
+        const SizedBox(height: 18),
+        _infoBlock(),
+      ],
+    );
+  }
 
-        // Loading indicator during verification
-        if (_isLoading)
-          const Padding(
-            padding: EdgeInsets.only(top: Spacing.lg),
-            child: SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.coral,
+  Widget _resendText() {
+    if (parent._resendCooldown > 0) {
+      final mm = (parent._resendCooldown ~/ 60).toString();
+      final ss = (parent._resendCooldown % 60).toString().padLeft(2, '0');
+      return Text(
+        'Resend in $mm:$ss',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: AppColors.inkMuted,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+    if (parent._resendCount >= _PhoneOtpScreenState._maxResends) {
+      return Text(
+        'Max resends reached',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: AppColors.danger,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: parent._resendOtp,
+      child: Text(
+        'Resend code',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.coral,
+        ),
+      ),
+    );
+  }
+
+  Widget _infoBlock() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            PhosphorIcons.info(),
+            size: 16,
+            color: AppColors.inkMuted,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.inkSoft,
+                  height: 1.5,
+                ),
+                children: [
+                  const TextSpan(
+                    text: '3 failed attempts locks this number for 15 min. ',
+                  ),
+                  TextSpan(
+                    text: 'Need help?',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.coral,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }

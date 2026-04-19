@@ -12,6 +12,7 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 import '../providers/comments_provider.dart';
 
 /// Show the comments bottom sheet for a given content item.
@@ -432,6 +433,15 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
   Future<void> _send() async {
     final body = _controller.text.trim();
     if (body.isEmpty || _isSending) return;
+    final isAuth = ref.read(authProvider).isAuthenticated;
+    if (!isAuth) {
+      await showSoftAuthSheet(
+        context,
+        ref,
+        trigger: SoftAuthTrigger.comment,
+      );
+      return;
+    }
     setState(() => _isSending = true);
     final ok = await ref.read(commentsProvider(widget.contentId).notifier).addComment(body);
     if (ok) _controller.clear();
