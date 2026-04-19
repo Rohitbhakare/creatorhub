@@ -2,6 +2,8 @@
 //
 // Run with: patrol test --target integration_test/scenarios/profile_scenarios.dart
 
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 import '../hooks/global_hooks.dart';
@@ -38,6 +40,18 @@ void profileScenarios() {
       await givenIAmLoggedInAsTraveler($);
 
       await whenITapTheTab($, 'You');
+
+      // Post-E0.4c: YouTabScreen is a SingleChildScrollView with the
+      // _SettingsCard (which contains 'Edit Profile') below a HeroCard and
+      // an optional completion card. On smaller screens the 'Edit Profile'
+      // row can be offstage, so scroll it into view before tapping.
+      await $.tester.scrollUntilVisible(
+        find.text('Edit Profile'),
+        200.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await $.tester.pump(const Duration(milliseconds: 200));
+
       await whenITap($, 'Edit Profile');
       await thenIShouldBeOnEditProfileScreen($);
 
