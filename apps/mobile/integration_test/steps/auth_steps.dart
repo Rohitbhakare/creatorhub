@@ -50,7 +50,8 @@ Future<void> loginWithOtp(PatrolIntegrationTester $, String phone) async {
   final e164 = '+91$number';
 
   // Navigate to auth screen from WelcomeScreen if present.
-  await _tapAppButton($, 'Get Started');
+  // Post E0.4c A1: primary CTA is "Get started" (lowercase 's').
+  await _tapAppButton($, 'Get started');
 
   // Wait for the phone input screen to appear (PhoneOtpScreen).
   await $(PhoneOtpScreen).waitUntilVisible(
@@ -58,14 +59,16 @@ Future<void> loginWithOtp(PatrolIntegrationTester $, String phone) async {
   );
 
   // Enter phone number.
+  // Post E0.4c A2: hint is "98765 43210" (placeholder, no label).
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'Phone number'),
+    find.widgetWithText(TextField, '98765 43210'),
     number,
   );
   await $.tester.pump(const Duration(milliseconds: 300));
 
-  // Tap Continue — triggers Firebase sendVerificationCode.
-  await _tapAppButton($, 'Continue');
+  // Tap "Send code" — triggers Firebase sendVerificationCode.
+  // Post E0.4c A2: primary CTA is "Send code" (was "Continue").
+  await _tapAppButton($, 'Send code');
 
   // Wait for Pinput to appear: the emulator's sendVerificationCode completes
   // in real time, setState sets _showOtpInput=true, Pinput becomes visible.

@@ -28,7 +28,6 @@ import 'package:creatorhub/features/onboarding/screens/location_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/vertical_picker_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/suggested_creators_screen.dart';
 import 'package:creatorhub/features/onboarding/screens/celebration_screen.dart';
-import 'package:creatorhub/features/feed/screens/home_feed_screen.dart';
 
 import '../hooks/global_hooks.dart';
 import '../steps/auth_steps.dart';
@@ -43,7 +42,8 @@ Future<void> _completeProfileBootstrapStep(PatrolIntegrationTester $) async {
   );
 
   // Username: unique-ish per run to avoid collisions on reruns.
-  final usernameField = find.widgetWithText(TextField, 'yourhandle');
+  // Hint text: 'aarav_k' (see profile_bootstrap_screen.dart _usernameField).
+  final usernameField = find.widgetWithText(TextField, 'aarav_k');
   if (usernameField.evaluate().isNotEmpty) {
     final stamp = DateTime.now().millisecondsSinceEpoch
         .toString()
@@ -156,15 +156,40 @@ void onboardingScenarios() {
       await thenIShouldSee($, 'CHAPTER 1 · YOU');
       await thenIShouldSee($, 'Open my feed');
 
-      await $.tester.tap(find.text('Open my feed').first, warnIfMissed: false);
+      // Celebration's initState fires POST /onboarding/complete then
+      // GET /users/me; the router's auth-guard redirect inspects
+      // authState.user.onboarding_completed_at. If we tap before the
+      // GET /users/me response has updated authState, the redirect will
+      // bounce us back to /onboarding/profile. We retry the tap up to 3
+      // times (with generous waits) to survive slow emulator round-trips.
+      await Future.delayed(const Duration(seconds: 8));
       await $.tester.pump(const Duration(milliseconds: 300));
-      await Future.delayed(const Duration(seconds: 3));
-      await $.tester.pump(const Duration(milliseconds: 200));
 
-      // Landed on home feed.
-      await $(HomeFeedScreen).waitUntilVisible(
-        timeout: const Duration(seconds: 10),
-      );
+      // Tap the CTA (retry up to 3× since router may bounce back to
+      // /onboarding/profile until /users/me returns onboarding_completed_at).
+      bool leftCelebration = false;
+      for (var attempt = 0; attempt < 3 && !leftCelebration; attempt++) {
+        final cta = find.text('Open my feed');
+        if (cta.evaluate().isNotEmpty) {
+          await $.tester.ensureVisible(cta.first);
+          await $.tester.pump(const Duration(milliseconds: 200));
+          await $.tester.tap(cta.first, warnIfMissed: false);
+          await $.tester.pump(const Duration(milliseconds: 300));
+        }
+        await Future.delayed(const Duration(seconds: 6));
+        await $.tester.pump(const Duration(milliseconds: 300));
+
+        // Success = no longer on CelebrationScreen (post-onboarding).
+        leftCelebration = $(CelebrationScreen).evaluate().isEmpty;
+        if (!leftCelebration) {
+          await Future.delayed(const Duration(seconds: 3));
+          await $.tester.pump(const Duration(milliseconds: 300));
+        }
+      }
+
+      expect(leftCelebration, isTrue,
+          reason: 'Should have navigated away from CelebrationScreen after '
+              'tapping "Open my feed"');
 
       await thenTheAppShouldNotHaveCrashed($);
     },
