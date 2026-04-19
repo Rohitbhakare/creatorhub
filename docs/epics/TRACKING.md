@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-18 (E0.4b Design System v2 — Paper White + Coral migration, SRS C-25 through C-28 added)
+> Last updated: 2026-04-19 (M0 test backfill: E0.3 + E0.4 + E0.5 — 58 new API tests, 91 new Flutter tests)
 
 ---
 
@@ -56,13 +56,13 @@
 |------|------|--------|-------|-------|------|------|-------------|--------|
 | E0.1 | Repo & Infra | `DONE` | 9/9 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.2 | Database Schema | `DONE` | 12/12 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
-| E0.3 | Authentication | `DONE` | 10/10 | `[~]` auth middleware (15 tests) | `[x]` | `[x]` | `[ ]` not run | `[x]` |
-| E0.4 | Design System | `DONE` | 12/12 | `[ ]` none written | `[x]` | `[x]` | `[ ]` not run | `[x]` |
+| E0.3 | Authentication | `DONE` | 10/10 | `[x]` 58 API tests (auth.service 19 + auth handler 17 + rateLimit 12 + audit 10) + middleware 15 | `[x]` | `[x]` | `[ ]` not run | `[x]` |
+| E0.4 | Design System | `DONE` | 12/12 | `[x]` 72 widget tests (Button 10 + Input 14 + Skeleton 7 + Empty 6 + Badge 9 + Avatar 6 + BottomSheet 5 + Card 7 + 8 more) | `[x]` | `[x]` | `[ ]` not run | `[x]` |
 | E0.4b | Design System v2 (Paper White + Coral) | `IN REVIEW` (boot pending) | 13/13 | `[x]` 12 new widget tests (AppCard 3 + SelectionTile 4 + MainShell 5) · Flutter 102/102 · API 708/708 | `[x]` 0 new issues | `[x]` | `[x]` passed | `[x]` `348d62d` |
 | E0.4c | Pack A — Onboarding & Auth redesign | `DONE` (iOS boot deferred) | 11/11 | `[x]` 10 new widget tests (A4 + A5 + A6 + A7) · Flutter 125/125 | `[x]` 0 new issues | `[x]` | `[x]` passed | `[ ]` pending commit |
-| E0.5 | Onboarding | `DONE` (1 bug + 1 feat open) | 10/10 | `[ ]` none written | `[x]` | `[x]` | `[x]` passed | `[x]` |
+| E0.5 | Onboarding | `DONE` (1 bug + 1 feat open) | 10/10 | `[x]` provider (12) + progress bar (3) + location screen (3) + existing screen tests | `[x]` | `[x]` | `[x]` passed | `[x]` |
 
-> **Note on M0 tests:** M0 epics were committed before the test-required process was established. Tests for auth middleware (E0.3) have since been backfilled and are now passing (15/15). Remaining M0 tests are tech debt — will be addressed in a dedicated "test backfill" session before M1 gate.
+> **Note on M0 tests:** M0 epics were committed before the test-required process was established. The 2026-04-19 backfill session closed the gap — E0.3 auth (58 API tests), E0.4 design system (72 widget tests), and E0.5 onboarding (18 new tests) are now covered. E0.1 Repo/Infra and E0.2 Database schema remain test-free by design (pure config/SQL).
 
 ---
 
@@ -458,8 +458,23 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | `apps/api/src/services/whatsapp.service.test.ts` | api | **5** | `[x]` All passing |
 | `apps/api/src/services/email.service.test.ts` | api | **5** | `[x]` All passing |
 | `apps/api/src/services/dpdpa.service.test.ts` | api | — | `[x]` All passing |
+| `apps/api/src/services/auth.service.test.ts` (E0.3 T4 backfill) | api | **19** | `[x]` All passing |
+| `apps/api/src/handlers/auth.test.ts` (E0.3 T3 backfill) | api | **17** | `[x]` All passing |
+| `apps/api/src/middleware/rateLimit.test.ts` (E0.3 T9 backfill) | api | **12** | `[x]` All passing |
+| `apps/api/src/services/audit.service.test.ts` (E0.3 T10 backfill) | api | **10** | `[x]` All passing |
+| `apps/mobile/test/shared/components/button_test.dart` (E0.4 T5 backfill) | mobile | **10** | `[x]` All passing |
+| `apps/mobile/test/shared/components/input_test.dart` (E0.4 T6 backfill) | mobile | **14** | `[x]` All passing |
+| `apps/mobile/test/shared/components/skeleton_test.dart` (E0.4 T7 backfill) | mobile | **7** | `[x]` All passing |
+| `apps/mobile/test/shared/components/empty_state_test.dart` (E0.4 T8 backfill) | mobile | **6** | `[x]` All passing |
+| `apps/mobile/test/shared/components/badge_test.dart` (E0.4 T9 backfill) | mobile | **9** | `[x]` All passing |
+| `apps/mobile/test/shared/components/avatar_test.dart` (E0.4 T10 backfill) | mobile | **6** | `[x]` All passing |
+| `apps/mobile/test/shared/components/app_bottom_sheet_test.dart` (E0.4 T11 backfill) | mobile | **5** | `[x]` All passing |
+| `apps/mobile/test/shared/components/content_creator_card_test.dart` (E0.4 backfill) | mobile | **7** | `[x]` All passing |
+| `apps/mobile/test/features/onboarding/providers/onboarding_provider_test.dart` (E0.5 backfill) | mobile | **12** | `[x]` All passing |
+| `apps/mobile/test/features/onboarding/components/onboarding_progress_bar_test.dart` (E0.5 backfill) | mobile | **3** | `[x]` All passing |
+| `apps/mobile/test/features/onboarding/screens/location_screen_test.dart` (E0.5 backfill) | mobile | **3** | `[x]` All passing |
 
-**Total passing (M1+M2 additions): 200+ new tests on top of original 519**
+**Total passing (current): API 766 + Flutter 211 = 977 tests. The 2026-04-19 M0 backfill added 58 API + 91 Flutter tests (149 total) on top of the 200+ M1+M2 additions.**
 
 > **Note:** `event.service.test.ts` (26 total) had 16 pre-existing failures introduced in E1.4 due to mock chain gaps. These were resolved in a test-fix session. All tests now pass.
 
