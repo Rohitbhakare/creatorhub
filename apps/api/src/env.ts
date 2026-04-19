@@ -29,6 +29,10 @@ const envSchema = z.object({
   // Admin — secret for Retool / admin-only routes
   ADMIN_SECRET: z.string().min(16).optional(),
 
+  // Internal cron — secret header for Fly scheduled machines / GitHub Actions
+  // that invoke payout release + reconciliation jobs
+  INTERNAL_CRON_KEY: z.string().min(16).optional(),
+
   // WhatsApp Business (Meta Cloud API) — optional; skipped in dev
   WHATSAPP_TOKEN: z.string().min(1).optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),

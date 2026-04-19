@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
+import { createLinkedAccountForUser } from './linked-account.service.js'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -265,6 +266,16 @@ export async function approveKyc(userId: string, adminId: string): Promise<void>
 
   if (userError) {
     throw new AppError('db-error', 500, 'Failed to update user after KYC approval')
+  }
+
+  // Trigger Razorpay linked account creation. Failures must NOT rollback KYC —
+  // the cron in T10 reconciles users who are verified but have no linked account.
+  try {
+    await createLinkedAccountForUser(userId)
+  } catch (err) {
+    console.warn(
+      `[kyc.approve] linked-account creation deferred for ${userId}: ${(err as Error).message}`,
+    )
   }
 }
 

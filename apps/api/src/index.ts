@@ -34,6 +34,9 @@ import reviewsRoutes, { contentReviewsRoutes } from './routes/reviews.routes.js'
 import dpdpaRoutes from './routes/dpdpa.routes.js'
 import refundsRoutes from './routes/refunds.routes.js'
 import adminRoutes from './routes/admin.routes.js'
+import webhooksRoutes from './routes/webhooks.routes.js'
+import creatorsRoutes from './routes/creators.routes.js'
+import internalRoutes from './routes/internal.routes.js'
 
 const app = new Hono()
 
@@ -111,6 +114,9 @@ app.route('/api/v1/content', contentReviewsRoutes)
 app.route('/api/v1/dpdpa', dpdpaRoutes)
 app.route('/api/v1', refundsRoutes)
 app.route('/api/v1/admin', adminRoutes)
+app.route('/api/v1/webhooks', webhooksRoutes)
+app.route('/api/v1/creators', creatorsRoutes)
+app.route('/internal', internalRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

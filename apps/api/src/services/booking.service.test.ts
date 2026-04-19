@@ -16,6 +16,14 @@ vi.mock('razorpay', () => {
   return { default: MockRazorpay }
 })
 
+vi.mock('./linked-account.service.js', () => ({
+  getActiveRazorpayAccountId: vi.fn().mockResolvedValue('acc_creator_default'),
+}))
+
+vi.mock('./payout.service.js', () => ({
+  schedulePayoutOnBookingCompleted: vi.fn().mockResolvedValue(undefined),
+}))
+
 vi.mock('../env.js', () => ({
   env: {
     RAZORPAY_KEY_ID: 'rzp_test_key',
@@ -42,6 +50,8 @@ import {
 import { calculateBookingAmounts } from '../utils/money.js'
 import { supabase } from '../lib/supabase.js'
 import Razorpay from 'razorpay'
+import { getActiveRazorpayAccountId } from './linked-account.service.js'
+import { schedulePayoutOnBookingCompleted } from './payout.service.js'
 
 // ─── Mock helpers ─────────────────────────────────────────────────────────────
 
@@ -259,6 +269,64 @@ describe('createBooking', () => {
     await expect(createBooking(USER_ID, CONTENT_ID, SCHEDULED_DATE_ID)).rejects.toMatchObject({
       status: 404,
     })
+  })
+
+  it('E2.12 — passes Route transfer with on_hold=1 when creator has linked account', async () => {
+    const mockCreate = vi.fn().mockResolvedValue({
+      id: RAZORPAY_ORDER_ID,
+      transfers: [{ id: 'trf_xyz' }],
+    })
+    vi.mocked(Razorpay).mockImplementationOnce(() => ({ orders: { create: mockCreate } }) as never)
+    vi.mocked(getActiveRazorpayAccountId).mockResolvedValueOnce('acc_creator_1')
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(publishedPaidContent) as never)
+      .mockReturnValueOnce(mockChain(scheduledDate) as never)
+      .mockReturnValueOnce(mockChain({ id: SCHEDULED_DATE_ID }) as never)
+      .mockReturnValueOnce(mockChain(pendingBookingRow) as never)
+
+    await createBooking(USER_ID, CONTENT_ID, SCHEDULED_DATE_ID)
+
+    expect(getActiveRazorpayAccountId).toHaveBeenCalled()
+    expect(mockCreate).toHaveBeenCalledTimes(1)
+    const orderArgs = mockCreate.mock.calls[0]![0] as { transfers?: Array<Record<string, unknown>> }
+    expect(orderArgs.transfers).toHaveLength(1)
+    const t = orderArgs.transfers![0]!
+    expect(t['account']).toBe('acc_creator_1')
+    expect(t['on_hold']).toBe(1)
+    expect(typeof t['on_hold_until']).toBe('number')
+    expect(t['amount']).toBe(643500) // creatorPayoutPaisa from calculateBookingAmounts(650000)
+  })
+
+  it('E2.12 — throws 503 when creator has no active linked account', async () => {
+    vi.mocked(getActiveRazorpayAccountId).mockResolvedValueOnce(null)
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(publishedPaidContent) as never)
+      .mockReturnValueOnce(mockChain(scheduledDate) as never)
+      .mockReturnValueOnce(mockChain({ id: SCHEDULED_DATE_ID }) as never)
+      // spots rollback chain
+      .mockReturnValueOnce(mockChain(null, null) as never)
+
+    await expect(createBooking(USER_ID, CONTENT_ID, SCHEDULED_DATE_ID)).rejects.toMatchObject({
+      status: 503,
+    })
+  })
+
+  it('E2.12 — rolls back spot increment when linked account missing', async () => {
+    vi.mocked(getActiveRazorpayAccountId).mockResolvedValueOnce(null)
+
+    const spotsUpdate = mockChain(null, null)
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(publishedPaidContent) as never)
+      .mockReturnValueOnce(mockChain(scheduledDate) as never)
+      .mockReturnValueOnce(mockChain({ id: SCHEDULED_DATE_ID }) as never)
+      .mockReturnValueOnce(spotsUpdate as never)
+
+    await expect(createBooking(USER_ID, CONTENT_ID, SCHEDULED_DATE_ID)).rejects.toMatchObject({
+      status: 503,
+    })
+    expect(spotsUpdate.update).toHaveBeenCalled()
   })
 
   it('throws 422 when user tries to book own experience', async () => {
@@ -494,5 +562,37 @@ describe('completeBooking', () => {
     await expect(completeBooking('nonexistent', CREATOR_ID)).rejects.toMatchObject({
       status: 404,
     })
+  })
+
+  it('triggers payout scheduling after marking complete (E2.12 T8)', async () => {
+    const confirmedBooking = {
+      id: BOOKING_ID,
+      creator_id: CREATOR_ID,
+      status: 'confirmed',
+    }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(confirmedBooking) as never)
+      .mockReturnValueOnce(mockChain(null, null) as never)
+
+    await completeBooking(BOOKING_ID, CREATOR_ID)
+
+    expect(vi.mocked(schedulePayoutOnBookingCompleted)).toHaveBeenCalledWith(BOOKING_ID)
+  })
+
+  it('completion succeeds even if payout scheduling throws', async () => {
+    const confirmedBooking = {
+      id: BOOKING_ID,
+      creator_id: CREATOR_ID,
+      status: 'confirmed',
+    }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(confirmedBooking) as never)
+      .mockReturnValueOnce(mockChain(null, null) as never)
+
+    vi.mocked(schedulePayoutOnBookingCompleted).mockRejectedValueOnce(new Error('transient'))
+
+    await expect(completeBooking(BOOKING_ID, CREATOR_ID)).resolves.toBeUndefined()
   })
 })

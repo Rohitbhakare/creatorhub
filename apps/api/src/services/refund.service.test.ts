@@ -7,6 +7,13 @@ vi.mock('../lib/supabase.js', () => {
   return { supabase: mockSupabase }
 })
 
+vi.mock('./payout-notifications.service.js', () => ({
+  notifyPayoutsEnabled: vi.fn().mockResolvedValue(undefined),
+  notifyPayoutProcessed: vi.fn().mockResolvedValue(undefined),
+  notifyPayoutFailed: vi.fn().mockResolvedValue(undefined),
+  notifyLinkedAccountActionRequired: vi.fn().mockResolvedValue(undefined),
+}))
+
 // Mock global fetch for Razorpay API calls
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -248,15 +255,19 @@ describe('cancelBookingByBuyer', () => {
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
-      // 4. bookings UPDATE (cancel)
+      // 4. payouts lookup (E2.12 T11) — null: no escrow to reverse
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
-      // 5. scheduled_dates UPDATE (decrement spots)
+      // 5. bookings UPDATE (cancel)
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
-      // 6. refunds INSERT
+      // 6. scheduled_dates UPDATE (decrement spots)
+      .mockReturnValueOnce(
+        mockChain(null) as never,
+      )
+      // 7. refunds INSERT
       .mockReturnValueOnce(
         mockChain({ id: 'refund-row-001' }) as never,
       )
@@ -301,6 +312,59 @@ describe('cancelBookingByBuyer', () => {
     expect(mockFetch).not.toHaveBeenCalled() // no Razorpay call when 0
   })
 
+  it('reverses Route escrow before issuing buyer refund (E2.12 T11)', async () => {
+    // reverseTransfer runs FIRST via razorpay.ts (uses response.text()), then
+    // initiateRazorpayRefund runs SECOND (uses response.json()).
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ id: 'rev_001', entity: 'reversal' }),
+      json: async () => ({ id: 'rev_001', entity: 'reversal' }),
+    })
+    mockRazorpayRefundOk('rfnd_clawback')
+
+    vi.mocked(supabase.from)
+      // 1. booking lookup
+      .mockReturnValueOnce(mockChain(confirmedBooking) as never)
+      // 2. scheduled_date lookup
+      .mockReturnValueOnce(mockChain(scheduledDateFarFuture) as never)
+      // 3. refund_policies lookup
+      .mockReturnValueOnce(mockChain(null) as never)
+      // 4. payouts lookup — returns row with transfer id, status 'scheduled'
+      .mockReturnValueOnce(
+        mockChain({
+          id: 'po_1',
+          status: 'scheduled',
+          amount_paisa: 83000,
+          razorpay_transfer_id: 'trf_abc',
+        }) as never,
+      )
+      // 5. payouts SELECT (inside reversePayout)
+      .mockReturnValueOnce(
+        mockChain({
+          id: 'po_1',
+          razorpay_transfer_id: 'trf_abc',
+          status: 'scheduled',
+        }) as never,
+      )
+      // 6. payouts UPDATE (mark failed)
+      .mockReturnValueOnce(mockChain(null) as never)
+      // 7. bookings UPDATE
+      .mockReturnValueOnce(mockChain(null) as never)
+      // 8. scheduled_dates UPDATE
+      .mockReturnValueOnce(mockChain(null) as never)
+      // 9. refunds INSERT
+      .mockReturnValueOnce(mockChain({ id: 'refund-reversal' }) as never)
+
+    await cancelBookingByBuyer(BOOKING_ID, BUYER_ID)
+
+    const reversalCall = mockFetch.mock.calls.find((call) => {
+      const [url] = call as [string, RequestInit]
+      return url.includes('/transfers/trf_abc/reversals')
+    })
+    expect(reversalCall).toBeDefined()
+  })
+
   it('throws 422 when booking is already cancelled', async () => {
     vi.mocked(supabase.from).mockReturnValueOnce(
       mockChain({
@@ -331,19 +395,23 @@ describe('cancelBookingByCreator', () => {
       .mockReturnValueOnce(
         mockChain(confirmedBooking) as never,
       )
-      // 2. bookings UPDATE (cancel)
+      // 2. payouts lookup (E2.12 T11) — null: no escrow to reverse
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
-      // 3. scheduled_dates SELECT (spots_booked)
+      // 3. bookings UPDATE (cancel)
+      .mockReturnValueOnce(
+        mockChain(null) as never,
+      )
+      // 4. scheduled_dates SELECT (spots_booked)
       .mockReturnValueOnce(
         mockChain({ spots_booked: 3 }) as never,
       )
-      // 4. scheduled_dates UPDATE (decrement)
+      // 5. scheduled_dates UPDATE (decrement)
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
-      // 5. refunds INSERT
+      // 6. refunds INSERT
       .mockReturnValueOnce(
         mockChain(null) as never,
       )

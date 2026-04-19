@@ -308,6 +308,15 @@ export type EventDraftData = {
   updated_at: string
 }
 
+// ─── Payouts ─────────────────────────────────────────────────
+export type {
+  PayoutStatus,
+  PayoutSummary,
+  PayoutListResponse,
+  LinkedAccountStatus,
+  LinkedAccount,
+} from './payout.js'
+
 // ─── Auth ────────────────────────────────────────────────────
 export type TokenPair = {
   access_token: string

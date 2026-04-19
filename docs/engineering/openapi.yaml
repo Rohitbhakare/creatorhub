@@ -1596,6 +1596,149 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
 
+  # ─── Payouts (E2.12) ───────────────────────────────────────────
+  /api/v1/creators/me/linked-account:
+    get:
+      tags: [Payouts]
+      summary: Get my Razorpay linked account status
+      description: |
+        Returns the current KYC / Razorpay Route linked-account state for the
+        authenticated creator. Used to drive the Studio → Earnings banner
+        (activated / under_review / needs_clarification / rejected / suspended /
+        missing).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Linked-account snapshot (may be null if never linked)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    nullable: true
+                    properties:
+                      status:
+                        type: string
+                        enum: [created, under_review, activated, needs_clarification, rejected, suspended, deactivated]
+                      activatedAt: { type: string, format: date-time, nullable: true }
+                      holderName: { type: string, nullable: true }
+                      bankAccountMasked: { type: string, nullable: true }
+                      bankIfsc: { type: string, nullable: true }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/creators/me/payouts:
+    get:
+      tags: [Payouts]
+      summary: List my payouts (paged)
+      description: |
+        Returns the authenticated creator's payouts, newest first. Includes a
+        30-day rolling summary (pending / processing / paid) plus the page.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: cursor
+          schema: { type: string }
+          description: Base64-encoded cursor from the previous page.
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        "200":
+          description: Paged payouts + 30-day summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required: [summary, payouts]
+                    properties:
+                      summary:
+                        type: object
+                        required: [pendingPaisa, processingPaisa, paidLast30dPaisa]
+                        properties:
+                          pendingPaisa: { type: integer }
+                          processingPaisa: { type: integer }
+                          paidLast30dPaisa: { type: integer }
+                      payouts:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, status, amountPaisa, tdsPaisa, createdAt]
+                          properties:
+                            id: { type: string, format: uuid }
+                            bookingId: { type: string, format: uuid, nullable: true }
+                            bookingTitle: { type: string, nullable: true }
+                            status:
+                              type: string
+                              enum: [scheduled, processing, completed, failed]
+                            amountPaisa: { type: integer }
+                            tdsPaisa: { type: integer }
+                            failureReason: { type: string, nullable: true }
+                            releaseAt: { type: string, format: date-time, nullable: true }
+                            processedAt: { type: string, format: date-time, nullable: true }
+                            createdAt: { type: string, format: date-time }
+                      nextCursor: { type: string, nullable: true }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/webhooks/razorpay:
+    post:
+      tags: [Webhooks]
+      summary: Razorpay webhook endpoint (HMAC-verified)
+      description: |
+        Razorpay posts lifecycle events here. Verified via
+        `x-razorpay-signature` HMAC-SHA256 over the raw body using
+        `RAZORPAY_WEBHOOK_SECRET`. Handled events:
+        `payment.captured`, `transfer.settled`, `payout.processed`,
+        `payout.reversed`, `payout.failed`, `account.activated`,
+        `account.under_review`, `account.needs_clarification`,
+        `account.rejected`, `account.suspended`.
+        Unknown events 200-noop. Duplicate events (unique_violation on event id) 200.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event, id, payload]
+              properties:
+                event: { type: string }
+                id: { type: string }
+                payload: { type: object, additionalProperties: true }
+      parameters:
+        - in: header
+          name: x-razorpay-signature
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Accepted (including duplicate / unknown events)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data: { type: object, additionalProperties: true }
+        "403":
+          description: Missing or invalid HMAC signature
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
 # ─── COMPONENTS ──────────────────────────────────────────────
 components:
 

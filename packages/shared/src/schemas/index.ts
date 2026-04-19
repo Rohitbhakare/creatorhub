@@ -338,5 +338,9 @@ export type {
   ReviewListQueryInput,
 } from './review.schemas.js'
 
+// ─── Payouts ────────────────────────────────────────────────
+export { PAYOUT_STATUSES, listPayoutsQuerySchema } from './payout.js'
+export type { ListPayoutsQueryInput } from './payout.js'
+
 // suppress unused import warning
 void USERNAME_CHANGE_COOLDOWN_DAYS

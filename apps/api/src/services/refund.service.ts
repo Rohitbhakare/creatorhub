@@ -12,6 +12,7 @@
 import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
 import { env } from '../env.js'
+import { reversePayout, getPayoutByBookingId } from './payout.service.js'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,31 @@ async function initiateRazorpayRefund(
   }
 
   return json.id
+}
+
+// ─── reverseCreatorPayoutIfNeeded (E2.12 T11) ────────────────────────────────
+
+/**
+ * If a booking's refund is issued before payout has settled, reverse the Route
+ * transfer so the creator's escrow is clawed back. Silently no-ops when there
+ * is no payout row or the payout is already completed/failed — those cases are
+ * reconciled through manual adjustment.
+ *
+ * Running this BEFORE the Razorpay buyer refund is critical: Razorpay rejects
+ * refunds that exceed the available transferable balance. Reversing first
+ * returns the escrowed amount to the merchant's balance, which is the refund
+ * source.
+ */
+async function reverseCreatorPayoutIfNeeded(
+  bookingId: string,
+  reason: string,
+): Promise<void> {
+  const payout = await getPayoutByBookingId(bookingId)
+  if (!payout) return
+  if (payout.status === 'completed' || payout.status === 'failed') return
+  if (!payout.razorpayTransferId) return
+
+  await reversePayout(payout.id, `refund:${reason}`)
 }
 
 // ─── getRefundPolicy ──────────────────────────────────────────────────────────
@@ -230,7 +256,12 @@ export async function cancelBookingByBuyer(
   const totalPaisa = b.total_paisa as number
   const refundAmountPaisa = calculateRefundAmount(totalPaisa, policyType, daysUntilStart)
 
-  // 5. Initiate Razorpay refund if amount > 0
+  // 5a. Claw back Route escrow so the refund source has balance (E2.12).
+  if (refundAmountPaisa > 0) {
+    await reverseCreatorPayoutIfNeeded(bookingId, reason ?? 'buyer_cancel')
+  }
+
+  // 5b. Initiate Razorpay refund if amount > 0
   let razorpayRefundId: string | null = null
   if (refundAmountPaisa > 0 && b.razorpay_payment_id) {
     razorpayRefundId = await initiateRazorpayRefund(
@@ -324,6 +355,11 @@ export async function cancelBookingByCreator(
 
   const totalPaisa = b.total_paisa as number
 
+  // Claw back Route escrow before issuing refund (E2.12).
+  if (totalPaisa > 0) {
+    await reverseCreatorPayoutIfNeeded(bookingId, reason)
+  }
+
   // Full refund
   let razorpayRefundId: string | null = null
   if (totalPaisa > 0 && b.razorpay_payment_id) {
@@ -406,6 +442,11 @@ export async function cancelBookingByAdmin(
   }
 
   const totalPaisa = b.total_paisa as number
+
+  // Claw back Route escrow before issuing refund (E2.12).
+  if (totalPaisa > 0) {
+    await reverseCreatorPayoutIfNeeded(bookingId, `admin:${reason}`)
+  }
 
   // Full refund
   let razorpayRefundId: string | null = null

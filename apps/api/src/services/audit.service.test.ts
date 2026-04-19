@@ -13,7 +13,7 @@ import { supabase } from '../lib/supabase.js'
 
 // Shared insert spy reference
 // (Typed loosely because vi.mock returns unknown shape in types.)
-const insertSpy = (supabase.from() as unknown as { insert: ReturnType<typeof vi.fn> }).insert
+const insertSpy = (supabase.from('audit_events') as unknown as { insert: ReturnType<typeof vi.fn> }).insert
 
 // ─── logAuditEvent ─────────────────────────────────────────────────────────
 

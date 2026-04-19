@@ -15,6 +15,8 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/earnings_provider.dart';
+import '../providers/linked_account_provider.dart';
 import '../providers/studio_provider.dart';
 
 class StudioTabScreen extends ConsumerWidget {
@@ -826,75 +828,99 @@ class _ContentError extends StatelessWidget {
   }
 }
 
-// ── Earnings Info Card ────────────────────────────────────────────────
+// ── Earnings Entry Card ──────────────────────────────────────────────
 
-class _EarningsInfoCard extends StatelessWidget {
+class _EarningsInfoCard extends ConsumerWidget {
   const _EarningsInfoCard();
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-      child: Container(
-        padding: const EdgeInsets.all(Spacing.lg),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.hairline),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(10),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final earnings = ref.watch(earningsProvider);
+    final linkedAccount = ref.watch(linkedAccountProvider);
+
+    final totals = earnings.totals;
+    final hasAny = totals.pendingPaisa > 0 ||
+        totals.processingPaisa > 0 ||
+        totals.paidLast30dPaisa > 0;
+
+    final account = linkedAccount.account;
+    final statusLine = _statusLineFor(account, hasAny);
+    final primaryAmount = totals.paidLast30dPaisa > 0
+        ? totals.paidLast30dPaisa
+        : totals.pendingPaisa;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/studio/earnings');
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
+        child: Container(
+          padding: const EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.hairline),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  PhosphorIcons.wallet(PhosphorIconsStyle.regular),
+                  size: 20,
+                  color: AppColors.inkSoft,
+                ),
               ),
-              child: Icon(
-                PhosphorIcons.wallet(PhosphorIconsStyle.regular),
-                size: 20,
-                color: AppColors.inkSoft,
-              ),
-            ),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Payouts ready when you need them',
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.xs),
-                  Text(
-                    'Set up bank account payouts when you start publishing paid experiences.',
-                    style:
-                        AppTypography.caption.copyWith(color: AppColors.inkSoft),
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      // No-op for M1
-                    },
-                    child: Text(
-                      'Learn more',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.coral,
+              const SizedBox(width: Spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      hasAny
+                          ? 'Earnings · ${formatPrice(primaryAmount)}'
+                          : 'Earnings',
+                      style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      statusLine,
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.inkSoft),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Icon(
+                PhosphorIcons.caretRight(),
+                size: 16,
+                color: AppColors.inkSoft,
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  String _statusLineFor(LinkedAccount? account, bool hasAny) {
+    if (account == null || account.isMissing) {
+      return 'Set up bank account to receive payouts';
+    }
+    if (account.needsAction) return 'Bank account needs attention';
+    if (account.isPending) return 'Bank setup in progress';
+    if (!hasAny) return 'Payouts appear here after bookings complete';
+    return 'View all payouts';
   }
 }

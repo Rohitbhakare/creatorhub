@@ -13,6 +13,11 @@ import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
 import { env } from '../env.js'
 import { calculateBookingAmounts } from '../utils/money.js'
+import { getActiveRazorpayAccountId } from './linked-account.service.js'
+import { schedulePayoutOnBookingCompleted } from './payout.service.js'
+
+// Placeholder hold window — recomputed on booking completion (T8).
+const INITIAL_HOLD_DAYS = 30
 
 // ─── Razorpay client (lazy singleton) ────────────────────────────────────────
 
@@ -161,16 +166,58 @@ export async function createBooking(
   const basePricePaisa = content.price_paisa as number
   const amounts = calculateBookingAmounts(basePricePaisa)
 
-  // 5. Create Razorpay order
+  // 4a. Resolve creator's Razorpay linked account (Route) — required for paid
+  //     bookings so the escrow/split is attached at order creation. If the
+  //     creator hasn't yet been activated (KYC approved but Razorpay webhook
+  //     pending), we hard-fail: money should not be collected with nowhere to
+  //     route it. This is E2.12 BOOK-FR-005.
+  let creatorRazorpayAccountId: string | null = null
+  if (amounts.totalPaisa > 0) {
+    creatorRazorpayAccountId = await getActiveRazorpayAccountId(creatorId)
+    if (!creatorRazorpayAccountId) {
+      // Rollback spots_booked increment
+      await supabase
+        .from('scheduled_dates')
+        .update({ spots_booked: currentSpots })
+        .eq('id', scheduledDateId)
+
+      throw new AppError(
+        'unprocessable',
+        503,
+        "Creator's payouts are not yet set up. Please try again later.",
+      )
+    }
+  }
+
+  // 5. Create Razorpay order (with Route transfer if linked account present).
+  //    The resulting transfer.id is delivered on the payment.captured webhook
+  //    and persisted into payouts there (T7).
   const razorpay = getRazorpay()
   let razorpayOrderId: string
 
   try {
-    const order = await razorpay.orders.create({
+    const orderParams: Record<string, unknown> = {
       amount: amounts.totalPaisa,
       currency: 'INR',
       receipt: `bk_${Date.now().toString(36)}`,
-    }) as { id: string }
+    }
+    if (creatorRazorpayAccountId && amounts.creatorPayoutPaisa > 0) {
+      const holdUntil = Math.floor(Date.now() / 1000) + INITIAL_HOLD_DAYS * 86400
+      orderParams['transfers'] = [
+        {
+          account: creatorRazorpayAccountId,
+          amount: amounts.creatorPayoutPaisa,
+          currency: 'INR',
+          on_hold: 1,
+          on_hold_until: holdUntil,
+        },
+      ]
+    }
+    // The typed orders.create overload doesn't declare `transfers`, but the
+    // underlying Razorpay API accepts it; cast via unknown to satisfy strict TS.
+    const order = (await razorpay.orders.create(
+      orderParams as unknown as Parameters<typeof razorpay.orders.create>[0],
+    )) as unknown as { id: string }
     razorpayOrderId = order.id
   } catch {
     // Rollback spots_booked increment
@@ -380,5 +427,13 @@ export async function completeBooking(bookingId: string, creatorId: string): Pro
 
   if (updateError) {
     throw new AppError('db-error', 500, 'Failed to complete booking')
+  }
+
+  // E2.12: arm the 48h payout timer. Never block completion if this fails —
+  // the release cron reconciles at the next tick.
+  try {
+    await schedulePayoutOnBookingCompleted(bookingId)
+  } catch (err) {
+    console.warn(`[booking.complete] payout scheduling deferred for ${bookingId}: ${(err as Error).message}`)
   }
 }

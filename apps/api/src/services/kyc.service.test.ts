@@ -7,6 +7,15 @@ vi.mock('../lib/supabase.js', () => {
   return { supabase: mockSupabase }
 })
 
+vi.mock('./linked-account.service.js', () => ({
+  createLinkedAccountForUser: vi.fn().mockResolvedValue({
+    id: 'la_1',
+    razorpayAccountId: 'acc_x',
+    status: 'created',
+    wasAlreadyPresent: false,
+  }),
+}))
+
 import {
   getKycStatus,
   submitKyc,
@@ -15,6 +24,7 @@ import {
   rejectKyc,
 } from './kyc.service.js'
 import { supabase } from '../lib/supabase.js'
+import { createLinkedAccountForUser } from './linked-account.service.js'
 
 // ─── Mock helpers ──────────────────────────────────────────────
 
@@ -300,6 +310,25 @@ describe('approveKyc', () => {
     await expect(approveKyc(USER_ID, ADMIN_ID)).rejects.toThrow(
       'Failed to update user after KYC approval',
     )
+  })
+
+  it('triggers Razorpay linked-account creation after KYC approval', async () => {
+    const fromMock = vi.mocked(supabase.from)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+    vi.mocked(createLinkedAccountForUser).mockClear()
+
+    await approveKyc(USER_ID, ADMIN_ID)
+    expect(createLinkedAccountForUser).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('KYC approval succeeds even if Razorpay linked-account creation fails', async () => {
+    const fromMock = vi.mocked(supabase.from)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+    vi.mocked(createLinkedAccountForUser).mockRejectedValueOnce(new Error('Razorpay 503'))
+
+    await expect(approveKyc(USER_ID, ADMIN_ID)).resolves.toBeUndefined()
   })
 })
 

@@ -105,6 +105,7 @@
 | E2.9 | Notifications (full) | `DONE` | 5/5 | `[x]` 10 API tests (whatsapp + email services) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 | E2.10 | Web (minimal) | `DONE` | 6/6 | `[x]` type check only — SSR pages | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[-]` N/A | `[x]` |
 | E2.11 | DPDPA & Legal | `DONE` | 8/8 | `[x]` API tests (dpdpa service) | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
+| E2.12 | Razorpay Route Payouts | `DONE` | 17/17 | `[x]` +105 API + 14 Flutter tests | `[x]` | `[x]` | `[x]` passed | `[x]` | `[x]` | `[x]` | `[x]` |
 
 ---
 

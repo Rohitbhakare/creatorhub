@@ -16,6 +16,7 @@ import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
 import '../features/feed/screens/search_placeholder_screen.dart';
+import '../features/studio/screens/earnings_screen.dart';
 import '../features/studio/screens/studio_tab_screen.dart';
 import '../features/profile/screens/you_tab_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
@@ -299,6 +300,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => SavedListDetailScreen(
           listId: state.pathParameters['listId']!,
         ),
+      ),
+
+      // Studio → Earnings
+      GoRoute(
+        path: '/studio/earnings',
+        builder: (context, state) => const EarningsScreen(),
       ),
 
       // Bookings
