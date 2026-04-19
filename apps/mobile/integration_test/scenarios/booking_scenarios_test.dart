@@ -123,3 +123,5 @@ void bookingScenarios() {
     },
   );
 }
+
+void main() => bookingScenarios();

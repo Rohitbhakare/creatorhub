@@ -17,8 +17,9 @@ abstract final class TestData {
   static const testOtp = '123456';
 
   // ── Primary test phone numbers (registered in Firebase) ──────────
-  static const testPhone = '9090909090';
-  static const creatorTestPhone = '7588005893';
+  static const testPhone = '9090909090';        // traveler (onboarding done)
+  static const creatorTestPhone = '7588005893'; // creator (KYC verified)
+  static const newUserTestPhone = '9999999999'; // always reset to new user state
 
   // ── Persona-specific phone numbers (overrideable via --dart-define) ─
   static String get travelerPhone =>
@@ -37,6 +38,12 @@ abstract final class TestData {
       const String.fromEnvironment('TEST_BOOKER_PHONE',
           defaultValue: testPhone);
 
+  /// Phone for "new user" scenarios — always deleted before the test so
+  /// it registers fresh. Not seeded — has no onboarding_completed_at.
+  static String get newUserPhone =>
+      const String.fromEnvironment('TEST_NEW_USER_PHONE',
+          defaultValue: newUserTestPhone);
+
   // ── Test user IDs (from migration 016_e2e_seed.sql) ──────────────
   // User for phone 9090909090 (traveler / booker persona)
   static const travelerUserId = 'e2e00000-0000-0000-0000-000000000001';
@@ -46,8 +53,10 @@ abstract final class TestData {
   // ── Pre-seeded content IDs (from seed_content.sql + 016_e2e_seed.sql) ─
   // These IDs are baked into the SQL — deterministic, no lookup needed.
 
-  // Seed post — "Golden hour at Pangong Lake" by Priya Sharma
-  static const seedPostId = 'c0000001-0001-0001-0001-000000000001';
+  // Seed post — "Dawn at Pangong Lake" by E2E Creator (016_e2e_seed.sql)
+  // Using the e2e-owned post so it is guaranteed present without seed_content.sql.
+  // UUID uses valid hex only: e2e0000a-...
+  static const seedPostId = 'e2e0000a-0000-0000-0000-000000000001';
 
   // Seed itinerary — "Manali to Spiti Valley — 7 Day Road Trip"
   static const seedItineraryId = 'c0000002-0002-0002-0002-000000000001';
@@ -57,7 +66,8 @@ abstract final class TestData {
 
   // Seed experience — "Sunrise Photography Walk, Jaipur" (paid, ₹1,500)
   // Created in migration 016_e2e_seed.sql by creator a6666666
-  static const seedExperienceId = 'e2eexp00-e2e0-e2e0-e2e0-e2eexp000001';
+  // UUID uses valid hex only: e2e0000b-...
+  static const seedExperienceId = 'e2e0000b-0000-0000-0000-000000000001';
 
   // Seed creator — Vikram Singh (hosts the seed experience)
   static const seedCreatorId = 'a6666666-6666-6666-6666-666666666666';
@@ -68,9 +78,10 @@ abstract final class TestData {
 
   // ── Pre-seeded booking IDs (from 016_e2e_seed.sql) ───────────────
   // A confirmed future booking owned by the traveler/booker user
-  static const seedBookingId = 'e2ebk000-0000-0000-0000-e2ebooking01';
+  // UUID uses valid hex only: e2e0000d-...
+  static const seedBookingId = 'e2e0000d-0000-0000-0000-000000000001';
   // A completed booking (experience date is in the past)
-  static const seedCompletedBookingId = 'e2ebk000-0000-0000-0000-e2ebooking02';
+  static const seedCompletedBookingId = 'e2e0000d-0000-0000-0000-000000000002';
 
   // ── Razorpay test UPI ─────────────────────────────────────────────
   static const razorpaySuccessUpi = 'success@razorpay';

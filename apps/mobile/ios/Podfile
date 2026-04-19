@@ -1,6 +1,5 @@
 platform :ios, '15.0'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -28,6 +27,11 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers!
+
+  target 'RunnerUITests' do
+    inherit! :complete
+  end
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -38,5 +42,22 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+  end
+
+  # ── Patch razorpay_flutter 1.4.x for razorpay-pod 1.5.x compatibility ──
+  # razorpay_flutter 1.4.x calls subscribeToAnalyticsEvents which was removed
+  # in razorpay-pod 1.5.0. Remove the incompatible call and import.
+  delegate_path = File.join(
+    Dir.glob("#{installer.sandbox.root}/razorpay_flutter/**/*.swift").first || '',
+  ).split('/')[0..-1].join('/')
+
+  Dir.glob("#{installer.sandbox.root}/razorpay_flutter/Classes/RazorpayDelegate.swift").each do |file|
+    content = File.read(file)
+    patched = content
+      .gsub("import RazorpayCore\n", "")
+      .gsub(", RazorpayEventCallback", "")
+      .gsub(/if let events = subscribedAnalyticsEvents.*?razorpay\.subscribeToAnalyticsEvents\(events,\s*callback:\s*self\)\s*\}/m, "")
+    File.write(file, patched) if patched != content
+    puts "✓ Patched razorpay_flutter/RazorpayDelegate.swift for razorpay-pod 1.5.x" if patched != content
   end
 end

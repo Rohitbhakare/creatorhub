@@ -9,17 +9,25 @@ import 'package:creatorhub/features/feed/screens/home_feed_screen.dart';
 /// Tap a bottom nav tab by its visible label.
 /// Labels: "Home", "Search", "Studio", "You".
 /// Maps to: "When I tap the {string} tab".
+///
+/// Uses $.tester.tap with bounded pump instead of $(label).tap() / pumpAndSettle.
+/// GoRouter tab switches re-check auth state via the Firebase stream which
+/// keeps frames scheduled indefinitely — pumpAndSettle deadlocks on it.
+/// Bounded pump(500ms) flushes navigation frames without blocking on the stream.
 Future<void> whenITapTheTab(PatrolIntegrationTester $, String tabLabel) async {
-  await $(tabLabel).tap();
-  await $.tester.pumpAndSettle();
+  await $.tester.pump(const Duration(milliseconds: 100));
+  final labelFinder = find.text(tabLabel);
+  expect(labelFinder, findsWidgets, reason: 'Expected tab "$tabLabel" in nav bar');
+  await $.tester.tap(labelFinder.first, warnIfMissed: false);
+  await $.tester.pump(const Duration(milliseconds: 500));
 }
 
 /// Tap the Create+ tab (the raised coral button in the centre of the nav bar).
 /// The tab label text is "Create" in the production UI.
 /// Maps to: "When I tap the Create+ tab".
 Future<void> whenITapTheCreateTab(PatrolIntegrationTester $) async {
-  await $('Create').tap();
-  await $.tester.pumpAndSettle();
+  await $.tester.tap(find.text('Create').first, warnIfMissed: false);
+  await $.tester.pump(const Duration(milliseconds: 500));
 }
 
 // ── Back navigation ───────────────────────────────────────────────
@@ -36,17 +44,21 @@ Future<void> whenINavigateBack(PatrolIntegrationTester $) async {
 
 // ── Feed interactions ─────────────────────────────────────────────
 
-/// Scroll the home feed CustomScrollView to the bottom.
+/// Scroll the home feed CustomScrollView to the bottom until the honesty
+/// footer is visible.
 /// Maps to: "When I scroll down to the end of the feed".
+///
+/// The honesty footer always renders regardless of whether API content loaded.
+/// Text: '"Hand-picked by our team this week. No algorithm, no infinite scroll."'
 Future<void> whenIScrollDownToEnd(PatrolIntegrationTester $) async {
+  // scrollUntilVisible requires a Scrollable finder (not CustomScrollView which
+  // is not itself a Scrollable — it contains one internally).
   await $.tester.scrollUntilVisible(
-    find.text(
-      'We surface content based on your location and followed verticals',
-    ),
+    find.text('Refreshed every Monday · CreatorHub'),
     500.0,
-    scrollable: find.byType(CustomScrollView),
+    scrollable: find.byType(Scrollable).first,
   );
-  await $.tester.pumpAndSettle();
+  await $.tester.pump(const Duration(milliseconds: 300));
 }
 
 /// Drag the home feed downward to trigger a pull-to-refresh.
@@ -76,7 +88,7 @@ Future<void> thenTheTabShouldBeVisible(
   PatrolIntegrationTester $,
   String tabLabel,
 ) async {
-  await $(tabLabel).waitUntilVisible();
+  await $(tabLabel).waitUntilVisible(timeout: const Duration(seconds: 5));
 }
 
 /// Assert no ErrorWidget is shown — the app has not crashed.

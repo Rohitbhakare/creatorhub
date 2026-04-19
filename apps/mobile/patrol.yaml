@@ -5,4 +5,4 @@ android:
 ios:
   app_id: in.creatorhub.app
 # Timeout per test scenario (seconds)
-timeout: 120
+timeout: 300

@@ -111,3 +111,5 @@ void creationScenarios() {
     },
   );
 }
+
+void main() => creationScenarios();

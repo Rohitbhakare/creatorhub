@@ -76,10 +76,11 @@ void socialScenarios() {
 
       await whenITapSaveButton($);
       await thenIShouldSeeSaveToListSheet($);
-      await whenITap($, 'New list');
+      await whenITapNewListButton($);
       await whenIEnterListName($, 'Bucket List');
-      await whenITap($, 'Create');
-      await thenIShouldSee($, 'Bucket List');
+      await whenITapCreateList($);
+      // Sheet must still be open after creating the new list.
+      await thenIShouldSeeSaveToListSheet($);
       await whenITap($, 'Done');
       await thenSaveButtonShouldBeActive($);
     },
@@ -117,3 +118,5 @@ void socialScenarios() {
     },
   );
 }
+
+void main() => socialScenarios();

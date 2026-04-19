@@ -123,3 +123,5 @@ void kycScenarios() {
     },
   );
 }
+
+void main() => kycScenarios();

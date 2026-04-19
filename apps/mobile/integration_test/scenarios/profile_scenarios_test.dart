@@ -83,3 +83,5 @@ void studioScenarios() {
     },
   );
 }
+
+void main() { profileScenarios(); studioScenarios(); }

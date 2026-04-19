@@ -2,16 +2,18 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:patrol/patrol.dart';
 
 import '../support/api_helper.dart';
+import '../support/emulator_helper.dart';
 
-/// Clear all persisted auth tokens before a scenario runs.
+/// Clear all persisted auth tokens and stale emulator codes before a scenario.
 ///
-/// Call this at the start of every [patrolTest] that needs a clean auth state.
-/// Scenarios that share a background "Given the app is launched" implicitly
-/// call this via [bootstrapApp] which will land on the welcome/auth screen.
+/// Clearing emulator codes prevents the wrong code from being returned by
+/// EmulatorHelper.getLatestOtp() when multiple scenarios run in sequence.
 Future<void> beforeScenario(PatrolIntegrationTester $) async {
   const storage = FlutterSecureStorage();
   await storage.deleteAll();
-  await $.tester.pumpAndSettle();
+  await EmulatorHelper.clearVerificationCodes();
+  // No pump here — the app hasn't been bootstrapped yet.
+  // bootstrapApp() is the first action in each test.
 }
 
 /// Delete content and bookings created during a scenario.
