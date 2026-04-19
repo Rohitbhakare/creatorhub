@@ -2,7 +2,6 @@
 //
 // Run with: patrol test --target integration_test/scenarios/creation_scenarios_test.dart
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 import '../hooks/global_hooks.dart';
@@ -54,36 +53,82 @@ void creationScenarios() {
 
   // ── F06-S02: Creator creates an itinerary ────────────────────────────────
   //
-  // SKIPPED until E1.3 itinerary wizard Media/Pricing steps are real (they
-  // are currently placeholder stubs built into wizard_shell_screen).
-  // See TRACKING.md — itinerary full-flow E2E is deferred to M2.
+  // Scenario: Creator publishes a minimal free itinerary.
+  //
+  // Wizard flow (itinerary, 6 steps):
+  //   1. Basics         → title (required, ≥5 chars)
+  //   2. Trip overview  → all fields optional at wizard level
+  //   3. Day builder    → spots optional
+  //   4. Media          → optional (skipped via MediaStep)
+  //   5. Pricing        → defaults to free
+  //   6. Review         → accept T&C + tap Publish
+  //
+  // Expectation: 'Itinerary published!' success snackbar after publish call.
   patrolTest(
-    'F06-S02: Creator creates an itinerary with one spot',
-    tags: ['creation', 'itinerary'],
+    'F06-S02: Creator creates and publishes an itinerary',
+    tags: ['creation', 'itinerary', 'smoke'],
     ($) async {
-      markTestSkipped(
-        'Deferred to M2: itinerary Media/Pricing steps are placeholder stubs '
-        'in wizard_shell_screen._buildPlaceholderStep. Full flow requires '
-        'replacing both step UIs.',
-      );
+      await beforeScenario($);
+      await givenTheAppIsLaunched($);
+      await givenIAmLoggedInAsCreator($);
+      await givenIAmOnTheHomeFeed($);
+
+      await whenITapTheCreateTab($);
+      await thenIShouldSeeContentTypePicker($);
+      await whenITap($, 'Itinerary');
+      await thenIShouldBeOnItineraryCreationWizard($);
+
+      await whenIEnterTitle($, 'E2E Test Itinerary — 3 Days in Hampi');
+
+      // Step through Basics → Overview → Days → Media → Pricing → Review.
+      for (var i = 0; i < 5; i++) {
+        await whenITap($, 'Next');
+      }
+
+      await whenITap($, 'Terms & Conditions');
+      await whenITap($, 'Publish');
+
+      await thenIShouldSee($, 'Itinerary published!');
     },
   );
 
   // ── F06-S03: Creator creates a free event ────────────────────────────────
   //
-  // SKIPPED until event wizard Media/Pricing placeholder steps are replaced
-  // with real UIs. The Details step also uses a `_CapacityStepper` (+/- buttons)
-  // instead of a 'Max capacity' TextField, so whenISetCapacity cannot work
-  // without UI change. See TRACKING.md.
+  // Scenario: Creator publishes a minimal free event.
+  //
+  // Wizard flow (event, 5 steps):
+  //   1. Basics   → title (required, ≥5 chars)
+  //   2. Details  → venue/capacity/dates optional at wizard level
+  //   3. Media    → optional
+  //   4. Pricing  → locked to 'free' (M1)
+  //   5. Review   → accept T&C + tap Publish
+  //
+  // Expectation: 'Event published!' success snackbar after publish call.
   patrolTest(
-    'F06-S03: Creator creates a free event',
-    tags: ['creation', 'event'],
+    'F06-S03: Creator creates and publishes a free event',
+    tags: ['creation', 'event', 'smoke'],
     ($) async {
-      markTestSkipped(
-        'Deferred to M2: event wizard has placeholder Media/Pricing steps '
-        'and a CapacityStepper (not a TextField). Scenario cannot exercise '
-        'the full publish flow until both are addressed.',
-      );
+      await beforeScenario($);
+      await givenTheAppIsLaunched($);
+      await givenIAmLoggedInAsCreator($);
+      await givenIAmOnTheHomeFeed($);
+
+      await whenITapTheCreateTab($);
+      await thenIShouldSeeContentTypePicker($);
+      await whenITap($, 'Event');
+      await thenIShouldBeOnEventCreationWizard($);
+
+      await whenIEnterTitle($, 'E2E Test Event — Sunrise Hike');
+
+      // Step through Basics → Details → Media → Pricing → Review.
+      for (var i = 0; i < 4; i++) {
+        await whenITap($, 'Next');
+      }
+
+      await whenITap($, 'Terms & Conditions');
+      await whenITap($, 'Publish');
+
+      await thenIShouldSee($, 'Event published!');
     },
   );
 

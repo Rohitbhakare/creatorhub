@@ -17,6 +17,7 @@ import '../providers/wizard_provider.dart';
 import '../services/draft_auto_save_service.dart';
 import '../widgets/wizard_step_indicator.dart';
 import '../widgets/steps/basics_step.dart';
+import '../widgets/steps/media_step.dart';
 import '../widgets/steps/pricing_step.dart';
 import '../widgets/steps/review_step.dart';
 import '../../posts/widgets/post_media_step.dart';
@@ -365,7 +366,10 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       1 => const BasicsStep(),
       2 => const TripOverviewStep(),
       3 => const DayBuilderStep(),
-      4 => _buildPlaceholderStep('Media', 'Add photos to your itinerary'),
+      4 => const MediaStep(
+          title: 'Add photos',
+          subtitle: 'Show travelers what to expect on this trip.',
+        ),
       5 => const PricingStep(),
       6 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
@@ -376,8 +380,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     return switch (step) {
       1 => const BasicsStep(),
       2 => const EventDetailsStep(),
-      3 => _buildPlaceholderStep('Media', 'Add photos to your event'),
-      4 => _buildPlaceholderStep('Pricing', 'Free events only in M1'),
+      3 => const MediaStep(
+          title: 'Add event photos',
+          subtitle: 'Help attendees visualize the event.',
+        ),
+      4 => const _FreeEventPricingStep(),
       5 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };
@@ -425,6 +432,84 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Free-only pricing step for events (M1). Paid events ship in M2 —
+/// this step locks the wizard's pricing_model to 'free' on entry.
+class _FreeEventPricingStep extends ConsumerStatefulWidget {
+  const _FreeEventPricingStep();
+
+  @override
+  ConsumerState<_FreeEventPricingStep> createState() =>
+      _FreeEventPricingStepState();
+}
+
+class _FreeEventPricingStepState extends ConsumerState<_FreeEventPricingStep> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final wizard = ref.read(wizardProvider);
+      if (wizard.pricingModel != 'free' || wizard.pricePaisa != 0) {
+        ref.read(wizardProvider.notifier).setPricing('free', 0);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Layout.screenPaddingH,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: Spacing.xl),
+          Text('Pricing', style: typ.AppTypography.h3),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            'Events are free during the M1 private alpha.',
+            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: Spacing.xl),
+          Container(
+            padding: const EdgeInsets.all(Layout.cardPadding),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(Layout.cardRadius),
+              border: Border.all(color: AppColors.hairline),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  PhosphorIconsFill.gift,
+                  size: 28,
+                  color: AppColors.coral,
+                ),
+                const SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Free event', style: typ.AppTypography.h4),
+                      const SizedBox(height: Spacing.xs),
+                      Text(
+                        'Paid events open up in M2 once payouts are wired.',
+                        style: typ.AppTypography.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.xxxl),
+        ],
       ),
     );
   }

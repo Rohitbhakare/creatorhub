@@ -86,7 +86,7 @@
 
 | Epic | Name | Status | Tasks | Notes |
 |------|------|--------|-------|-------|
-| E3.1 | E2E Tests (Patrol + Gherkin) | `DONE` | 13/13 | Auth 7/7 ✅, Navigation 3/3 ✅, Social 6/6 ✅, Feed 9/9 ✅, Onboarding 3/3 ✅, Creation F06-S01/S04 ✅ (S02/S03 skipped — placeholder wizard steps), Profile F07-S01/S02/S03 ✅, KYC F11-S01/S02 ✅ (S03/S04 skipped — sandbox adapters pending), Booking F10-S01–S05 skipped (payments sandbox + seed fixtures). **~42 active + 9 skipped**. See bug register below. |
+| E3.1 | E2E Tests (Patrol + Gherkin) | `DONE` | 13/13 | Auth 7/7 ✅, Navigation 3/3 ✅, Social 6/6 ✅, Feed 9/9 ✅, Onboarding 3/3 ✅, Creation F06-S01/S02/S03/S04 ✅ (M3 unlock — real shared MediaStep + Free-only event pricing), Profile F07-S01/S02/S03 ✅, KYC F11-S01/S02/S03 ✅ (F11-S03 needs `--dart-define=CH_E2E_STUB_UPLOADS=true`; F11-S04 skipped — experience wizard still has placeholders), Booking F10-S01–S05 skipped (payments sandbox + seed fixtures). **~46 active + 6 skipped**. See bug register below. |
 
 ---
 

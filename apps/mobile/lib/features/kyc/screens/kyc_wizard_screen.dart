@@ -18,6 +18,20 @@ import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/firebase_storage.dart';
 import '../providers/kyc_provider.dart';
 
+/// When true, skip native image_picker calls during E2E and stub the
+/// uploaded URL. Enable at run-time with
+/// `--dart-define=CH_E2E_STUB_UPLOADS=true`. Defaults to false in all
+/// non-E2E builds (debug, profile, release).
+const _kE2eStubUploads =
+    bool.fromEnvironment('CH_E2E_STUB_UPLOADS', defaultValue: false);
+
+const _kStubPanDocUrl =
+    'https://e2e.creatorhub.local/kyc/pan/stub.jpg';
+const _kStubAadhaarDocUrl =
+    'https://e2e.creatorhub.local/kyc/aadhaar/stub.jpg';
+const _kStubSelfieUrl =
+    'https://e2e.creatorhub.local/kyc/selfies/stub.jpg';
+
 /// 5-step KYC wizard: PAN → Aadhaar → Bank → Selfie → Review & Submit.
 /// Accepts optional [resubmit] flag via route extra.
 class KycWizardScreen extends ConsumerStatefulWidget {
@@ -349,6 +363,10 @@ class _Step1PanState extends ConsumerState<_Step1Pan> {
 
   Future<void> _pickPanDocument() async {
     unawaited(HapticFeedback.lightImpact());
+    if (_kE2eStubUploads) {
+      ref.read(kycWizardProvider.notifier).setPanDocUrl(_kStubPanDocUrl);
+      return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -479,6 +497,12 @@ class _Step2AadhaarState extends ConsumerState<_Step2Aadhaar> {
 
   Future<void> _pickAadhaarDocument() async {
     unawaited(HapticFeedback.lightImpact());
+    if (_kE2eStubUploads) {
+      ref
+          .read(kycWizardProvider.notifier)
+          .setAadhaarDocUrl(_kStubAadhaarDocUrl);
+      return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -719,6 +743,10 @@ class _Step4SelfieState extends ConsumerState<_Step4Selfie> {
 
   Future<void> _captureSelfie() async {
     unawaited(HapticFeedback.lightImpact());
+    if (_kE2eStubUploads) {
+      ref.read(kycWizardProvider.notifier).setSelfieUrl(_kStubSelfieUrl);
+      return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.camera,

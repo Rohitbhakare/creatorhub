@@ -76,32 +76,40 @@ Future<void> thenIShouldNotSeePanFormatError(PatrolIntegrationTester $) async {
   expect(find.text('Invalid PAN format (e.g. ABCDE1234F)'), findsNothing);
 }
 
-// ── Step 2: Aadhaar ───────────────────────────────────────────────
-
-/// Enter an Aadhaar number.
-/// Maps to: "When I enter Aadhaar number {string}".
-Future<void> whenIEnterAadhaarNumber(
+/// Enter the PAN holder's name (step 1 second field).
+/// Maps to: "When I enter PAN name {string}".
+Future<void> whenIEnterPanName(
   PatrolIntegrationTester $,
-  String aadhaar,
+  String name,
 ) async {
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'Aadhaar number'),
-    aadhaar,
+    find.widgetWithText(TextField, 'Full name as on card'),
+    name,
   );
   await $.tester.pumpAndSettle();
 }
 
-/// Tap the "Send OTP to Aadhaar-linked mobile" button.
-/// Maps to: "When I tap Send OTP to Aadhaar-linked mobile".
-Future<void> whenITapSendAadhaarOtp(PatrolIntegrationTester $) async {
-  await $('Send OTP to Aadhaar-linked mobile').tap();
-  await $.tester.pumpAndSettle(const Duration(seconds: 3));
+/// Tap the "Upload PAN Document" button. With the dart-define
+/// `CH_E2E_STUB_UPLOADS=true`, this short-circuits the native gallery
+/// picker and sets a stub URL directly on the wizard state.
+/// Maps to: "When I tap Upload PAN Document".
+Future<void> whenITapUploadPanDocument(PatrolIntegrationTester $) async {
+  await $('Upload PAN Document').tap();
+  await $.tester.pumpAndSettle();
 }
 
-/// Enter the Aadhaar OTP.
-/// Maps to: "When I enter Aadhaar OTP {string}".
-Future<void> whenIEnterAadhaarOtp(PatrolIntegrationTester $, String otp) async {
-  await $.tester.enterText(find.byType(TextField).last, otp);
+// ── Step 2: Aadhaar ───────────────────────────────────────────────
+
+/// Enter the last 4 digits of Aadhaar (step 2 only field).
+/// Maps to: "When I enter Aadhaar last 4 digits {string}".
+Future<void> whenIEnterAadhaarLast4(
+  PatrolIntegrationTester $,
+  String digits,
+) async {
+  await $.tester.enterText(
+    find.widgetWithText(TextField, 'Last 4 digits of Aadhaar'),
+    digits,
+  );
   await $.tester.pumpAndSettle();
 }
 
@@ -114,7 +122,7 @@ Future<void> whenIEnterAccountNumber(
   String account,
 ) async {
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'Account number'),
+    find.widgetWithText(TextField, 'Account Number'),
     account,
   );
   await $.tester.pumpAndSettle();
@@ -124,38 +132,34 @@ Future<void> whenIEnterAccountNumber(
 /// Maps to: "When I enter IFSC code {string}".
 Future<void> whenIEnterIfscCode(PatrolIntegrationTester $, String ifsc) async {
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'IFSC code'),
+    find.widgetWithText(TextField, 'IFSC Code'),
     ifsc,
   );
   await $.tester.pumpAndSettle();
 }
 
-/// Tap "Verify Bank" to trigger bank account verification.
-/// Maps to: "When I tap Verify Bank".
-Future<void> whenITapVerifyBank(PatrolIntegrationTester $) async {
-  await $('Verify Bank').tap();
-  await $.tester.pumpAndSettle(const Duration(seconds: 5));
+/// Enter a bank name.
+/// Maps to: "When I enter bank name {string}".
+Future<void> whenIEnterBankName(
+  PatrolIntegrationTester $,
+  String bank,
+) async {
+  await $.tester.enterText(
+    find.widgetWithText(TextField, 'Bank Name'),
+    bank,
+  );
+  await $.tester.pumpAndSettle();
 }
 
 // ── Step 4: Selfie ────────────────────────────────────────────────
 
-/// Grant camera permission for selfie capture.
-/// Maps to: "When I grant camera permission".
-Future<void> whenIGrantCameraPermission(PatrolIntegrationTester $) async {
-  try {
-    await $.native.grantPermissionWhenInUse();
-  } catch (_) {
-    // Camera permission may already be granted or dialog may not appear.
-  }
-}
-
-/// Simulate completion of the selfie capture step.
-/// On a real device, the camera UI would appear; in test mode we mock it.
-/// Maps to: "And the selfie capture completes".
-Future<void> whenSelfieCapture(PatrolIntegrationTester $) async {
-  // In test mode the selfie step is mocked — tapping "Take Selfie" uses a
-  // stub that immediately returns success without opening the camera.
-  await $.tester.pumpAndSettle(const Duration(seconds: 2));
+/// Tap the "Tap to open camera" button for selfie capture. With the
+/// dart-define `CH_E2E_STUB_UPLOADS=true`, this short-circuits the
+/// native camera and sets a stub selfie URL directly.
+/// Maps to: "When I tap capture selfie".
+Future<void> whenITapCaptureSelfie(PatrolIntegrationTester $) async {
+  await $('Tap to open camera').tap();
+  await $.tester.pumpAndSettle();
 }
 
 // ── Step 5: Submit ────────────────────────────────────────────────

@@ -60,18 +60,43 @@ void kycScenarios() {
 
   // ── F11-S03: Full KYC flow — all 5 steps ─────────────────────────────────
   //
-  // SKIPPED: Aadhaar OTP send/verify is stubbed in the wizard (only last-4
-  // digit capture); bank verify + selfie capture require external services
-  // that aren't mocked in the test harness. Deferred to M2 when KYC
-  // adapters are wired to sandbox providers.
+  // Requires launching the Patrol binary with
+  //   --dart-define=CH_E2E_STUB_UPLOADS=true
+  // which short-circuits the three native pickers (PAN doc, Aadhaar doc,
+  // selfie camera) to stub Firebase Storage URLs. Without this flag,
+  // tapping the upload/capture buttons opens the OS picker and blocks.
   patrolTest(
     'F11-S03: Creator completes all 5 KYC steps and reaches pending review',
     tags: ['kyc', 'full_flow', 'slow'],
     ($) async {
-      markTestSkipped(
-        'Deferred to M2: Aadhaar OTP, bank verify and selfie capture require '
-        'sandbox KYC adapters that are not yet wired in the test harness.',
-      );
+      await beforeScenario($);
+      await givenTheAppIsLaunched($);
+      await givenIAmLoggedInAsUnkycCreator($);
+      await givenIAmOnKycWizardStep1($);
+
+      // Step 1 — PAN
+      await whenIEnterPan($, 'ABCDE1234F');
+      await whenIEnterPanName($, 'Test Creator');
+      await whenITapUploadPanDocument($);
+      await whenITap($, 'Next');
+
+      // Step 2 — Aadhaar (last 4 digits only)
+      await whenIEnterAadhaarLast4($, '1234');
+      await whenITap($, 'Next');
+
+      // Step 3 — Bank
+      await whenIEnterAccountNumber($, '1234567890');
+      await whenIEnterIfscCode($, 'SBIN0001234');
+      await whenIEnterBankName($, 'State Bank of India');
+      await whenITap($, 'Next');
+
+      // Step 4 — Selfie (camera capture stubbed)
+      await whenITapCaptureSelfie($);
+      await whenITap($, 'Save & Continue');
+
+      // Step 5 — Review & Submit
+      await whenITap($, 'Submit for Review');
+      await thenIShouldSee($, 'Documents Submitted!');
     },
   );
 

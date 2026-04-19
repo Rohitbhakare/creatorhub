@@ -185,15 +185,16 @@ class WizardState {
   }
 
   List<String> get _postValidationErrors {
+    // Body is entered on step 1 (BasicsStep), not step 2. Step 2 is the
+    // media attachment step — images are optional (text-only posts are a
+    // first-class travel-story format), so step 2 has no blocking checks.
     return switch (currentStep) {
       1 => [
           if (title.trim().isEmpty) 'Title is required',
           if (title.trim().length > 100) 'Title must be 100 characters or less',
-        ],
-      2 => [
           if (body.trim().isEmpty) 'Post body is required',
-          if (media.isEmpty) 'At least 1 image is required',
         ],
+      2 => <String>[],
       3 => [
           if (!tncAccepted) 'Accept Terms & Conditions',
         ],
