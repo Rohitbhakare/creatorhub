@@ -43,6 +43,9 @@ void creationScenarios() {
       // Basics → Media (optional) → Review.
       await whenITap($, 'Next');
       await whenITap($, 'Next');
+      // Seed the 1 image that the publish validator requires — the wizard's
+      // Media step uses a native file picker Patrol can't drive.
+      await whenISeedPostImage($);
       // Accept the Terms & Conditions checkbox (required for Publish).
       await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
@@ -85,6 +88,9 @@ void creationScenarios() {
         await whenITap($, 'Next');
       }
 
+      // Seed a spot on day 1 — publishItinerary rejects any day with 0
+      // spots, and the wizard's day builder needs Google Places Autocomplete.
+      await whenISeedItineraryFirstDaySpot($);
       await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
 
@@ -125,6 +131,9 @@ void creationScenarios() {
         await whenITap($, 'Next');
       }
 
+      // Seed venue/dates/city/capacity — publishEvent requires all four
+      // and the wizard's Details step uses Google Places + native pickers.
+      await whenISeedEventDetails($);
       await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
 
