@@ -438,7 +438,10 @@ void _onboardingScreens() {
       );
       await _ss($, '16_onboarding_creators');
 
-      await $.tester.tap(find.text('Continue').first, warnIfMissed: false);
+      // Without following the minimum creators, the primary CTA is
+      // "Follow N & continue" (disabled); tap "Skip" instead to finish
+      // onboarding and reach the celebration screen.
+      await $.tester.tap(find.text('Skip').first, warnIfMissed: false);
       await $.tester.pump(const Duration(milliseconds: 300));
       await Future.delayed(const Duration(seconds: 2));
       await $.tester.pump(const Duration(milliseconds: 200));
