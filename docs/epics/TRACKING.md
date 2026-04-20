@@ -93,7 +93,7 @@
 
 | Epic | Name | Status | Tasks | Notes |
 |------|------|--------|-------|-------|
-| E3.1 | E2E Tests (Patrol + Gherkin) | `DONE` | 13/13 | Auth 7/7 ✅, Navigation 3/3 ✅, Social 6/6 ✅, Feed 9/9 ✅, Onboarding 3/3 ✅, Creation F06-S01/S02/S03/S04 ✅ (M3 unlock — real shared MediaStep + Free-only event pricing), Profile F07-S01/S02/S03 ✅, KYC F11-S01/S02/S03 ✅ (F11-S03 needs `--dart-define=CH_E2E_STUB_UPLOADS=true`; F11-S04 skipped — experience wizard still has placeholders), Booking F10-S01–S05 skipped (payments sandbox + seed fixtures). **~46 active + 6 skipped**. See bug register below. |
+| E3.1 | E2E Tests (Patrol + Gherkin) | `DONE` | 13/13 | Auth 7/7 ✅, Navigation 3/3 ✅, Social 6/6 ✅, Feed 9/9 ✅, Onboarding 3/3 ✅, Creation F06-S01/S02/S03/S04 ✅ (S01–S03 use API-driven publish seeding — see BUG-E2E-013), Profile F07-S01/S02/S03 ✅ + F09-S01 Studio ✅ (F07-S02 save uses bounded pump — BUG-E2E-011; F07-S03 accepts E1.7 placeholder), Screenshots SCR-01/SCR-02 ✅ (SCR-02 taps "Skip" — BUG-E2E-012), KYC F11-S01/S02/S03 ✅ (F11-S03 needs `--dart-define=CH_E2E_STUB_UPLOADS=true`; F11-S04 skipped — experience wizard still has placeholders), Booking F10-S01–S05 skipped (payments sandbox + seed fixtures). **41 active passing + 6 skipped**. See bug register + results summary below. |
 
 ---
 
@@ -561,7 +561,7 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 
 ---
 
-## E2E Test Bug Register (2026-04-16)
+## E2E Test Bug Register (last updated 2026-04-20)
 
 Issues found and fixed during E3.1 E2E test development:
 
@@ -626,9 +626,29 @@ Issues found and fixed during E3.1 E2E test development:
 - **Fix:** Removed `thenIShouldSee($, 'Bucket List')` from F05-S04. Replaced with `thenIShouldSeeSaveToListSheet($)` which verifies the sheet stayed open after creation (the actual behavioral requirement). The sheet's "Save to…" / "New list" text is unique enough that it won't match offstage branches.
 - **Files changed:** `apps/mobile/integration_test/scenarios/social_scenarios_test.dart`
 
+### BUG-E2E-011: `pumpAndSettle` deadlocks on Edit Profile save → navigation (FIXED 2026-04-20, commit `d09f2fe`)
+- **Symptom:** F07-S02 ("User updates their display name") timed out after 20s on `waitUntilVisible(YouTabScreen)`. The Save handler successfully called PUT then GET `/users/me` (API log 200) and invoked `context.pop()`, but the test never observed the YouTabScreen.
+- **Root cause:** Same class as BUG-E2E-005. The Save handler calls `ref.read(authProvider.notifier).updateUser(...)` which refreshes the Firebase `authStateChanges()` stream before popping the route. The stream keeps async frames scheduled indefinitely, so the `pumpAndSettle()` inside `whenITapSaveOnEditProfile` never returns — frames keep getting scheduled so the settle condition is never met.
+- **Fix:** Replaced `pumpAndSettle()` with bounded `pump(200ms)` + `Future.delayed(3s)` + `pump(200ms)` — same pattern as `loginWithOtp` in `auth_steps.dart`. The 3-second window is enough for the PUT/GET round-trip and the GoRouter pop animation.
+- **Files changed:** `apps/mobile/integration_test/steps/profile_steps.dart`
+
+### BUG-E2E-012: SCR-02 taps non-existent "Continue" label on SuggestedCreatorsScreen (FIXED 2026-04-20, commit `d09f2fe`)
+- **Symptom:** SCR-02 ("Capture onboarding screens") failed at step 6 with `StateError: Bad state: No element` when tapping `find.text('Continue').first` after `SuggestedCreatorsScreen.waitUntilVisible` succeeded.
+- **Root cause:** The CTA label on `SuggestedCreatorsScreen` is dynamic: it reads "Continue" only when the user has followed ≥ the minimum creators, otherwise it reads "Follow N & continue" (disabled). The screenshot scenario doesn't follow any creators, so the label is always "Follow N & continue".
+- **Fix:** Changed SCR-02 to tap `find.text('Skip').first` — the secondary CTA that skips the follow gate and proceeds to CelebrationScreen.
+- **Files changed:** `apps/mobile/integration_test/scenarios/screenshots_test.dart`
+
+### BUG-E2E-013: F06-S01/S02/S03 publish validators reject drafts with no artifacts (FIXED 2026-04-20, commits `7945141`, `47c4745`)
+- **Symptom:** All three F06 publish scenarios failed at the success snackbar check. API returned 400 `validation-failed` from the publish handlers — post needed ≥1 image, itinerary needed ≥1 spot per day, event needed venue + city + capacity + dates.
+- **Root cause:** The wizard screens that produce those artifacts drive native pickers (file picker, Google Places Autocomplete, date picker) that Patrol can't reliably exercise: native file picker has no Flutter widget tree, Places needs a paid API key disabled in test envs, and the iOS date picker is a UIKit sheet. The E2E suite wants to test the publish wiring, not these native flows.
+- **Fix (two commits):**
+  - `7945141` — split the pre-publish flush into `flushNow()` (bypasses `isDirty/isSaving` guards) so the wizard's final PUT `/content` always lands before the publish call; dropped `day_count` from the auto-save payload (not a column on `content`).
+  - `47c4745` — added three helpers in `creation_steps.dart` that read the authenticated `Dio` and `wizardProvider.contentId` via `ProviderScope.containerOf`, then seed the publish-required records: `whenISeedPostImage` (POST `/media/content/:id`), `whenISeedItineraryFirstDaySpot` (GET itinerary → POST spot on day 1), `whenISeedEventDetails` (PUT `/events/:id` with venue/city/capacity/dates). Crucially, the event description is set via `wizardProvider.notifier.setDescription()` — setting it via the PUT gets clobbered by the pre-publish `flushNow()` which re-PUTs `/content` with `wizard.description`.
+- **Files changed:** `apps/mobile/lib/features/content/services/draft_auto_save_service.dart`, `apps/mobile/lib/features/content/screens/wizard_shell_screen.dart`, `apps/mobile/integration_test/steps/creation_steps.dart`, `apps/mobile/integration_test/scenarios/creation_scenarios_test.dart`
+
 ---
 
-## E2E Test Results Summary (2026-04-17)
+## E2E Test Results Summary (last updated 2026-04-20)
 
 | Suite | File | Tests | Passed | Failed | Duration | Device |
 |-------|------|-------|--------|--------|----------|--------|
@@ -637,4 +657,9 @@ Issues found and fixed during E3.1 E2E test development:
 | Social | `social_scenarios_test.dart` | 6 | ✅ 6 | 0 | ~300s | iPhone 16 Pro |
 | Feed | `feed_scenarios_test.dart` | 9 | ✅ 9 | 0 | 272s | iPhone 16 Pro |
 | Onboarding | `onboarding_scenarios_test.dart` | 3 | ✅ 3 | 0 | 165s | iPhone 16 Pro Max |
-| **TOTAL** | | **28** | **✅ 28** | **0** | | |
+| Creation | `creation_scenarios_test.dart` | 4 | ✅ 4 | 0 | 120s | iPhone 16 Pro |
+| Profile | `profile_scenarios_test.dart` | 4 | ✅ 4 | 0 | 103s | iPhone 16 Pro |
+| Screenshots | `screenshots_test.dart` | 2 | ✅ 2 | 0 | 234s | iPhone 16 Pro |
+| KYC | `kyc_scenarios_test.dart` | 4 | ✅ 3 | 0 | — | iPhone 16 Pro (F11-S04 skipped — experience wizard placeholders; F11-S03 needs `--dart-define=CH_E2E_STUB_UPLOADS=true`) |
+| Booking | `booking_scenarios_test.dart` | 5 | — | — | — | Skipped — Razorpay sandbox + booking seed fixtures pending |
+| **TOTAL (active)** | | **42** | **✅ 41** | **0** | | 1 skipped inside KYC + 5 skipped in Booking |
