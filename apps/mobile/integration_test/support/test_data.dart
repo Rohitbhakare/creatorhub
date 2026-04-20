@@ -7,8 +7,14 @@
 /// Persona mapping (single phone can hold different roles depending on DB state):
 ///   9090909090 → traveler (onboarding done, no content, no kyc)
 ///   9090909090 → booker   (same account — traveler can book)
-///   7588005893 → creator  (is_creator = true, kyc_status = approved)
-///   7588005893 → unkyc    (same phone — reset kyc_status in DB for this persona)
+///   7588005893 → creator  (is_creator = true, kyc_status = 'not_started')
+///   7588005893 → unkyc    (same phone, kyc_status = 'not_started' + studio_alerts
+///                          row with title 'Complete KYC' — driven by seed)
+///
+/// Note: the seed (016_e2e_seed.sql) keeps kyc_status='not_started' so that F11
+/// KYC scenarios work out-of-the-box. The KYC gate in content-state.service only
+/// blocks publishing of paid content (pricing_model='paid'), so F06 free-content
+/// creation scenarios continue to work on the same account.
 ///
 /// All seed content IDs come from migration 016_e2e_seed.sql which must be
 /// applied to staging before running E2E tests.

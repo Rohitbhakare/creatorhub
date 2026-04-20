@@ -48,13 +48,15 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       final wizard = ref.read(wizardProvider);
       final dio = ref.read(authServiceProvider).dio;
 
-      // Events: create the stub draft upfront so event_occurrences row exists.
-      // Guard against re-entry if the user navigates back before the POST completes.
-      if (wizard.contentType == ContentType.event &&
-          wizard.contentId == null &&
-          !_creatingDraft) {
+      // Create a stub draft upfront for every content type so auto-save has
+      // a contentId and publish can hit the /:id/publish endpoint (which
+      // validates T&C, updates state, and records consent). Without this,
+      // posts/itineraries would fall through to POST /api/v1/content — whose
+      // schema only accepts {type, vertical}, not the full publish payload.
+      // Guard against re-entry if the user navigates back before POST returns.
+      if (wizard.contentId == null && !_creatingDraft) {
         _creatingDraft = true;
-        _createEventDraft(dio, wizard.vertical);
+        _createDraft(dio, wizard.contentType, wizard.vertical);
       }
 
       // Start auto-save timer
@@ -63,11 +65,21 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     });
   }
 
-  /// Create the event draft via POST /api/v1/events and store the contentId.
-  Future<void> _createEventDraft(Dio dio, String vertical) async {
+  /// Create a stub draft and store the returned contentId.
+  ///
+  /// Endpoint per content type (each accepts `{type, vertical}`):
+  ///   post                → POST /api/v1/posts
+  ///   selfPacedItinerary  → POST /api/v1/itineraries
+  ///   event               → POST /api/v1/events
+  ///   scheduledExperience → POST /api/v1/experiences
+  Future<void> _createDraft(
+    Dio dio,
+    ContentType type,
+    String vertical,
+  ) async {
     try {
-      final response = await dio.post('/api/v1/events', data: {
-        'type': 'event',
+      final response = await dio.post('/api/v1/${type.apiPath}', data: {
+        'type': type.apiType,
         'vertical': vertical.isNotEmpty ? vertical : 'travel',
       });
       final data =
@@ -135,11 +147,20 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     final wizard = ref.read(wizardProvider);
     if (!wizard.tncAccepted) return;
 
+    // Flush pending edits (title/body/etc.) to the draft before publishing,
+    // otherwise the server-side publish validators see the stale row and
+    // reject with "Post title must be between 5 and 100 characters" when
+    // the periodic auto-save tick hasn't fired yet. flushNow bypasses the
+    // tick's isDirty guards so it runs unconditionally.
+    if (wizard.contentId != null) {
+      await _autoSave?.flushNow();
+    }
+
     ref.read(wizardProvider.notifier).markSaving();
 
     try {
       final dio = ref.read(authServiceProvider).dio;
-      final contentId = wizard.contentId;
+      final contentId = ref.read(wizardProvider).contentId;
 
       if (wizard.contentType == ContentType.event) {
         // Events: always publish via event-specific endpoint (requires contentId)

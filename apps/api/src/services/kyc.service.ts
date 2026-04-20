@@ -57,8 +57,10 @@ export async function getKycStatus(userId: string): Promise<KycStatus> {
 
   const userKycStatus = user.kyc_status as string | null
 
-  // If user has no kyc_status set (none), return early
-  if (!userKycStatus || userKycStatus === 'none') {
+  // If user has no kyc_status set (none/not_started), return early.
+  // Note: DB CHECK constraint allows 'not_started' | 'pending' | 'verified' |
+  // 'rejected' | 'expired'. Mobile maps 'none' → _NoneView (Start KYC CTA).
+  if (!userKycStatus || userKycStatus === 'none' || userKycStatus === 'not_started') {
     return { status: 'none' }
   }
 

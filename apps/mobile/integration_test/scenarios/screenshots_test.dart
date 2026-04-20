@@ -417,8 +417,10 @@ void _onboardingScreens() {
       await Future.delayed(const Duration(seconds: 2));
       await _ss($, '15_onboarding_verticals');
 
-      // Select 3 verticals to enable Continue.
-      for (final name in ['Travel', 'Stories', 'Food']) {
+      // Select 3 verticals to enable Continue. The picker exposes:
+      // Travel, Food, Culture, Adventure, Wildlife, Music, Photography, Learning
+      // (see vertical_picker_screen.dart) — 'Stories' is NOT in this list.
+      for (final name in ['Travel', 'Food', 'Culture']) {
         final t = find.text(name);
         if (t.evaluate().isNotEmpty) {
           await $.tester.tap(t.first, warnIfMissed: false);

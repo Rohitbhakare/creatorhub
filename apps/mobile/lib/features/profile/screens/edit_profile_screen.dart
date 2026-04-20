@@ -163,6 +163,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           centerTitle: true,
           actions: [
             TextButton(
+              key: const Key('edit_profile_save'),
               onPressed: _isSaving ? null : _save,
               child: _isSaving
                   ? const SizedBox(

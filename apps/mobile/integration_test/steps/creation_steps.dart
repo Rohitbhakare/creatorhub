@@ -4,6 +4,7 @@ import 'package:patrol/patrol.dart';
 
 import 'package:creatorhub/features/content/screens/content_type_picker_screen.dart';
 import 'package:creatorhub/features/content/screens/wizard_shell_screen.dart';
+import '../support/finders.dart';
 
 // ── Content type picker ───────────────────────────────────────────
 
@@ -34,23 +35,24 @@ Future<void> thenIShouldBeOnPostCreationWizard(
 
 /// Enter the post title.
 /// Maps to: "When I enter title {string}".
+///
+/// AppInput renders its 'Title' label as a sibling Text of the TextField,
+/// so `find.widgetWithText(TextField, 'Title')` returns nothing. Use the
+/// shared [findInputByLabel] helper instead.
 Future<void> whenIEnterTitle(PatrolIntegrationTester $, String title) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Title'),
-    title,
-  );
+  await $.tester.enterText(findInputByLabel('Title'), title);
   await $.tester.pumpAndSettle();
 }
 
 /// Enter body text for a post.
 /// Maps to: "When I enter body text {string}".
+///
+/// The post body AppInput has label 'Body' and hint 'Tell your story...'.
 Future<void> whenIEnterBodyText(PatrolIntegrationTester $, String body) async {
-  // The post body editor uses a TextField with hint "Write your post here…"
-  final bodyField = find.widgetWithText(TextField, 'Write your post here…');
+  final bodyField = findInputByLabel('Body');
   if (bodyField.evaluate().isNotEmpty) {
     await $.tester.enterText(bodyField, body);
   } else {
-    // Fallback: use the last visible TextField
     await $.tester.enterText(find.byType(TextField).last, body);
   }
   await $.tester.pumpAndSettle();
@@ -140,10 +142,7 @@ Future<void> whenIEnterVenueName(
   PatrolIntegrationTester $,
   String venue,
 ) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Venue name'),
-    venue,
-  );
+  await $.tester.enterText(findInputByLabel('Venue name'), venue);
   await $.tester.pumpAndSettle();
 }
 
@@ -172,6 +171,26 @@ Future<void> whenISetEventDateToTomorrow(PatrolIntegrationTester $) async {
   await $(tomorrow.day.toString()).tap();
   await $('OK').tap();
   await $.tester.pumpAndSettle();
+}
+
+// ── Common creation actions ───────────────────────────────────────
+
+/// Accept the Terms & Conditions checkbox on the Review step.
+/// Maps to: "When I accept Terms and Conditions".
+///
+/// The label is rendered via `Text.rich` with "Terms & Conditions" as a
+/// TextSpan inside the full string "I agree to the Terms & Conditions".
+/// Flutter's `find.text` matches a RichText's plain text as a whole, so
+/// matching the TextSpan alone returns 0 widgets. Tap the full combined
+/// string — the parent Row has a GestureDetector (HitTestBehavior.opaque)
+/// that toggles tncAccepted.
+Future<void> whenIAcceptTermsAndConditions(
+  PatrolIntegrationTester $,
+) async {
+  final tnc = find.textContaining('Terms & Conditions');
+  expect(tnc, findsWidgets, reason: 'Expected T&C checkbox label on Review step');
+  await $.tester.tap(tnc.first, warnIfMissed: false);
+  await $.tester.pump(const Duration(milliseconds: 400));
 }
 
 // ── Common creation assertions ────────────────────────────────────

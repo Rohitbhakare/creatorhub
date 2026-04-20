@@ -219,11 +219,21 @@ class _ActionAlertCard extends ConsumerWidget {
     ref.invalidate(studioAlertProvider);
   }
 
+  void _onCardTap(BuildContext context) {
+    final target = alert.ctaTarget;
+    if (target == null || target.isEmpty) return;
+    HapticFeedback.lightImpact();
+    context.push(target);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-      child: Container(
+      child: GestureDetector(
+        onTap: () => _onCardTap(context),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFFFF5F1),
           border: Border.all(color: const Color(0xFFF8C2B0)),
@@ -274,6 +284,7 @@ class _ActionAlertCard extends ConsumerWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

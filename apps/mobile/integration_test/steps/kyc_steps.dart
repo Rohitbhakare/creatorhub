@@ -4,18 +4,32 @@ import 'package:patrol/patrol.dart';
 
 import 'package:creatorhub/features/kyc/screens/kyc_status_screen.dart';
 import 'package:creatorhub/features/kyc/screens/kyc_wizard_screen.dart';
+import '../support/finders.dart';
 
 // ── KYC preconditions ─────────────────────────────────────────────
 
 /// Navigate to the KYC wizard at step 1 (PAN Card Details).
 /// Maps to: "Given I am on the KYC wizard at step 1".
+///
+/// AppButton wraps its label in IgnorePointer, so `$('Start KYC').tap()`
+/// fails Patrol's hit-test. Use `tester.tap(find.text(...))` to dispatch
+/// the tap to the underlying GestureDetector(opaque).
 Future<void> givenIAmOnKycWizardStep1(PatrolIntegrationTester $) async {
-  // Tap Studio → "Complete KYC" alert hero → "Start KYC" CTA on status screen.
   await $('Studio').tap();
   await $.tester.pumpAndSettle();
   await $('Complete KYC').tap();
   await $.tester.pumpAndSettle();
-  await $('Start KYC').tap();
+  await $(KycStatusScreen).waitUntilVisible();
+
+  // Poll for the Start KYC label without hit-test (FutureProvider needs to
+  // resolve before _NoneView renders).
+  for (var i = 0; i < 30; i++) {
+    if (find.text('Start KYC').evaluate().isNotEmpty) break;
+    await Future.delayed(const Duration(milliseconds: 500));
+    await $.tester.pump(const Duration(milliseconds: 200));
+  }
+  await $.tester.tap(find.text('Start KYC'), warnIfMissed: false);
+  await $.tester.pump(const Duration(milliseconds: 500));
   await $.tester.pumpAndSettle();
 }
 
@@ -49,18 +63,17 @@ Future<void> thenIShouldBeOnKycStep(
 /// Maps to: "When I enter PAN {string}".
 ///
 /// UI field: AppInput with label 'PAN Number' and hint 'ABCDE1234F'.
+/// AppInput renders the label as a sibling of the TextField, so resolve
+/// via the shared [findInputByLabel] helper.
 Future<void> whenIEnterPan(PatrolIntegrationTester $, String pan) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'PAN Number'),
-    pan,
-  );
+  await $.tester.enterText(findInputByLabel('PAN Number'), pan);
   await $.tester.pumpAndSettle();
 }
 
 /// Clear the PAN field.
 /// Maps to: "When I clear the PAN field".
 Future<void> whenIClearPanField(PatrolIntegrationTester $) async {
-  final field = find.widgetWithText(TextField, 'PAN Number');
+  final field = findInputByLabel('PAN Number');
   final editable = $.tester.widget<EditableText>(
     find.descendant(of: field, matching: find.byType(EditableText)),
   );
@@ -78,14 +91,13 @@ Future<void> thenIShouldNotSeePanFormatError(PatrolIntegrationTester $) async {
 
 /// Enter the PAN holder's name (step 1 second field).
 /// Maps to: "When I enter PAN name {string}".
+///
+/// UI field: AppInput with label 'Name on PAN Card' and hint 'Full name as on card'.
 Future<void> whenIEnterPanName(
   PatrolIntegrationTester $,
   String name,
 ) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Full name as on card'),
-    name,
-  );
+  await $.tester.enterText(findInputByLabel('Name on PAN Card'), name);
   await $.tester.pumpAndSettle();
 }
 
@@ -107,7 +119,7 @@ Future<void> whenIEnterAadhaarLast4(
   String digits,
 ) async {
   await $.tester.enterText(
-    find.widgetWithText(TextField, 'Last 4 digits of Aadhaar'),
+    findInputByLabel('Last 4 digits of Aadhaar'),
     digits,
   );
   await $.tester.pumpAndSettle();
@@ -121,20 +133,14 @@ Future<void> whenIEnterAccountNumber(
   PatrolIntegrationTester $,
   String account,
 ) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Account Number'),
-    account,
-  );
+  await $.tester.enterText(findInputByLabel('Account Number'), account);
   await $.tester.pumpAndSettle();
 }
 
 /// Enter an IFSC code.
 /// Maps to: "When I enter IFSC code {string}".
 Future<void> whenIEnterIfscCode(PatrolIntegrationTester $, String ifsc) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'IFSC Code'),
-    ifsc,
-  );
+  await $.tester.enterText(findInputByLabel('IFSC Code'), ifsc);
   await $.tester.pumpAndSettle();
 }
 
@@ -144,10 +150,7 @@ Future<void> whenIEnterBankName(
   PatrolIntegrationTester $,
   String bank,
 ) async {
-  await $.tester.enterText(
-    find.widgetWithText(TextField, 'Bank Name'),
-    bank,
-  );
+  await $.tester.enterText(findInputByLabel('Bank Name'), bank);
   await $.tester.pumpAndSettle();
 }
 

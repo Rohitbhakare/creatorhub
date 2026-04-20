@@ -12,8 +12,22 @@ import 'package:creatorhub/features/profile/screens/you_tab_screen.dart';
 
 /// Assert the "You" tab / profile screen is visible.
 /// Maps to: "Then I should be on the profile screen".
+///
+/// Uses a generous timeout because this is called after operations that round-trip
+/// to the API (e.g. save display name → PUT /users/me → GET /users/me → pop).
 Future<void> thenIShouldBeOnProfileScreen(PatrolIntegrationTester $) async {
-  await $(YouTabScreen).waitUntilVisible();
+  await $(YouTabScreen).waitUntilVisible(
+    timeout: const Duration(seconds: 20),
+  );
+}
+
+/// Tap the Save button on the Edit Profile AppBar by stable key.
+/// The generic whenITap($, 'Save') resolves to `find.text('Save').first` which
+/// can miss the TextButton when the AppBar action's hitbox is small; the
+/// explicit key guarantees the correct widget.
+Future<void> whenITapSaveOnEditProfile(PatrolIntegrationTester $) async {
+  await $.tester.tap(find.byKey(const Key('edit_profile_save')));
+  await $.tester.pumpAndSettle();
 }
 
 /// Assert "Edit Profile" button is visible (own profile only).
@@ -82,14 +96,15 @@ Future<void> whenIEnterDisplayName(
 
 /// Tap the creator name link in a content detail header.
 /// Maps to: "When I tap the creator name in the header".
+///
+/// Waits for the creator_name_link ValueKey to appear because the post detail
+/// screen renders a skeleton first; the real [_CreatorHeader] only mounts after
+/// [postDetailProvider] resolves.
 Future<void> whenITapCreatorNameInHeader(PatrolIntegrationTester $) async {
-  final creatorNameKey = find.byKey(const Key('creator_name_link'));
-  if (creatorNameKey.evaluate().isNotEmpty) {
-    await $.tester.tap(creatorNameKey);
-  } else {
-    // Fallback: find the widget above the Follow button
-    await $('Follow').first.tap();
-  }
+  await $(const Key('creator_name_link')).waitUntilVisible(
+    timeout: const Duration(seconds: 15),
+  );
+  await $.tester.tap(find.byKey(const Key('creator_name_link')));
   await $.tester.pumpAndSettle();
 }
 

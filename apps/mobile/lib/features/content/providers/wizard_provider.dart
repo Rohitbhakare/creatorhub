@@ -23,6 +23,16 @@ enum ContentType {
         scheduledExperience => 'experiences',
       };
 
+  /// Wire-format `type` value expected by the API (snake_case, matches the
+  /// `CONTENT_TYPES` enum in packages/shared). Dart enum `.name` yields
+  /// camelCase for multi-word variants, which the API rejects.
+  String get apiType => switch (this) {
+        post => 'post',
+        selfPacedItinerary => 'self_paced_itinerary',
+        event => 'event',
+        scheduledExperience => 'scheduled_experience',
+      };
+
   int get totalSteps => switch (this) {
         post => 3,
         selfPacedItinerary => 6,

@@ -20,7 +20,17 @@ function validateUUID(id: string, label: string) {
 export async function handleGetAlert(c: Context): Promise<Response> {
   const userId = c.get('userId') as string
   const alert = await getTopAlert(userId)
-  return c.json({ success: true, data: alert })
+  return c.json({
+    success: true,
+    data: {
+      id: alert.id,
+      alert_type: alert.alertType,
+      priority: alert.priority,
+      title: alert.title,
+      body: alert.body,
+      cta_target: alert.ctaTarget,
+    },
+  })
 }
 
 // ─── PUT /studio/alerts/:alertId/dismiss ─────────────────────────
@@ -43,7 +53,16 @@ export async function handleDismissAlert(c: Context): Promise<Response> {
 export async function handleGetStats(c: Context): Promise<Response> {
   const userId = c.get('userId') as string
   const stats = await getCreatorStats(userId)
-  return c.json({ success: true, data: stats })
+  return c.json({
+    success: true,
+    data: {
+      followers: stats.followers,
+      content_count: stats.contentCount,
+      views: stats.views,
+      saves: stats.saves,
+      bookings: stats.bookings,
+    },
+  })
 }
 
 // ─── GET /studio/content ─────────────────────────────────────────

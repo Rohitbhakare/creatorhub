@@ -57,7 +57,7 @@ void profileScenarios() {
 
       await whenIClearDisplayNameField($);
       await whenIEnterDisplayName($, 'E2E Updated Name');
-      await whenITap($, 'Save');
+      await whenITapSaveOnEditProfile($);
 
       await thenIShouldBeOnProfileScreen($);
       await thenIShouldSee($, 'E2E Updated Name');

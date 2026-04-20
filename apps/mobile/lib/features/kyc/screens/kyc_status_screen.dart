@@ -94,7 +94,26 @@ class _NoneView extends StatelessWidget {
               color: AppColors.inkSoft,
             ),
           ),
-          const SizedBox(height: Spacing.xxl),
+          const SizedBox(height: Spacing.lg),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.md,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppColors.hairline),
+            ),
+            child: Text(
+              'Not Started',
+              style: typ.AppTypography.caption.copyWith(
+                color: AppColors.inkSoft,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: Spacing.lg),
           Text(
             'Verify Your Identity',
             style: typ.AppTypography.h1,
@@ -106,7 +125,23 @@ class _NoneView extends StatelessWidget {
             style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: Spacing.xxl),
+          const SizedBox(height: Spacing.lg),
+          Row(
+            key: const Key('kyc_progress'),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (i) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.hairline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: Spacing.xl),
           // Info bullets
           const _InfoRow(
             icon: PhosphorIconsFill.shieldCheck,

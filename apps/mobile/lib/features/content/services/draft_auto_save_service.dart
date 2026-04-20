@@ -92,6 +92,27 @@ class DraftAutoSaveService {
     await _tick();
   }
 
+  /// Unconditionally PUT the current wizard state to the draft endpoint.
+  ///
+  /// Unlike [_tick], this bypasses the `isDirty`/`isSaving` guards — used from
+  /// `_onPublish` to flush pending edits before the server-side publish
+  /// validator runs, even if the periodic tick already reset the dirty flag.
+  Future<void> flushNow() async {
+    if (_disposed) return;
+    final wizard = _ref.read(wizardProvider);
+    final contentId = wizard.contentId;
+    if (contentId == null) return;
+
+    try {
+      await _dio.put(
+        '/api/v1/content/$contentId',
+        data: _buildPayload(wizard),
+      );
+    } catch (_) {
+      // Swallow — publish will surface the validation error if this failed.
+    }
+  }
+
   Map<String, dynamic> _buildPayload(WizardState wizard) {
     return {
       'title': wizard.title,
@@ -105,8 +126,9 @@ class DraftAutoSaveService {
       'destination_city_ids': wizard.destinationCityIds,
       'pricing_model': wizard.pricingModel,
       'price_paisa': wizard.pricePaisa,
-      if (wizard.contentType == ContentType.selfPacedItinerary)
-        'day_count': wizard.dayCount,
+      // day_count is not a column on the content table — it's derived from
+      // itinerary_days and managed via PUT /api/v1/itineraries/:id. Excluding
+      // it from the generic content PUT avoids a 500 on Supabase's update.
     };
   }
 }

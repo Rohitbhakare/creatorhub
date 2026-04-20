@@ -44,7 +44,7 @@ void creationScenarios() {
       await whenITap($, 'Next');
       await whenITap($, 'Next');
       // Accept the Terms & Conditions checkbox (required for Publish).
-      await whenITap($, 'Terms & Conditions');
+      await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
 
       await thenIShouldSee($, 'Post published!');
@@ -85,7 +85,7 @@ void creationScenarios() {
         await whenITap($, 'Next');
       }
 
-      await whenITap($, 'Terms & Conditions');
+      await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
 
       await thenIShouldSee($, 'Itinerary published!');
@@ -125,7 +125,7 @@ void creationScenarios() {
         await whenITap($, 'Next');
       }
 
-      await whenITap($, 'Terms & Conditions');
+      await whenIAcceptTermsAndConditions($);
       await whenITap($, 'Publish');
 
       await thenIShouldSee($, 'Event published!');

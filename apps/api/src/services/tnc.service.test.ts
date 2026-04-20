@@ -69,17 +69,19 @@ describe('recordConsent', () => {
     ).resolves.toBeUndefined()
   })
 
-  it('throws 500 on DB upsert error', async () => {
+  it('swallows DB upsert errors (fire-and-forget contract)', async () => {
+    // recordConsent is invoked unawaited from publish handlers; throwing here
+    // would surface as an unhandled rejection and crash the Node process.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.mocked(supabase.from).mockReturnValueOnce(
       mockChain(null, { message: 'upsert failed' }) as never,
     )
 
     await expect(
       recordConsent(USER_ID, CONTENT_ID, '1.2.3.4', 'Mozilla/5.0'),
-    ).rejects.toMatchObject({
-      status: 500,
-      type: 'db-error',
-    })
+    ).resolves.toBeUndefined()
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
   })
 })
 

@@ -39,7 +39,7 @@ BEGIN;
 -- at insert time (stable even when users were created via OTP before seed was applied).
 
 INSERT INTO users (
-  id, phone, display_name, username, bio,
+  id, phone, display_name, username, bio, avatar_url,
   is_creator, kyc_status,
   onboarding_completed_at, current_city_id, created_at, updated_at
 )
@@ -49,7 +49,8 @@ VALUES
     '+919090909090',
     'E2E Traveler',
     'e2e_traveler',
-    'Test account for E2E automation. Do not follow.',
+    'Mumbai-based explorer. Mountains > beaches.',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80&fit=crop&crop=faces',
     false,
     'not_started',
     now() - interval '30 days',
@@ -62,9 +63,10 @@ VALUES
     '+917588005893',
     'E2E Creator',
     'e2e_creator',
-    'Test creator account for E2E automation.',
+    'Travel storyteller from Jaipur. Dawn over mountains, always.',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80&fit=crop&crop=faces',
     true,
-    'verified',
+    'not_started',
     now() - interval '30 days',
     (SELECT id FROM cities WHERE name = 'Jaipur' LIMIT 1),
     now() - interval '30 days',
@@ -74,6 +76,7 @@ ON CONFLICT (phone) DO UPDATE SET
   display_name            = EXCLUDED.display_name,
   username                = COALESCE(users.username, EXCLUDED.username),
   bio                     = COALESCE(users.bio, EXCLUDED.bio),
+  avatar_url              = EXCLUDED.avatar_url,
   is_creator              = EXCLUDED.is_creator,
   kyc_status              = EXCLUDED.kyc_status,
   onboarding_completed_at = EXCLUDED.onboarding_completed_at,
@@ -87,7 +90,7 @@ ON CONFLICT (phone) DO UPDATE SET
 -- so follow-relationship queries can find him by canonical phone.
 
 INSERT INTO users (
-  id, phone, display_name, username, bio,
+  id, phone, display_name, username, bio, avatar_url,
   is_creator, kyc_status,
   onboarding_completed_at, current_city_id, created_at, updated_at
 )
@@ -96,7 +99,8 @@ VALUES (
   '+919800000099',
   'Vikram Singh',
   'vikramsingh',
-  'Photographer and travel guide based in Jaipur.',
+  'Photographer and travel guide based in Jaipur. Golden hour specialist.',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80&fit=crop&crop=faces',
   true,
   'verified',
   now() - interval '60 days',
@@ -106,6 +110,8 @@ VALUES (
 )
 ON CONFLICT (id) DO UPDATE SET
   phone      = '+919800000099',
+  avatar_url = EXCLUDED.avatar_url,
+  bio        = EXCLUDED.bio,
   is_creator = true,
   kyc_status = 'verified',
   updated_at = now();
@@ -130,6 +136,32 @@ ON CONFLICT DO NOTHING;
 INSERT INTO saved_lists (id, user_id, name, created_at)
 SELECT 'e2e11570-0000-0000-0000-e2e115700001', u.id, 'Favourites', now()
 FROM users u WHERE u.phone = '+919090909090' LIMIT 1
+ON CONFLICT (id) DO NOTHING;
+
+-- ── Creator: KYC reminder alert (F11-S01..S03) ────────────────────────────
+-- The KYC scenarios navigate Studio → "Complete KYC" alert → KycStatusScreen.
+-- Requires an unexpired studio_alerts row with payload.title = 'Complete KYC'.
+-- Clean up any prior kyc_reminder rows for determinism before inserting.
+DELETE FROM studio_alerts
+WHERE alert_type = 'kyc_reminder'
+  AND user_id = (SELECT id FROM users WHERE phone = '+917588005893');
+
+INSERT INTO studio_alerts (
+  id, user_id, alert_type, priority, payload, cta_target, expires_at
+)
+SELECT
+  'e2e0a1e7-0000-0000-0000-000000000001',
+  u.id,
+  'kyc_reminder',
+  100,
+  jsonb_build_object(
+    'title', 'Complete KYC',
+    'body',  'Verify your identity to publish paid content and enable payouts.',
+    'cta_target', '/kyc'
+  ),
+  '/kyc',
+  NULL
+FROM users u WHERE u.phone = '+917588005893' LIMIT 1
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -160,13 +192,39 @@ SELECT
 FROM users u WHERE u.phone = '+917588005893' LIMIT 1
 ON CONFLICT (id) DO NOTHING;
 
+-- Gallery: 4 images so feed, hero, and gallery strip all look full.
+-- Idempotent reset: content_media has no unique constraint on
+-- (content_id, display_order), so ON CONFLICT cannot dedupe re-runs.
+-- Delete existing rows for this content first.
+DELETE FROM content_media
+WHERE content_id = 'e2e0000a-0000-0000-0000-000000000001';
+
 INSERT INTO content_media (content_id, media_type, url, display_order)
-VALUES (
-  'e2e0000a-0000-0000-0000-000000000001',
-  'image',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800',
-  0
-)
+VALUES
+  (
+    'e2e0000a-0000-0000-0000-000000000001', 'image',
+    -- Cover: sunlit mountain lake (Leh/Ladakh-like)
+    'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=80',
+    0
+  ),
+  (
+    'e2e0000a-0000-0000-0000-000000000001', 'image',
+    -- Dawn light on peaks
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80',
+    1
+  ),
+  (
+    'e2e0000a-0000-0000-0000-000000000001', 'image',
+    -- Prayer flags / high-altitude road
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=80',
+    2
+  ),
+  (
+    'e2e0000a-0000-0000-0000-000000000001', 'image',
+    -- Turquoise alpine water detail
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80',
+    3
+  )
 ON CONFLICT DO NOTHING;
 
 
@@ -196,13 +254,37 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- Gallery for the Jaipur photography walk experience (4 images).
+-- Idempotent reset — see post media block above for rationale.
+DELETE FROM content_media
+WHERE content_id = 'e2e0000b-0000-0000-0000-000000000001';
+
 INSERT INTO content_media (content_id, media_type, url, display_order)
-VALUES (
-  'e2e0000b-0000-0000-0000-000000000001',
-  'image',
-  'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800',
-  0
-)
+VALUES
+  (
+    'e2e0000b-0000-0000-0000-000000000001', 'image',
+    -- Cover: Hawa Mahal at dawn
+    'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200&q=80',
+    0
+  ),
+  (
+    'e2e0000b-0000-0000-0000-000000000001', 'image',
+    -- City Palace courtyard
+    'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1200&q=80',
+    1
+  ),
+  (
+    'e2e0000b-0000-0000-0000-000000000001', 'image',
+    -- Rajasthani fort walls
+    'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1200&q=80',
+    2
+  ),
+  (
+    'e2e0000b-0000-0000-0000-000000000001', 'image',
+    -- Flower market morning colour
+    'https://images.unsplash.com/photo-1524492449090-f1d8ff64c4fd?w=1200&q=80',
+    3
+  )
 ON CONFLICT DO NOTHING;
 
 -- Scheduled date slots (table: scheduled_dates, not experience_occurrences)
