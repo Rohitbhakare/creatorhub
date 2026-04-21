@@ -30,6 +30,7 @@ class FeedContentItem {
   final int pricePaisa;
   final int likeCount;
   final String? startingCityId;
+  final String? coverImageUrl;
   final FeedCreator? creator;
 
   const FeedContentItem({
@@ -41,6 +42,7 @@ class FeedContentItem {
     required this.pricePaisa,
     required this.likeCount,
     this.startingCityId,
+    this.coverImageUrl,
     this.creator,
   });
 
@@ -53,6 +55,7 @@ class FeedContentItem {
         pricePaisa: (json['price_paisa'] ?? 0) as int,
         likeCount: (json['like_count'] ?? 0) as int,
         startingCityId: json['starting_city_id'] as String?,
+        coverImageUrl: json['cover_image_url'] as String?,
         creator: json['creator'] != null
             ? FeedCreator.fromJson(json['creator'] as Map<String, dynamic>)
             : null,

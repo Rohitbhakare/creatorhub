@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// CreatorHub color system — v2 "Paper White + Coral" (SRS C-25).
-/// Pure white surfaces on a barely-warm page; coral `#E15A41` is the sole
-/// decorative accent. Semantic hues appear only on functional status.
+/// CreatorHub color system — v2 "Pure White + Coral" (SRS C-25).
+/// Pure white page and surfaces; coral `#E15A41` is the sole decorative
+/// accent. Semantic hues appear only on functional status. Cards separate
+/// from page via shadow, not background tint.
 abstract final class AppColors {
   // ── Surfaces ────────────────────────────────────────────────
   /// Page / behind cards.
-  static const bg = Color(0xFFF7F7F5);
+  static const bg = Color(0xFFFFFFFF);
 
   /// Cards, sheets, nav.
   static const surface = Color(0xFFFFFFFF);
 
   /// Sunken rows, toolbars, chips.
-  static const surfaceAlt = Color(0xFFF2F1EE);
+  static const surfaceAlt = Color(0xFFF5F5F5);
 
   /// Info blocks, code blocks, sunken inserts inside cards.
-  static const surfaceSunk = Color(0xFFECEAE5);
+  static const surfaceSunk = Color(0xFFEBEBEB);
 
   // ── Ink hierarchy ───────────────────────────────────────────
   /// Body / primary text.
@@ -32,10 +33,10 @@ abstract final class AppColors {
 
   // ── Hairlines ───────────────────────────────────────────────
   /// Borders and dividers (SRS C-26 rest state).
-  static const hairline = Color(0xFFE8E6E1);
+  static const hairline = Color(0xFFE5E5E5);
 
   /// Heavier dividers, drag handles, selection-tile rest border.
-  static const hairlineStrong = Color(0xFFD8D5CE);
+  static const hairlineStrong = Color(0xFFD4D4D4);
 
   // ── Coral Accent (SRS C-17 + C-25) ──────────────────────────
   /// Used in EXACTLY 8 contexts (DD-013):
@@ -82,27 +83,27 @@ abstract final class AppColors {
   static const infoSurface = Color(0x14185FA5);
 
   // ── Shimmer Colors ──────────────────────────────────────────
-  static const shimmerBase = Color(0xFFEBEADF);
-  static const shimmerHighlight = Color(0xFFD8D5C9);
+  static const shimmerBase = Color(0xFFEDEDED);
+  static const shimmerHighlight = Color(0xFFDEDEDE);
 
   // ── Elevation Shadows (SRS C-27) ────────────────────────────
   /// Layered shadow stack for `AppCard` raised default.
   /// Use this list directly in `BoxDecoration.boxShadow`.
   static const List<BoxShadow> cardRaisedShadow = [
     BoxShadow(
-      color: Color(0x0D101828), // rgba(16,24,40,0.05)
+      color: Color(0x1A101828), // rgba(16,24,40,0.10) — doubled for pure-white bg
       offset: Offset(0, 1),
-      blurRadius: 2,
+      blurRadius: 3,
     ),
     BoxShadow(
-      color: Color(0x0A101828), // rgba(16,24,40,0.04)
-      offset: Offset(0, 1),
-      blurRadius: 4,
+      color: Color(0x14101828), // rgba(16,24,40,0.08)
+      offset: Offset(0, 2),
+      blurRadius: 6,
     ),
     BoxShadow(
-      color: Color(0x0A101828), // rgba(16,24,40,0.04)
-      offset: Offset(0, 4),
-      blurRadius: 12,
+      color: Color(0x14101828), // rgba(16,24,40,0.08)
+      offset: Offset(0, 6),
+      blurRadius: 16,
     ),
   ];
 

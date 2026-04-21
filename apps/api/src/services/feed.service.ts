@@ -19,6 +19,7 @@ export interface FeedContentItem {
   price_paisa: number
   like_count: number
   starting_city_id: string | null
+  cover_image_url: string | null
   creator: FeedCreator | null
 }
 
@@ -66,6 +67,7 @@ async function attachCreators(
     price_paisa: item.price_paisa as number,
     like_count: item.like_count as number,
     starting_city_id: (item.starting_city_id ?? null) as string | null,
+    cover_image_url: (item.cover_image_url ?? null) as string | null,
     creator: byId[item.user_id as string] ?? null,
   }))
 }
@@ -166,7 +168,7 @@ export async function getVerticalSection(
 ): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
-    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, starting_city_id, user_id')
+    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, starting_city_id, cover_image_url, user_id')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('vertical', vertical)

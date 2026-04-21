@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../shared/components/skeleton.dart';
 import '../providers/vertical_section_provider.dart';
+import '../utils/feed_navigation.dart';
 import 'section_header.dart';
 import 'feed_content_card.dart';
 
@@ -35,7 +37,10 @@ class VerticalSection extends ConsumerWidget {
             SectionHeader(
               eyebrow: eyebrow,
               title: sectionTitle,
-              onSeeAll: () {},
+              onSeeAll: () => context.push(
+                '/feed/vertical/$vertical',
+                extra: {'title': sectionTitle},
+              ),
             ),
             SizedBox(
               height: 230,
@@ -44,7 +49,10 @@ class VerticalSection extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => FeedRailCard(item: items[i]),
+                itemBuilder: (context, i) => FeedRailCard(
+                  item: items[i],
+                  onTap: () => openFeedItem(context, items[i]),
+                ),
               ),
             ),
             const SizedBox(height: 28),

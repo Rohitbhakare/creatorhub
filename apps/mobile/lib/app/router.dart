@@ -16,6 +16,7 @@ import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
 import '../features/feed/screens/search_placeholder_screen.dart';
+import '../features/feed/screens/vertical_section_full_screen.dart';
 import '../features/studio/screens/earnings_screen.dart';
 import '../features/studio/screens/studio_tab_screen.dart';
 import '../features/profile/screens/you_tab_screen.dart';
@@ -352,6 +353,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => LegalScreen(
           type: state.pathParameters['type']!,
         ),
+      ),
+
+      // Feed — full vertical section ("See all")
+      GoRoute(
+        path: '/feed/vertical/:vertical',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final title = (extra?['title'] as String?) ?? 'More';
+          return VerticalSectionFullScreen(
+            vertical: state.pathParameters['vertical']!,
+            title: title,
+          );
+        },
       ),
 
       // Legacy root redirect

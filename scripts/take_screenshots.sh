@@ -12,7 +12,9 @@
 #      The iOS simulator shares the Mac's loopback — same mechanism Patrol uses
 #      on ports 8081/8082 for its own test server communication.
 #   3. When a name arrives, xcrun simctl io screenshot captures the simulator.
-#   4. Screenshots land in creatorhub/screenshots/ with descriptive names.
+#   4. The name may contain a forward slash (e.g. "01_onboarding/01_welcome");
+#      the script creates the subdirectory before writing the PNG.
+#   5. Screenshots land in creatorhub/screenshots/<cluster>/<sequence>.png.
 #
 # Requirements:
 #   - Xcode command-line tools (xcrun, nc)
@@ -64,9 +66,13 @@ capture_loop() {
   while true; do
     # Wait for the next connection. nc exits when the connection closes.
     # The Dart test waits 800ms before connecting, giving nc time to restart.
-    NAME=$(nc -l "$PORT" 2>/dev/null | tr -d '\r\n' | head -c 80)
+    # Names may contain a forward slash (cluster/sequence) — allow it in head -c.
+    NAME=$(nc -l "$PORT" 2>/dev/null | tr -d '\r\n' | head -c 120)
     if [ -n "$NAME" ]; then
       OUT="$SCREENSHOTS_DIR/${NAME}.png"
+      # Create subdirectory (e.g. screenshots/01_onboarding/) if the name
+      # contains a slash. No-op if the screenshot is flat.
+      mkdir -p "$(dirname "$OUT")"
       sleep 0.4
       if xcrun simctl io "$DEVICE" screenshot "$OUT" 2>/dev/null; then
         CAPTURED=$((CAPTURED + 1))
@@ -90,10 +96,11 @@ cleanup() {
   echo ""
   echo "══════════════════════════════════════════════"
   echo "  Done!"
-  TOTAL=$(ls -1 "$SCREENSHOTS_DIR"/*.png 2>/dev/null | wc -l | tr -d ' ')
+  TOTAL=$(find "$SCREENSHOTS_DIR" -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
   echo "  Screenshots saved: $TOTAL files → $SCREENSHOTS_DIR"
   if [ "$TOTAL" -gt 0 ]; then
-    ls -1 "$SCREENSHOTS_DIR"/*.png 2>/dev/null | xargs -I{} basename {}
+    # Show relative path (cluster/file.png) for each capture.
+    (cd "$SCREENSHOTS_DIR" && find . -name "*.png" | sed 's|^\./||' | sort)
   fi
   echo "══════════════════════════════════════════════"
 }

@@ -83,7 +83,7 @@ class AuthService {
   // ── Phone OTP ─────────────────────────────────────────────────
 
   // Emulator config for debug-mode phone auth
-  static const _emulatorHost = 'localhost';
+  static const _emulatorHost = '192.168.1.3';
   static const _emulatorPort = 9099;
 
   /// Send OTP to phone number.

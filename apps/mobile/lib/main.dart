@@ -12,7 +12,7 @@ Future<void> main() async {
 
   // Use Firebase Auth Emulator in debug — bypasses APNs/reCAPTCHA on simulators
   if (kDebugMode) {
-    await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    await FirebaseAuth.instance.useAuthEmulator('192.168.1.3', 9099);
   }
 
   runApp(const ProviderScope(child: CreatorHubApp()));

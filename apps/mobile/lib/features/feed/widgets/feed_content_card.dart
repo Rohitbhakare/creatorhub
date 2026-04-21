@@ -52,16 +52,39 @@ class FeedRailCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Placeholder gradient (replaced by real image when available)
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.surfaceAlt, AppColors.hairline],
+                  if (item.coverImageUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: item.coverImageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.surfaceAlt, AppColors.hairline],
+                          ),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.surfaceAlt, AppColors.hairline],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.surfaceAlt, AppColors.hairline],
+                        ),
                       ),
                     ),
-                  ),
                   // Type pill (top-left)
                   Positioned(
                     top: 8,

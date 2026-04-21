@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
 import '../models/feed_models.dart';
 import '../providers/near_you_provider.dart';
+import '../utils/feed_navigation.dart';
 import 'section_header.dart';
 import 'feed_content_card.dart';
 
@@ -40,7 +42,10 @@ class _NearYouContent extends StatelessWidget {
         SectionHeader(
           eyebrow: 'NEAR YOU · THIS WEEKEND',
           title: result.label,
-          onSeeAll: () {},
+          onSeeAll: () => context.push(
+            '/feed/vertical/travel',
+            extra: {'title': result.label},
+          ),
         ),
         // Honesty banner when fallback radius is used (DISC-FR-028)
         if (result.fallbackLevel > 0 && result.fallbackCities.isNotEmpty)
@@ -52,7 +57,10 @@ class _NearYouContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: result.items.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => FeedRailCard(item: result.items[i]),
+            itemBuilder: (context, i) => FeedRailCard(
+              item: result.items[i],
+              onTap: () => openFeedItem(context, result.items[i]),
+            ),
           ),
         ),
         const SizedBox(height: 28),

@@ -9,27 +9,41 @@
 //   2. The iOS simulator shares networking with the Mac (same loopback — proven
 //      by Patrol's own use of localhost:8081/8082 for test server comms).
 //   3. take_screenshots.sh runs `nc -l 9999` in a loop; each connection
-//      delivers the screen name and immediately triggers xcrun screenshot.
-//   4. Screenshots land in creatorhub/screenshots/ with descriptive names.
+//      delivers the screen name (including subdirectory) and triggers
+//      xcrun screenshot. The shell script mkdir -p's the subdirectory.
+//   4. Screenshots land in creatorhub/screenshots/<cluster>/<sequence>.png.
 //
-// Screens captured (in order):
-//   01_welcome                  WelcomeScreen (before login)
-//   02_phone_otp                PhoneOtpScreen — enter phone
-//   03_home_feed                HomeFeedScreen after traveler login
-//   04_post_detail              PostDetailScreen (seed post)
-//   05_itinerary_detail         ItineraryDetailScreen (seed itinerary)
-//   06_event_detail             EventDetailScreen (seed event)
-//   07_experience_detail        ExperienceDetailScreen (seed experience)
-//   08_save_to_list_sheet       Save-to-list bottom sheet
-//   09_studio_tab               StudioTabScreen
-//   10_profile_you              YouTabScreen (own profile)
-//   11_saved_lists              SavedListsScreen
-//   12_creator_profile          Public creator profile (/profile/:id)
-//   13_content_type_picker      Content type picker
-//   14_onboarding_location      LocationScreen (new user)
-//   15_onboarding_verticals     VerticalPickerScreen
-//   16_onboarding_creators      SuggestedCreatorsScreen
-//   17_onboarding_celebration   CelebrationScreen
+// Screens captured (grouped by cluster, numbered by sequence within cluster):
+//
+//   01_onboarding/
+//     01_welcome                WelcomeScreen (before login)
+//     02_phone_otp              PhoneOtpScreen — enter phone
+//     03_profile_bootstrap      ProfileBootstrapScreen (A2c)
+//     04_location               LocationScreen
+//     05_verticals              VerticalPickerScreen
+//     06_creators               SuggestedCreatorsScreen
+//     07_celebration            CelebrationScreen
+//
+//   02_feed/
+//     01_home_feed              HomeFeedScreen after traveler login
+//
+//   03_content/
+//     01_post_detail            PostDetailScreen (seed post)
+//     02_itinerary_detail       ItineraryDetailScreen (seed itinerary)
+//     03_event_detail           EventDetailScreen (seed event)
+//     04_experience_detail      ExperienceDetailScreen (seed experience)
+//     05_content_type_picker    Content type picker
+//     06_save_to_list_sheet     Save-to-list bottom sheet
+//
+//   04_studio/
+//     01_studio_tab             StudioTabScreen
+//
+//   05_profile/
+//     01_profile_you            YouTabScreen (own profile)
+//     02_creator_profile        Public creator profile (/profile/:id)
+//
+//   06_saved/
+//     01_saved_lists            SavedListsScreen
 
 import 'dart:async' show unawaited;
 import 'dart:io' show Socket;
@@ -55,14 +69,17 @@ import '../support/test_data.dart';
 
 // ── Screenshot helper ─────────────────────────────────────────────
 
-/// Signal the host capture script via TCP, wait 5 s for the screenshot,
-/// then flush any pending frames.
+/// Signal the host capture script via TCP, wait 10 s on the screen, then
+/// flush any pending frames.
 ///
 /// The iOS simulator shares networking with the Mac host (proven by Patrol's
 /// own use of localhost:8081/8082). This connect triggers the nc listener in
 /// take_screenshots.sh which immediately runs `xcrun simctl io screenshot`.
 /// If no listener is running (e.g. standalone test run), the connect fails
-/// silently and the test continues normally after the 5-second pause.
+/// silently and the test continues normally after the 10-second pause.
+///
+/// The [name] may include a forward slash (e.g. `01_onboarding/01_welcome`).
+/// The shell script creates the subdirectory before writing the PNG.
 Future<void> _ss(PatrolIntegrationTester $, String name) async {
   // Let the screen fully render.
   await $.tester.pump(const Duration(milliseconds: 400));
@@ -80,8 +97,10 @@ Future<void> _ss(PatrolIntegrationTester $, String name) async {
   } catch (_) {
     // No capture script running — that's fine.
   }
-  // Pause so xcrun has time to capture the simulator screen.
-  await Future.delayed(const Duration(seconds: 5));
+  // Wait 10 s on the screen so the state can settle (images load, animations
+  // finish) before the simulator capture fires. xcrun runs mid-way, but the
+  // full 10 s keeps the screen up so reviewers can eyeball it during capture.
+  await Future.delayed(const Duration(seconds: 10));
   await $.tester.pump(const Duration(milliseconds: 200));
 }
 
@@ -96,7 +115,7 @@ void _loggedInScreens() {
 
       // ── 01 Welcome ────────────────────────────────────────────────
       await bootstrapApp($);
-      await _ss($, '01_welcome');
+      await _ss($, '01_onboarding/01_welcome');
 
       // ── 02 Phone OTP ──────────────────────────────────────────────
       // Tap "Get Started" if visible to reach PhoneOtpScreen.
@@ -105,7 +124,7 @@ void _loggedInScreens() {
         await $.tester.tap(getStartedFinder.first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 400));
       }
-      await _ss($, '02_phone_otp');
+      await _ss($, '01_onboarding/02_phone_otp');
 
       // ── Login as traveler ─────────────────────────────────────────
       final digits = TestData.travelerPhone.replaceAll(RegExp(r'[^\d]'), '');
@@ -135,7 +154,7 @@ void _loggedInScreens() {
         timeout: const Duration(seconds: 15),
       );
       await Future.delayed(const Duration(seconds: 2)); // let feed load
-      await _ss($, '03_home_feed');
+      await _ss($, '02_feed/01_home_feed');
 
       // Helper: navigate to a route and capture a screenshot.
       Future<void> pushAndCapture(String route, String ssName) async {
@@ -164,19 +183,21 @@ void _loggedInScreens() {
 
       // ── 04 Post Detail ────────────────────────────────────────────
       await pushAndCapture(
-          '/posts/${TestData.seedPostId}', '04_post_detail');
+          '/posts/${TestData.seedPostId}', '03_content/01_post_detail');
 
       // ── 05 Itinerary Detail ───────────────────────────────────────
       await pushAndCapture(
-          '/itineraries/${TestData.seedItineraryId}', '05_itinerary_detail');
+          '/itineraries/${TestData.seedItineraryId}',
+          '03_content/02_itinerary_detail');
 
       // ── 06 Event Detail ───────────────────────────────────────────
       await pushAndCapture(
-          '/events/${TestData.seedEventId}', '06_event_detail');
+          '/events/${TestData.seedEventId}', '03_content/03_event_detail');
 
       // ── 07 Experience Detail ──────────────────────────────────────
       await pushAndCapture(
-          '/experiences/${TestData.seedExperienceId}', '07_experience_detail');
+          '/experiences/${TestData.seedExperienceId}',
+          '03_content/04_experience_detail');
 
       // ── 08 Save-to-list sheet ─────────────────────────────────────
       // Navigate to post detail and wait for the engagement bar to load.
@@ -212,7 +233,7 @@ void _loggedInScreens() {
           visibleTimeout: const Duration(seconds: 10),
         );
         await $.tester.pump(const Duration(milliseconds: 600));
-        await _ss($, '08_save_to_list_sheet');
+        await _ss($, '03_content/06_save_to_list_sheet');
         // Dismiss sheet.
         await $.tester.pump(const Duration(milliseconds: 200));
         final closeFinder = find.byIcon(Icons.close);
@@ -239,7 +260,7 @@ void _loggedInScreens() {
         await $.tester.tap(studioTabFinder.first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 500));
         await Future.delayed(const Duration(seconds: 2));
-        await _ss($, '09_studio_tab');
+        await _ss($, '04_studio/01_studio_tab');
       }
 
       // ── 10 Profile / You Tab ──────────────────────────────────────
@@ -248,7 +269,7 @@ void _loggedInScreens() {
         await $.tester.tap(youTabFinder.first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 500));
         await Future.delayed(const Duration(seconds: 2));
-        await _ss($, '10_profile_you');
+        await _ss($, '05_profile/01_profile_you');
       }
 
       // ── 11 Saved Lists ────────────────────────────────────────────
@@ -264,7 +285,7 @@ void _loggedInScreens() {
       );
       await Future.delayed(const Duration(seconds: 2));
       await $.tester.pump(const Duration(milliseconds: 200));
-      await _ss($, '11_saved_lists');
+      await _ss($, '06_saved/01_saved_lists');
       unawaited(
         Future.microtask(() {
           final nav = $.tester.state<NavigatorState>(
@@ -278,17 +299,18 @@ void _loggedInScreens() {
 
       // ── 12 Creator Profile ────────────────────────────────────────
       await pushAndCapture(
-          '/profile/${TestData.seedCreatorId}', '12_creator_profile');
+          '/profile/${TestData.seedCreatorId}',
+          '05_profile/02_creator_profile');
 
       // ── 13 Content Type Picker ────────────────────────────────────
-      // Tap the Create "+" tab.
-      final createFinder = find.text('Create');
-      if (createFinder.evaluate().isNotEmpty) {
-        await $.tester.tap(createFinder.first, warnIfMissed: false);
+      // Tap the Create "+" FAB in the bottom nav (no text label — keyed).
+      final createFabFinder = find.byKey(const ValueKey('nav_fab_create'));
+      if (createFabFinder.evaluate().isNotEmpty) {
+        await $.tester.tap(createFabFinder.first, warnIfMissed: false);
         await $.tester.pump(const Duration(milliseconds: 500));
-        await Future.delayed(const Duration(seconds: 1));
-        await _ss($, '13_content_type_picker');
-        // Dismiss by tapping back or close.
+        await Future.delayed(const Duration(seconds: 2));
+        await _ss($, '03_content/05_content_type_picker');
+        // Dismiss the picker sheet.
         final nav = $.tester.state<NavigatorState>(
           find.byType(Navigator).first,
         );
@@ -363,7 +385,7 @@ void _onboardingScreens() {
       await $(ProfileBootstrapScreen).waitUntilVisible(
         timeout: const Duration(seconds: 15),
       );
-      await _ss($, '13a_onboarding_profile_bootstrap');
+      await _ss($, '01_onboarding/03_profile_bootstrap');
 
       // Username + first name (hint texts per E0.4c A2c).
       final stamp = DateTime.now().millisecondsSinceEpoch
@@ -390,7 +412,7 @@ void _onboardingScreens() {
       await $(LocationScreen).waitUntilVisible(
         timeout: const Duration(seconds: 15),
       );
-      await _ss($, '14_onboarding_location');
+      await _ss($, '01_onboarding/04_location');
 
       // Select a city to continue.
       await $.tester.enterText(
@@ -415,7 +437,7 @@ void _onboardingScreens() {
         timeout: const Duration(seconds: 10),
       );
       await Future.delayed(const Duration(seconds: 2));
-      await _ss($, '15_onboarding_verticals');
+      await _ss($, '01_onboarding/05_verticals');
 
       // Select 3 verticals to enable Continue. The picker exposes:
       // Travel, Food, Culture, Adventure, Wildlife, Music, Photography, Learning
@@ -436,7 +458,7 @@ void _onboardingScreens() {
       await $(SuggestedCreatorsScreen).waitUntilVisible(
         timeout: const Duration(seconds: 10),
       );
-      await _ss($, '16_onboarding_creators');
+      await _ss($, '01_onboarding/06_creators');
 
       // Without following the minimum creators, the primary CTA is
       // "Follow N & continue" (disabled); tap "Skip" instead to finish
@@ -450,7 +472,7 @@ void _onboardingScreens() {
       await $(CelebrationScreen).waitUntilVisible(
         timeout: const Duration(seconds: 10),
       );
-      await _ss($, '17_onboarding_celebration');
+      await _ss($, '01_onboarding/07_celebration');
     },
   );
 }

@@ -37,7 +37,7 @@ class AuthState {
 // ── Providers ───────────────────────────────────────────────────
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  const baseUrl = 'http://localhost:3001';
+  const baseUrl = 'http://192.168.1.3:3001';
   return AuthService(baseUrl: baseUrl);
 });
 
