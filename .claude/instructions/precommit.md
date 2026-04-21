@@ -8,7 +8,7 @@
 ## Step-by-Step Pre-Commit Flow
 
 ```
-Tests → Lint → Typecheck → 4-Step Review Gate → Boot Check → Commit
+Tests → Lint → Typecheck → 4-Step Review Gate → Boot Check → Screenshot Parity → Commit
 ```
 
 ---
@@ -141,7 +141,55 @@ flutter run
 
 ---
 
-## 6. Update Tracking File
+## 6. Screenshot Parity Check (MANDATORY for any UI-touching epic)
+
+> Too many epics have shipped with code that compiles and "works" but looks nothing like
+> the canonical design. This gate catches drift before it lands.
+
+For every screen added or changed in the epic:
+
+### 6a. Capture the build
+- Run the app on iOS simulator OR connected device
+- Navigate to the screen
+- Take a screenshot (`Cmd+S` in simulator, or `flutter screenshot` for device)
+- Save to `docs/epics/<epic-id>/screenshots/<screen-name>.png`
+
+### 6b. Locate the canonical wireframe
+- Find the matching pack in `docs/01_wireframes/v2/`
+- Open the HTML file OR the exported image
+
+### 6c. Diff against wireframe — check all of these
+- **Background color** matches spec exactly (pure white `#FFFFFF` for v2, not tinted)
+- **Coral usage** only in the 8 approved contexts (see `.claude/instructions/ui-ux.md`)
+- **Typography** — Fraunces for display/H1/H2/post body only; Inter for everything else
+- **Spacing & padding** match wireframe (use ruler/inspector)
+- **Real content rendered** — no gray placeholders on a live screen, no Lorem Ipsum
+- **All interactive elements** are actually wired (cards tap, "See all" navigates, buttons fire)
+- **Loading state** is skeleton shimmer — never a spinner
+- **Empty state** is illustration + title + description + optional CTA — never just gray text
+
+### 6d. If there's drift, fix before commit
+- Small cosmetic drift (2-4px, minor color): log in tracking.md "Review Gate" and fix
+- Structural drift (wrong layout, wrong component): STOP, do not commit until corrected
+- Missing wire-up (dead buttons, dead taps): STOP, wire it before declaring DONE
+
+### 6e. Attach screenshots to tracking file
+In `docs/epics/<epic-id>/tracking.md`, add a section:
+
+```markdown
+## Screenshot Parity
+
+| Screen | Build | Wireframe | Match? |
+|--------|-------|-----------|--------|
+| Home Feed | ![](screenshots/home-feed.png) | [Pack 02](../../01_wireframes/v2/02_home/home.html) | `[x]` |
+| Content Detail | ![](screenshots/content-detail.png) | [Pack 04](../../01_wireframes/v2/04_detail/detail.html) | `[ ]` drift: hero padding 12→16 |
+```
+
+**Every screen must be `[x]` before commit.**
+
+---
+
+## 7. Update Tracking File
 
 Before committing, update the epic tracking file (`docs/epics/<epic-id>/tracking.md`):
 
@@ -152,7 +200,7 @@ Before committing, update the epic tracking file (`docs/epics/<epic-id>/tracking
 
 ---
 
-## 7. Commit (only after all above pass)
+## 8. Commit (only after all above pass)
 
 ```bash
 # Stage specific files — never `git add .`
@@ -198,6 +246,7 @@ And each epic tracking file must end with:
 | Code quality review | `[ ]` | Findings: |
 | API boots (`/healthz`) | `[ ]` | |
 | Flutter launches | `[ ]` | |
+| Screenshot parity (every UI screen) | `[ ]` | All rows `[x]` in Screenshot Parity table |
 | Tracking file updated | `[ ]` | |
 ```
 
@@ -212,8 +261,11 @@ A task is DONE only when:
 2. Unit test written and passing
 3. No lint/typecheck errors introduced
 4. Manually verified it works (boot + navigate + interact)
+5. Screenshot parity check passed — build matches the canonical wireframe
 
 A task is NOT done if:
 - Code compiles but has no tests
 - Code compiles but was never run
 - Code compiles but the 4-step review hasn't been done
+- Screen compiles and navigates but visually drifts from the wireframe
+- A button / card / "See all" exists but doesn't do anything when tapped

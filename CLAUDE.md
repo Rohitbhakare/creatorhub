@@ -6,9 +6,13 @@
 
 ## What This Project Is
 
-CreatorHub is a **travel social platform + experience marketplace** for India.
-Four content types: Posts (free) | Self-paced Itineraries (free/paid) | Scheduled Experiences (paid) | Events (free/paid).
-Users can be both travelers and creators (unified model). Launch verticals: **Travel + Stories**.
+CreatorHub is a **creator-first social platform + experience marketplace**. Creators publish content and monetize their audience; followers discover, engage, and book. Any user can become a creator — **unified model, no role binary**. Travel is the **launch vertical**; the platform is designed to scale across niches (Stories is the secondary vertical at launch).
+
+**Four content types:**
+- **Posts** — free, short-form social content (photos, text, reels)
+- **Self-paced Itineraries** — free or paid, consumed on the user's own schedule (guides, playbooks, routes)
+- **Scheduled Experiences** — paid, date/time-bound, hosted by the creator (workshops, walks, tours)
+- **Events** — free or paid, group format with RSVPs (meetups, retreats, launches)
 
 ## Tech Stack
 
