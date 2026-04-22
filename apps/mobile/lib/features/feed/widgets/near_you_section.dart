@@ -7,7 +7,7 @@ import '../models/feed_models.dart';
 import '../providers/near_you_provider.dart';
 import '../utils/feed_navigation.dart';
 import 'section_header.dart';
-import 'feed_content_card.dart';
+import 'content_card.dart';
 
 /// Near You section with nearest-neighbor waterfall.
 /// Includes honesty banner when fallback radius is used (DISC-FR-028).
@@ -51,14 +51,16 @@ class _NearYouContent extends StatelessWidget {
         if (result.fallbackLevel > 0 && result.fallbackCities.isNotEmpty)
           _FallbackBanner(cities: result.fallbackCities),
         SizedBox(
-          height: 230,
+          height: 260,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: result.items.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => FeedRailCard(
+            itemBuilder: (context, i) => ContentCard(
               item: result.items[i],
+              variant: ContentCardVariant.rail,
+              railWidth: 180,
               onTap: () => openFeedItem(context, result.items[i]),
             ),
           ),
@@ -117,19 +119,19 @@ class _NearYouSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 230,
+          height: 260,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: 3,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (_, _) => Container(
-              width: 200,
+              width: 180,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(14)),
               ),
               clipBehavior: Clip.antiAlias,
-              child: const SkeletonRect(height: 220),
+              child: const SkeletonRect(height: 180),
             ),
           ),
         ),

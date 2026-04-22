@@ -35,6 +35,8 @@ tags:
     description: Signed upload URLs for media
   - name: Places
     description: Google Places API proxy (key never exposed to client)
+  - name: Feed
+    description: Home feed sections — For you, Following, Near you, hero, per-vertical rails, discover creators
   - name: Content
     description: Content CRUD, draft management, publish/unpublish state machine
   - name: Posts
@@ -667,6 +669,145 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+
+  # ── Feed ────────────────────────────────────────────────────
+  /api/v1/feed/for-you:
+    get:
+      operationId: getForYouFeed
+      tags: [Feed]
+      summary: For-you feed — followed creators + user's verticals
+      description: |
+        Option-C ranking: followed creators weighted 2x (last 30d) merged
+        with user's active verticals weighted 1x (last 60d). Tie-break on
+        `like_count` capped at 500, then `published_at` desc. Falls back
+        to popular-across-India (last 30d) when user has no follows and
+        no verticals.
+      responses:
+        "200":
+          description: Ranked feed items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/feed/following:
+    get:
+      operationId: getFollowingFeed
+      tags: [Feed]
+      summary: Following feed — strictly content from followed creators
+      description: |
+        Returns published content from creators the user follows, ordered
+        newest-first. Empty array if the user follows no one — the client
+        is responsible for showing an empty state.
+      responses:
+        "200":
+          description: Following feed items (may be empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/feed/near-you:
+    get:
+      operationId: getNearYouFeed
+      tags: [Feed]
+      summary: Near-you feed — nearest-neighbor waterfall
+      description: |
+        Uses the user's stored `current_city_id` to run a distance waterfall
+        (exact city → 200km → 500km → India-wide). Returns a human-readable
+        label and, when the fallback radius kicks in, the list of nearby
+        cities pulled in (DISC-FR-028 honesty banner).
+      responses:
+        "200":
+          description: Near-you result with label and fallback metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-NearYouResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/feed/hero:
+    get:
+      operationId: getFeedHero
+      tags: [Feed]
+      summary: Single hero item for the active tab
+      description: |
+        Returns the top-ranking item for the given tab so mobile doesn't
+        need to slice `items[0]`. Gives backend flexibility to swap in an
+        editor-curated pick or a `featured` flag override in future without
+        a mobile release.
+      parameters:
+        - name: tab
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [for_you, following, near_you]
+            default: for_you
+      responses:
+        "200":
+          description: Hero item (null when the underlying section is empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedHero"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/feed/vertical/{vertical}:
+    get:
+      operationId: getVerticalFeed
+      tags: [Feed]
+      summary: Per-vertical rail (optional auth)
+      description: |
+        Top 10 published items for the given vertical, ordered by
+        `like_count` desc then `published_at` desc. Hidden on the client
+        when empty.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: vertical
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [travel, stories]
+      responses:
+        "200":
+          description: Vertical rail items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/feed/discover:
+    get:
+      operationId: getDiscoverCreators
+      tags: [Feed]
+      summary: Discover creators from verticals outside the user's picks
+      description: |
+        Up to 10 creators whose vertical is not in the authenticated user's
+        active verticals. For guests, returns any 10 creators.
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Discover creators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-DiscoverCreators"
 
   # ── Content (shared) ────────────────────────────────────────
   /api/v1/content:
@@ -2514,6 +2655,115 @@ components:
         meta:
           $ref: "#/components/schemas/CursorMeta"
 
+    # ── Feed ─────────────────────────────────────────────────
+    FeedCreator:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+
+    FeedContentItem:
+      type: object
+      required:
+        - id
+        - type
+        - title
+        - vertical
+        - pricing_model
+        - price_paisa
+        - like_count
+        - comment_count
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/ContentType"
+        title:
+          type: string
+        vertical:
+          $ref: "#/components/schemas/Vertical"
+        pricing_model:
+          $ref: "#/components/schemas/PricingModel"
+        price_paisa:
+          type: integer
+        like_count:
+          type: integer
+        comment_count:
+          type: integer
+        duration_minutes:
+          type: integer
+          nullable: true
+        starting_city_id:
+          type: string
+          nullable: true
+        cover_image_url:
+          type: string
+          format: uri
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        creator:
+          allOf:
+            - $ref: "#/components/schemas/FeedCreator"
+          nullable: true
+
+    NearYouResult:
+      type: object
+      required: [items, fallback_level, label, fallback_cities]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeedContentItem"
+        fallback_level:
+          type: integer
+          description: 0=exact city · 1=200km · 2=500km · 3=India-wide
+          minimum: 0
+          maximum: 3
+        label:
+          type: string
+          description: Human-readable section header
+        fallback_cities:
+          type: array
+          description: Names of nearby cities pulled in (non-empty when fallback_level > 0)
+          items:
+            type: string
+
+    DiscoverCreator:
+      type: object
+      required: [id, vertical]
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        vertical:
+          $ref: "#/components/schemas/Vertical"
+
     ValidationItem:
       type: object
       required: [field, label, passed]
@@ -3165,3 +3415,49 @@ components:
           const: true
         data:
           $ref: "#/components/schemas/ItinerarySpot"
+
+    SuccessResponse-FeedItems:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeedContentItem"
+
+    SuccessResponse-FeedHero:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          allOf:
+            - $ref: "#/components/schemas/FeedContentItem"
+          nullable: true
+
+    SuccessResponse-NearYouResult:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          $ref: "#/components/schemas/NearYouResult"
+
+    SuccessResponse-DiscoverCreators:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscoverCreator"

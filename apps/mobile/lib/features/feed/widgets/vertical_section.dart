@@ -5,7 +5,7 @@ import '../../../shared/components/skeleton.dart';
 import '../providers/vertical_section_provider.dart';
 import '../utils/feed_navigation.dart';
 import 'section_header.dart';
-import 'feed_content_card.dart';
+import 'content_card.dart';
 
 /// Per-vertical content rail (DISC-FR-023).
 /// Hidden entirely when the section returns empty or errors.
@@ -43,14 +43,16 @@ class VerticalSection extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 230,
+              height: 260,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => FeedRailCard(
+                itemBuilder: (context, i) => ContentCard(
                   item: items[i],
+                  variant: ContentCardVariant.rail,
+                  railWidth: 180,
                   onTap: () => openFeedItem(context, items[i]),
                 ),
               ),
@@ -86,17 +88,17 @@ class _VerticalSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 230,
+          height: 260,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: 3,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (_, _) => Container(
-              width: 200,
+              width: 180,
               clipBehavior: Clip.antiAlias,
               decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(14))),
-              child: const SkeletonRect(height: 220),
+              child: const SkeletonRect(height: 180),
             ),
           ),
         ),
