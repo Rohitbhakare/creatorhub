@@ -391,6 +391,78 @@ export async function processRefund(bookingId: string, adminId: string, reason: 
   await writeAdminAuditLog(adminId, 'process_refund', 'booking', bookingId, { reason, razorpay_refund_id: refundData.id })
 }
 
+// ─── getAdminBookingDetail ────────────────────────────────────
+
+export interface AdminBookingDetail {
+  id: string
+  status: string
+  total_paisa: number
+  creator_payout_paisa: number | null
+  buyer_id: string
+  buyer_username: string | null
+  creator_id: string
+  creator_username: string | null
+  content_id: string | null
+  content_title: string | null
+  razorpay_payment_id: string | null
+  razorpay_refund_id: string | null
+  refund_in_flight: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getAdminBookingDetail(
+  bookingId: string,
+): Promise<AdminBookingDetail> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(
+      'id, status, total_paisa, creator_payout_paisa, buyer_id, creator_id, content_id, razorpay_payment_id, razorpay_refund_id, created_at, updated_at, content:content_id ( title )',
+    )
+    .eq('id', bookingId)
+    .maybeSingle()
+
+  if (error) throw new AppError('db-error', 500, 'Failed to fetch booking')
+  if (!data) throw new AppError('not-found', 404, 'Booking not found')
+
+  const buyerId = data.buyer_id as string
+  const creatorId = data.creator_id as string
+
+  const [{ data: users }, { data: refunds }] = await Promise.all([
+    supabase.from('users').select('id, username').in('id', [buyerId, creatorId]),
+    supabase
+      .from('refunds')
+      .select('id')
+      .eq('booking_id', bookingId)
+      .in('status', ['pending', 'processing']),
+  ])
+
+  const usernames = new Map<string, string | null>()
+  for (const u of (users ?? []) as Array<{ id: string; username: string | null }>) {
+    usernames.set(u.id, u.username)
+  }
+
+  const content = data.content as { title?: string } | null
+
+  return {
+    id: data.id as string,
+    status: data.status as string,
+    total_paisa: data.total_paisa as number,
+    creator_payout_paisa: (data.creator_payout_paisa as number | null) ?? null,
+    buyer_id: buyerId,
+    buyer_username: usernames.get(buyerId) ?? null,
+    creator_id: creatorId,
+    creator_username: usernames.get(creatorId) ?? null,
+    content_id: (data.content_id as string | null) ?? null,
+    content_title: content?.title ?? null,
+    razorpay_payment_id: (data.razorpay_payment_id as string | null) ?? null,
+    razorpay_refund_id: (data.razorpay_refund_id as string | null) ?? null,
+    refund_in_flight: ((refunds as Array<{ id: string }> | null) ?? []).length > 0,
+    created_at: data.created_at as string,
+    updated_at: data.updated_at as string,
+  }
+}
+
 // ─── getAuditLog ──────────────────────────────────────────────
 
 export async function getAuditLog(options: {

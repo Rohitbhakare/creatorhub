@@ -9,10 +9,23 @@ import type { Context } from 'hono'
 import { AppError } from '../errors/AppError.js'
 import { forceReleasePayout } from '../services/admin-payouts.service.js'
 import {
+  listAdminPayouts,
+  getAdminPayoutDetail,
+} from '../services/payout.service.js'
+import type { PayoutStatus } from '@creatorhub/shared'
+import {
   recordAdminAudit,
   extractRequestMeta,
 } from '../services/admin-audit.service.js'
 import type { ForceReleasePayoutInput } from '@creatorhub/shared'
+
+const VALID_STATUSES: readonly PayoutStatus[] = [
+  'pending',
+  'scheduled',
+  'processing',
+  'completed',
+  'failed',
+]
 
 /**
  * Resolve acting admin. Session path is the standard case; legacy
@@ -78,4 +91,57 @@ export async function handleForceReleasePayout(c: Context): Promise<Response> {
   })
 
   return c.json({ success: true, data: result })
+}
+
+// ─── GET /api/v1/admin/payouts ────────────────────────────────
+
+export async function handleListAdminPayouts(c: Context): Promise<Response> {
+  const statusParam = c.req.query('status')
+  let status: PayoutStatus | undefined
+  if (statusParam !== undefined && statusParam !== '') {
+    if (!(VALID_STATUSES as readonly string[]).includes(statusParam)) {
+      throw new AppError(
+        'validation-failed',
+        400,
+        `status must be one of ${VALID_STATUSES.join(', ')}`,
+      )
+    }
+    status = statusParam as PayoutStatus
+  }
+
+  const cursor = c.req.query('cursor')
+  const rawLimit = Number(c.req.query('limit') ?? '25')
+  const limit =
+    Number.isNaN(rawLimit) || rawLimit < 1 ? 25 : Math.min(rawLimit, 100)
+
+  const opts: { status?: PayoutStatus; cursor?: string; limit: number } = {
+    limit,
+  }
+  if (status !== undefined) opts.status = status
+  if (cursor !== undefined && cursor !== '') opts.cursor = cursor
+
+  const { items, nextCursor } = await listAdminPayouts(opts)
+
+  return c.json({
+    success: true,
+    data: items,
+    meta: {
+      next_cursor: nextCursor,
+      has_more: nextCursor !== null,
+      per_page: limit,
+    },
+  })
+}
+
+// ─── GET /api/v1/admin/payouts/:payoutId ──────────────────────
+
+export async function handleGetAdminPayoutDetail(
+  c: Context,
+): Promise<Response> {
+  const payoutId = c.req.param('payoutId')
+  if (payoutId === undefined || payoutId.length === 0) {
+    throw new AppError('validation-failed', 400, 'payoutId is required')
+  }
+  const detail = await getAdminPayoutDetail(payoutId)
+  return c.json({ success: true, data: detail })
 }

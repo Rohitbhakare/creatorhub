@@ -441,5 +441,177 @@ export async function getPayoutByBookingId(bookingId: string): Promise<{
   }
 }
 
+// ─── listAdminPayouts (admin-wide queue) ────────────────────
+
+export interface AdminPayoutRow {
+  id: string
+  creator_id: string
+  creator_username: string | null
+  booking_id: string
+  booking_title: string | null
+  amount_paisa: number
+  tds_paisa: number
+  status: PayoutStatus
+  scheduled_at: string
+  processed_at: string | null
+  failure_reason: string | null
+  created_at: string
+}
+
+export async function listAdminPayouts(options: {
+  status?: PayoutStatus
+  cursor?: string
+  limit?: number
+}): Promise<{ items: AdminPayoutRow[]; nextCursor: string | null }> {
+  const limit = Math.min(options.limit ?? 25, 100)
+  const cursor = options.cursor ? decodeCursor(options.cursor) : null
+
+  let query = supabase
+    .from('payouts')
+    .select(
+      'id, creator_id, booking_id, amount_paisa, tds_paisa, status, scheduled_at, processed_at, failure_reason, created_at',
+    )
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1)
+
+  if (options.status) {
+    query = query.eq('status', options.status)
+  }
+  if (cursor) {
+    query = query.or(
+      `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
+    )
+  }
+
+  const { data, error } = await query
+  if (error) {
+    throw new AppError('db-error', 500, 'Failed to list payouts')
+  }
+
+  const all = (data as Row[] | null) ?? []
+  const hasMore = all.length > limit
+  const rows = hasMore ? all.slice(0, limit) : all
+
+  const bookingIds = rows.map((r) => r.booking_id as string)
+  const creatorIds = Array.from(new Set(rows.map((r) => r.creator_id as string)))
+
+  const bookingTitles = new Map<string, string>()
+  if (bookingIds.length > 0) {
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('id, content:content_id ( title )')
+      .in('id', bookingIds)
+    for (const row of (bookings ?? []) as Row[]) {
+      const content = row.content as { title?: string } | null
+      bookingTitles.set(row.id as string, content?.title ?? '')
+    }
+  }
+
+  const usernames = new Map<string, string | null>()
+  if (creatorIds.length > 0) {
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, username')
+      .in('id', creatorIds)
+    for (const row of (users ?? []) as Row[]) {
+      usernames.set(row.id as string, (row.username as string | null) ?? null)
+    }
+  }
+
+  const items: AdminPayoutRow[] = rows.map((r) => ({
+    id: r.id as string,
+    creator_id: r.creator_id as string,
+    creator_username: usernames.get(r.creator_id as string) ?? null,
+    booking_id: r.booking_id as string,
+    booking_title: bookingTitles.get(r.booking_id as string) ?? null,
+    amount_paisa: r.amount_paisa as number,
+    tds_paisa: (r.tds_paisa as number | null) ?? 0,
+    status: r.status as PayoutStatus,
+    scheduled_at: r.scheduled_at as string,
+    processed_at: (r.processed_at as string | null) ?? null,
+    failure_reason: (r.failure_reason as string | null) ?? null,
+    created_at: r.created_at as string,
+  }))
+
+  let nextCursor: string | null = null
+  if (hasMore && rows.length > 0) {
+    const last = rows[rows.length - 1]
+    if (last) {
+      nextCursor = encodeCursor({
+        createdAt: last.created_at as string,
+        id: last.id as string,
+      })
+    }
+  }
+
+  return { items, nextCursor }
+}
+
+// ─── getAdminPayoutDetail ───────────────────────────────────
+
+export interface AdminPayoutDetail extends AdminPayoutRow {
+  razorpay_transfer_id: string | null
+  razorpay_payout_id: string | null
+  booking_status: string | null
+  refund_in_flight: boolean
+}
+
+export async function getAdminPayoutDetail(
+  payoutId: string,
+): Promise<AdminPayoutDetail> {
+  const { data, error } = await supabase
+    .from('payouts')
+    .select(
+      'id, creator_id, booking_id, amount_paisa, tds_paisa, status, scheduled_at, processed_at, failure_reason, created_at, razorpay_transfer_id, razorpay_payout_id',
+    )
+    .eq('id', payoutId)
+    .maybeSingle()
+
+  if (error) throw new AppError('db-error', 500, 'Failed to fetch payout')
+  if (!data) throw new AppError('not-found', 404, 'Payout not found')
+  const r = data as Row
+
+  const bookingId = r.booking_id as string
+  const creatorId = r.creator_id as string
+
+  const [{ data: booking }, { data: user }, { data: refunds }] =
+    await Promise.all([
+      supabase
+        .from('bookings')
+        .select('status, content:content_id ( title )')
+        .eq('id', bookingId)
+        .maybeSingle(),
+      supabase.from('users').select('username').eq('id', creatorId).maybeSingle(),
+      supabase
+        .from('refunds')
+        .select('id')
+        .eq('booking_id', bookingId)
+        .in('status', ['pending', 'processing']),
+    ])
+
+  const bookingRow = (booking as Row | null) ?? null
+  const content = bookingRow?.content as { title?: string } | null
+
+  return {
+    id: r.id as string,
+    creator_id: creatorId,
+    creator_username: (user as Row | null)?.username as string | null ?? null,
+    booking_id: bookingId,
+    booking_title: content?.title ?? null,
+    amount_paisa: r.amount_paisa as number,
+    tds_paisa: (r.tds_paisa as number | null) ?? 0,
+    status: r.status as PayoutStatus,
+    scheduled_at: r.scheduled_at as string,
+    processed_at: (r.processed_at as string | null) ?? null,
+    failure_reason: (r.failure_reason as string | null) ?? null,
+    created_at: r.created_at as string,
+    razorpay_transfer_id: (r.razorpay_transfer_id as string | null) ?? null,
+    razorpay_payout_id: (r.razorpay_payout_id as string | null) ?? null,
+    booking_status: (bookingRow?.status as string | null) ?? null,
+    refund_in_flight: ((refunds as Row[] | null) ?? []).length > 0,
+  }
+}
+
 // Export the type for handler convenience.
 export type { PayoutSummary, PayoutListResponse }

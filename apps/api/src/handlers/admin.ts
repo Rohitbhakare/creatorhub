@@ -23,6 +23,7 @@ import {
   listPendingKyc,
   getKycSubmission,
   processRefund,
+  getAdminBookingDetail,
   getAuditLog,
 } from '../services/admin.service.js'
 import { approveKyc, rejectKyc } from '../services/kyc.service.js'
@@ -236,6 +237,16 @@ export async function handleRejectKycSession(c: Context): Promise<Response> {
   await rejectKyc(userId, adminId, reason)
 
   return c.json({ success: true })
+}
+
+// ─── GET /admin/bookings/:bookingId ───────────────────────────
+
+export async function handleGetAdminBookingDetail(
+  c: Context,
+): Promise<Response> {
+  const bookingId = routeParam(c, 'bookingId')
+  const detail = await getAdminBookingDetail(bookingId)
+  return c.json({ success: true, data: detail })
 }
 
 // ─── POST /admin/bookings/:bookingId/refund ───────────────────

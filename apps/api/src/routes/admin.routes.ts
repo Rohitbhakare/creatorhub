@@ -27,6 +27,7 @@ import {
   handleApproveKycSession,
   handleRejectKycSession,
   handleProcessRefund,
+  handleGetAdminBookingDetail,
   handleGetAuditLog,
 } from '../handlers/admin.js'
 import {
@@ -35,7 +36,11 @@ import {
   handleFeatureUser,
   handleUnfeatureUser,
 } from '../handlers/admin-features.js'
-import { handleForceReleasePayout } from '../handlers/admin-payouts.js'
+import {
+  handleForceReleasePayout,
+  handleListAdminPayouts,
+  handleGetAdminPayoutDetail,
+} from '../handlers/admin-payouts.js'
 import { dualAdminAuth } from '../middleware/dualAdminAuth.js'
 import { validateBody } from '../middleware/validate.js'
 import {
@@ -108,9 +113,24 @@ adminRoutes.post(
 )
 
 // ─── Bookings / Refunds ──────────────────────────────────────
+adminRoutes.get(
+  '/bookings/:bookingId',
+  dualAdminAuth([...FINANCE_ROLES]),
+  handleGetAdminBookingDetail,
+)
 adminRoutes.post('/bookings/:bookingId/refund', dualAdminAuth([...FINANCE_ROLES]), handleProcessRefund)
 
 // ─── Payouts (ADM-FR-004) ────────────────────────────────────
+adminRoutes.get(
+  '/payouts',
+  dualAdminAuth([...FINANCE_ROLES]),
+  handleListAdminPayouts,
+)
+adminRoutes.get(
+  '/payouts/:payoutId',
+  dualAdminAuth([...FINANCE_ROLES]),
+  handleGetAdminPayoutDetail,
+)
 adminRoutes.post(
   '/payouts/release',
   dualAdminAuth([...FINANCE_ROLES]),
