@@ -24,6 +24,7 @@ import {
   getKycSubmission,
   processRefund,
   getAdminBookingDetail,
+  searchContent,
   getAuditLog,
 } from '../services/admin.service.js'
 import { approveKyc, rejectKyc } from '../services/kyc.service.js'
@@ -165,6 +166,20 @@ export async function handleTakedownContent(c: Context): Promise<Response> {
   await takedownContent(contentId, adminId, reason)
 
   return c.json({ success: true })
+}
+
+// ─── GET /admin/content/search ────────────────────────────────
+
+export async function handleSearchContent(c: Context): Promise<Response> {
+  const query = c.req.query('q') ?? ''
+  if (!query.trim()) {
+    throw new AppError('validation-failed', 400, 'Query parameter "q" is required')
+  }
+  const rawLimit = Number(c.req.query('limit') ?? '20')
+  const limit =
+    Number.isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 50)
+  const results = await searchContent(query, limit)
+  return c.json({ success: true, data: results })
 }
 
 // ─── GET /admin/content/:contentId ───────────────────────────

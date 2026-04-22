@@ -22,6 +22,7 @@ import {
   handleUnsuspendUser,
   handleTakedownContent,
   handleGetContentForModeration,
+  handleSearchContent,
   handleListPendingKyc,
   handleGetKycSubmission,
   handleApproveKycSession,
@@ -69,6 +70,11 @@ adminRoutes.post('/users/:userId/suspend', dualAdminAuth([...USER_MGMT_ROLES]), 
 adminRoutes.post('/users/:userId/unsuspend', dualAdminAuth([...USER_MGMT_ROLES]), handleUnsuspendUser)
 
 // ─── Content moderation ──────────────────────────────────────
+adminRoutes.get(
+  '/content/search',
+  dualAdminAuth([...MODERATION_ROLES]),
+  handleSearchContent,
+)
 adminRoutes.get('/content/:contentId', dualAdminAuth([...MODERATION_ROLES]), handleGetContentForModeration)
 adminRoutes.post('/content/:contentId/takedown', dualAdminAuth([...MODERATION_ROLES]), handleTakedownContent)
 

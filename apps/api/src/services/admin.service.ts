@@ -391,6 +391,59 @@ export async function processRefund(bookingId: string, adminId: string, reason: 
   await writeAdminAuditLog(adminId, 'process_refund', 'booking', bookingId, { reason, razorpay_refund_id: refundData.id })
 }
 
+// ─── searchContent (admin content picker) ─────────────────────
+
+export interface AdminContentSearchRow {
+  id: string
+  title: string
+  type: string
+  status: string
+  creator_id: string
+  creator_username: string | null
+  cover_image_url: string | null
+}
+
+export async function searchContent(
+  query: string,
+  limit: number,
+): Promise<AdminContentSearchRow[]> {
+  const safeLimit = Math.min(limit, 50)
+  const likePattern = `%${query}%`
+
+  const { data, error } = await supabase
+    .from('content')
+    .select('id, title, type, status, user_id, cover_image_url')
+    .ilike('title', likePattern)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(safeLimit)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to search content')
+
+  const rows = (data ?? []) as Array<Record<string, unknown>>
+  const creatorIds = Array.from(new Set(rows.map((r) => r['user_id'] as string)))
+  const usernames = new Map<string, string | null>()
+  if (creatorIds.length > 0) {
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, username')
+      .in('id', creatorIds)
+    for (const u of (users ?? []) as Array<{ id: string; username: string | null }>) {
+      usernames.set(u.id, u.username)
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r['id'] as string,
+    title: (r['title'] as string | null) ?? '',
+    type: r['type'] as string,
+    status: r['status'] as string,
+    creator_id: r['user_id'] as string,
+    creator_username: usernames.get(r['user_id'] as string) ?? null,
+    cover_image_url: (r['cover_image_url'] as string | null) ?? null,
+  }))
+}
+
 // ─── getAdminBookingDetail ────────────────────────────────────
 
 export interface AdminBookingDetail {
