@@ -9,6 +9,7 @@ import '../../../shared/theme/typography.dart';
 import '../../../shared/components/avatar.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../social/providers/follow_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/profile_stats_row.dart';
 
@@ -74,7 +75,7 @@ class ProfileViewScreen extends ConsumerWidget {
         data: (profile) => SingleChildScrollView(
           child: Column(
             children: [
-              _PublicHeroCard(profile: profile),
+              _PublicHeroCard(profile: profile, targetUserId: userId),
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,13 +92,21 @@ class ProfileViewScreen extends ConsumerWidget {
   }
 }
 
-class _PublicHeroCard extends StatelessWidget {
+class _PublicHeroCard extends ConsumerWidget {
   final PublicProfile profile;
+  final String targetUserId;
 
-  const _PublicHeroCard({required this.profile});
+  const _PublicHeroCard({required this.profile, required this.targetUserId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final followKey = (
+      targetUserId: targetUserId,
+      isFollowing: profile.isFollowing,
+      followerCount: profile.followerCount,
+    );
+    final followState = ref.watch(followProvider(followKey));
+    final isFollowing = followState.isFollowing;
     return Container(
       width: double.infinity,
       color: AppColors.surfaceAlt,
@@ -161,12 +170,14 @@ class _PublicHeroCard extends StatelessWidget {
           SizedBox(
             width: 160,
             height: 40,
-            child: profile.isFollowing
+            child: isFollowing
                 ? OutlinedButton(
-                    onPressed: () {
-                      HapticFeedback.selectionClick();
-                      // TODO: unfollow in E1.7
-                    },
+                    onPressed: followState.isLoading
+                        ? null
+                        : () {
+                            HapticFeedback.selectionClick();
+                            ref.read(followProvider(followKey).notifier).toggle();
+                          },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.hairline),
                       foregroundColor: AppColors.ink,
@@ -180,10 +191,12 @@ class _PublicHeroCard extends StatelessWidget {
                     ),
                   )
                 : ElevatedButton(
-                    onPressed: () {
-                      HapticFeedback.selectionClick();
-                      // TODO: follow in E1.7
-                    },
+                    onPressed: followState.isLoading
+                        ? null
+                        : () {
+                            HapticFeedback.selectionClick();
+                            ref.read(followProvider(followKey).notifier).toggle();
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.coral,
                       foregroundColor: AppColors.surface,

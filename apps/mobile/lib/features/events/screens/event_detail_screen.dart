@@ -10,6 +10,7 @@ import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
+import '../../social/providers/follow_provider.dart';
 import '../../social/widgets/engagement_bar.dart';
 import '../providers/event_detail_provider.dart';
 import '../widgets/date_block.dart';
@@ -342,13 +343,20 @@ class _WhatToBringChip extends StatelessWidget {
 
 // ── Creator Header ────────────────────────────────────────────────
 
-class _CreatorHeader extends StatelessWidget {
+class _CreatorHeader extends ConsumerWidget {
   final EventCreator creator;
 
   const _CreatorHeader({required this.creator});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final followKey = (
+      targetUserId: creator.id,
+      isFollowing: false,
+      followerCount: 0,
+    );
+    final followState = ref.watch(followProvider(followKey));
+
     return Row(
       children: [
         // Avatar
@@ -390,12 +398,14 @@ class _CreatorHeader extends StatelessWidget {
 
         // Follow button
         AppButton(
-          label: 'Follow',
+          label: followState.isFollowing ? 'Following' : 'Follow',
           onPressed: () {
             HapticFeedback.lightImpact();
-            // TODO: implement follow (E1.7 Social)
+            ref.read(followProvider(followKey).notifier).toggle();
           },
-          variant: AppButtonVariant.secondary,
+          variant: followState.isFollowing
+              ? AppButtonVariant.secondary
+              : AppButtonVariant.primary,
           size: AppButtonSize.small,
         ),
       ],

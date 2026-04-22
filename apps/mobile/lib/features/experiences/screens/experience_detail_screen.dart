@@ -13,6 +13,7 @@ import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/format.dart';
 import '../../itineraries/providers/itinerary_wizard_provider.dart'
     show StopType;
+import '../../social/providers/follow_provider.dart';
 import '../providers/experience_provider.dart';
 
 /// Public-facing detail page for a scheduled experience.
@@ -402,13 +403,20 @@ class _PriceBadge extends StatelessWidget {
 
 // ── Creator Row ────────────────────────────────────────────────────
 
-class _CreatorRow extends StatelessWidget {
+class _CreatorRow extends ConsumerWidget {
   final ExperienceCreator creator;
 
   const _CreatorRow({required this.creator});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final followKey = (
+      targetUserId: creator.id,
+      isFollowing: false,
+      followerCount: 0,
+    );
+    final followState = ref.watch(followProvider(followKey));
+
     return Row(
       children: [
         // Avatar
@@ -461,12 +469,14 @@ class _CreatorRow extends StatelessWidget {
 
         // Follow button
         AppButton(
-          label: 'Follow',
+          label: followState.isFollowing ? 'Following' : 'Follow',
           onPressed: () {
             HapticFeedback.lightImpact();
-            // TODO: implement follow (E1.7 Social)
+            ref.read(followProvider(followKey).notifier).toggle();
           },
-          variant: AppButtonVariant.secondary,
+          variant: followState.isFollowing
+              ? AppButtonVariant.secondary
+              : AppButtonVariant.primary,
           size: AppButtonSize.small,
         ),
       ],
