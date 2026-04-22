@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* CreatorHub Admin — v2 Pure White + Coral design tokens.
+   Mirrors apps/web/src/app/globals.css so admin stays visually aligned
+   with the consumer surfaces (see docs/01_wireframes/v2). */
+
+:root {
+  /* Pure White base (admin surfaces) */
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F7F7F7;
+  --color-border: #EAEAEA;
+  --color-border-strong: #D4D4D4;
+
+  /* Text */
+  --color-text: #0F0F0F;
+  --color-text-muted: #666666;
+  --color-text-subtle: #999999;
+
+  /* Coral accent — restricted use (CTAs, active state, badges) */
+  --color-coral: #E15A41;
+  --color-coral-hover: #CC4B35;
+
+  /* Semantic */
+  --color-success: #2D7A4F;
+  --color-warning: #C47C1B;
+  --color-error: #C0392B;
+  --color-info: #2B6FC0;
+
+  /* Role badges */
+  --color-role-super: #7C3AED;
+  --color-role-moderator: #2B6FC0;
+  --color-role-support: #0F766E;
+  --color-role-finance: #C47C1B;
+  --color-role-operations: #4B5563;
+}
+
+html,
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Focus ring — uses coral only for the outline, never as fill */
+:focus-visible {
+  outline: 2px solid var(--color-coral);
+  outline-offset: 2px;
+}

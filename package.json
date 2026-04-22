@@ -8,12 +8,13 @@
   },
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "concurrently --names api,web --prefix-colors cyan,magenta \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "dev": "concurrently --names api,web,admin --prefix-colors cyan,magenta,yellow \"pnpm --filter api dev\" \"pnpm --filter web dev\" \"pnpm --filter admin dev\"",
     "dev:api": "pnpm --filter api dev",
+    "dev:admin": "pnpm --filter admin dev",
     "dev:mobile": "cd apps/mobile && flutter run",
     "dev:all": "concurrently --names api,mobile --prefix-colors cyan,green \"pnpm --filter api dev\" \"cd apps/mobile && flutter run\"",
     "build": "pnpm --recursive --filter !mobile build",
-    "lint": "eslint apps/api/src apps/web/src packages/shared/src",
+    "lint": "eslint apps/api/src apps/web/src apps/admin/src packages/shared/src",
     "typecheck": "pnpm --recursive --filter !mobile typecheck",
     "test": "pnpm --recursive --filter !mobile test",
     "clean": "pnpm --recursive exec rm -rf dist .next .turbo node_modules"
