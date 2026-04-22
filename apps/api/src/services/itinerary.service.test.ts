@@ -18,6 +18,7 @@ import {
   removeDay,
   addSpot,
   computeDayStats,
+  setDayCount,
 } from './itinerary.service.js'
 import { supabase } from '../lib/supabase.js'
 import { publish } from './content-state.service.js'
@@ -425,6 +426,68 @@ describe('computeDayStats', () => {
     await expect(computeDayStats(DAY_ID, CONTENT_ID, USER_ID)).rejects.toMatchObject({
       status: 500,
       type: 'db-error',
+    })
+  })
+})
+
+// ─── allowedTypes / cross-type guard ───────────────────────────────────────
+// E2.x Experience day-plan reuses this service with
+// allowedTypes=['scheduled_experience']. The default still rejects
+// anything other than self_paced_itinerary.
+
+describe('allowedTypes guard', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const draftExperienceContent = {
+    ...draftItineraryContent,
+    type: 'scheduled_experience',
+  }
+
+  it('rejects a scheduled_experience row under default (itinerary-only) allowedTypes', async () => {
+    vi.mocked(supabase.from).mockReturnValueOnce(
+      mockChain(draftExperienceContent) as never,
+    )
+
+    await expect(addDay(CONTENT_ID, USER_ID)).rejects.toMatchObject({
+      status: 422,
+      type: 'unprocessable',
+    })
+  })
+
+  it('accepts a scheduled_experience row when allowedTypes includes it', async () => {
+    const newDay = { id: DAY_ID, content_id: CONTENT_ID, day_number: 1 }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(draftExperienceContent) as never) // content ownership
+      .mockReturnValueOnce(mockChain([]) as never) // current max day_number lookup → 0
+      .mockReturnValueOnce(mockChain(newDay) as never) // insert
+
+    const result = await addDay(CONTENT_ID, USER_ID, {
+      allowedTypes: ['scheduled_experience'],
+    })
+
+    expect(result).toMatchObject({ id: DAY_ID, day_number: 1 })
+  })
+
+  it('setDayCount on an experience draft grows the day set', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain(draftExperienceContent) as never) // ownership
+      .mockReturnValueOnce(mockChain([]) as never) // current days (empty)
+      .mockReturnValueOnce(mockChain(null, null) as never) // insert new days
+
+    await expect(
+      setDayCount(CONTENT_ID, USER_ID, 3, { allowedTypes: ['scheduled_experience'] }),
+    ).resolves.toBeUndefined()
+  })
+
+  it('setDayCount rejects an experience draft under default allowedTypes', async () => {
+    vi.mocked(supabase.from).mockReturnValueOnce(
+      mockChain(draftExperienceContent) as never,
+    )
+
+    await expect(setDayCount(CONTENT_ID, USER_ID, 3)).rejects.toMatchObject({
+      status: 422,
+      type: 'unprocessable',
     })
   })
 })

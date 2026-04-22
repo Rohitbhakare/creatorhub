@@ -8,11 +8,17 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
 import '../../../shared/components/button.dart';
+import '../../../shared/components/empty_state.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/format.dart';
+import '../../itineraries/providers/itinerary_wizard_provider.dart'
+    show SpotState;
+import '../../itineraries/widgets/spot_editor_sheet.dart';
+import '../../itineraries/widgets/spot_list_tile.dart';
+import '../../itineraries/widgets/spot_picker_sheet.dart';
 import '../providers/experience_provider.dart';
 
 /// Multi-step wizard for creating a scheduled experience (6 steps).
@@ -1009,48 +1015,502 @@ class _MeetingPointStepState extends ConsumerState<_MeetingPointStep> {
 
 // ── Step 5: Day Plan ───────────────────────────────────────────────
 
-class _DayPlanStep extends ConsumerWidget {
+class _DayPlanStep extends ConsumerStatefulWidget {
   final CreateExperienceState state;
 
   const _DayPlanStep({required this.state});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Layout.screenPaddingH),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+  ConsumerState<_DayPlanStep> createState() => _DayPlanStepState();
+}
+
+class _DayPlanStepState extends ConsumerState<_DayPlanStep> {
+  static const int _maxDays = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final s = ref.read(createExperienceProvider);
+      if (s.contentId != null && s.days.isEmpty) {
+        ref.read(createExperienceProvider.notifier).setDayCount(1);
+      }
+    });
+  }
+
+  Future<void> _onAddSpot() async {
+    unawaited(HapticFeedback.lightImpact());
+
+    final placeResult = await showModalBottomSheet<PlaceResult>(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * Layout.sheetMaxHeightFactor,
+      ),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
+      ),
+      builder: (context) => const SpotPickerSheet(),
+    );
+
+    if (placeResult == null || !mounted) return;
+
+    final spotState = await showModalBottomSheet<SpotState>(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * Layout.sheetMaxHeightFactor,
+      ),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(Layout.sheetRadius)),
+      ),
+      builder: (context) => SpotEditorSheet(place: placeResult),
+    );
+
+    if (spotState == null || !mounted) return;
+
+    final dayIndex = ref.read(createExperienceProvider).selectedDayIndex;
+    final ok = await ref
+        .read(createExperienceProvider.notifier)
+        .addSpotApi(dayIndex, spotState);
+    if (!ok && mounted) {
+      _showError('Couldn\u2019t add spot. Please try again.');
+    }
+  }
+
+  Future<void> _changeDayCount(int delta) async {
+    unawaited(HapticFeedback.lightImpact());
+    final s = ref.read(createExperienceProvider);
+    final next = s.dayCount + delta;
+    if (next < 1 || next > _maxDays) return;
+    final ok =
+        await ref.read(createExperienceProvider.notifier).setDayCount(next);
+    if (!ok && mounted) {
+      _showError('Couldn\u2019t update day count.');
+    }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style:
+              typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
+        ),
+        backgroundColor: AppColors.danger,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(createExperienceProvider);
+
+    if (s.contentId == null) {
+      return const EmptyState(
+        icon: PhosphorIconsFill.mapTrifold,
+        title: 'Save basics first',
+        description:
+            'Complete Step 1 to create the draft before building the day plan.',
+      );
+    }
+
+    if (s.days.isEmpty) {
+      return const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.inkSoft,
+          ),
+        ),
+      );
+    }
+
+    final selectedIndex = s.selectedDayIndex.clamp(0, s.days.length - 1);
+    final selectedDay = s.days[selectedIndex];
+
+    return Stack(
+      children: [
+        Column(
           children: [
-            const Icon(
-              PhosphorIconsFill.mapTrifold,
-              size: 48,
-              color: AppColors.inkMuted,
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text('Day-by-Day Plan', style: typ.AppTypography.h3),
             const SizedBox(height: Spacing.sm),
-            Text(
-              'Build your itinerary day by day.\n'
-              'This step will be fully enabled in a future sprint — '
-              'you can skip it now and add the day plan after publishing.',
-              style:
-                  typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
-              textAlign: TextAlign.center,
+
+            // ── Day count control ─────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Layout.screenPaddingH,
+              ),
+              child: _DayCountRow(
+                dayCount: s.dayCount,
+                maxDays: _maxDays,
+                isBusy: s.isSaving,
+                onDecrement:
+                    s.dayCount > 1 ? () => _changeDayCount(-1) : null,
+                onIncrement: s.dayCount < _maxDays
+                    ? () => _changeDayCount(1)
+                    : null,
+              ),
             ),
-            const SizedBox(height: Spacing.xl),
-            AppButton(
-              label: 'Skip for now',
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                // The "Next" button will advance the step.
-                // This CTA is just informational.
-              },
-              variant: AppButtonVariant.ghost,
-              size: AppButtonSize.medium,
+            const SizedBox(height: Spacing.md),
+
+            // ── Day tabs ──────────────────────────────────────
+            SizedBox(
+              height: Layout.minTapTarget,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Layout.screenPaddingH,
+                ),
+                itemCount: s.days.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: Spacing.sm),
+                itemBuilder: (context, index) {
+                  final isSelected = index == selectedIndex;
+                  return _ExpDayTab(
+                    label: 'Day ${index + 1}',
+                    isSelected: isSelected,
+                    spotCount: s.days[index].spots.length,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ref
+                          .read(createExperienceProvider.notifier)
+                          .selectDay(index);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: Spacing.sm),
+
+            // ── Day summary ───────────────────────────────────
+            if (selectedDay.spots.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Layout.screenPaddingH,
+                ),
+                child: _ExpDaySummaryBar(day: selectedDay),
+              ),
+            if (selectedDay.spots.isNotEmpty)
+              const SizedBox(height: Spacing.sm),
+
+            // ── Spot list ─────────────────────────────────────
+            Expanded(
+              child: selectedDay.spots.isEmpty
+                  ? EmptyState(
+                      icon: PhosphorIconsFill.mapPinPlus,
+                      title: 'Add your first spot',
+                      description:
+                          'Tap the + button to search for places to visit on Day ${selectedIndex + 1}',
+                      ctaLabel: 'Add Spot',
+                      onCtaPressed: _onAddSpot,
+                    )
+                  : ReorderableListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Layout.screenPaddingH,
+                        vertical: Spacing.sm,
+                      ),
+                      itemCount: selectedDay.spots.length,
+                      onReorder: (oldIndex, newIndex) {
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .read(createExperienceProvider.notifier)
+                            .reorderSpotsApi(
+                              selectedIndex,
+                              oldIndex,
+                              newIndex,
+                            );
+                      },
+                      proxyDecorator: (child, index, animation) {
+                        return AnimatedBuilder(
+                          animation: animation,
+                          builder: (context, child) {
+                            final v =
+                                Curves.easeInOut.transform(animation.value);
+                            final elevation = 1 + 6 * v;
+                            return Material(
+                              elevation: elevation,
+                              color: Colors.transparent,
+                              borderRadius:
+                                  BorderRadius.circular(Layout.cardRadius),
+                              child: child,
+                            );
+                          },
+                          child: child,
+                        );
+                      },
+                      itemBuilder: (context, index) {
+                        final spot = selectedDay.spots[index];
+                        return Padding(
+                          key: ValueKey(
+                            'exp_${selectedIndex}_${index}_${spot.id ?? spot.name}',
+                          ),
+                          padding:
+                              const EdgeInsets.only(bottom: Spacing.sm),
+                          child: SpotListTile(
+                            spot: spot,
+                            index: index,
+                            onRemove: () {
+                              ref
+                                  .read(createExperienceProvider.notifier)
+                                  .removeSpotApi(selectedIndex, index);
+                            },
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
+
+        // ── FAB ─────────────────────────────────────────────
+        if (selectedDay.spots.isNotEmpty)
+          Positioned(
+            bottom: Spacing.xl,
+            right: Layout.screenPaddingH,
+            child: GestureDetector(
+              onTap: _onAddSpot,
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: AppColors.coral,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  PhosphorIconsFill.plus,
+                  size: 24,
+                  color: AppColors.surface,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Day Count Row ────────────────────────────────────────────────
+
+class _DayCountRow extends StatelessWidget {
+  final int dayCount;
+  final int maxDays;
+  final bool isBusy;
+  final VoidCallback? onDecrement;
+  final VoidCallback? onIncrement;
+
+  const _DayCountRow({
+    required this.dayCount,
+    required this.maxDays,
+    required this.isBusy,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Number of days', style: typ.AppTypography.h4),
+              const SizedBox(height: Spacing.xs),
+              Text(
+                '1 to $maxDays days',
+                style: typ.AppTypography.caption,
+              ),
+            ],
+          ),
+        ),
+        _StepperButton(
+          icon: PhosphorIconsFill.minus,
+          onPressed: isBusy ? null : onDecrement,
+        ),
+        SizedBox(
+          width: 48,
+          child: Center(
+            child: Text(
+              '$dayCount',
+              style: typ.AppTypography.h3,
+            ),
+          ),
+        ),
+        _StepperButton(
+          icon: PhosphorIconsFill.plus,
+          onPressed: isBusy ? null : onIncrement,
+        ),
+      ],
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  const _StepperButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return GestureDetector(
+      onTap: onPressed,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: Layout.minTapTarget,
+        height: Layout.minTapTarget,
+        decoration: BoxDecoration(
+          color: enabled ? AppColors.surface : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.chipRadius),
+          border: Border.all(color: AppColors.hairline),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: enabled ? AppColors.ink : AppColors.inkMuted,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Experience Day Tab ───────────────────────────────────────────
+
+class _ExpDayTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final int spotCount;
+  final VoidCallback onTap;
+
+  const _ExpDayTab({
+    required this.label,
+    required this.isSelected,
+    required this.spotCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        constraints: const BoxConstraints(minWidth: Layout.minTapTarget),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg,
+          vertical: Spacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.ink : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.chipRadius),
+          border: Border.all(
+            color: isSelected ? AppColors.ink : AppColors.hairline,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: typ.AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.surface : AppColors.ink,
+              ),
+            ),
+            if (spotCount > 0) ...[
+              const SizedBox(width: Spacing.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.surface.withValues(alpha: 0.2)
+                      : AppColors.hairline,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$spotCount',
+                  style: typ.AppTypography.label.copyWith(
+                    color: isSelected ? AppColors.surface : AppColors.inkSoft,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Experience Day Summary ───────────────────────────────────────
+
+class _ExpDaySummaryBar extends StatelessWidget {
+  final ExperienceDayDraft day;
+
+  const _ExpDaySummaryBar({required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    final spotCount = day.spots.length;
+    final totalMinutes = day.totalDurationMinutes;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.lg,
+        vertical: Spacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(Layout.cardRadius),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            PhosphorIconsFill.path,
+            size: 16,
+            color: AppColors.inkSoft,
+          ),
+          const SizedBox(width: Spacing.sm),
+          Text(
+            '$spotCount ${spotCount == 1 ? 'spot' : 'spots'}',
+            style: typ.AppTypography.bodySmall
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          if (totalMinutes > 0) ...[
+            const SizedBox(width: Spacing.sm),
+            Text('\u00B7', style: typ.AppTypography.caption),
+            const SizedBox(width: Spacing.sm),
+            Text(
+              formatDuration(totalMinutes),
+              style: typ.AppTypography.bodySmall
+                  .copyWith(color: AppColors.inkSoft),
+            ),
+          ],
+        ],
       ),
     );
   }

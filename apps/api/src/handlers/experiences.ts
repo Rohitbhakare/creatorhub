@@ -14,10 +14,26 @@ import {
 } from '../services/scheduled-dates.service.js'
 import { recordConsent } from '../services/tnc.service.js'
 import { extractIp } from '../services/audit.service.js'
+import {
+  addDay,
+  updateDay,
+  removeDay,
+  addSpot,
+  updateSpot,
+  removeSpot,
+  reorderSpots,
+  setDayCount,
+} from '../services/itinerary.service.js'
 import type {
   CreateContentInput,
   PublishContentInput,
+  UpdateDayInput,
+  AddSpotInput,
+  UpdateSpotInput,
+  ReorderSpotsInput,
 } from '@creatorhub/shared'
+
+const EXPERIENCE_ALLOWED = ['scheduled_experience'] as const
 
 // ─── POST /api/v1/experiences ─────────────────────────────────────
 
@@ -186,4 +202,128 @@ export async function handleListDates(c: Context): Promise<Response> {
   const dates = await listScheduledDates(contentId)
 
   return c.json({ success: true, data: dates })
+}
+
+// ─── PUT /api/v1/experiences/:id/day-count ───────────────────────
+
+/**
+ * Set the total number of day slots for the experience's day plan.
+ * Adds empty days when growing, removes trailing days (and cascaded spots)
+ * when shrinking.
+ */
+export async function handleSetDayCount(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const body = await c.req.json() as Record<string, unknown>
+
+  const dayCount = Number(body.day_count)
+  if (!Number.isInteger(dayCount) || dayCount < 1 || dayCount > 30) {
+    return c.json(
+      { success: false, error: { type: 'validation-failed', detail: 'day_count must be an integer between 1 and 30' } },
+      400,
+    )
+  }
+
+  await setDayCount(contentId, userId, dayCount, { allowedTypes: EXPERIENCE_ALLOWED })
+
+  return c.json({ success: true, data: { id: contentId, day_count: dayCount } })
+}
+
+// ─── POST /api/v1/experiences/:id/days ───────────────────────────
+
+export async function handleAddExperienceDay(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+
+  const day = await addDay(contentId, userId, { allowedTypes: EXPERIENCE_ALLOWED })
+
+  return c.json({ success: true, data: day }, 201)
+}
+
+// ─── PUT /api/v1/experiences/:id/days/:dayId ─────────────────────
+
+export async function handleUpdateExperienceDay(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+  const body = c.get('validatedBody') as UpdateDayInput
+
+  const day = await updateDay(dayId, contentId, userId, body, {
+    allowedTypes: EXPERIENCE_ALLOWED,
+  })
+
+  return c.json({ success: true, data: day })
+}
+
+// ─── DELETE /api/v1/experiences/:id/days/:dayId ──────────────────
+
+export async function handleRemoveExperienceDay(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+
+  await removeDay(dayId, contentId, userId, { allowedTypes: EXPERIENCE_ALLOWED })
+
+  return c.body(null, 204)
+}
+
+// ─── POST /api/v1/experiences/:id/days/:dayId/spots ──────────────
+
+export async function handleAddExperienceSpot(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+  const body = c.get('validatedBody') as AddSpotInput
+
+  const spot = await addSpot(dayId, contentId, userId, body, {
+    allowedTypes: EXPERIENCE_ALLOWED,
+  })
+
+  return c.json({ success: true, data: spot }, 201)
+}
+
+// ─── PUT /api/v1/experiences/:id/days/:dayId/spots/:spotId ───────
+
+export async function handleUpdateExperienceSpot(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+  const spotId = c.req.param('spotId')!
+  const body = c.get('validatedBody') as UpdateSpotInput
+
+  const spot = await updateSpot(spotId, dayId, contentId, userId, body, {
+    allowedTypes: EXPERIENCE_ALLOWED,
+  })
+
+  return c.json({ success: true, data: spot })
+}
+
+// ─── DELETE /api/v1/experiences/:id/days/:dayId/spots/:spotId ────
+
+export async function handleRemoveExperienceSpot(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+  const spotId = c.req.param('spotId')!
+
+  await removeSpot(spotId, dayId, contentId, userId, {
+    allowedTypes: EXPERIENCE_ALLOWED,
+  })
+
+  return c.body(null, 204)
+}
+
+// ─── PUT /api/v1/experiences/:id/days/:dayId/spots/reorder ───────
+
+export async function handleReorderExperienceSpots(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const contentId = c.req.param('id')!
+  const dayId = c.req.param('dayId')!
+  const body = c.get('validatedBody') as ReorderSpotsInput
+
+  await reorderSpots(dayId, contentId, userId, body.spot_ids, {
+    allowedTypes: EXPERIENCE_ALLOWED,
+  })
+
+  return c.json({ success: true, data: { reordered: true } })
 }

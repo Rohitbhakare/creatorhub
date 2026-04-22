@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
+import '../../itineraries/providers/itinerary_wizard_provider.dart'
+    show SpotState, StopType;
 
 // ── Models ────────────────────────────────────────────────────────
 
@@ -196,6 +198,46 @@ class ExperienceDetail {
   }
 }
 
+/// Mutable day draft used by the Day Plan wizard step.
+///
+/// Mirrors the itinerary `DayState` structure so the shared spot picker /
+/// editor sheets can write into it directly via [SpotState].
+class ExperienceDayDraft {
+  final String? id;
+  final int dayNumber;
+  final String? title;
+  final List<SpotState> spots;
+
+  const ExperienceDayDraft({
+    this.id,
+    required this.dayNumber,
+    this.title,
+    this.spots = const [],
+  });
+
+  ExperienceDayDraft copyWith({
+    String? id,
+    int? dayNumber,
+    String? title,
+    List<SpotState>? spots,
+  }) {
+    return ExperienceDayDraft(
+      id: id ?? this.id,
+      dayNumber: dayNumber ?? this.dayNumber,
+      title: title ?? this.title,
+      spots: spots ?? this.spots,
+    );
+  }
+
+  int get totalDurationMinutes {
+    int total = 0;
+    for (final spot in spots) {
+      total += spot.durationMinutes ?? 0;
+    }
+    return total;
+  }
+}
+
 class ScheduledDate {
   final String id;
   final String startDate;
@@ -277,6 +319,8 @@ class CreateExperienceState {
   final List<String> tags;
   final List<ScheduledDate> dates;
   final MeetingPointInfo? meetingPoint;
+  final List<ExperienceDayDraft> days;
+  final int selectedDayIndex;
   final bool tncAccepted;
   final bool isSaving;
   final String? saveError;
@@ -292,10 +336,22 @@ class CreateExperienceState {
     this.tags = const [],
     this.dates = const [],
     this.meetingPoint,
+    this.days = const [],
+    this.selectedDayIndex = 0,
     this.tncAccepted = false,
     this.isSaving = false,
     this.saveError,
   });
+
+  int get dayCount => days.length;
+
+  int get totalSpots {
+    int total = 0;
+    for (final d in days) {
+      total += d.spots.length;
+    }
+    return total;
+  }
 
   CreateExperienceState copyWith({
     String? contentId,
@@ -308,6 +364,8 @@ class CreateExperienceState {
     List<String>? tags,
     List<ScheduledDate>? dates,
     MeetingPointInfo? meetingPoint,
+    List<ExperienceDayDraft>? days,
+    int? selectedDayIndex,
     bool? tncAccepted,
     bool? isSaving,
     String? saveError,
@@ -323,6 +381,8 @@ class CreateExperienceState {
       tags: tags ?? this.tags,
       dates: dates ?? this.dates,
       meetingPoint: meetingPoint ?? this.meetingPoint,
+      days: days ?? this.days,
+      selectedDayIndex: selectedDayIndex ?? this.selectedDayIndex,
       tncAccepted: tncAccepted ?? this.tncAccepted,
       isSaving: isSaving ?? this.isSaving,
       saveError: saveError,
@@ -475,6 +535,210 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
       state = state.copyWith(
         isSaving: false,
         saveError: e.response?.statusMessage ?? 'Failed to publish',
+      );
+      return false;
+    }
+  }
+
+  // ── Day plan: local selectors ────────────────────────────────
+
+  void selectDay(int index) {
+    if (index < 0 || index >= state.days.length) return;
+    state = state.copyWith(selectedDayIndex: index);
+  }
+
+  // ── Day plan: API-backed CRUD ────────────────────────────────
+
+  /// Sets the total day count. Adds empty days or trims from the end
+  /// (server cascades spot deletions). Requires [contentId] to be set.
+  Future<bool> setDayCount(int newCount) async {
+    final id = state.contentId;
+    if (id == null || newCount < 1 || newCount > 30) return false;
+
+    final dio = ref.read(authServiceProvider).dio;
+    state = state.copyWith(isSaving: true, saveError: null);
+
+    try {
+      await dio.put('/api/v1/experiences/$id/day-count',
+          data: {'day_count': newCount});
+
+      // Re-fetch full day/spot tree from GET /experiences/:id
+      await _reloadDays(id);
+      state = state.copyWith(isSaving: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isSaving: false,
+        saveError: e.response?.statusMessage ?? 'Failed to update day count',
+      );
+      return false;
+    }
+  }
+
+  /// Refreshes `state.days` from the experience detail endpoint.
+  Future<void> _reloadDays(String id) async {
+    final dio = ref.read(authServiceProvider).dio;
+    final response = await dio.get('/api/v1/experiences/$id');
+    final data =
+        (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+    final daysJson = data['days'] as List<dynamic>? ?? [];
+
+    final drafts = daysJson.map((d) {
+      final json = d as Map<String, dynamic>;
+      final spotsJson = json['spots'] as List<dynamic>? ?? [];
+      final spots = spotsJson.map((s) {
+        final sj = s as Map<String, dynamic>;
+        return SpotState(
+          id: sj['id'] as String?,
+          name: sj['name'] as String? ?? '',
+          googlePlaceId: sj['google_place_id'] as String?,
+          lat: (sj['lat'] as num?)?.toDouble() ?? 0.0,
+          lng: (sj['lng'] as num?)?.toDouble() ?? 0.0,
+          thumbnailUrl: sj['thumbnail_url'] as String?,
+          creatorNote: sj['creator_note'] as String?,
+          durationMinutes: sj['duration_minutes'] as int?,
+          stopType: StopType.fromString(sj['stop_type'] as String? ?? 'regular'),
+          isFreePreview: sj['is_free_preview'] as bool? ?? false,
+        );
+      }).toList();
+
+      return ExperienceDayDraft(
+        id: json['id'] as String?,
+        dayNumber: json['day_number'] as int? ?? 1,
+        title: json['title'] as String?,
+        spots: spots,
+      );
+    }).toList();
+
+    final newSelectedIndex = drafts.isEmpty
+        ? 0
+        : state.selectedDayIndex.clamp(0, drafts.length - 1);
+    state = state.copyWith(days: drafts, selectedDayIndex: newSelectedIndex);
+  }
+
+  /// Adds a spot to the given day. Optimistic: inserts locally first, then
+  /// calls the API and reconciles id on success; reverts on failure.
+  Future<bool> addSpotApi(int dayIndex, SpotState spot) async {
+    if (dayIndex < 0 || dayIndex >= state.days.length) return false;
+    final day = state.days[dayIndex];
+    final dayId = day.id;
+    final contentId = state.contentId;
+    if (dayId == null || contentId == null) return false;
+
+    // Optimistic insert (no id yet — will be filled from server)
+    final beforeDays = state.days;
+    final optimisticDay = day.copyWith(spots: [...day.spots, spot]);
+    final newDays = [...state.days]..[dayIndex] = optimisticDay;
+    state = state.copyWith(days: newDays, saveError: null);
+
+    final dio = ref.read(authServiceProvider).dio;
+    try {
+      final response = await dio.post(
+        '/api/v1/experiences/$contentId/days/$dayId/spots',
+        data: {
+          'name': spot.name,
+          if (spot.googlePlaceId != null) 'google_place_id': spot.googlePlaceId,
+          'lat': spot.lat,
+          'lng': spot.lng,
+          if (spot.thumbnailUrl != null) 'thumbnail_url': spot.thumbnailUrl,
+          if (spot.creatorNote != null) 'creator_note': spot.creatorNote,
+          if (spot.durationMinutes != null)
+            'duration_minutes': spot.durationMinutes,
+          'stop_type': spot.stopType.value,
+        },
+      );
+      final data = (response.data as Map<String, dynamic>)['data']
+          as Map<String, dynamic>;
+      final serverSpot = spot.copyWith(id: data['id'] as String?);
+
+      // Replace the optimistic tail spot with the server-backed one
+      final updatedDay = state.days[dayIndex];
+      final updatedSpots = [...updatedDay.spots];
+      updatedSpots[updatedSpots.length - 1] = serverSpot;
+      final reconciledDays = [...state.days]
+        ..[dayIndex] = updatedDay.copyWith(spots: updatedSpots);
+      state = state.copyWith(days: reconciledDays);
+      return true;
+    } on DioException catch (e) {
+      // Revert optimistic insert
+      state = state.copyWith(
+        days: beforeDays,
+        saveError: e.response?.statusMessage ?? 'Failed to add spot',
+      );
+      return false;
+    }
+  }
+
+  /// Removes a spot from the given day. Optimistic with revert on failure.
+  Future<bool> removeSpotApi(int dayIndex, int spotIndex) async {
+    if (dayIndex < 0 || dayIndex >= state.days.length) return false;
+    final day = state.days[dayIndex];
+    if (spotIndex < 0 || spotIndex >= day.spots.length) return false;
+    final spot = day.spots[spotIndex];
+    final spotId = spot.id;
+    final dayId = day.id;
+    final contentId = state.contentId;
+    if (spotId == null || dayId == null || contentId == null) return false;
+
+    final beforeDays = state.days;
+    final spots = [...day.spots]..removeAt(spotIndex);
+    final newDays = [...state.days]..[dayIndex] = day.copyWith(spots: spots);
+    state = state.copyWith(days: newDays, saveError: null);
+
+    final dio = ref.read(authServiceProvider).dio;
+    try {
+      await dio.delete(
+        '/api/v1/experiences/$contentId/days/$dayId/spots/$spotId',
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        days: beforeDays,
+        saveError: e.response?.statusMessage ?? 'Failed to remove spot',
+      );
+      return false;
+    }
+  }
+
+  /// Reorders spots within a day. Optimistic with revert on failure.
+  Future<bool> reorderSpotsApi(
+    int dayIndex,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    if (dayIndex < 0 || dayIndex >= state.days.length) return false;
+    final day = state.days[dayIndex];
+    if (oldIndex < 0 || oldIndex >= day.spots.length) return false;
+    final contentId = state.contentId;
+    final dayId = day.id;
+    if (contentId == null || dayId == null) return false;
+
+    final beforeDays = state.days;
+    final spots = [...day.spots];
+    final item = spots.removeAt(oldIndex);
+    final adjusted = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    spots.insert(adjusted, item);
+    final newDays = [...state.days]..[dayIndex] = day.copyWith(spots: spots);
+    state = state.copyWith(days: newDays, saveError: null);
+
+    // Only send if all spots have server-side ids
+    final spotIds = <String>[];
+    for (final s in spots) {
+      if (s.id == null) return true; // skip API (not yet persisted)
+      spotIds.add(s.id!);
+    }
+
+    final dio = ref.read(authServiceProvider).dio;
+    try {
+      await dio.put(
+        '/api/v1/experiences/$contentId/days/$dayId/spots/reorder',
+        data: {'spot_ids': spotIds},
+      );
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        days: beforeDays,
+        saveError: e.response?.statusMessage ?? 'Failed to reorder spots',
       );
       return false;
     }

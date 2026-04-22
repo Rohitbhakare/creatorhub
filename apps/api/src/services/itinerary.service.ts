@@ -28,15 +28,28 @@ type CreatorSummary = {
 
 // ─── Ownership Helpers ──────────────────────────────────────
 
+const DEFAULT_ALLOWED_TYPES = ['self_paced_itinerary'] as const
+
+type OwnershipOpts = {
+  requireDraft?: boolean
+  allowedTypes?: readonly string[]
+}
+
 /**
  * Fetch content row and verify the user owns it.
- * Optionally check that it is still a draft.
+ *
+ * `allowedTypes` whitelists which content.type values are permitted. Defaults
+ * to `['self_paced_itinerary']` for backwards compatibility with the existing
+ * itinerary handlers. Experience day/spot routes pass
+ * `['scheduled_experience']` so the same CRUD functions can persist to the
+ * shared `itinerary_days` / `itinerary_spots` tables.
  */
 async function verifyContentOwnership(
   contentId: string,
   userId: string,
-  opts?: { requireDraft?: boolean },
+  opts?: OwnershipOpts,
 ): Promise<Row> {
+  const allowedTypes = opts?.allowedTypes ?? DEFAULT_ALLOWED_TYPES
   const { data: content, error } = await supabase
     .from('content')
     .select('*')
@@ -52,12 +65,16 @@ async function verifyContentOwnership(
     throw new AppError('forbidden', 403, 'You do not own this content')
   }
 
-  if (content.type !== 'self_paced_itinerary') {
-    throw new AppError('unprocessable', 422, 'Content is not an itinerary')
+  if (!allowedTypes.includes(content.type as string)) {
+    throw new AppError(
+      'unprocessable',
+      422,
+      `Content type "${String(content.type)}" is not supported by this endpoint`,
+    )
   }
 
   if (opts?.requireDraft && content.status !== 'draft') {
-    throw new AppError('unprocessable', 422, 'Only draft itineraries can be edited')
+    throw new AppError('unprocessable', 422, 'Only draft content can be edited')
   }
 
   return content
@@ -71,6 +88,7 @@ async function verifyDayOwnership(
   dayId: string,
   contentId: string,
   userId: string,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
   const { data: day, error } = await supabase
     .from('itinerary_days')
@@ -84,7 +102,10 @@ async function verifyDayOwnership(
   }
 
   // Verify content ownership
-  await verifyContentOwnership(contentId, userId, { requireDraft: true })
+  await verifyContentOwnership(contentId, userId, {
+    requireDraft: true,
+    ...(opts?.allowedTypes ? { allowedTypes: opts.allowedTypes } : {}),
+  })
 
   return day
 }
@@ -98,9 +119,10 @@ async function verifySpotOwnership(
   dayId: string,
   contentId: string,
   userId: string,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
   // First verify day + content ownership
-  await verifyDayOwnership(dayId, contentId, userId)
+  await verifyDayOwnership(dayId, contentId, userId, opts)
 
   const { data: spot, error } = await supabase
     .from('itinerary_spots')
@@ -375,6 +397,24 @@ export async function updateItinerary(
   return refreshed
 }
 
+/**
+ * Set the total day count for any content row that uses the shared
+ * `itinerary_days` table. Adds empty days if growing, deletes excess (and
+ * cascaded spots) if shrinking. Used by the experience day-plan step.
+ */
+export async function setDayCount(
+  contentId: string,
+  userId: string,
+  newCount: number,
+  opts?: OwnershipOpts,
+): Promise<void> {
+  const content = await verifyContentOwnership(contentId, userId, {
+    requireDraft: true,
+    ...(opts?.allowedTypes ? { allowedTypes: opts.allowedTypes } : {}),
+  })
+  await handleDayCountChange(contentId, content, newCount)
+}
+
 async function handleDayCountChange(
   contentId: string,
   _content: Row,
@@ -431,8 +471,12 @@ async function handleDayCountChange(
 export async function addDay(
   contentId: string,
   userId: string,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
-  await verifyContentOwnership(contentId, userId, { requireDraft: true })
+  await verifyContentOwnership(contentId, userId, {
+    requireDraft: true,
+    ...(opts?.allowedTypes ? { allowedTypes: opts.allowedTypes } : {}),
+  })
 
   // Get current max day_number
   const { data: days, error: countError } = await supabase
@@ -479,8 +523,9 @@ export async function updateDay(
   contentId: string,
   userId: string,
   updates: UpdateDayInput,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
-  await verifyDayOwnership(dayId, contentId, userId)
+  await verifyDayOwnership(dayId, contentId, userId, opts)
 
   const { data, error } = await supabase
     .from('itinerary_days')
@@ -502,8 +547,9 @@ export async function removeDay(
   dayId: string,
   contentId: string,
   userId: string,
+  opts?: OwnershipOpts,
 ): Promise<void> {
-  const day = await verifyDayOwnership(dayId, contentId, userId)
+  const day = await verifyDayOwnership(dayId, contentId, userId, opts)
   const deletedDayNumber = day.day_number as number
 
   // Delete the day (cascade deletes spots)
@@ -535,8 +581,9 @@ export async function addSpot(
   contentId: string,
   userId: string,
   spotData: AddSpotInput,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
-  const day = await verifyDayOwnership(dayId, contentId, userId)
+  const day = await verifyDayOwnership(dayId, contentId, userId, opts)
 
   // Get current max spot_order in this day
   const { data: existingSpots, error: countError } = await supabase
@@ -604,8 +651,9 @@ export async function updateSpot(
   contentId: string,
   userId: string,
   updates: UpdateSpotInput,
+  opts?: OwnershipOpts,
 ): Promise<Row> {
-  await verifySpotOwnership(spotId, dayId, contentId, userId)
+  await verifySpotOwnership(spotId, dayId, contentId, userId, opts)
 
   const { data, error } = await supabase
     .from('itinerary_spots')
@@ -628,8 +676,9 @@ export async function removeSpot(
   dayId: string,
   contentId: string,
   userId: string,
+  opts?: OwnershipOpts,
 ): Promise<void> {
-  const spot = await verifySpotOwnership(spotId, dayId, contentId, userId)
+  const spot = await verifySpotOwnership(spotId, dayId, contentId, userId, opts)
   const deletedOrder = spot.spot_order as number
 
   const { error } = await supabase
@@ -659,8 +708,9 @@ export async function reorderSpots(
   contentId: string,
   userId: string,
   spotIds: string[],
+  opts?: OwnershipOpts,
 ): Promise<void> {
-  await verifyDayOwnership(dayId, contentId, userId)
+  await verifyDayOwnership(dayId, contentId, userId, opts)
 
   // Verify all spotIds belong to this day
   const { data: existingSpots, error: fetchError } = await supabase
