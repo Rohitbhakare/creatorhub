@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/components/button.dart';
 import '../../../shared/theme/colors.dart';
+import '../../auth/providers/auth_provider.dart';
 
 /// Welcome screen — Pack A / S_Welcome (SRS IAM-FR-001).
 ///
@@ -37,6 +38,9 @@ class WelcomeScreen extends ConsumerWidget {
               child: _ContentPane(
                 onGetStarted: () => context.go('/auth'),
                 onSignIn: () => context.go('/auth'),
+                onBrowseAsGuest: () {
+                  ref.read(authProvider.notifier).enterGuestMode();
+                },
               ),
             ),
           ],
@@ -76,10 +80,12 @@ class _Hero extends StatelessWidget {
 class _ContentPane extends StatelessWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onSignIn;
+  final VoidCallback onBrowseAsGuest;
 
   const _ContentPane({
     required this.onGetStarted,
     required this.onSignIn,
+    required this.onBrowseAsGuest,
   });
 
   @override
@@ -162,7 +168,29 @@ class _ContentPane extends StatelessWidget {
                 fullWidth: true,
                 onPressed: onSignIn,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    onBrowseAsGuest();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.inkMuted,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    minimumSize: const Size(0, 44),
+                  ),
+                  child: Text(
+                    'Browse as guest',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.inkMuted,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 'By continuing you agree to Terms & Privacy.\n'
                 'हिंदी · मराठी · தமிழ் · বাংলা coming soon',

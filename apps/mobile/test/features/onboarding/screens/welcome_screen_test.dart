@@ -3,8 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:creatorhub/features/auth/providers/auth_provider.dart';
 import 'package:creatorhub/features/onboarding/screens/welcome_screen.dart';
 import 'package:creatorhub/shared/theme/colors.dart';
+
+/// Stub notifier that skips the real `_checkAuthState` network call and
+/// starts in `unauthenticated`. Preserves `enterGuestMode()` behavior.
+class _TestAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() => const AuthState(status: AuthStatus.unauthenticated);
+}
 
 Future<void> _setPhoneSize(WidgetTester tester) async {
   tester.view.physicalSize = const Size(390 * 3.0, 844 * 3.0);
@@ -15,7 +23,7 @@ Future<void> _setPhoneSize(WidgetTester tester) async {
   });
 }
 
-Widget _wrap({String? initialLocation}) {
+Widget _wrap({String? initialLocation, ProviderContainer? container}) {
   final router = GoRouter(
     initialLocation: initialLocation ?? '/',
     routes: [
@@ -27,7 +35,10 @@ Widget _wrap({String? initialLocation}) {
       ),
     ],
   );
-  return ProviderScope(
+  return UncontrolledProviderScope(
+    container: container ?? ProviderContainer(overrides: [
+      authProvider.overrideWith(_TestAuthNotifier.new),
+    ]),
     child: MaterialApp.router(routerConfig: router),
   );
 }
@@ -71,6 +82,35 @@ void main() {
 
       expect(find.text('Get started'), findsOneWidget);
       expect(find.text('I already have an account'), findsOneWidget);
+    });
+
+    testWidgets('renders Browse as guest tertiary link (ONB-FR-001)',
+        (tester) async {
+      await _setPhoneSize(tester);
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Browse as guest'), findsOneWidget);
+    });
+
+    testWidgets('tap Browse as guest puts auth state into guest mode',
+        (tester) async {
+      await _setPhoneSize(tester);
+      final container = ProviderContainer(overrides: [
+        authProvider.overrideWith(_TestAuthNotifier.new),
+      ]);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(_wrap(container: container));
+      await tester.pumpAndSettle();
+
+      expect(container.read(authProvider).isGuest, isFalse);
+
+      await tester.ensureVisible(find.text('Browse as guest'));
+      await tester.tap(find.text('Browse as guest'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(authProvider).isGuest, isTrue);
     });
 
     testWidgets('hero uses coral→coralDeep gradient (no Image widget)',
