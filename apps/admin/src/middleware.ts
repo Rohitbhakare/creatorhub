@@ -9,7 +9,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { ADMIN_SESSION_COOKIE } from './lib/env'
 
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/healthz']
 
 export function middleware(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl

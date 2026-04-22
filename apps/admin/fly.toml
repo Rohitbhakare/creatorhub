@@ -1,0 +1,41 @@
+# Fly.io configuration for CreatorHub Admin (Next.js)
+# Deploy from repo root:
+#   fly deploy --config apps/admin/fly.toml --dockerfile apps/admin/Dockerfile
+
+app = "creatorhub-admin"
+primary_region = "bom"  # Mumbai — co-located with API + users
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  # API_INTERNAL_URL set via `fly secrets set` — points at the Hono API
+  # (https://creatorhub-api.fly.dev or the private 6PN address).
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 80
+    soft_limit = 60
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"  # Next.js needs more than the API's 256mb
+
+[checks]
+  [checks.health]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    port = 3000
+    timeout = "5s"
+    type = "http"
