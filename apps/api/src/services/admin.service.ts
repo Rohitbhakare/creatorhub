@@ -71,6 +71,7 @@ export interface KycSubmission {
 export interface AuditEntry {
   id: string
   admin_id: string
+  admin_email: string | null
   action: string
   target_type: string
   target_id: string
@@ -561,9 +562,24 @@ export async function getAuditLog(options: {
     ).toString('base64url')
   }
 
+  const adminIds = Array.from(
+    new Set(rows.map((r) => r.admin_id as string).filter(Boolean)),
+  )
+  const emails = new Map<string, string | null>()
+  if (adminIds.length > 0) {
+    const { data: admins } = await supabase
+      .from('admin_users')
+      .select('id, email')
+      .in('id', adminIds)
+    for (const a of (admins ?? []) as Array<{ id: string; email: string | null }>) {
+      emails.set(a.id, a.email)
+    }
+  }
+
   const items: AuditEntry[] = rows.map((row) => ({
     id: row.id as string,
     admin_id: row.admin_id as string,
+    admin_email: emails.get(row.admin_id as string) ?? null,
     action: row.action as string,
     target_type: row.target_type as string,
     target_id: row.target_id as string,

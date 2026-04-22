@@ -29,6 +29,7 @@ function mockChain(data: unknown, error: unknown = null, count: number | null = 
     eq: vi.fn().mockReturnThis(),
     neq: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
     ilike: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
@@ -339,7 +340,7 @@ describe('getKycSubmission', () => {
 // ── getAuditLog ────────────────────────────────────────────────
 
 describe('getAuditLog', () => {
-  it('returns audit log entries in descending order', async () => {
+  it('returns audit log entries in descending order + hydrates admin email', async () => {
     const fromMock = vi.mocked(supabase.from)
     fromMock.mockReturnValueOnce(
       mockChain([
@@ -354,12 +355,16 @@ describe('getAuditLog', () => {
         },
       ]) as never,
     )
+    fromMock.mockReturnValueOnce(
+      mockChain([{ id: ADMIN_ID, email: 'mod@creatorhub.in' }]) as never,
+    )
 
     const { items, nextCursor } = await getAuditLog({ limit: 20 })
 
     expect(items).toHaveLength(1)
     expect(items[0]?.action).toBe('suspend_user')
     expect(items[0]?.admin_id).toBe(ADMIN_ID)
+    expect(items[0]?.admin_email).toBe('mod@creatorhub.in')
     expect(nextCursor).toBeNull()
   })
 
