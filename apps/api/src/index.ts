@@ -38,6 +38,7 @@ import adminAuthRoutes from './routes/admin-auth.routes.js'
 import adminsRoutes from './routes/admins.routes.js'
 import editorialRoutes from './routes/editorial.routes.js'
 import searchAnalyticsRoutes from './routes/search-analytics.routes.js'
+import dashboardRoutes from './routes/dashboard.routes.js'
 import webhooksRoutes from './routes/webhooks.routes.js'
 import creatorsRoutes from './routes/creators.routes.js'
 import internalRoutes from './routes/internal.routes.js'
@@ -121,6 +122,7 @@ app.route('/api/v1/admin/auth', adminAuthRoutes)
 app.route('/api/v1/admin/admins', adminsRoutes)
 app.route('/api/v1/admin/collections', editorialRoutes)
 app.route('/api/v1/admin/analytics/search', searchAnalyticsRoutes)
+app.route('/api/v1/admin/dashboard', dashboardRoutes)
 app.route('/api/v1/admin', adminRoutes)
 app.route('/api/v1/webhooks', webhooksRoutes)
 app.route('/api/v1/creators', creatorsRoutes)
