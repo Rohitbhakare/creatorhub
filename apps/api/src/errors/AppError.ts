@@ -29,4 +29,8 @@ export const ERROR_TITLES: Record<string, string> = {
   'internal': 'Internal Server Error',
   'token-expired': 'Token Expired',
   'invalid-token': 'Invalid Token',
+  'invalid-credentials': 'Invalid Credentials',
+  'account-locked': 'Account Locked',
+  'password-change-required': 'Password Change Required',
+  'admin-forbidden': 'Admin Access Forbidden',
 }

@@ -342,5 +342,35 @@ export type {
 export { PAYOUT_STATUSES, listPayoutsQuerySchema } from './payout.js'
 export type { ListPayoutsQueryInput } from './payout.js'
 
+// ─── Admin (E4.1) ───────────────────────────────────────────
+export {
+  adminLoginSchema,
+  adminChangePasswordSchema,
+  createAdminSchema,
+  updateAdminSchema,
+  adminReasonSchema,
+  featureToggleSchema,
+  forceReleasePayoutSchema,
+  createCollectionSchema,
+  updateCollectionSchema,
+  appendCollectionItemSchema,
+  analyticsWindowSchema,
+  auditLogQuerySchema,
+} from './admin.js'
+export type {
+  AdminLoginInput,
+  AdminChangePasswordInput,
+  CreateAdminInput,
+  UpdateAdminInput,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+  AppendCollectionItemInput,
+  AnalyticsWindowInput,
+  AuditLogQueryInput,
+  AdminReasonInput,
+  FeatureToggleInput,
+  ForceReleasePayoutInput,
+} from './admin.js'
+
 // suppress unused import warning
 void USERNAME_CHANGE_COOLDOWN_DAYS

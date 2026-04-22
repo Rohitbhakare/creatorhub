@@ -41,6 +41,8 @@ export default defineConfig({
       RAZORPAY_KEY_SECRET: 'test_secret',
       RAZORPAY_WEBHOOK_SECRET: 'test_webhook',
       GOOGLE_PLACES_API_KEY: 'test_places_key',
+      ADMIN_SESSION_SECRET: 'test-admin-session-secret-minimum-32-characters',
+      FIREBASE_WEB_API_KEY: 'test-firebase-web-api-key',
     },
   },
 })

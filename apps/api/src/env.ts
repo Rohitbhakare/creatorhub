@@ -26,8 +26,21 @@ const envSchema = z.object({
   // In dev, placeholder value is acceptable; autocomplete calls will fail at runtime.
   GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
 
-  // Admin — secret for Retool / admin-only routes
+  // Admin — legacy shared secret for Retool. Kept during dual-auth
+  // window (T5 + T23). Once the admin app is cutover this can be
+  // removed.
   ADMIN_SECRET: z.string().min(16).optional(),
+
+  // Admin panel (E4.1) — separate HS256 signing secret for admin
+  // session cookies so that a mobile/web user token leak cannot mint
+  // admin sessions. 4h TTL, no refresh.
+  ADMIN_SESSION_SECRET: z.string().min(32, 'ADMIN_SESSION_SECRET must be at least 32 characters').optional(),
+
+  // Firebase Web API key — required to call the Identity Toolkit
+  // REST endpoint for server-side password verification
+  // (/accounts:signInWithPassword). The Admin SDK does not expose
+  // this method directly.
+  FIREBASE_WEB_API_KEY: z.string().min(1).optional(),
 
   // Internal cron — secret header for Fly scheduled machines / GitHub Actions
   // that invoke payout release + reconciliation jobs

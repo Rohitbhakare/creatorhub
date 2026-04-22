@@ -317,6 +317,21 @@ export type {
   LinkedAccount,
 } from './payout.js'
 
+// ─── Admin (E4.1) ────────────────────────────────────────────
+export {
+  ADMIN_ROLES,
+} from './admin.js'
+export type {
+  AdminRole,
+  AdminProfile,
+  AdminAuditEntry,
+  EditorialCollectionSummary,
+  EditorialCollectionDetail,
+  SearchTopQuery,
+  SearchZeroResultQuery,
+  SearchCtrRow,
+} from './admin.js'
+
 // ─── Auth ────────────────────────────────────────────────────
 export type TokenPair = {
   access_token: string
