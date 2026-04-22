@@ -56,7 +56,7 @@ class FeedRailCard extends StatelessWidget {
                     CachedNetworkImage(
                       imageUrl: item.coverImageUrl!,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
+                      placeholder: (_, _) => Container(
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
@@ -65,7 +65,7 @@ class FeedRailCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      errorWidget: (_, __, ___) => Container(
+                      errorWidget: (_, _, _) => Container(
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,

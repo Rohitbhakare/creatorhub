@@ -63,14 +63,26 @@ function mockValidToken() {
 const AUTH = { Authorization: AUTH_HEADER }
 
 const NEAR_YOU_RESULT = {
-  items: [{ id: 'c1', type: 'post', title: 'Spiti', vertical: 'travel', pricing_model: 'free', price_paisa: 0, like_count: 5, starting_city_id: 'in.mh.pune', creator: null }],
+  items: [{
+    id: 'c1', type: 'post', title: 'Spiti', vertical: 'travel',
+    pricing_model: 'free', price_paisa: 0,
+    like_count: 5, comment_count: 0, duration_minutes: null,
+    starting_city_id: 'in.mh.pune', cover_image_url: null, published_at: null,
+    creator: null,
+  }],
   fallback_level: 0,
   label: 'Weekend trips from Pune',
   fallback_cities: [],
 }
 
 const CONTENT_ITEMS = [
-  { id: 'c1', type: 'post', title: 'Ladakh', vertical: 'travel', pricing_model: 'free', price_paisa: 0, like_count: 10, starting_city_id: null, creator: null },
+  {
+    id: 'c1', type: 'post', title: 'Ladakh', vertical: 'travel',
+    pricing_model: 'free', price_paisa: 0,
+    like_count: 10, comment_count: 0, duration_minutes: null,
+    starting_city_id: null, cover_image_url: null, published_at: null,
+    creator: null,
+  },
 ]
 
 const CREATORS = [

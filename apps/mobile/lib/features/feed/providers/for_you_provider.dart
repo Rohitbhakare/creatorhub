@@ -1,0 +1,18 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../models/feed_models.dart';
+
+/// "For you" feed — Option-C weighted merge of follows + user verticals.
+/// Requires auth; guests see empty until login.
+final forYouProvider =
+    FutureProvider.autoDispose<List<FeedContentItem>>((ref) async {
+  final authState = ref.watch(authProvider);
+  if (authState.isLoading || !authState.isAuthenticated) return const [];
+
+  final dio = ref.read(authServiceProvider).dio;
+  final response = await dio.get('/api/v1/feed/for-you');
+  final items = (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
+  return items
+      .map((i) => FeedContentItem.fromJson(i as Map<String, dynamic>))
+      .toList();
+});

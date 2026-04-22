@@ -18,8 +18,11 @@ export interface FeedContentItem {
   pricing_model: string
   price_paisa: number
   like_count: number
+  comment_count: number
+  duration_minutes: number | null
   starting_city_id: string | null
   cover_image_url: string | null
+  published_at: string | null
   creator: FeedCreator | null
 }
 
@@ -65,9 +68,12 @@ async function attachCreators(
     vertical: item.vertical as string,
     pricing_model: item.pricing_model as string,
     price_paisa: item.price_paisa as number,
-    like_count: item.like_count as number,
+    like_count: (item.like_count ?? 0) as number,
+    comment_count: (item.comment_count ?? 0) as number,
+    duration_minutes: (item.duration_minutes ?? null) as number | null,
     starting_city_id: (item.starting_city_id ?? null) as string | null,
     cover_image_url: (item.cover_image_url ?? null) as string | null,
+    published_at: (item.published_at ?? null) as string | null,
     creator: byId[item.user_id as string] ?? null,
   }))
 }
@@ -168,7 +174,7 @@ export async function getVerticalSection(
 ): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
-    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, starting_city_id, cover_image_url, user_id')
+    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('vertical', vertical)
@@ -228,6 +234,144 @@ export async function getDiscoverSection(userId?: string | null): Promise<Discov
   }
 
   return creators.slice(0, 10)
+}
+
+// ─── getForYouSection ────────────────────────────────────────────
+// Option C: followed creators (2x weight, last 30d) merged with
+// user's active verticals (1x weight, last 60d). Tie-break on like_count
+// capped at 500 so one viral post doesn't dominate the feed.
+export async function getForYouSection(userId: string): Promise<FeedContentItem[]> {
+  const [followedRes, verticalsRes] = await Promise.all([
+    supabase
+      .from('content')
+      .select(
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, ' +
+          'follows!inner(follower_id, following_id)',
+      )
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .eq('follows.follower_id', userId)
+      .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('published_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('user_active_verticals')
+      .select('vertical')
+      .eq('user_id', userId),
+  ])
+
+  if (followedRes.error) throw new AppError('db-error', 500, 'Failed to load followed content')
+  if (verticalsRes.error) throw new AppError('db-error', 500, 'Failed to load user verticals')
+
+  const followedRaw = (followedRes.data ?? []) as unknown as Array<Record<string, unknown>>
+  const verticalsRaw = (verticalsRes.data ?? []) as unknown as Array<{ vertical: string }>
+
+  const followedRows: Array<Record<string, unknown>> = followedRaw.map((r) => ({ ...r, _weight: 2 }))
+  const verticals = verticalsRaw.map((v) => v.vertical)
+
+  let verticalRows: Array<Record<string, unknown>> = []
+  if (verticals.length) {
+    const { data, error } = await supabase
+      .from('content')
+      .select(
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at',
+      )
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .in('vertical', verticals)
+      .gte('published_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
+      .order('like_count', { ascending: false })
+      .limit(30)
+
+    if (error) throw new AppError('db-error', 500, 'Failed to load vertical content')
+    verticalRows = ((data ?? []) as unknown as Array<Record<string, unknown>>).map((r) => ({ ...r, _weight: 1 }))
+  }
+
+  // Merge, dedupe by id (prefer followed), rank by weight*10 + min(likes, 500)
+  const byId = new Map<string, Record<string, unknown>>()
+  for (const row of [...followedRows, ...verticalRows]) {
+    const id = row.id as string
+    const existing = byId.get(id)
+    if (!existing || (row._weight as number) > (existing._weight as number)) {
+      byId.set(id, row)
+    }
+  }
+
+  const ranked = [...byId.values()].sort((a, b) => {
+    const scoreA = (a._weight as number) * 10 + Math.min(a.like_count as number, 500)
+    const scoreB = (b._weight as number) * 10 + Math.min(b.like_count as number, 500)
+    if (scoreB !== scoreA) return scoreB - scoreA
+    return String(b.published_at).localeCompare(String(a.published_at))
+  })
+
+  // Fallback: no follows AND no verticals → popular across India (last 30d)
+  if (!ranked.length) {
+    const { data, error } = await supabase
+      .from('content')
+      .select(
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id',
+      )
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('like_count', { ascending: false })
+      .limit(20)
+
+    if (error) throw new AppError('db-error', 500, 'Failed to load popular content')
+    return attachCreators(data ?? [])
+  }
+
+  return attachCreators(ranked.slice(0, 20) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getFollowingSection ─────────────────────────────────────────
+// Strictly content from creators the user follows. Ordered newest-first
+// since user has explicitly opted into these creators.
+export async function getFollowingSection(userId: string): Promise<FeedContentItem[]> {
+  const { data, error } = await supabase
+    .from('content')
+    .select(
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, ' +
+        'follows!inner(follower_id, following_id)',
+    )
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .eq('follows.follower_id', userId)
+    .order('published_at', { ascending: false })
+    .limit(20)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to load following feed')
+
+  return attachCreators((data ?? []) as unknown as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getHeroForTab ───────────────────────────────────────────────
+// Returns single top-ranking item for the hero slot, per tab context.
+// Mobile uses this directly instead of picking items[0] — gives backend
+// flexibility to override with editor_collections or featured flag later.
+export type HeroTab = 'for_you' | 'following' | 'near_you'
+
+export async function getHeroForTab(
+  userId: string,
+  tab: HeroTab,
+): Promise<FeedContentItem | null> {
+  if (tab === 'following') {
+    const items = await getFollowingSection(userId)
+    return items[0] ?? null
+  }
+
+  if (tab === 'near_you') {
+    const result = await getNearYouSection(userId)
+    return result.items[0] ?? null
+  }
+
+  // for_you
+  const items = await getForYouSection(userId)
+  return items[0] ?? null
 }
 
 // ─── updateUserCity ──────────────────────────────────────────────

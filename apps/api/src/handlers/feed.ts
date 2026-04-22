@@ -4,10 +4,15 @@ import {
   getNearYouSection,
   getVerticalSection,
   getDiscoverSection,
+  getForYouSection,
+  getFollowingSection,
+  getHeroForTab,
   updateUserCity,
+  type HeroTab,
 } from '../services/feed.service.js'
 
 const VALID_VERTICALS = ['travel', 'stories'] as const
+const VALID_HERO_TABS: readonly HeroTab[] = ['for_you', 'following', 'near_you']
 
 // ─── GET /api/v1/feed/near-you ───────────────────────────────────
 // Auth required — uses user's stored city to run the waterfall.
@@ -15,6 +20,34 @@ export async function handleNearYouSection(c: Context): Promise<Response> {
   const userId = c.get('userId') as string
   const result = await getNearYouSection(userId)
   return c.json({ success: true, data: result })
+}
+
+// ─── GET /api/v1/feed/for-you ────────────────────────────────────
+// Auth required. Option-C algorithm: follows + verticals merged.
+export async function handleForYouSection(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const items = await getForYouSection(userId)
+  return c.json({ success: true, data: items })
+}
+
+// ─── GET /api/v1/feed/following ──────────────────────────────────
+// Auth required. Newest-first from creators the user follows.
+export async function handleFollowingSection(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const items = await getFollowingSection(userId)
+  return c.json({ success: true, data: items })
+}
+
+// ─── GET /api/v1/feed/hero?tab=for_you|following|near_you ────────
+// Auth required. Single hero item for the active tab.
+export async function handleHeroSection(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const tab = c.req.query('tab') ?? 'for_you'
+  if (!VALID_HERO_TABS.includes(tab as HeroTab)) {
+    throw new AppError('validation-failed', 400, `Invalid tab: ${tab}`)
+  }
+  const item = await getHeroForTab(userId, tab as HeroTab)
+  return c.json({ success: true, data: item })
 }
 
 // ─── GET /api/v1/feed/vertical/:vertical ─────────────────────────

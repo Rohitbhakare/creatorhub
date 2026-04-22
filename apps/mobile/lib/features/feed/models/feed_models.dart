@@ -29,8 +29,11 @@ class FeedContentItem {
   final String pricingModel;
   final int pricePaisa;
   final int likeCount;
+  final int commentCount;
+  final int? durationMinutes;
   final String? startingCityId;
   final String? coverImageUrl;
+  final DateTime? publishedAt;
   final FeedCreator? creator;
 
   const FeedContentItem({
@@ -41,8 +44,11 @@ class FeedContentItem {
     required this.pricingModel,
     required this.pricePaisa,
     required this.likeCount,
+    this.commentCount = 0,
+    this.durationMinutes,
     this.startingCityId,
     this.coverImageUrl,
+    this.publishedAt,
     this.creator,
   });
 
@@ -54,8 +60,13 @@ class FeedContentItem {
         pricingModel: (json['pricing_model'] ?? 'free') as String,
         pricePaisa: (json['price_paisa'] ?? 0) as int,
         likeCount: (json['like_count'] ?? 0) as int,
+        commentCount: (json['comment_count'] ?? 0) as int,
+        durationMinutes: json['duration_minutes'] as int?,
         startingCityId: json['starting_city_id'] as String?,
         coverImageUrl: json['cover_image_url'] as String?,
+        publishedAt: json['published_at'] != null
+            ? DateTime.tryParse(json['published_at'] as String)
+            : null,
         creator: json['creator'] != null
             ? FeedCreator.fromJson(json['creator'] as Map<String, dynamic>)
             : null,

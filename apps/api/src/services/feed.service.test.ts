@@ -11,6 +11,9 @@ import {
   getNearYouSection,
   getVerticalSection,
   getDiscoverSection,
+  getForYouSection,
+  getFollowingSection,
+  getHeroForTab,
   updateUserCity,
 } from './feed.service.js'
 
@@ -22,6 +25,7 @@ type ChainMock = {
   in: ReturnType<typeof vi.fn>
   not: ReturnType<typeof vi.fn>
   is: ReturnType<typeof vi.fn>
+  gte: ReturnType<typeof vi.fn>
   order: ReturnType<typeof vi.fn>
   limit: ReturnType<typeof vi.fn>
   update: ReturnType<typeof vi.fn>
@@ -36,6 +40,7 @@ function mockChain(resolved: unknown): ChainMock {
     in: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
     is: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -256,5 +261,165 @@ describe('updateUserCity', () => {
 
     const result = await updateUserCity('u1', CITY.id)
     expect(result.name).toBe('Pune')
+  })
+})
+
+// ─── getForYouSection ─────────────────────────────────────────────
+
+describe('getForYouSection', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const followedRow = {
+    id: 'c1', type: 'post', title: 'Followed trip', vertical: 'travel',
+    pricing_model: 'free', price_paisa: 0, like_count: 10,
+    comment_count: 2, duration_minutes: null, starting_city_id: 'in.mh.pune',
+    cover_image_url: null, user_id: 'u1', published_at: '2026-04-10T00:00:00Z',
+  }
+
+  const verticalRow = {
+    id: 'c2', type: 'self_paced_itinerary', title: 'Popular guide', vertical: 'travel',
+    pricing_model: 'paid', price_paisa: 29900, like_count: 500,
+    comment_count: 15, duration_minutes: 240, starting_city_id: 'in.mh.pune',
+    cover_image_url: null, user_id: 'u2', published_at: '2026-03-15T00:00:00Z',
+  }
+
+  it('merges follows + verticals with followed content boosted over same-like vertical', async () => {
+    // Followed piece has weight=2, likes=10 → score 30
+    // Competing vertical piece has weight=1, likes=10 → score 20
+    const followedOnly = { ...followedRow, id: 'f1', like_count: 10 }
+    const verticalOnly = { ...verticalRow, id: 'v1', like_count: 10 }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [followedOnly], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [verticalOnly], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR, { ...CREATOR, id: 'u2', display_name: 'Arjun' }], error: null }) as never)
+
+    const items = await getForYouSection('user-1')
+    expect(items).toHaveLength(2)
+    expect(items[0]!.id).toBe('f1')
+    expect(items[1]!.id).toBe('v1')
+  })
+
+  it('dedupes by id preferring followed weight over vertical weight', async () => {
+    const followedSame = { ...followedRow, id: 'dup', like_count: 10 }
+    const verticalSame = { ...verticalRow, id: 'dup', like_count: 10 }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [followedSame], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [verticalSame], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getForYouSection('user-1')
+    expect(items).toHaveLength(1)
+    expect(items[0]!.creator?.id).toBe('u1') // from followed row, not vertical's u2
+  })
+
+  it('falls back to popular when no follows and no verticals', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never) // follows empty
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never) // verticals empty
+      .mockReturnValueOnce(mockChain({ data: [verticalRow], error: null }) as never) // popular fallback
+      .mockReturnValueOnce(mockChain({ data: [{ ...CREATOR, id: 'u2' }], error: null }) as never)
+
+    const items = await getForYouSection('user-1')
+    expect(items).toHaveLength(1)
+    expect(items[0]!.title).toBe('Popular guide')
+  })
+
+  it('throws db-error when follows query fails', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: null, error: { message: 'fail' } }) as never)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
+
+    await expect(getForYouSection('user-1')).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+// ─── getFollowingSection ──────────────────────────────────────────
+
+describe('getFollowingSection', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const followedRow = {
+    id: 'c1', type: 'post', title: 'Followed trip', vertical: 'travel',
+    pricing_model: 'free', price_paisa: 0, like_count: 10,
+    comment_count: 2, duration_minutes: null, starting_city_id: null,
+    cover_image_url: null, user_id: 'u1', published_at: '2026-04-10T00:00:00Z',
+  }
+
+  it('returns empty when user follows nobody', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
+
+    const items = await getFollowingSection('user-1')
+    expect(items).toEqual([])
+  })
+
+  it('attaches creator info to followed content', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [followedRow], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getFollowingSection('user-1')
+    expect(items).toHaveLength(1)
+    expect(items[0]!.creator?.display_name).toBe('Riya')
+  })
+
+  it('throws db-error when query fails', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: null, error: { message: 'fail' } }) as never)
+
+    await expect(getFollowingSection('user-1')).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+// ─── getHeroForTab ────────────────────────────────────────────────
+
+describe('getHeroForTab', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const row = {
+    id: 'c1', type: 'post', title: 'Hero', vertical: 'travel',
+    pricing_model: 'free', price_paisa: 0, like_count: 99,
+    comment_count: 3, duration_minutes: null, starting_city_id: null,
+    cover_image_url: null, user_id: 'u1', published_at: '2026-04-15T00:00:00Z',
+  }
+
+  it('returns first item from following tab', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const hero = await getHeroForTab('user-1', 'following')
+    expect(hero?.title).toBe('Hero')
+  })
+
+  it('returns null when following tab is empty', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
+
+    const hero = await getHeroForTab('user-1', 'following')
+    expect(hero).toBeNull()
+  })
+
+  it('returns null when near_you user has no city', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: { current_city_id: null }, error: null }) as never)
+
+    const hero = await getHeroForTab('user-1', 'near_you')
+    expect(hero).toBeNull()
+  })
+
+  it('returns first for_you item via fallback path', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never) // follows
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never) // verticals
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never) // popular
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const hero = await getHeroForTab('user-1', 'for_you')
+    expect(hero?.id).toBe('c1')
   })
 })

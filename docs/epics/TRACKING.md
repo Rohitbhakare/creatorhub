@@ -116,6 +116,14 @@
 
 ---
 
+## V2 — Platform Features (pulled forward)
+
+| Epic | Name | Status | Tasks | Notes |
+|------|------|--------|-------|-------|
+| E4.1 | Custom Admin Panel | `NOT STARTED` (plan awaiting approval) | 0/24 | Replaces E2.8 Retool workflow. New `apps/admin/` Next.js app + Google SSO + 5-role RBAC + 10 screens including Editorial Curation (ADM-FR-009) and Search Analytics (ADM-FR-010). Parallel track — does NOT block launch. Plan: `docs/epics/E4.1-admin-custom/plan.md` |
+
+---
+
 ## Epic Detail — Tasks & Tests
 
 ### E0.1 — Repo & Infra `DONE`
