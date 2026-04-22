@@ -1,3 +1,19 @@
+// Admin routes (legacy — pre-E4.1 surface).
+//
+// Every route uses `dualAdminAuth([...roles])`. During the 2-week
+// rollout window this middleware accepts EITHER the legacy
+// `x-admin-secret` header (Retool, ops scripts) OR a signed
+// `ch_admin_session` cookie whose admin row carries a role in the
+// allow list. T23 removes the secret path.
+//
+// Role assignments here come from plan.md §7:
+//   - User search/detail/suspend → support, content_moderator, super_admin
+//   - Content moderation/takedown → content_moderator, super_admin
+//   - KYC queue + detail → support, super_admin (KYC-FR-032 PII gate)
+//   - Refund processing → finance, super_admin
+//   - Audit log read → any admin (handler scopes non-super_admins to
+//     their own rows — super_admin sees everything)
+
 import { Hono } from 'hono'
 import {
   handleSearchUsers,
@@ -11,30 +27,40 @@ import {
   handleProcessRefund,
   handleGetAuditLog,
 } from '../handlers/admin.js'
-
-// All routes require x-admin-secret header — checked inside each handler.
-// No Firebase auth here — admin routes are Retool-facing, auth via shared secret.
+import { dualAdminAuth } from '../middleware/dualAdminAuth.js'
 
 const adminRoutes = new Hono()
 
+const USER_MGMT_ROLES = ['support', 'content_moderator', 'super_admin'] as const
+const MODERATION_ROLES = ['content_moderator', 'super_admin'] as const
+const KYC_ROLES = ['support', 'super_admin'] as const
+const FINANCE_ROLES = ['finance', 'super_admin'] as const
+const AUDIT_ROLES = [
+  'super_admin',
+  'content_moderator',
+  'support',
+  'finance',
+  'operations',
+] as const
+
 // ─── User management ─────────────────────────────────────────
-adminRoutes.get('/users/search', handleSearchUsers)
-adminRoutes.get('/users/:userId', handleGetUserDetail)
-adminRoutes.post('/users/:userId/suspend', handleSuspendUser)
-adminRoutes.post('/users/:userId/unsuspend', handleUnsuspendUser)
+adminRoutes.get('/users/search', dualAdminAuth([...USER_MGMT_ROLES]), handleSearchUsers)
+adminRoutes.get('/users/:userId', dualAdminAuth([...USER_MGMT_ROLES]), handleGetUserDetail)
+adminRoutes.post('/users/:userId/suspend', dualAdminAuth([...USER_MGMT_ROLES]), handleSuspendUser)
+adminRoutes.post('/users/:userId/unsuspend', dualAdminAuth([...USER_MGMT_ROLES]), handleUnsuspendUser)
 
 // ─── Content moderation ──────────────────────────────────────
-adminRoutes.get('/content/:contentId', handleGetContentForModeration)
-adminRoutes.post('/content/:contentId/takedown', handleTakedownContent)
+adminRoutes.get('/content/:contentId', dualAdminAuth([...MODERATION_ROLES]), handleGetContentForModeration)
+adminRoutes.post('/content/:contentId/takedown', dualAdminAuth([...MODERATION_ROLES]), handleTakedownContent)
 
 // ─── KYC queue ───────────────────────────────────────────────
-adminRoutes.get('/kyc', handleListPendingKyc)
-adminRoutes.get('/kyc/:userId', handleGetKycSubmission)
+adminRoutes.get('/kyc', dualAdminAuth([...KYC_ROLES]), handleListPendingKyc)
+adminRoutes.get('/kyc/:userId', dualAdminAuth([...KYC_ROLES]), handleGetKycSubmission)
 
 // ─── Bookings / Refunds ──────────────────────────────────────
-adminRoutes.post('/bookings/:bookingId/refund', handleProcessRefund)
+adminRoutes.post('/bookings/:bookingId/refund', dualAdminAuth([...FINANCE_ROLES]), handleProcessRefund)
 
 // ─── Audit log ───────────────────────────────────────────────
-adminRoutes.get('/audit-log', handleGetAuditLog)
+adminRoutes.get('/audit-log', dualAdminAuth([...AUDIT_ROLES]), handleGetAuditLog)
 
 export default adminRoutes

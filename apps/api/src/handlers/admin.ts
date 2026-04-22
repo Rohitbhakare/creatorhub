@@ -1,6 +1,18 @@
+// Legacy admin handlers (pre-E4.1) — now gated by `dualAdminAuth`.
+//
+// Authentication + RBAC are handled by the route-level middleware.
+// These handlers read the acting admin id from:
+//   1. `c.get('adminId')` — populated by requireAdminRole when the
+//       request authenticates via session cookie.
+//   2. body `admin_id` — legacy path used by Retool / ops scripts
+//       that still send `x-admin-secret`. Removed with T23.
+//
+// The helper `resolveActingAdminId` encapsulates that fallback so
+// per-handler code doesn't repeat it. Handlers that don't need an
+// admin id (read-only endpoints) simply skip the call.
+
 import type { Context } from 'hono'
 import { AppError } from '../errors/AppError.js'
-import { env } from '../env.js'
 import {
   searchUsers,
   getUserDetail,
@@ -14,13 +26,32 @@ import {
   getAuditLog,
 } from '../services/admin.service.js'
 
-// ─── Admin secret check ───────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────
 
-function checkAdminSecret(c: Context): void {
-  const secret = c.req.header('x-admin-secret')
-  if (!secret || !env.ADMIN_SECRET || secret !== env.ADMIN_SECRET) {
-    throw new AppError('forbidden', 403, 'Invalid or missing admin secret')
+/**
+ * Resolve the admin id that should be attributed to this action.
+ *
+ * Priority: session context > body field. Throws 400 if neither is
+ * available (legacy callers MUST send `admin_id` in the body so audit
+ * log entries remain attributable).
+ */
+function resolveActingAdminId(
+  c: Context,
+  body: Record<string, unknown>,
+): string {
+  const ctxAdminId = c.get('adminId') as string | undefined
+  if (ctxAdminId) return ctxAdminId
+
+  const bodyAdminId = body['admin_id']
+  if (typeof bodyAdminId === 'string' && bodyAdminId.trim().length > 0) {
+    return bodyAdminId
   }
+
+  throw new AppError(
+    'validation-failed',
+    400,
+    'admin_id is required (legacy callers) or a valid admin session cookie must be present',
+  )
 }
 
 function requireString(b: Record<string, unknown>, field: string): string {
@@ -28,14 +59,33 @@ function requireString(b: Record<string, unknown>, field: string): string {
   if (typeof val !== 'string' || !val.trim()) {
     throw new AppError('validation-failed', 400, `${field} is required`)
   }
-  return val as string
+  return val
+}
+
+async function parseJsonBody(c: Context): Promise<Record<string, unknown>> {
+  let raw: unknown
+  try {
+    raw = await c.req.json()
+  } catch {
+    throw new AppError('validation-failed', 400, 'Invalid JSON body')
+  }
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw new AppError('validation-failed', 400, 'Request body must be a JSON object')
+  }
+  return raw as Record<string, unknown>
+}
+
+function routeParam(c: Context, name: string): string {
+  const val = c.req.param(name)
+  if (val === undefined || val.length === 0) {
+    throw new AppError('validation-failed', 400, `${name} is required`)
+  }
+  return val
 }
 
 // ─── GET /admin/users/search ──────────────────────────────────
 
 export async function handleSearchUsers(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
   const query = c.req.query('q') ?? ''
   if (!query.trim()) {
     throw new AppError('validation-failed', 400, 'Query parameter "q" is required')
@@ -51,9 +101,7 @@ export async function handleSearchUsers(c: Context): Promise<Response> {
 // ─── GET /admin/users/:userId ─────────────────────────────────
 
 export async function handleGetUserDetail(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const userId = c.req.param('userId')!
+  const userId = routeParam(c, 'userId')
   const detail = await getUserDetail(userId)
 
   return c.json({ success: true, data: detail })
@@ -62,16 +110,10 @@ export async function handleGetUserDetail(c: Context): Promise<Response> {
 // ─── POST /admin/users/:userId/suspend ───────────────────────
 
 export async function handleSuspendUser(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const userId = c.req.param('userId')!
-  const body = await c.req.json().catch(() => {
-    throw new AppError('validation-failed', 400, 'Invalid JSON body')
-  })
-
-  const b = body as Record<string, unknown>
-  const adminId = requireString(b, 'admin_id')
-  const reason = requireString(b, 'reason')
+  const userId = routeParam(c, 'userId')
+  const body = await parseJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
+  const reason = requireString(body, 'reason')
 
   await suspendUser(userId, adminId, reason)
 
@@ -81,15 +123,9 @@ export async function handleSuspendUser(c: Context): Promise<Response> {
 // ─── POST /admin/users/:userId/unsuspend ─────────────────────
 
 export async function handleUnsuspendUser(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const userId = c.req.param('userId')!
-  const body = await c.req.json().catch(() => {
-    throw new AppError('validation-failed', 400, 'Invalid JSON body')
-  })
-
-  const b = body as Record<string, unknown>
-  const adminId = requireString(b, 'admin_id')
+  const userId = routeParam(c, 'userId')
+  const body = await parseJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
 
   await unsuspendUser(userId, adminId)
 
@@ -99,16 +135,10 @@ export async function handleUnsuspendUser(c: Context): Promise<Response> {
 // ─── POST /admin/content/:contentId/takedown ──────────────────
 
 export async function handleTakedownContent(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const contentId = c.req.param('contentId')!
-  const body = await c.req.json().catch(() => {
-    throw new AppError('validation-failed', 400, 'Invalid JSON body')
-  })
-
-  const b = body as Record<string, unknown>
-  const adminId = requireString(b, 'admin_id')
-  const reason = requireString(b, 'reason')
+  const contentId = routeParam(c, 'contentId')
+  const body = await parseJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
+  const reason = requireString(body, 'reason')
 
   await takedownContent(contentId, adminId, reason)
 
@@ -118,9 +148,7 @@ export async function handleTakedownContent(c: Context): Promise<Response> {
 // ─── GET /admin/content/:contentId ───────────────────────────
 
 export async function handleGetContentForModeration(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const contentId = c.req.param('contentId')!
+  const contentId = routeParam(c, 'contentId')
   const detail = await getContentForModeration(contentId)
 
   return c.json({ success: true, data: detail })
@@ -129,8 +157,6 @@ export async function handleGetContentForModeration(c: Context): Promise<Respons
 // ─── GET /admin/kyc ───────────────────────────────────────────
 
 export async function handleListPendingKyc(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
   const cursor = c.req.query('cursor')
   const rawLimit = Number(c.req.query('limit') ?? '20')
   const limit = Number.isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100)
@@ -153,9 +179,7 @@ export async function handleListPendingKyc(c: Context): Promise<Response> {
 // ─── GET /admin/kyc/:userId ───────────────────────────────────
 
 export async function handleGetKycSubmission(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const userId = c.req.param('userId')!
+  const userId = routeParam(c, 'userId')
   const submission = await getKycSubmission(userId)
 
   return c.json({ success: true, data: submission })
@@ -164,16 +188,10 @@ export async function handleGetKycSubmission(c: Context): Promise<Response> {
 // ─── POST /admin/bookings/:bookingId/refund ───────────────────
 
 export async function handleProcessRefund(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
-  const bookingId = c.req.param('bookingId')!
-  const body = await c.req.json().catch(() => {
-    throw new AppError('validation-failed', 400, 'Invalid JSON body')
-  })
-
-  const b = body as Record<string, unknown>
-  const adminId = requireString(b, 'admin_id')
-  const reason = requireString(b, 'reason')
+  const bookingId = routeParam(c, 'bookingId')
+  const body = await parseJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
+  const reason = requireString(body, 'reason')
 
   await processRefund(bookingId, adminId, reason)
 
@@ -183,16 +201,25 @@ export async function handleProcessRefund(c: Context): Promise<Response> {
 // ─── GET /admin/audit-log ─────────────────────────────────────
 
 export async function handleGetAuditLog(c: Context): Promise<Response> {
-  checkAdminSecret(c)
-
   const cursor = c.req.query('cursor')
-  const adminId = c.req.query('admin_id')
+  const queryAdminId = c.req.query('admin_id')
   const rawLimit = Number(c.req.query('limit') ?? '20')
   const limit = Number.isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100)
 
+  // Non-super_admin sessions only see their own rows (plan §7, §12).
+  // Legacy secret callers are treated as super_admin (no scoping) —
+  // accepted risk during T5 window, removed with T23.
+  const ctxRole = c.get('adminRole') as string | undefined
+  const ctxAdminId = c.get('adminId') as string | undefined
+
+  const scopedAdminId =
+    ctxRole && ctxRole !== 'super_admin' && ctxAdminId
+      ? ctxAdminId
+      : queryAdminId
+
   const auditOpts: { cursor?: string; limit?: number; adminId?: string } = { limit }
   if (cursor) auditOpts.cursor = cursor
-  if (adminId) auditOpts.adminId = adminId
+  if (scopedAdminId) auditOpts.adminId = scopedAdminId
   const { items, nextCursor } = await getAuditLog(auditOpts)
 
   return c.json({

@@ -36,6 +36,7 @@
 <script type="text/babel" src="pack-g-you.jsx"></script>
 <script type="text/babel" src="pack-h-creator-studio.jsx"></script>
 <script type="text/babel" src="pack-i-website.jsx"></script>
+<script type="text/babel" src="pack-j-admin.jsx"></script>
 <script type="text/babel" src="pack-ds-reference.jsx"></script>
 
 <script type="text/babel">
@@ -95,7 +96,7 @@ function App() {
             stitched together by storytelling and a single decorative hue. SRS-traced across 9 packs, 40+ screens.
           </p>
           <div style={{ marginTop: 22, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['IAM','Discover','Detail','Booking','Publish','KYC','You','Studio','Web'].map(p => (
+            {['IAM','Discover','Detail','Booking','Publish','KYC','You','Studio','Web','Admin'].map(p => (
               <div key={p} style={{
                 padding: '7px 12px', borderRadius: tk.radius.pill, background: t.surface,
                 border: `1px solid ${t.hairline}`, fontFamily: typ.mono, fontSize: 11, fontWeight: 600, color: t.ink, letterSpacing: '0.04em',
@@ -178,6 +179,19 @@ function App() {
         <DCSection title="I · Web mini-site" subtitle="CRT-FR-040 · auto-generated public creator site · desktop">
           <S_Website tk={tk}/>
           <S_WebsiteExperience tk={tk}/>
+        </DCSection>
+
+        <DCSection title="J · Admin panel · desktop" subtitle="ADM-FR-001..011 · auth, dashboard, users, KYC, moderation, payouts, refunds, editorial, analytics, audit">
+          <S_AdminLogin tk={tk}/>
+          <S_AdminChangePw tk={tk}/>
+          <S_AdminDashboard tk={tk}/>
+          <S_AdminUsers tk={tk}/>
+          <S_AdminKyc tk={tk}/>
+          <S_AdminModeration tk={tk}/>
+          <S_AdminPayouts tk={tk}/>
+          <S_AdminRefunds tk={tk}/>
+          <S_AdminCollections tk={tk}/>
+          <S_AdminAnalytics tk={tk}/>
         </DCSection>
 
         <DCSection title="Design system · reference" subtitle="Palette · type · buttons · tags · motion · voice">

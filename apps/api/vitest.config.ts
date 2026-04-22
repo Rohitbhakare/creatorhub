@@ -43,6 +43,7 @@ export default defineConfig({
       GOOGLE_PLACES_API_KEY: 'test_places_key',
       ADMIN_SESSION_SECRET: 'test-admin-session-secret-minimum-32-characters',
       FIREBASE_WEB_API_KEY: 'test-firebase-web-api-key',
+      ADMIN_SECRET: 'test-admin-legacy-secret-16chars',
     },
   },
 })

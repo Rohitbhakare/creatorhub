@@ -35,6 +35,7 @@ import dpdpaRoutes from './routes/dpdpa.routes.js'
 import refundsRoutes from './routes/refunds.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import adminAuthRoutes from './routes/admin-auth.routes.js'
+import adminsRoutes from './routes/admins.routes.js'
 import webhooksRoutes from './routes/webhooks.routes.js'
 import creatorsRoutes from './routes/creators.routes.js'
 import internalRoutes from './routes/internal.routes.js'
@@ -115,6 +116,7 @@ app.route('/api/v1/content', contentReviewsRoutes)
 app.route('/api/v1/dpdpa', dpdpaRoutes)
 app.route('/api/v1', refundsRoutes)
 app.route('/api/v1/admin/auth', adminAuthRoutes)
+app.route('/api/v1/admin/admins', adminsRoutes)
 app.route('/api/v1/admin', adminRoutes)
 app.route('/api/v1/webhooks', webhooksRoutes)
 app.route('/api/v1/creators', creatorsRoutes)
