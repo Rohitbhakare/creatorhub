@@ -12,12 +12,12 @@ import '../../../shared/theme/colors.dart';
 import '../providers/auth_provider.dart';
 
 /// A7 Soft auth sheet (IAM-FR-011).
-/// Triggered when a guest attempts one of 5 gated actions:
-/// save, follow, book, comment, like.
+/// Triggered when a guest attempts one of 6 gated actions:
+/// save, follow, book, comment, like, publish.
 ///
 /// Returns `true` if the user signed in (caller should retry the action)
 /// or `false` if they dismissed / kept browsing as guest.
-enum SoftAuthTrigger { save, follow, book, comment, like }
+enum SoftAuthTrigger { save, follow, book, comment, like, publish }
 
 /// Optional descriptive payload rendered in the sheet's item card
 /// (e.g. postcard title + creator + thumbnail).
@@ -80,6 +80,8 @@ class _SoftAuthSheetState extends ConsumerState<_SoftAuthSheet> {
         return 'Join the conversation?';
       case SoftAuthTrigger.like:
         return 'Like this postcard?';
+      case SoftAuthTrigger.publish:
+        return 'Sign in to publish?';
     }
   }
 
@@ -95,6 +97,8 @@ class _SoftAuthSheetState extends ConsumerState<_SoftAuthSheet> {
         return PhosphorIcons.chatCircle(PhosphorIconsStyle.fill);
       case SoftAuthTrigger.like:
         return PhosphorIcons.heart(PhosphorIconsStyle.fill);
+      case SoftAuthTrigger.publish:
+        return PhosphorIcons.uploadSimple(PhosphorIconsStyle.fill);
     }
   }
 

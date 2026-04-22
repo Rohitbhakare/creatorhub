@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/near_you_provider.dart';
 import '../providers/vertical_section_provider.dart';
 import '../providers/discover_provider.dart';
@@ -39,8 +41,27 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeFeedScreen> createState() => _HomeFeedScreenState();
 }
 
+const _kGuestLocationPromptedKey = 'guest.location_prompted';
+
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   String _tab = _tabForYou;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybePromptGuestLocation());
+  }
+
+  Future<void> _maybePromptGuestLocation() async {
+    if (!mounted) return;
+    final auth = ref.read(authProvider);
+    if (!auth.isGuest) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_kGuestLocationPromptedKey) ?? false) return;
+    await prefs.setBool(_kGuestLocationPromptedKey, true);
+    if (!mounted) return;
+    _openLocationPicker(showSkip: true);
+  }
 
   Future<void> _refresh() async {
     ref.invalidate(heroProvider(_tab));
@@ -133,12 +154,12 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     }
   }
 
-  void _openLocationPicker() {
+  void _openLocationPicker({bool showSkip = false}) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const LocationPickerScreen(),
+      builder: (_) => LocationPickerScreen(showSkip: showSkip),
     );
   }
 }

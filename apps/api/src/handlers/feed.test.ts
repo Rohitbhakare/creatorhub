@@ -94,10 +94,19 @@ const CREATORS = [
 describe('GET /near-you — near you section', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns 401 without auth token', async () => {
+  it('returns popular-across-India for guest without auth', async () => {
+    vi.mocked(verifyAccessToken).mockResolvedValue(null as never)
+    vi.mocked(getNearYouSection).mockResolvedValue({
+      items: [],
+      fallback_level: 3,
+      label: 'Popular across India',
+      fallback_cities: [],
+    })
     const app = buildFeedApp()
     const res = await app.request('/near-you')
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
+    const body = await res.json() as any
+    expect(body.data.fallback_level).toBe(3)
   })
 
   it('returns section data for authenticated user', async () => {

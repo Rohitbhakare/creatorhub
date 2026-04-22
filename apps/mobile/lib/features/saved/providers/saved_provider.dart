@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
+import '../services/local_save_store.dart';
+
+// Shared singleton so guest save/remove in one widget is reflected in others.
+final localSaveStoreProvider = Provider<LocalSaveStore>((_) => LocalSaveStore());
 
 // ── Data Models ───────────────────────────────────────────────────
 
@@ -205,14 +209,22 @@ final saveStatusProvider =
 
 class SaveStatusNotifier extends Notifier<Set<String>> {
   final String _contentId;
+  // Sentinel list-id used when the content is saved device-locally (guest mode).
+  // The engagement bar and ContentCard only need `isSaved` (non-empty set), so
+  // any marker works — we use `__local__` so a stale value can't collide with
+  // a real server list id (UUIDs, not `__local__`).
+  static const String _localMarker = '__local__';
 
   SaveStatusNotifier(this._contentId);
 
   @override
   Set<String> build() {
-    // Only fetch when authenticated — avoids spurious network calls in guest mode and tests
-    final isAuth = ref.watch(authProvider.select((s) => s.isAuthenticated));
-    if (isAuth) _fetch();
+    final auth = ref.watch(authProvider);
+    if (auth.isAuthenticated) {
+      _fetch();
+    } else if (auth.isGuest) {
+      _hydrateLocal();
+    }
     return const {};
   }
 
@@ -225,6 +237,13 @@ class SaveStatusNotifier extends Notifier<Set<String>> {
       state = rawIds.map((id) => id as String).toSet();
     } on DioException {
       // Leave as empty — not critical
+    }
+  }
+
+  Future<void> _hydrateLocal() async {
+    final store = ref.read(localSaveStoreProvider);
+    if (await store.isSaved(_contentId)) {
+      state = {_localMarker};
     }
   }
 
@@ -258,6 +277,11 @@ class SaveStatusNotifier extends Notifier<Set<String>> {
 
   /// Quick save to default list (first-tap bookmark on feed cards).
   Future<void> quickSave() async {
+    final auth = ref.read(authProvider);
+    if (auth.isGuest) {
+      await _quickSaveLocal();
+      return;
+    }
     if (isSaved) {
       // Remove from all lists
       await applySelection([]);
@@ -275,6 +299,18 @@ class SaveStatusNotifier extends Notifier<Set<String>> {
       } on DioException {
         state = prevState;
       }
+    }
+  }
+
+  /// Guest quick save — device-local (SOC-FR-004).
+  Future<void> _quickSaveLocal() async {
+    final store = ref.read(localSaveStoreProvider);
+    if (isSaved) {
+      await store.remove(_contentId);
+      state = const {};
+    } else {
+      await store.save(_contentId);
+      state = {_localMarker};
     }
   }
 }

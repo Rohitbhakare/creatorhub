@@ -3,11 +3,11 @@ import '../../auth/providers/auth_provider.dart';
 import '../models/feed_models.dart';
 
 /// "Following" feed — strictly content from creators the user follows.
-/// Returns empty when the user follows nobody (renders empty-state UI).
+/// Guests follow nobody — server returns empty, we render the empty state.
 final followingProvider =
     FutureProvider.autoDispose<List<FeedContentItem>>((ref) async {
   final authState = ref.watch(authProvider);
-  if (authState.isLoading || !authState.isAuthenticated) return const [];
+  if (authState.isLoading) return const [];
 
   final dio = ref.read(authServiceProvider).dio;
   final response = await dio.get('/api/v1/feed/following');

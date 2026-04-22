@@ -100,13 +100,59 @@ async function getUserLocation(
   return { cityId: city.id, cityName: city.name, lat: city.lat, lng: city.lng }
 }
 
+async function getCityLocation(
+  cityId: string,
+): Promise<{ cityId: string; cityName: string; lat: number; lng: number } | null> {
+  const { data: city, error } = await supabase
+    .from('cities')
+    .select('id, name, lat, lng')
+    .eq('id', cityId)
+    .single()
+
+  if (error || !city) return null
+  return { cityId: city.id, cityName: city.name, lat: city.lat, lng: city.lng }
+}
+
+// ─── getPopularAcrossIndia ───────────────────────────────────────
+// Fallback for guests (or signed-in users with no follows / verticals).
+async function getPopularAcrossIndia(): Promise<FeedContentItem[]> {
+  const { data, error } = await supabase
+    .from('content')
+    .select(
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at',
+    )
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order('like_count', { ascending: false })
+    .limit(20)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to load popular content')
+  return attachCreators((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
 // ─── getNearYouSection ───────────────────────────────────────────
 
-export async function getNearYouSection(userId: string): Promise<NearYouResult> {
-  const location = await getUserLocation(userId)
+export async function getNearYouSection(
+  userId: string | null,
+  guestCityId?: string,
+): Promise<NearYouResult> {
+  const location = userId
+    ? await getUserLocation(userId)
+    : guestCityId
+      ? await getCityLocation(guestCityId)
+      : null
 
   if (!location) {
-    return { items: [], fallback_level: 0, label: 'Near you', fallback_cities: [] }
+    // Guest with no city (or signed-in user without city) → popular across India
+    const items = await getPopularAcrossIndia()
+    return {
+      items,
+      fallback_level: 3,
+      label: 'Popular across India',
+      fallback_cities: [],
+    }
   }
 
   const { data, error } = await supabase.rpc('feed_near_you', {
@@ -240,7 +286,10 @@ export async function getDiscoverSection(userId?: string | null): Promise<Discov
 // Option C: followed creators (2x weight, last 30d) merged with
 // user's active verticals (1x weight, last 60d). Tie-break on like_count
 // capped at 500 so one viral post doesn't dominate the feed.
-export async function getForYouSection(userId: string): Promise<FeedContentItem[]> {
+// Guests (userId=null) get popular-across-India directly (IAM-FR-010).
+export async function getForYouSection(userId: string | null): Promise<FeedContentItem[]> {
+  if (!userId) return getPopularAcrossIndia()
+
   const [followedRes, verticalsRes] = await Promise.all([
     supabase
       .from('content')
@@ -307,22 +356,7 @@ export async function getForYouSection(userId: string): Promise<FeedContentItem[
   })
 
   // Fallback: no follows AND no verticals → popular across India (last 30d)
-  if (!ranked.length) {
-    const { data, error } = await supabase
-      .from('content')
-      .select(
-        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id',
-      )
-      .eq('status', 'published')
-      .eq('visibility', 'public')
-      .is('deleted_at', null)
-      .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('like_count', { ascending: false })
-      .limit(20)
-
-    if (error) throw new AppError('db-error', 500, 'Failed to load popular content')
-    return attachCreators(data ?? [])
-  }
+  if (!ranked.length) return getPopularAcrossIndia()
 
   return attachCreators(ranked.slice(0, 20) as Array<{ user_id: string; [k: string]: unknown }>)
 }
@@ -330,7 +364,9 @@ export async function getForYouSection(userId: string): Promise<FeedContentItem[
 // ─── getFollowingSection ─────────────────────────────────────────
 // Strictly content from creators the user follows. Ordered newest-first
 // since user has explicitly opted into these creators.
-export async function getFollowingSection(userId: string): Promise<FeedContentItem[]> {
+// Guests (userId=null) follow nobody → empty list.
+export async function getFollowingSection(userId: string | null): Promise<FeedContentItem[]> {
+  if (!userId) return []
   const { data, error } = await supabase
     .from('content')
     .select(
@@ -356,8 +392,9 @@ export async function getFollowingSection(userId: string): Promise<FeedContentIt
 export type HeroTab = 'for_you' | 'following' | 'near_you'
 
 export async function getHeroForTab(
-  userId: string,
+  userId: string | null,
   tab: HeroTab,
+  guestCityId?: string,
 ): Promise<FeedContentItem | null> {
   if (tab === 'following') {
     const items = await getFollowingSection(userId)
@@ -365,7 +402,7 @@ export async function getHeroForTab(
   }
 
   if (tab === 'near_you') {
-    const result = await getNearYouSection(userId)
+    const result = await getNearYouSection(userId, guestCityId)
     return result.items[0] ?? null
   }
 

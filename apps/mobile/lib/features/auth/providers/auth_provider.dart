@@ -1,6 +1,10 @@
+import 'dart:async' show unawaited;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../services/secure_storage.dart';
+import '../../saved/services/local_save_store.dart';
 
 // ── Auth State ──────────────────────────────────────────────────
 
@@ -110,6 +114,7 @@ class AuthNotifier extends Notifier<AuthState> {
         status: AuthStatus.authenticated,
         user: data['user'] as Map<String, dynamic>,
       );
+      unawaited(_transferGuestSaves());
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -128,6 +133,7 @@ class AuthNotifier extends Notifier<AuthState> {
         status: AuthStatus.authenticated,
         user: data['user'] as Map<String, dynamic>,
       );
+      unawaited(_transferGuestSaves());
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -146,6 +152,7 @@ class AuthNotifier extends Notifier<AuthState> {
         status: AuthStatus.authenticated,
         user: data['user'] as Map<String, dynamic>,
       );
+      unawaited(_transferGuestSaves());
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -153,6 +160,27 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       rethrow;
     }
+  }
+
+  /// Move any device-local guest saves (SOC-FR-004) to the server's default
+  /// list, then clear local storage. Best-effort — individual failures are
+  /// swallowed so a partial network issue can't block the auth flow.
+  Future<void> _transferGuestSaves() async {
+    final store = LocalSaveStore();
+    final entries = await store.drain();
+    if (entries.isEmpty) return;
+
+    for (final entry in entries) {
+      try {
+        await _authService.dio.post(
+          '/api/v1/content/${entry.id}/save',
+          data: {'list_ids': <String>[]},
+        );
+      } catch (e) {
+        if (kDebugMode) debugPrint('[auth] guest save transfer failed for ${entry.id}: $e');
+      }
+    }
+    await store.clear();
   }
 
   /// Enter guest mode.

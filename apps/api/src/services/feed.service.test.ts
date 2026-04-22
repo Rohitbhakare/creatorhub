@@ -72,14 +72,26 @@ const CREATOR = { id: 'u1', display_name: 'Riya', username: 'riya', avatar_url: 
 describe('getNearYouSection', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns empty result when user has no current_city_id', async () => {
-    vi.mocked(supabase.from).mockReturnValueOnce(
-      mockChain({ data: { current_city_id: null }, error: null }) as never,
-    )
+  it('falls back to popular-across-India when user has no current_city_id', async () => {
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: { current_city_id: null }, error: null }) as never)
+      // popular-across-India content query
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
 
     const result = await getNearYouSection('user-1')
     expect(result.items).toEqual([])
-    expect(result.fallback_level).toBe(0)
+    expect(result.fallback_level).toBe(3)
+    expect(result.label).toBe('Popular across India')
+  })
+
+  it('falls back to popular-across-India for guest with no city_id', async () => {
+    vi.mocked(supabase.from)
+      // popular-across-India content query only (no getUserLocation call)
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
+
+    const result = await getNearYouSection(null)
+    expect(result.fallback_level).toBe(3)
+    expect(result.label).toBe('Popular across India')
   })
 
   it('returns items with level 0 on exact city match', async () => {
@@ -404,12 +416,15 @@ describe('getHeroForTab', () => {
     expect(hero).toBeNull()
   })
 
-  it('returns null when near_you user has no city', async () => {
+  it('falls back to popular-across-India when near_you user has no city', async () => {
     vi.mocked(supabase.from)
       .mockReturnValueOnce(mockChain({ data: { current_city_id: null }, error: null }) as never)
+      // popular-across-India fallback
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
 
     const hero = await getHeroForTab('user-1', 'near_you')
-    expect(hero).toBeNull()
+    expect(hero?.id).toBe('c1')
   })
 
   it('returns first for_you item via fallback path', async () => {

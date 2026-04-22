@@ -551,6 +551,20 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 
 ---
 
+## Guest Mode (SRS IAM-FR-010/011, SOC-FR-004, DISC-FR-036, PRIV-FR-012) — 2026-04-22
+
+Completed in a single PR on branch `dev`:
+
+- **Feed & discovery for guests** — `/feed/for-you`, `/feed/following`, `/feed/near-you`, `/feed/hero`, `/feed/discover-creators`, `/feed/locations` switched to `optionalAuthenticate`. Guests get Popular-across-India for for-you and following; near-you + hero accept an optional `?city_id=` query param so guests can pin a city. `getPopularAcrossIndia()` helper deduplicates the previous inline fallback.
+- **Guest city** — `userCityProvider` branches on `auth.isGuest` and persists the chosen city to `shared_preferences` (`guest.city_id` / `guest.city_name`), no server round-trip. Home feed auto-prompts the location picker on first guest visit (flag `guest.location_prompted`); picker renders a "Skip for now" button when opened in that mode. Skipping keeps the guest on Popular-across-India.
+- **Guest saves (SOC-FR-004)** — new `LocalSaveStore` (`shared_preferences`, 30-day TTL per entry). `SaveStatusNotifier` hydrates from it for guests and `quickSave` toggles device-locally (sentinel list-id `__local__`). Engagement bar replaces the soft-auth wall on save with a "Saved to this device. Sign in to keep them." snackbar. On sign-in (`verifyOtp` / `signInWithGoogle` / `signInWithApple`), `_transferGuestSaves()` drains the local store and POSTs each entry to `/content/:id/save` before clearing — best-effort, individual failures don't block auth.
+- **Gated tabs (IAM-FR-011)** — new shared `GuestTabPlaceholder` wired into `StudioTabScreen` (trigger `publish`) and `YouTabScreen` (trigger `save`). Tapping the CTA opens `showSoftAuthSheet`; dismissal keeps the guest on the tab.
+- **SoftAuthTrigger.publish** added to cover Studio + any future gated publish entry points.
+
+**Deferred to the Search epic (not yet scheduled):** guest search local-history + no-server-autocomplete per DISC-FR-036 + PRIV-FR-012. The Search tab is still `SearchPlaceholderScreen` — when the real search tab is built, it must route guest queries through device-local history only and skip server-side autocomplete/analytics. No separate guest path exists today because there is no search surface yet.
+
+---
+
 ## Pre-Coding Deliverables
 
 | Deliverable | Status | File |

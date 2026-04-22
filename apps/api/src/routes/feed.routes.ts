@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js'
+import { optionalAuthenticate } from '../middleware/authenticate.js'
 import {
   handleNearYouSection,
   handleVerticalSection,
@@ -12,11 +12,12 @@ import {
 
 const feedRoutes = new Hono()
 
-// Feed sections — independent endpoints so each section fails gracefully
-feedRoutes.get('/near-you', authenticate, handleNearYouSection)
-feedRoutes.get('/for-you', authenticate, handleForYouSection)
-feedRoutes.get('/following', authenticate, handleFollowingSection)
-feedRoutes.get('/hero', authenticate, handleHeroSection)
+// Feed sections — independent endpoints so each section fails gracefully.
+// All use optionalAuthenticate so guests (IAM-FR-010) can browse the home feed.
+feedRoutes.get('/near-you', optionalAuthenticate, handleNearYouSection)
+feedRoutes.get('/for-you', optionalAuthenticate, handleForYouSection)
+feedRoutes.get('/following', optionalAuthenticate, handleFollowingSection)
+feedRoutes.get('/hero', optionalAuthenticate, handleHeroSection)
 feedRoutes.get('/vertical/:vertical', optionalAuthenticate, handleVerticalSection)
 feedRoutes.get('/discover', optionalAuthenticate, handleDiscoverSection)
 

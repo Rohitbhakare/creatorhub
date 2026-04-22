@@ -157,7 +157,14 @@ class EngagementBar extends ConsumerWidget {
             onTap: () {
               HapticFeedback.lightImpact();
               if (!isAuth) {
-                showSoftAuthWall(context, ref, 'save this');
+                // Guests save device-locally (SOC-FR-004). No soft-auth wall for saves.
+                ref.read(saveStatusProvider(contentId).notifier).quickSave();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Saved to this device. Sign in to keep them.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
                 return;
               }
               showSaveToListSheet(context, ref, contentId);

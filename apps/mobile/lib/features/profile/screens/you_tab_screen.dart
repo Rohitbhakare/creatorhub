@@ -7,7 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/avatar.dart';
+import '../../../shared/components/guest_tab_placeholder.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/profile_stats_row.dart';
 
@@ -17,6 +19,18 @@ class YouTabScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isGuest = ref.watch(authProvider.select((s) => s.isGuest));
+    if (isGuest) {
+      return const GuestTabPlaceholder(
+        icon: PhosphorIconsFill.userCircle,
+        title: 'Your profile lives here',
+        description:
+            'Sign in to save postcards, follow creators, and build your profile.',
+        ctaLabel: 'Sign in',
+        trigger: SoftAuthTrigger.save,
+      );
+    }
+
     final user = ref.watch(authProvider.select((s) => s.user));
     final completionAsync = ref.watch(profileCompletionProvider);
 

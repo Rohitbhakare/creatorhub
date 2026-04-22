@@ -15,38 +15,40 @@ const VALID_VERTICALS = ['travel', 'stories'] as const
 const VALID_HERO_TABS: readonly HeroTab[] = ['for_you', 'following', 'near_you']
 
 // ─── GET /api/v1/feed/near-you ───────────────────────────────────
-// Auth required — uses user's stored city to run the waterfall.
+// Optional auth — signed-in users use stored city; guests can pass ?city_id=.
 export async function handleNearYouSection(c: Context): Promise<Response> {
-  const userId = c.get('userId') as string
-  const result = await getNearYouSection(userId)
+  const userId = (c.get('userId') as string | undefined) ?? null
+  const guestCityId = c.req.query('city_id')
+  const result = await getNearYouSection(userId, guestCityId)
   return c.json({ success: true, data: result })
 }
 
 // ─── GET /api/v1/feed/for-you ────────────────────────────────────
-// Auth required. Option-C algorithm: follows + verticals merged.
+// Optional auth. Guests get popular-across-India (IAM-FR-010).
 export async function handleForYouSection(c: Context): Promise<Response> {
-  const userId = c.get('userId') as string
+  const userId = (c.get('userId') as string | undefined) ?? null
   const items = await getForYouSection(userId)
   return c.json({ success: true, data: items })
 }
 
 // ─── GET /api/v1/feed/following ──────────────────────────────────
-// Auth required. Newest-first from creators the user follows.
+// Optional auth. Guests follow nobody → empty list.
 export async function handleFollowingSection(c: Context): Promise<Response> {
-  const userId = c.get('userId') as string
+  const userId = (c.get('userId') as string | undefined) ?? null
   const items = await getFollowingSection(userId)
   return c.json({ success: true, data: items })
 }
 
 // ─── GET /api/v1/feed/hero?tab=for_you|following|near_you ────────
-// Auth required. Single hero item for the active tab.
+// Optional auth. Single hero item for the active tab. Guests use ?city_id= for near_you.
 export async function handleHeroSection(c: Context): Promise<Response> {
-  const userId = c.get('userId') as string
+  const userId = (c.get('userId') as string | undefined) ?? null
   const tab = c.req.query('tab') ?? 'for_you'
+  const guestCityId = c.req.query('city_id')
   if (!VALID_HERO_TABS.includes(tab as HeroTab)) {
     throw new AppError('validation-failed', 400, `Invalid tab: ${tab}`)
   }
-  const item = await getHeroForTab(userId, tab as HeroTab)
+  const item = await getHeroForTab(userId, tab as HeroTab, guestCityId)
   return c.json({ success: true, data: item })
 }
 

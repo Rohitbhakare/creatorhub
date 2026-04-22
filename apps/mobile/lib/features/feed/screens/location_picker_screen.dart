@@ -46,8 +46,11 @@ class _CityResult {
 
 /// Location picker bottom sheet (DISC-FR-026).
 /// "Use current location" + search + popular cities.
+/// When [showSkip] is true, renders a "Skip for now" button that dismisses
+/// the sheet without picking a city — used for the guest first-visit prompt.
 class LocationPickerScreen extends ConsumerStatefulWidget {
-  const LocationPickerScreen({super.key});
+  final bool showSkip;
+  const LocationPickerScreen({super.key, this.showSkip = false});
 
   @override
   ConsumerState<LocationPickerScreen> createState() => _LocationPickerScreenState();
@@ -333,6 +336,28 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
               },
             ),
           ),
+          if (widget.showSkip) ...[
+            const SizedBox(height: 4),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.inkMuted,
+                  minimumSize: const Size(0, 44),
+                ),
+                child: Text(
+                  'Skip for now',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.inkMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
         ],
       ),

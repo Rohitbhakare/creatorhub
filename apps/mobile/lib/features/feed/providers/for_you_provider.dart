@@ -3,11 +3,11 @@ import '../../auth/providers/auth_provider.dart';
 import '../models/feed_models.dart';
 
 /// "For you" feed — Option-C weighted merge of follows + user verticals.
-/// Requires auth; guests see empty until login.
+/// Guests (IAM-FR-010) get popular-across-India from the server.
 final forYouProvider =
     FutureProvider.autoDispose<List<FeedContentItem>>((ref) async {
   final authState = ref.watch(authProvider);
-  if (authState.isLoading || !authState.isAuthenticated) return const [];
+  if (authState.isLoading) return const [];
 
   final dio = ref.read(authServiceProvider).dio;
   final response = await dio.get('/api/v1/feed/for-you');

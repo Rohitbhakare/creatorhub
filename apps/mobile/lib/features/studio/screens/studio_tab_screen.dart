@@ -8,6 +8,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/button.dart';
 import '../../../shared/components/empty_state.dart';
+import '../../../shared/components/guest_tab_placeholder.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
@@ -15,6 +16,7 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 import '../providers/earnings_provider.dart';
 import '../providers/linked_account_provider.dart';
 import '../providers/studio_provider.dart';
@@ -30,6 +32,18 @@ class StudioTabScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isGuest = ref.watch(authProvider.select((s) => s.isGuest));
+    if (isGuest) {
+      return const GuestTabPlaceholder(
+        icon: PhosphorIconsFill.uploadSimple,
+        title: 'Start creating with CreatorHub',
+        description:
+            'Sign in to publish posts, itineraries, experiences, and events.',
+        ctaLabel: 'Sign in to publish',
+        trigger: SoftAuthTrigger.publish,
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
