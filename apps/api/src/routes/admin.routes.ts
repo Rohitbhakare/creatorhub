@@ -27,7 +27,19 @@ import {
   handleProcessRefund,
   handleGetAuditLog,
 } from '../handlers/admin.js'
+import {
+  handleFeatureContent,
+  handleUnfeatureContent,
+  handleFeatureUser,
+  handleUnfeatureUser,
+} from '../handlers/admin-features.js'
+import { handleForceReleasePayout } from '../handlers/admin-payouts.js'
 import { dualAdminAuth } from '../middleware/dualAdminAuth.js'
+import { validateBody } from '../middleware/validate.js'
+import {
+  featureToggleSchema,
+  forceReleasePayoutSchema,
+} from '@creatorhub/shared'
 
 const adminRoutes = new Hono()
 
@@ -53,12 +65,46 @@ adminRoutes.post('/users/:userId/unsuspend', dualAdminAuth([...USER_MGMT_ROLES])
 adminRoutes.get('/content/:contentId', dualAdminAuth([...MODERATION_ROLES]), handleGetContentForModeration)
 adminRoutes.post('/content/:contentId/takedown', dualAdminAuth([...MODERATION_ROLES]), handleTakedownContent)
 
+// ─── Editorial features (ADM-FR-011) ─────────────────────────
+adminRoutes.post(
+  '/content/:contentId/feature',
+  dualAdminAuth([...MODERATION_ROLES]),
+  validateBody(featureToggleSchema),
+  handleFeatureContent,
+)
+adminRoutes.post(
+  '/content/:contentId/unfeature',
+  dualAdminAuth([...MODERATION_ROLES]),
+  validateBody(featureToggleSchema),
+  handleUnfeatureContent,
+)
+adminRoutes.post(
+  '/users/:userId/feature',
+  dualAdminAuth([...MODERATION_ROLES]),
+  validateBody(featureToggleSchema),
+  handleFeatureUser,
+)
+adminRoutes.post(
+  '/users/:userId/unfeature',
+  dualAdminAuth([...MODERATION_ROLES]),
+  validateBody(featureToggleSchema),
+  handleUnfeatureUser,
+)
+
 // ─── KYC queue ───────────────────────────────────────────────
 adminRoutes.get('/kyc', dualAdminAuth([...KYC_ROLES]), handleListPendingKyc)
 adminRoutes.get('/kyc/:userId', dualAdminAuth([...KYC_ROLES]), handleGetKycSubmission)
 
 // ─── Bookings / Refunds ──────────────────────────────────────
 adminRoutes.post('/bookings/:bookingId/refund', dualAdminAuth([...FINANCE_ROLES]), handleProcessRefund)
+
+// ─── Payouts (ADM-FR-004) ────────────────────────────────────
+adminRoutes.post(
+  '/payouts/release',
+  dualAdminAuth([...FINANCE_ROLES]),
+  validateBody(forceReleasePayoutSchema),
+  handleForceReleasePayout,
+)
 
 // ─── Audit log ───────────────────────────────────────────────
 adminRoutes.get('/audit-log', dualAdminAuth([...AUDIT_ROLES]), handleGetAuditLog)

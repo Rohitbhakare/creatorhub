@@ -91,7 +91,10 @@ export type ReleaseResult =
   | { status: 'skipped'; reason: ReleaseSkippedReason }
   | { status: 'failed'; error: string }
 
-export async function releasePayout(payoutId: string): Promise<ReleaseResult> {
+export async function releasePayout(
+  payoutId: string,
+  opts: { force?: boolean } = {},
+): Promise<ReleaseResult> {
   const { data: payout, error: fetchErr } = await supabase
     .from('payouts')
     .select('id, booking_id, status, razorpay_transfer_id, scheduled_at')
@@ -110,7 +113,13 @@ export async function releasePayout(payoutId: string): Promise<ReleaseResult> {
   if (!p.razorpay_transfer_id) {
     return { status: 'skipped', reason: 'no_transfer_id' }
   }
-  if (new Date(p.scheduled_at as string).getTime() > Date.now()) {
+  // `force` lets a finance admin skip the 48h hold, but the financial
+  // safety guards below (booking completed + no refund in flight) still
+  // apply — those are integrity invariants, not time gates.
+  if (
+    !opts.force &&
+    new Date(p.scheduled_at as string).getTime() > Date.now()
+  ) {
     return { status: 'skipped', reason: 'not_due' }
   }
 
