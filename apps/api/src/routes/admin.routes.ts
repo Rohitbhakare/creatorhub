@@ -24,6 +24,8 @@ import {
   handleGetContentForModeration,
   handleListPendingKyc,
   handleGetKycSubmission,
+  handleApproveKycSession,
+  handleRejectKycSession,
   handleProcessRefund,
   handleGetAuditLog,
 } from '../handlers/admin.js'
@@ -94,6 +96,16 @@ adminRoutes.post(
 // ─── KYC queue ───────────────────────────────────────────────
 adminRoutes.get('/kyc', dualAdminAuth([...KYC_ROLES]), handleListPendingKyc)
 adminRoutes.get('/kyc/:userId', dualAdminAuth([...KYC_ROLES]), handleGetKycSubmission)
+adminRoutes.post(
+  '/kyc/:userId/approve',
+  dualAdminAuth([...KYC_ROLES]),
+  handleApproveKycSession,
+)
+adminRoutes.post(
+  '/kyc/:userId/reject',
+  dualAdminAuth([...KYC_ROLES]),
+  handleRejectKycSession,
+)
 
 // ─── Bookings / Refunds ──────────────────────────────────────
 adminRoutes.post('/bookings/:bookingId/refund', dualAdminAuth([...FINANCE_ROLES]), handleProcessRefund)

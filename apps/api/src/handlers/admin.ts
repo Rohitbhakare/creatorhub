@@ -25,6 +25,7 @@ import {
   processRefund,
   getAuditLog,
 } from '../services/admin.service.js'
+import { approveKyc, rejectKyc } from '../services/kyc.service.js'
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -71,6 +72,26 @@ async function parseJsonBody(c: Context): Promise<Record<string, unknown>> {
   }
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     throw new AppError('validation-failed', 400, 'Request body must be a JSON object')
+  }
+  return raw as Record<string, unknown>
+}
+
+/**
+ * Same as `parseJsonBody` but returns an empty object when the request
+ * has no body or non-JSON body. For endpoints where the session cookie
+ * is sufficient and the body is only used as a legacy fallback.
+ */
+async function parseOptionalJsonBody(
+  c: Context,
+): Promise<Record<string, unknown>> {
+  let raw: unknown
+  try {
+    raw = await c.req.json()
+  } catch {
+    return {}
+  }
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return {}
   }
   return raw as Record<string, unknown>
 }
@@ -183,6 +204,38 @@ export async function handleGetKycSubmission(c: Context): Promise<Response> {
   const submission = await getKycSubmission(userId)
 
   return c.json({ success: true, data: submission })
+}
+
+// ─── POST /admin/kyc/:userId/approve ─────────────────────────
+
+export async function handleApproveKycSession(c: Context): Promise<Response> {
+  const userId = routeParam(c, 'userId')
+  const body = await parseOptionalJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
+
+  await approveKyc(userId, adminId)
+
+  return c.json({ success: true })
+}
+
+// ─── POST /admin/kyc/:userId/reject ──────────────────────────
+
+export async function handleRejectKycSession(c: Context): Promise<Response> {
+  const userId = routeParam(c, 'userId')
+  const body = await parseJsonBody(c)
+  const adminId = resolveActingAdminId(c, body)
+  const reason = requireString(body, 'reason')
+  if (reason.trim().length < 10) {
+    throw new AppError(
+      'validation-failed',
+      400,
+      'reason must be at least 10 characters',
+    )
+  }
+
+  await rejectKyc(userId, adminId, reason)
+
+  return c.json({ success: true })
 }
 
 // ─── POST /admin/bookings/:bookingId/refund ───────────────────
