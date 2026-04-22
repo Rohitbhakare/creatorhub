@@ -5,6 +5,7 @@ import {
   submitReport,
   checkToxicity,
   getPendingReports,
+  getReportDetail,
   actionReport,
   giveStrike,
   getUserStrikes,
@@ -12,8 +13,34 @@ import {
   type ReportedType,
 } from '../services/trust.service.js'
 
-// ─── Admin secret guard ───────────────────────────────────────────────────────
+// ─── Admin id resolution ──────────────────────────────────────────────────────
+//
+// Session-authed callers have `adminId` set on the context by
+// `requireAdminRole`; legacy `x-admin-secret` callers don't. For the
+// latter we look at the `x-admin-id` header first (Retool convention
+// kept for continuity) then body `admin_id`, then fall back to the
+// sentinel `'admin'` so audit rows stay non-null. T23 drops the
+// sentinel and makes adminId mandatory.
 
+function resolveActingAdminId(
+  c: Context,
+  body: Record<string, unknown> | null,
+): string {
+  const ctxAdminId = c.get('adminId') as string | undefined
+  if (ctxAdminId) return ctxAdminId
+  const headerAdminId = c.req.header('x-admin-id')
+  if (headerAdminId && headerAdminId.trim().length > 0) return headerAdminId
+  if (body !== null) {
+    const bodyAdminId = body['admin_id']
+    if (typeof bodyAdminId === 'string' && bodyAdminId.trim().length > 0) {
+      return bodyAdminId
+    }
+  }
+  return 'admin'
+}
+
+// Legacy secret path still uses this (check-text is `x-admin-secret`
+// only). Kept for the one remaining pre-E4.1 surface.
 function requireAdminSecret(c: Context): void {
   const adminSecret = env.ADMIN_SECRET
   if (!adminSecret) {
@@ -135,11 +162,10 @@ export async function handleCheckText(c: Context): Promise<Response> {
 /**
  * GET /api/v1/admin/reports
  * List pending reports, optionally filtered by reported_type.
- * Cursor-paginated. Protected by x-admin-secret header.
+ * Cursor-paginated. Route is gated by `dualAdminAuth` at the router
+ * layer (content_moderator + super_admin).
  */
 export async function handleGetReports(c: Context): Promise<Response> {
-  requireAdminSecret(c)
-
   const query = c.req.query()
   const cursor = typeof query['cursor'] === 'string' ? query['cursor'] : undefined
   const limitRaw = query['limit']
@@ -174,18 +200,33 @@ export async function handleGetReports(c: Context): Promise<Response> {
   })
 }
 
+// ─── GET /admin/reports/:id — fetch a single report ──────────────────────────
+
+/**
+ * GET /api/v1/admin/reports/:id
+ * Fetch a single report by id. Route is gated by `dualAdminAuth`.
+ */
+export async function handleGetReport(c: Context): Promise<Response> {
+  const reportId = c.req.param('id')
+  if (reportId === undefined || reportId.length === 0) {
+    throw new AppError('validation-failed', 400, 'report id is required')
+  }
+  const report = await getReportDetail(reportId)
+  return c.json({ success: true, data: report })
+}
+
 // ─── POST /admin/reports/:id/action — admin action a report ──────────────────
 
 /**
  * POST /api/v1/admin/reports/:id/action
  * Take action on a report: content_removed | user_suspended | dismissed.
- * Protected by x-admin-secret header.
+ * Route is gated by `dualAdminAuth`.
  */
 export async function handleActionReport(c: Context): Promise<Response> {
-  requireAdminSecret(c)
-
-  const reportId = c.req.param('id')!
-  const adminId = c.req.header('x-admin-id') ?? 'admin'
+  const reportId = c.req.param('id')
+  if (reportId === undefined || reportId.length === 0) {
+    throw new AppError('validation-failed', 400, 'report id is required')
+  }
 
   let body: unknown
   try {
@@ -195,6 +236,7 @@ export async function handleActionReport(c: Context): Promise<Response> {
   }
 
   const b = body as Record<string, unknown>
+  const adminId = resolveActingAdminId(c, b)
   const validActions = ['content_removed', 'user_suspended', 'dismissed'] as const
   type ValidAction = (typeof validActions)[number]
 
@@ -220,13 +262,13 @@ export async function handleActionReport(c: Context): Promise<Response> {
 /**
  * POST /api/v1/admin/users/:id/strike
  * Give a user a strike. Records reason + admin identifier.
- * Protected by x-admin-secret header.
+ * Route is gated by `dualAdminAuth`.
  */
 export async function handleGiveStrike(c: Context): Promise<Response> {
-  requireAdminSecret(c)
-
-  const userId = c.req.param('id')!
-  const adminId = c.req.header('x-admin-id') ?? 'admin'
+  const userId = c.req.param('id')
+  if (userId === undefined || userId.length === 0) {
+    throw new AppError('validation-failed', 400, 'user id is required')
+  }
 
   let body: unknown
   try {
@@ -236,6 +278,7 @@ export async function handleGiveStrike(c: Context): Promise<Response> {
   }
 
   const b = body as Record<string, unknown>
+  const adminId = resolveActingAdminId(c, b)
   const reason = b['reason']
 
   if (typeof reason !== 'string' || reason.trim().length === 0) {
@@ -254,12 +297,13 @@ export async function handleGiveStrike(c: Context): Promise<Response> {
 /**
  * GET /api/v1/admin/users/:id/strikes
  * Get a user's strike history and total count.
- * Protected by x-admin-secret header.
+ * Route is gated by `dualAdminAuth`.
  */
 export async function handleGetStrikes(c: Context): Promise<Response> {
-  requireAdminSecret(c)
-
-  const userId = c.req.param('id')!
+  const userId = c.req.param('id')
+  if (userId === undefined || userId.length === 0) {
+    throw new AppError('validation-failed', 400, 'user id is required')
+  }
 
   const result = await getUserStrikes(userId)
 

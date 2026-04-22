@@ -283,10 +283,35 @@ export async function getPendingReports(
   }
 }
 
+// ─── getReportDetail ─────────────────────────────────────────────────────────
+
+/**
+ * Admin: fetch a single report by id. Returns 404 if not found.
+ */
+export async function getReportDetail(reportId: string): Promise<Report> {
+  const { data, error } = await supabase
+    .from('reports')
+    .select('*')
+    .eq('id', reportId)
+    .maybeSingle()
+
+  if (error) {
+    throw new AppError('db-error', 500, 'Failed to fetch report')
+  }
+  if (!data) {
+    throw new AppError('not-found', 404, 'Report not found')
+  }
+
+  return data as unknown as Report
+}
+
 // ─── actionReport ────────────────────────────────────────────────────────────
 
 /**
  * Admin: action a report. Marks it as reviewed + records action taken.
+ * Records a separate row in `admin_audit_log` — the `reports` table
+ * carries its own `actioned_by`/`action_taken` fields but the unified
+ * audit stream is what the dashboard + /audit surface reads.
  */
 export async function actionReport(
   reportId: string,
@@ -321,6 +346,19 @@ export async function actionReport(
 
   if (error) {
     throw new AppError('db-error', 500, 'Failed to action report')
+  }
+
+  try {
+    await supabase.from('admin_audit_log').insert({
+      admin_id: adminId,
+      action: 'action_report',
+      target_type: 'report',
+      target_id: reportId,
+      details: { disposition: action },
+      created_at: new Date().toISOString(),
+    })
+  } catch {
+    console.error('[trust] failed to write audit log for action_report', reportId)
   }
 }
 
