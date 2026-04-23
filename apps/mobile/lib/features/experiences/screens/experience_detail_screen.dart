@@ -472,7 +472,7 @@ class _CreatorRow extends ConsumerWidget {
           label: followState.isFollowing ? 'Following' : 'Follow',
           onPressed: () {
             HapticFeedback.lightImpact();
-            ref.read(followProvider(followKey).notifier).toggle();
+            handleFollowTap(context, ref, followKey);
           },
           variant: followState.isFollowing
               ? AppButtonVariant.secondary

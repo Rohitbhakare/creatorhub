@@ -37,17 +37,37 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
 
   Future<void> _completeOnboarding() async {
     final dio = ref.read(authServiceProvider).dio;
+    final onboarding = ref.read(onboardingProvider);
     try {
+      // Re-push verticals + city in case earlier steps silently failed —
+      // otherwise `/onboarding/complete` 422s and the router loops us back.
+      if (onboarding.selectedVerticals.length >= 3) {
+        try {
+          await dio.put('/api/v1/onboarding/verticals',
+              data: {'verticals': onboarding.selectedVerticals});
+        } on DioException {
+          // Tolerate — complete will surface a clearer error if prereq missing.
+        }
+      }
       await dio.post('/api/v1/onboarding/complete');
       ref.read(onboardingProvider.notifier).completeOnboarding();
+      await _refreshMe();
+    } catch (_) {
+      // Non-fatal: _openFeed re-verifies before navigating.
+    }
+  }
+
+  Future<void> _refreshMe() async {
+    final dio = ref.read(authServiceProvider).dio;
+    try {
       final res = await dio.get('/api/v1/users/me');
       final body = res.data as Map<String, dynamic>;
       final user = body['data'] as Map<String, dynamic>?;
       if (user != null) {
         ref.read(authProvider.notifier).updateUser(user);
       }
-    } catch (_) {
-      // Non-fatal: user can still open feed.
+    } on DioException {
+      // Tolerate.
     }
   }
 
@@ -91,6 +111,13 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
 
   Future<void> _openFeed() async {
     await HapticFeedback.lightImpact();
+
+    // Guard against the router bouncing us back to /onboarding/profile
+    // when the initial /onboarding/complete call failed silently.
+    final current = ref.read(authProvider).user;
+    if (current?['onboarding_completed_at'] == null) {
+      await _completeOnboarding();
+    }
     if (!mounted) return;
     context.go('/home');
   }

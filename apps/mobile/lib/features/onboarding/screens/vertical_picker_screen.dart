@@ -92,12 +92,12 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _eyebrow('Step 3 of 5'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       'What pulls you in?',
                       style: GoogleFonts.fraunces(
@@ -108,7 +108,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                         color: AppColors.ink,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       "Pick at least $_minRequired. We'll keep learning.",
                       style: GoogleFonts.inter(
@@ -117,9 +117,9 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     _grid(),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
                     Text(
                       '${_selected.length} of ${_cats.length} selected · '
                       'minimum $_minRequired',

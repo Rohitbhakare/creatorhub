@@ -332,7 +332,7 @@ class _CreatorHeader extends ConsumerWidget {
             onPressed: () {
               HapticFeedback.lightImpact();
               if (followKey != null) {
-                ref.read(followProvider(followKey).notifier).toggle();
+                handleFollowTap(context, ref, followKey);
               }
             },
             variant: (followState?.isFollowing ?? false)

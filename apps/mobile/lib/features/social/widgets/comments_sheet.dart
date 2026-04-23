@@ -495,7 +495,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                 vertical: Spacing.md,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Avatar
                   AppAvatar(imageUrl: avatarUrl, name: displayName, size: 32),
@@ -511,7 +511,9 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                         maxLines: null,
                         textInputAction: TextInputAction.newline,
                         style: typ.AppTypography.bodySmall,
+                        textAlignVertical: TextAlignVertical.center,
                         decoration: InputDecoration(
+                          isDense: true,
                           hintText: replyToName != null
                               ? '@$replyToName '
                               : 'Add a comment…',
@@ -530,7 +532,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: Spacing.md,
-                            vertical: Spacing.sm,
+                            vertical: Spacing.md,
                           ),
                           counterText: _charCount > 450 ? '${500 - _charCount}' : '',
                           counterStyle: typ.AppTypography.caption.copyWith(

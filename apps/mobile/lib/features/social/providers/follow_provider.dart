@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 
 // ── Follow State ──────────────────────────────────────────────────
 
@@ -73,4 +75,25 @@ class FollowNotifier extends Notifier<FollowState> {
       state = FollowState(isFollowing: wasFollowing, followerCount: prevCount);
     }
   }
+}
+
+/// Call this from any follow/unfollow tap. Shows the soft-auth sheet for
+/// guests (and retries the follow if they sign in), otherwise toggles.
+Future<void> handleFollowTap(
+  BuildContext context,
+  WidgetRef ref,
+  FollowKey key, {
+  SoftAuthItem? item,
+}) async {
+  final auth = ref.read(authProvider);
+  if (!auth.isAuthenticated) {
+    final signedIn = await showSoftAuthSheet(
+      context,
+      ref,
+      trigger: SoftAuthTrigger.follow,
+      item: item,
+    );
+    if (!signedIn) return;
+  }
+  await ref.read(followProvider(key).notifier).toggle();
 }

@@ -129,12 +129,12 @@ class _SuggestedCreatorsScreenState
               child: StepsBar(current: 4, total: 5),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 10),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _eyebrow('Step 4 of 5'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Follow 3 to begin.',
                     style: GoogleFonts.fraunces(
@@ -145,7 +145,7 @@ class _SuggestedCreatorsScreenState
                       color: AppColors.ink,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Handpicked from your cities & interests.',
                     style: GoogleFonts.inter(
@@ -171,7 +171,7 @@ class _SuggestedCreatorsScreenState
     if (_creators.isEmpty) return _buildEmpty();
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       itemCount: _creators.length,
       separatorBuilder: (_, _) =>
           const Divider(height: 1, color: AppColors.hairline),
@@ -207,14 +207,14 @@ class _SuggestedCreatorsScreenState
 
   Widget _buildSkeleton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SkeletonLoader(
         child: ListView.separated(
           itemCount: 6,
           separatorBuilder: (_, _) =>
               const Divider(height: 1, color: AppColors.hairline),
           itemBuilder: (_, _) => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            padding: EdgeInsets.symmetric(vertical: 12),
             child: Row(
               children: [
                 SkeletonCircle(size: 44),
@@ -362,7 +362,7 @@ class _CreatorRow extends StatelessWidget {
     ].join(' · ');
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           AppAvatar(imageUrl: avatarUrl, name: name, size: 44),

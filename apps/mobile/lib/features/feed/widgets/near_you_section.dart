@@ -125,13 +125,20 @@ class _NearYouSkeleton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: 3,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (_, _) => Container(
+            itemBuilder: (_, _) => const SizedBox(
               width: 180,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(14)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SkeletonRect(width: 180, height: 180, borderRadius: 14),
+                  SizedBox(height: 10),
+                  SkeletonLine(width: 160, height: 13),
+                  SizedBox(height: 6),
+                  SkeletonLine(width: 110, height: 13),
+                  SizedBox(height: 8),
+                  SkeletonLine(width: 90, height: 10),
+                ],
               ),
-              clipBehavior: Clip.antiAlias,
-              child: const SkeletonRect(height: 180),
             ),
           ),
         ),

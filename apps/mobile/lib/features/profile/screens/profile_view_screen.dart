@@ -176,7 +176,7 @@ class _PublicHeroCard extends ConsumerWidget {
                         ? null
                         : () {
                             HapticFeedback.selectionClick();
-                            ref.read(followProvider(followKey).notifier).toggle();
+                            handleFollowTap(context, ref, followKey);
                           },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.hairline),
@@ -195,7 +195,7 @@ class _PublicHeroCard extends ConsumerWidget {
                         ? null
                         : () {
                             HapticFeedback.selectionClick();
-                            ref.read(followProvider(followKey).notifier).toggle();
+                            handleFollowTap(context, ref, followKey);
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.coral,
