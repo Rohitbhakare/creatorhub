@@ -40,6 +40,37 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
     final dio = ref.read(authServiceProvider).dio;
     final onboarding = ref.read(onboardingProvider);
     try {
+      // Submit profile bootstrap data (display_name + optional email)
+      final firstName = onboarding.firstName?.trim();
+      if (firstName != null && firstName.isNotEmpty) {
+        try {
+          final profileBody = <String, dynamic>{'display_name': firstName};
+          if (onboarding.email != null && onboarding.emailVerified) {
+            profileBody['email'] = onboarding.email!;
+          }
+          await dio.put('/api/v1/users/me', data: profileBody);
+        } on DioException catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Onboarding] display_name push failed: '
+                '${e.response?.statusCode}');
+          }
+        }
+      }
+
+      // Submit username
+      final username = onboarding.username?.trim();
+      if (username != null && username.isNotEmpty) {
+        try {
+          await dio.put('/api/v1/users/me/username',
+              data: {'username': username});
+        } on DioException catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Onboarding] username push failed: '
+                '${e.response?.statusCode}');
+          }
+        }
+      }
+
       final cityId = onboarding.selectedCityId;
       if (cityId != null && cityId.isNotEmpty) {
         try {

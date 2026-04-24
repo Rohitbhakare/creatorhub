@@ -74,7 +74,7 @@ class NotificationPreferencesNotifier
     extends Notifier<NotificationPreferencesState> {
   @override
   NotificationPreferencesState build() {
-    _load();
+    Future.microtask(() => _load());
     return const NotificationPreferencesState();
   }
 

@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-24 (You tab complete rebuild; Experience unblocked; DPDPA migration 021 deployed — consent_logs + deletion_requests tables created)
+> Last updated: 2026-04-25 (Avatar upload in Edit Profile; onboarding now saves display_name+username; notification prefs crash fixed)
 
 ---
 
@@ -434,6 +434,9 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | E2.11/BUG-001 | DPDPA | Bug | `GET /api/v1/dpdpa/consent` + `GET /api/v1/dpdpa/deletion/status` → 500 in prod. Root cause: `consent_logs` and `deletion_requests` tables never migrated. Fixed: migration `021_dpdpa_legal.sql` written and deployed via Supabase CLI. | `FIXED` | P1 |
 | PRF/FEAT-001 | Profile | Enhancement | You tab (G1 wireframe) full rebuild: header bar, profile hero with inline Edit+Share buttons, 2×2 stats grid (Saved/Bookings/Completed/Following) via `youStatsProvider`, account rows (Creator profile, Connected accounts, Notifications, My bookings, Payouts, Privacy & data), Sign Out at bottom. | `DONE` | — |
 | CRE/FEAT-001 | Content | Enhancement | Experience tile in Create sheet unblocked — `comingSoon: false`. Tile colour updated to purple palette. Descriptor copy updated. | `DONE` | — |
+| NTF/BUG-001 | Notifications | Bug | `NotificationPreferencesNotifier.build()` called `_load()` synchronously; first line read `state` before build returned → "uninitialized provider" crash on nav to `/notifications/preferences`. Fixed: wrapped `_load()` in `Future.microtask`. | `FIXED` | P0 |
+| PRF/FEAT-002 | Profile | Enhancement | Edit Profile avatar upload implemented: `image_picker` + Firebase Storage + `POST /api/v1/media/signed-url` + `PUT /api/v1/users/me`. Bottom sheet source picker (gallery/camera). | `DONE` | — |
+| ONB/BUG-001 | Onboarding | Bug | `celebration_screen.dart` never submitted `display_name`, `email`, or `username` to the API — Edit Profile always showed empty fields for new users. Fixed: `_completeOnboarding()` now calls `PUT /api/v1/users/me` and `PUT /api/v1/users/me/username` before city/verticals. | `FIXED` | P1 |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
 

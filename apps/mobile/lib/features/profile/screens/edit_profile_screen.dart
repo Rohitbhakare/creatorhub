@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/avatar.dart';
@@ -78,6 +83,98 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ),
     );
     return result ?? false;
+  }
+
+  Future<ImageSource?> _showImageSourceSheet() {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.hairlineStrong,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: Icon(PhosphorIcons.image(PhosphorIconsStyle.regular),
+                    color: AppColors.ink),
+                title: Text('Choose from library', style: AppTypography.body),
+                onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+              ),
+              ListTile(
+                leading: Icon(PhosphorIcons.camera(PhosphorIconsStyle.regular),
+                    color: AppColors.ink),
+                title: Text('Take photo', style: AppTypography.body),
+                onTap: () => Navigator.of(context).pop(ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    final source = await _showImageSourceSheet();
+    if (source == null || !mounted) return;
+
+    final picked = await ImagePicker()
+        .pickImage(source: source, imageQuality: 85, maxWidth: 512, maxHeight: 512);
+    if (picked == null || !mounted) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final dio = ref.read(authServiceProvider).dio;
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      // Get storage path from API
+      final signedRes = await dio.post('/api/v1/media/signed-url', data: {
+        'file_name': fileName,
+        'content_type': 'image/jpeg',
+        'purpose': 'avatar',
+      });
+      final signedData =
+          (signedRes.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+      final uploadPath = signedData['upload_url'] as String;
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref(uploadPath);
+      await storageRef.putFile(
+        File(picked.path),
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      // Persist to profile
+      await dio.put('/api/v1/users/me', data: {'avatar_url': downloadUrl});
+
+      // Refresh auth state
+      final profileRes = await dio.get('/api/v1/users/me');
+      final profileData = profileRes.data as Map<String, dynamic>;
+      ref
+          .read(authProvider.notifier)
+          .updateUser(profileData['data'] as Map<String, dynamic>);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to upload photo. Try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _save() async {
@@ -188,8 +285,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               // Avatar
               GestureDetector(
                 onTap: () {
-                  // TODO: avatar upload via signed URL (E1.6 T5)
                   HapticFeedback.selectionClick();
+                  _pickAndUploadAvatar();
                 },
                 child: Stack(
                   children: [
