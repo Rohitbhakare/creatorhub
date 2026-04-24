@@ -262,7 +262,7 @@ describe('listPendingKyc', () => {
     fromMock.mockReturnValueOnce(
       mockChain([
         {
-          user_id: USER_ID,
+          creator_id: USER_ID,
           pan_name: 'Test Creator',
           submitted_at: '2026-04-01T10:00:00Z',
           users: { username: 'testcreator', display_name: 'Test Creator' },
@@ -282,7 +282,7 @@ describe('listPendingKyc', () => {
     const fromMock = vi.mocked(supabase.from)
     // Return limit+1 items to trigger cursor
     const rows = Array.from({ length: 3 }, (_, i) => ({
-      user_id: `user-${i.toString()}`,
+      creator_id: `user-${i.toString()}`,
       pan_name: `User ${i.toString()}`,
       submitted_at: `2026-04-0${(i + 1).toString()}T10:00:00Z`,
       users: { username: `user${i.toString()}`, display_name: `User ${i.toString()}` },
@@ -303,18 +303,19 @@ describe('getKycSubmission', () => {
     const fromMock = vi.mocked(supabase.from)
     fromMock.mockReturnValueOnce(
       mockChain({
-        user_id: USER_ID,
+        creator_id: USER_ID,
         status: 'pending',
-        pan_number: 'ABCDE1234F',
         pan_name: 'Test User',
-        aadhaar_last4: '1234',
-        bank_account: '9876543210',
+        aadhaar_name: 'Test User',
+        bank_account_holder: 'Test User',
+        bank_account_number_last4: '3210',
         bank_ifsc: 'HDFC0001234',
         bank_name: 'HDFC Bank',
         selfie_url: 'https://storage.example.com/selfie.jpg',
-        pan_doc_url: 'https://storage.example.com/pan.jpg',
-        aadhaar_doc_url: null,
-        rejection_reason: null,
+        pan_photo_url: 'https://storage.example.com/pan.jpg',
+        aadhaar_front_url: 'https://storage.example.com/aadhaar-front.jpg',
+        aadhaar_back_url: 'https://storage.example.com/aadhaar-back.jpg',
+        rejection_reasons: null,
         submitted_at: '2026-04-10T10:00:00Z',
         reviewed_at: null,
         reviewed_by: null,
@@ -324,9 +325,11 @@ describe('getKycSubmission', () => {
     const submission = await getKycSubmission(USER_ID)
 
     expect(submission.user_id).toBe(USER_ID)
-    expect(submission.pan_number).toBe('ABCDE1234F')
+    expect(submission.pan_name).toBe('Test User')
+    expect(submission.aadhaar_name).toBe('Test User')
+    expect(submission.bank_account_number_last4).toBe('3210')
     expect(submission.status).toBe('pending')
-    expect(submission.aadhaar_doc_url).toBeNull()
+    expect(submission.rejection_reasons).toBeNull()
   })
 
   it('throws not-found when no submission exists', async () => {

@@ -1,20 +1,17 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { AppShell } from '../../components/AppShell'
 import {
   AdminPayoutsList,
   type AdminPayoutRow,
 } from '../../components/AdminPayoutsList'
 import { PayoutStatusFilter } from '../../components/PayoutStatusFilter'
-import { API_INTERNAL_URL, ADMIN_SESSION_COOKIE } from '../../lib/env'
+import {
+  serverFetchList,
+  ApiRequestError,
+  type ListResult,
+} from '../../lib/server-api'
 
 export const metadata: Metadata = { title: 'Payouts' }
-
-interface ListEnvelope {
-  success: true
-  data: AdminPayoutRow[]
-  meta: { next_cursor: string | null; has_more: boolean; per_page: number }
-}
 
 const VALID_STATUSES = new Set([
   'pending',
@@ -26,30 +23,15 @@ const VALID_STATUSES = new Set([
 
 async function loadInitial(
   status: string,
-): Promise<
-  { items: AdminPayoutRow[]; nextCursor: string | null } | { error: string }
-> {
-  const jar = await cookies()
-  const token = jar.get(ADMIN_SESSION_COOKIE)?.value
-  const headers = new Headers()
-  if (token) headers.set('Cookie', `${ADMIN_SESSION_COOKIE}=${token}`)
-
+): Promise<ListResult<AdminPayoutRow> | { error: string }> {
   const qs = new URLSearchParams({ status, limit: '25' })
 
   try {
-    const res = await fetch(
-      `${API_INTERNAL_URL}/api/v1/admin/payouts?${qs.toString()}`,
-      { headers, cache: 'no-store' },
+    return await serverFetchList<AdminPayoutRow>(
+      `/api/v1/admin/payouts?${qs.toString()}`,
     )
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as {
-        error?: { detail?: string }
-      } | null
-      return { error: body?.error?.detail ?? res.statusText }
-    }
-    const body = (await res.json()) as ListEnvelope
-    return { items: body.data, nextCursor: body.meta.next_cursor }
-  } catch {
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.message }
     return { error: 'Failed to load payouts.' }
   }
 }

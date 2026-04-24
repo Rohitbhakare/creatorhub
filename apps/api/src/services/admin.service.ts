@@ -51,18 +51,23 @@ export interface KycQueueItem {
 }
 
 export interface KycSubmission {
+  // NOTE: exposed as `user_id` for UI backward compat; sourced from
+  // `kyc_submissions.creator_id` in the schema.
   user_id: string
   status: string
-  pan_number: string
+  // PAN number itself is never stored plaintext (schema keeps only
+  // `pan_number_hash`). UI shows only `pan_name` + doc link.
   pan_name: string
-  aadhaar_last4: string
-  bank_account: string
+  aadhaar_name: string
+  bank_account_holder: string
+  bank_account_number_last4: string
   bank_ifsc: string
-  bank_name: string
+  bank_name: string | null
   selfie_url: string
-  pan_doc_url: string
-  aadhaar_doc_url: string | null
-  rejection_reason: string | null
+  pan_photo_url: string
+  aadhaar_front_url: string
+  aadhaar_back_url: string
+  rejection_reasons: Array<{ field: string; reason: string }> | null
   submitted_at: string
   reviewed_at: string | null
   reviewed_by: string | null
@@ -245,7 +250,7 @@ export async function listPendingKyc(options: {
 
   let q = supabase
     .from('kyc_submissions')
-    .select('user_id, pan_name, submitted_at, users!inner(username, display_name)')
+    .select('creator_id, pan_name, submitted_at, users!inner(username, display_name)')
     .eq('status', 'pending')
     .order('submitted_at', { ascending: true })
     .limit(limit + 1)
@@ -262,7 +267,10 @@ export async function listPendingKyc(options: {
 
   const { data, error } = await q
 
-  if (error) throw new AppError('db-error', 500, 'Failed to list pending KYC submissions')
+  if (error) {
+    console.error('[admin.listPendingKyc] supabase error:', error.message)
+    throw new AppError('db-error', 500, 'Failed to list pending KYC submissions')
+  }
 
   const rows = data ?? []
   const hasMore = rows.length > limit
@@ -279,7 +287,7 @@ export async function listPendingKyc(options: {
   const items: KycQueueItem[] = rows.map((row) => {
     const user = (row.users as unknown) as { username: string | null; display_name: string | null } | null
     return {
-      user_id: row.user_id as string,
+      user_id: row.creator_id as string,
       username: user?.username ?? null,
       display_name: user?.display_name ?? null,
       submitted_at: row.submitted_at as string,
@@ -296,27 +304,33 @@ export async function getKycSubmission(userId: string): Promise<KycSubmission> {
   const { data, error } = await supabase
     .from('kyc_submissions')
     .select(
-      'user_id, status, pan_number, pan_name, aadhaar_last4, bank_account, bank_ifsc, bank_name, selfie_url, pan_doc_url, aadhaar_doc_url, rejection_reason, submitted_at, reviewed_at, reviewed_by',
+      'creator_id, status, pan_name, aadhaar_name, bank_account_holder, bank_account_number_last4, bank_ifsc, bank_name, selfie_url, pan_photo_url, aadhaar_front_url, aadhaar_back_url, rejection_reasons, submitted_at, reviewed_at, reviewed_by',
     )
-    .eq('user_id', userId)
+    .eq('creator_id', userId)
     .maybeSingle()
 
-  if (error) throw new AppError('db-error', 500, 'Failed to fetch KYC submission')
+  if (error) {
+    console.error('[admin.getKycSubmission] supabase error:', error.message)
+    throw new AppError('db-error', 500, 'Failed to fetch KYC submission')
+  }
   if (!data) throw new AppError('not-found', 404, 'KYC submission not found for this user')
 
   return {
-    user_id: data.user_id as string,
+    user_id: data.creator_id as string,
     status: data.status as string,
-    pan_number: data.pan_number as string,
     pan_name: data.pan_name as string,
-    aadhaar_last4: data.aadhaar_last4 as string,
-    bank_account: data.bank_account as string,
+    aadhaar_name: data.aadhaar_name as string,
+    bank_account_holder: data.bank_account_holder as string,
+    bank_account_number_last4: data.bank_account_number_last4 as string,
     bank_ifsc: data.bank_ifsc as string,
-    bank_name: data.bank_name as string,
+    bank_name: (data.bank_name as string | null) ?? null,
     selfie_url: data.selfie_url as string,
-    pan_doc_url: data.pan_doc_url as string,
-    aadhaar_doc_url: (data.aadhaar_doc_url as string | null) ?? null,
-    rejection_reason: (data.rejection_reason as string | null) ?? null,
+    pan_photo_url: data.pan_photo_url as string,
+    aadhaar_front_url: data.aadhaar_front_url as string,
+    aadhaar_back_url: data.aadhaar_back_url as string,
+    rejection_reasons:
+      (data.rejection_reasons as Array<{ field: string; reason: string }> | null) ??
+      null,
     submitted_at: data.submitted_at as string,
     reviewed_at: (data.reviewed_at as string | null) ?? null,
     reviewed_by: (data.reviewed_by as string | null) ?? null,

@@ -9,16 +9,17 @@ export const metadata: Metadata = { title: 'KYC submission' }
 interface KycSubmission {
   user_id: string
   status: string
-  pan_number: string
   pan_name: string
-  aadhaar_last4: string
-  bank_account: string
+  aadhaar_name: string
+  bank_account_holder: string
+  bank_account_number_last4: string
   bank_ifsc: string
-  bank_name: string
+  bank_name: string | null
   selfie_url: string
-  pan_doc_url: string
-  aadhaar_doc_url: string | null
-  rejection_reason: string | null
+  pan_photo_url: string
+  aadhaar_front_url: string
+  aadhaar_back_url: string
+  rejection_reasons: Array<{ field: string; reason: string }> | null
   submitted_at: string
   reviewed_at: string | null
   reviewed_by: string | null
@@ -68,14 +69,14 @@ function Row({
 }
 
 function StatusBadge({ status }: { status: string }): React.JSX.Element {
-  const tone =
-    status === 'verified'
-      ? 'var(--color-success)'
-      : status === 'pending'
-        ? 'var(--color-warning)'
-        : status === 'rejected'
-          ? 'var(--color-error)'
-          : 'var(--color-text-muted)'
+  const isApproved = status === 'approved' || status === 'verified'
+  const tone = isApproved
+    ? 'var(--color-success)'
+    : status === 'pending'
+      ? 'var(--color-warning)'
+      : status === 'rejected'
+        ? 'var(--color-error)'
+        : 'var(--color-text-muted)'
   return (
     <span
       className="px-2 py-0.5 rounded text-xs font-medium text-white"
@@ -185,14 +186,17 @@ export default async function KycDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wide">
             Identity
           </h2>
+          <p
+            className="text-xs"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            PAN and Aadhaar numbers are stored as one-way hashes. Verify
+            by comparing the name on file against the uploaded documents
+            below.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Row label="PAN name" value={k.pan_name} />
-            <Row label="PAN number" value={k.pan_number} mono />
-            <Row
-              label="Aadhaar (last 4)"
-              value={`••••-••••-${k.aadhaar_last4}`}
-              mono
-            />
+            <Row label="Aadhaar name" value={k.aadhaar_name} />
           </div>
         </section>
 
@@ -204,10 +208,14 @@ export default async function KycDetailPage({
             Bank
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Row label="Account holder" value={k.pan_name} />
-            <Row label="Bank name" value={k.bank_name} />
+            <Row label="Account holder" value={k.bank_account_holder} />
+            <Row label="Bank name" value={k.bank_name ?? '—'} />
             <Row label="IFSC" value={k.bank_ifsc} mono />
-            <Row label="Account number" value={k.bank_account} mono />
+            <Row
+              label="Account number"
+              value={`••••${k.bank_account_number_last4}`}
+              mono
+            />
           </div>
         </section>
 
@@ -234,12 +242,14 @@ export default async function KycDetailPage({
               href={`/kyc-doc/${k.user_id}/pan`}
               label="PAN document"
             />
-            {k.aadhaar_doc_url !== null && (
-              <DocLink
-                href={`/kyc-doc/${k.user_id}/aadhaar`}
-                label="Aadhaar document"
-              />
-            )}
+            <DocLink
+              href={`/kyc-doc/${k.user_id}/aadhaar-front`}
+              label="Aadhaar (front)"
+            />
+            <DocLink
+              href={`/kyc-doc/${k.user_id}/aadhaar-back`}
+              label="Aadhaar (back)"
+            />
           </div>
         </section>
 
@@ -261,11 +271,13 @@ export default async function KycDetailPage({
                 }
               />
               <Row label="Reviewed by" value={k.reviewed_by ?? '—'} />
-              {k.rejection_reason !== null && (
+              {k.rejection_reasons !== null && k.rejection_reasons.length > 0 && (
                 <div className="md:col-span-2">
                   <Row
                     label="Rejection reason"
-                    value={k.rejection_reason}
+                    value={k.rejection_reasons
+                      .map((r) => r.reason)
+                      .join('; ')}
                   />
                 </div>
               )}

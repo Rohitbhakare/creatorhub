@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { ClientApiError } from '../lib/api'
+import { relativeTime } from '../lib/time'
 
 export interface AuditEntry {
   id: string
@@ -20,16 +21,37 @@ interface ListEnvelopeRaw {
   meta: { next_cursor: string | null; has_more: boolean; per_page: number }
 }
 
-function relativeTime(iso: string): string {
-  const t = new Date(iso).getTime()
-  const diff = Date.now() - t
-  const mins = Math.round(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${String(mins)}m ago`
-  const hrs = Math.round(mins / 60)
-  if (hrs < 24) return `${String(hrs)}h ago`
-  const days = Math.round(hrs / 24)
-  return `${String(days)}d ago`
+function AuditDetails({
+  details,
+}: {
+  details: Record<string, unknown>
+}): React.JSX.Element {
+  const [open, setOpen] = useState(false)
+  return (
+    <details
+      onToggle={(e) => {
+        setOpen((e.currentTarget as HTMLDetailsElement).open)
+      }}
+    >
+      <summary
+        className="text-xs cursor-pointer select-none"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        details
+      </summary>
+      {open && (
+        <pre
+          className="text-xs mt-1 p-2 rounded overflow-x-auto"
+          style={{
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text)',
+          }}
+        >
+          {JSON.stringify(details, null, 2)}
+        </pre>
+      )}
+    </details>
+  )
 }
 
 function targetHref(entry: AuditEntry): string | null {
@@ -150,25 +172,7 @@ export function AuditLogList({
                   {relativeTime(entry.created_at)}
                 </span>
               </div>
-              {hasDetails && (
-                <details>
-                  <summary
-                    className="text-xs cursor-pointer select-none"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    details
-                  </summary>
-                  <pre
-                    className="text-xs mt-1 p-2 rounded overflow-x-auto"
-                    style={{
-                      backgroundColor: 'var(--color-surface-muted)',
-                      color: 'var(--color-text)',
-                    }}
-                  >
-                    {JSON.stringify(entry.details, null, 2)}
-                  </pre>
-                </details>
-              )}
+              {hasDetails && <AuditDetails details={entry.details} />}
             </li>
           )
         })}

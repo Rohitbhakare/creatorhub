@@ -8,14 +8,10 @@
 import { serverFetch, ApiRequestError } from './server-api'
 import type { AdminProfile } from './types'
 
-interface MeResponse {
-  admin: AdminProfile
-}
-
 export async function getCurrentAdmin(): Promise<AdminProfile | null> {
   try {
-    const data = await serverFetch<MeResponse>('/api/v1/admin/auth/me')
-    return data.admin
+    const data = await serverFetch<AdminProfile>('/api/v1/admin/auth/me')
+    return data
   } catch (err) {
     if (err instanceof ApiRequestError && err.status === 401) {
       return null

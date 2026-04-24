@@ -93,7 +93,7 @@ describe('getKycStatus', () => {
     fromMock.mockReturnValueOnce(
       mockChain({
         status: 'pending',
-        rejection_reason: null,
+        rejection_reasons: null,
         submitted_at: '2026-04-10T10:00:00Z',
         reviewed_at: null,
       }) as never,
@@ -111,8 +111,8 @@ describe('getKycStatus', () => {
     fromMock.mockReturnValueOnce(mockChain({ kyc_status: 'verified' }) as never)
     fromMock.mockReturnValueOnce(
       mockChain({
-        status: 'verified',
-        rejection_reason: null,
+        status: 'approved',
+        rejection_reasons: null,
         submitted_at: '2026-04-10T10:00:00Z',
         reviewed_at: '2026-04-11T12:00:00Z',
       }) as never,
@@ -130,7 +130,7 @@ describe('getKycStatus', () => {
     fromMock.mockReturnValueOnce(
       mockChain({
         status: 'rejected',
-        rejection_reason: 'PAN photo is blurry',
+        rejection_reasons: [{ field: 'general', reason: 'PAN photo is blurry' }],
         submitted_at: '2026-04-10T10:00:00Z',
         reviewed_at: '2026-04-11T12:00:00Z',
       }) as never,
@@ -176,6 +176,73 @@ describe('submitKyc', () => {
     await expect(
       submitKyc(USER_ID, { ...VALID_SUBMIT_DATA, aadhaarDocUrl: 'https://storage.example.com/aadhaar.jpg' }),
     ).resolves.toBeUndefined()
+  })
+
+  it('translates mobile payload into real kyc_submissions schema (hashes + encryption)', async () => {
+    const fromMock = vi.mocked(supabase.from)
+    fromMock.mockReturnValueOnce(mockChain({ kyc_status: null }) as never)
+
+    // Capture the insert chain so we can inspect what was written.
+    const insertChain = mockChain(null)
+    fromMock.mockReturnValueOnce(insertChain as never)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+
+    await submitKyc(USER_ID, {
+      ...VALID_SUBMIT_DATA,
+      aadhaarDocUrl: 'https://storage.example.com/aadhaar.jpg',
+    })
+
+    const insertFn = insertChain['insert'] as ReturnType<typeof vi.fn>
+    expect(insertFn).toHaveBeenCalledTimes(1)
+    const row = insertFn.mock.calls[0]?.[0] as Record<string, unknown>
+
+    // Identity columns use the real schema names, not the phantom ones.
+    expect(row['creator_id']).toBe(USER_ID)
+    expect(row['user_id']).toBeUndefined()
+    expect(row['pan_number']).toBeUndefined()
+    expect(row['bank_account']).toBeUndefined()
+    expect(row['aadhaar_last4']).toBeUndefined()
+    expect(row['pan_doc_url']).toBeUndefined()
+    expect(row['aadhaar_doc_url']).toBeUndefined()
+    expect(row['rejection_reason']).toBeUndefined()
+
+    // PAN + Aadhaar stored as SHA-256 hashes (64 hex chars, deterministic).
+    expect(row['pan_number_hash']).toMatch(/^[0-9a-f]{64}$/)
+    expect(row['aadhaar_number_hash']).toMatch(/^[0-9a-f]{64}$/)
+
+    // Document URLs remapped.
+    expect(row['pan_photo_url']).toBe(VALID_SUBMIT_DATA.panDocUrl)
+    expect(row['aadhaar_front_url']).toBe('https://storage.example.com/aadhaar.jpg')
+    expect(row['aadhaar_back_url']).toBe('https://storage.example.com/aadhaar.jpg')
+
+    // Bank account: last4 derived, full number AES-GCM encrypted.
+    expect(row['bank_account_holder']).toBe(VALID_SUBMIT_DATA.panName)
+    expect(row['bank_account_number_last4']).toBe('7890')
+    const encrypted = row['bank_account_number_encrypted'] as string
+    // iv:ciphertext:tag, all hex
+    expect(encrypted).toMatch(/^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/)
+    expect(encrypted.includes(VALID_SUBMIT_DATA.bankAccount)).toBe(false)
+
+    // Declaration + status + IFSC + selfie pass through unchanged.
+    expect(row['declaration_accepted']).toBe(true)
+    expect(row['status']).toBe('pending')
+    expect(row['bank_ifsc']).toBe(VALID_SUBMIT_DATA.bankIfsc)
+    expect(row['selfie_url']).toBe(VALID_SUBMIT_DATA.selfieUrl)
+  })
+
+  it('falls back to panDocUrl for aadhaar front/back when aadhaarDocUrl is omitted', async () => {
+    const fromMock = vi.mocked(supabase.from)
+    fromMock.mockReturnValueOnce(mockChain({ kyc_status: null }) as never)
+    const insertChain = mockChain(null)
+    fromMock.mockReturnValueOnce(insertChain as never)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+
+    await submitKyc(USER_ID, VALID_SUBMIT_DATA)
+
+    const insertFn = insertChain['insert'] as ReturnType<typeof vi.fn>
+    const row = insertFn.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(row['aadhaar_front_url']).toBe(VALID_SUBMIT_DATA.panDocUrl)
+    expect(row['aadhaar_back_url']).toBe(VALID_SUBMIT_DATA.panDocUrl)
   })
 
   it('throws validation-failed for invalid PAN format', async () => {
@@ -240,6 +307,30 @@ describe('resubmitKyc', () => {
     fromMock.mockReturnValueOnce(mockChain(null) as never)
 
     await expect(resubmitKyc(USER_ID, VALID_SUBMIT_DATA)).resolves.toBeUndefined()
+  })
+
+  it('resubmit clears rejection_reasons + reviewer fields and filters by creator_id', async () => {
+    const fromMock = vi.mocked(supabase.from)
+    fromMock.mockReturnValueOnce(mockChain({ status: 'rejected' }) as never)
+
+    const updateChain = mockChain(null)
+    fromMock.mockReturnValueOnce(updateChain as never)
+    fromMock.mockReturnValueOnce(mockChain(null) as never)
+
+    await resubmitKyc(USER_ID, VALID_SUBMIT_DATA)
+
+    const updateFn = updateChain['update'] as ReturnType<typeof vi.fn>
+    const eqFn = updateChain['eq'] as ReturnType<typeof vi.fn>
+
+    const row = updateFn.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(row['rejection_reasons']).toBeNull()
+    expect(row['reviewed_at']).toBeNull()
+    expect(row['reviewed_by']).toBeNull()
+    expect(row['status']).toBe('pending')
+    // The creator_id key must not be overwritten on update.
+    expect(row['creator_id']).toBeUndefined()
+    // And the filter must be by creator_id (not the phantom user_id).
+    expect(eqFn).toHaveBeenCalledWith('creator_id', USER_ID)
   })
 
   it('throws conflict if current status is pending', async () => {

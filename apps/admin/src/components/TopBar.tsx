@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { apiFetch } from '../lib/api'
 import { roleColor, roleLabel } from '../lib/rbac'
 import type { AdminProfile } from '../lib/types'
+import { DarkModeToggle } from './DarkModeShell'
 
 export function TopBar({ admin }: { admin: AdminProfile }): React.JSX.Element {
   const router = useRouter()
@@ -44,6 +45,7 @@ export function TopBar({ admin }: { admin: AdminProfile }): React.JSX.Element {
         >
           {roleLabel(admin.role)}
         </span>
+        <DarkModeToggle />
         <button
           type="button"
           onClick={() => {

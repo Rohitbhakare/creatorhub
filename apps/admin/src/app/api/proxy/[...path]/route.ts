@@ -65,7 +65,11 @@ async function handle(
     )
   }
 
-  const body = await upstream.text()
+  // 204/205/304 are null-body statuses — the Response constructor
+  // throws if we pass a string (even empty) on those codes.
+  const isNullBody =
+    upstream.status === 204 || upstream.status === 205 || upstream.status === 304
+  const body = isNullBody ? null : await upstream.text()
   const res = new NextResponse(body, {
     status: upstream.status,
     statusText: upstream.statusText,

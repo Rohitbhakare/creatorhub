@@ -85,7 +85,6 @@ const FINANCIALS_ROW = {
 const CONTENT_ROW = { title: 'Sunrise Trek to Triund' }
 const BUYER_ROW = { display_name: 'Arjun Sharma' }
 const CREATOR_ROW = { display_name: 'Priya Nair', kyc_status: 'verified' }
-const KYC_ROW = { pan_number: 'ABCDE1234F', status: 'verified' }
 const DATE_ROW = { start_date: '2025-09-01' }
 
 // ─── calculateTaxBreakdown ────────────────────────────────────────────────────
@@ -242,60 +241,29 @@ describe('getTdsInfo', () => {
     vi.clearAllMocks()
   })
 
-  it('returns TDS info with PAN for a verified creator', async () => {
+  it('returns TDS info with pan=null (PAN stored as one-way hash)', async () => {
     const fromMock = vi.mocked(supabase.from)
     // 1. bookings
     fromMock.mockReturnValueOnce(asFromReturn(mockChain({
       ...BOOKING_ROW,
       creator_id: CREATOR_ID,
     })))
-    // 2–5. Promise.all: booking_financials, content, users, kyc_submissions
+    // 2–4. Promise.all: booking_financials, content, users
     fromMock.mockReturnValueOnce(asFromReturn(mockChain(FINANCIALS_ROW)))
     fromMock.mockReturnValueOnce(asFromReturn(mockChain(CONTENT_ROW)))
     fromMock.mockReturnValueOnce(asFromReturn(mockChain(CREATOR_ROW)))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(KYC_ROW)))
 
     const tds = await getTdsInfo(BOOKING_ID, CREATOR_ID)
 
     expect(tds.bookingId).toBe(BOOKING_ID)
     expect(tds.creatorName).toBe('Priya Nair')
-    expect(tds.pan).toBe('ABCDE1234F')
+    // PAN is never exposed — schema keeps only `pan_number_hash`.
+    expect(tds.pan).toBeNull()
     expect(tds.grossAmountPaisa).toBe(100000)
     expect(tds.tdsDeductedPaisa).toBe(1000)
     expect(tds.netPayoutPaisa).toBe(99000)
     expect(tds.section).toBe('194-O')
     expect(tds.experienceTitle).toBe('Sunrise Trek to Triund')
-  })
-
-  it('returns pan: null when KYC not verified', async () => {
-    const fromMock = vi.mocked(supabase.from)
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain({
-      ...BOOKING_ROW,
-      creator_id: CREATOR_ID,
-    })))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(FINANCIALS_ROW)))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(CONTENT_ROW)))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain({ display_name: 'Priya Nair', kyc_status: 'pending' })))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain({ pan_number: 'ABCDE1234F', status: 'pending' })))
-
-    const tds = await getTdsInfo(BOOKING_ID, CREATOR_ID)
-    expect(tds.pan).toBeNull()
-  })
-
-  it('returns pan: null when no KYC submission exists', async () => {
-    const fromMock = vi.mocked(supabase.from)
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain({
-      ...BOOKING_ROW,
-      creator_id: CREATOR_ID,
-    })))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(FINANCIALS_ROW)))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(CONTENT_ROW)))
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(CREATOR_ROW)))
-    // No KYC submission
-    fromMock.mockReturnValueOnce(asFromReturn(mockChain(null)))
-
-    const tds = await getTdsInfo(BOOKING_ID, CREATOR_ID)
-    expect(tds.pan).toBeNull()
   })
 
   it('throws 403 when booking belongs to a different creator', async () => {

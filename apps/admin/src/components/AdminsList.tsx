@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { apiFetch, ClientApiError } from '../lib/api'
 import { roleColor, roleLabel } from '../lib/rbac'
+import { relativeTime } from '../lib/time'
 import type { AdminRole } from '@creatorhub/shared'
 
 const ROLES: AdminRole[] = [
@@ -22,19 +23,6 @@ export interface AdminRow {
   must_change_password: boolean
   last_login_at: string | null
   created_at: string
-}
-
-function relativeTime(iso: string | null): string {
-  if (iso === null) return 'never'
-  const t = new Date(iso).getTime()
-  const diff = Date.now() - t
-  const mins = Math.round(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${String(mins)}m ago`
-  const hrs = Math.round(mins / 60)
-  if (hrs < 24) return `${String(hrs)}h ago`
-  const days = Math.round(hrs / 24)
-  return `${String(days)}d ago`
 }
 
 export function AdminsList({

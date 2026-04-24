@@ -1,7 +1,7 @@
 # E4.1 — Tracking
 
-**Status:** IN PROGRESS — Everything up to T21 done; T22 deploy artifacts authored, awaiting founder to run `fly deploy` + DNS cutover. Next: T24 Docs + runbook (T23 secret removal scheduled +2 weeks post-T22).
-**Progress:** 21/24 tasks done (T22 scaffolded, blocking on ops)
+**Status:** IN PROGRESS — T1–T21 + T24 done; T22 deploy artifacts authored, awaiting founder to run `fly deploy` + DNS cutover. T23 secret removal scheduled +2 weeks post-T22.
+**Progress:** 22/24 tasks done (T22 scaffolded, blocking on ops; T23 deferred)
 **Branch:** `dev` (single-branch flow per CLAUDE.md)
 **Last Updated:** 2026-04-22
 
@@ -34,7 +34,7 @@
 | T21 | Admin Users management screen | 3 | [x] Done | `/admins` (super_admin only): list + New admin modal + inline role picker + deactivate/reactivate + reset-password with one-time temp password reveal. |
 | T22 | Fly.io deployment + DNS | 4 | [~] In Progress | Dockerfile / fly.toml / .dockerignore / /healthz route authored; `docs/epics/E4.1-admin-custom/DEPLOY.md` has the step-by-step founder runbook. Flip to Done after `fly deploy` + cert issued. |
 | T23 | Remove `x-admin-secret` dual-auth | 4 | [ ] Not Started | +2 weeks after T22 |
-| T24 | Docs + runbook | 4 | [ ] Not Started | |
+| T24 | Docs + runbook | 4 | [x] Done | `docs/epics/E4.1-admin-custom/RUNBOOK.md` (15 playbooks, screenshot placeholders to be captured post-deploy); HLD § 11 "Admin panel (E4.1)" + ADR-011 appended; `docs/engineering/openapi.yaml` now documents all 40 admin operations across 11 new tags, with `adminSession` cookie security scheme + `AdminForbidden` reusable response + ~30 admin schemas. YAML parses clean, 0 missing refs. |
 
 Status markers: `[ ]` Not Started · `[~]` In Progress · `[x]` Done · `[!]` Blocked · `[-]` Deferred
 

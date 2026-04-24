@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
 import { createLinkedAccountForUser } from './linked-account.service.js'
+import { hashIdentifier, encryptBankAccount } from '../utils/kyc-crypto.js'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -41,6 +42,48 @@ function validateKycInput(data: KycSubmitData): void {
   }
 }
 
+/**
+ * Translate the mobile submit payload (`KycSubmitData`) into the real
+ * `kyc_submissions` row shape (migration 009).
+ *
+ * The mobile wizard currently collects a subset of the schema's fields:
+ *   - PAN number (plaintext, hashed here)
+ *   - Aadhaar last 4 only (hashed here — full-number path will be
+ *     added when DigiLocker lands)
+ *   - A single Aadhaar doc URL (used for both front and back until the
+ *     wizard is split into two uploads)
+ *   - Bank account number (plaintext, AES-GCM encrypted here)
+ *   - Account holder name is inferred from PAN name (same person)
+ *
+ * Admin review uses `pan_name` as the canonical identity check; the
+ * legal names on the Aadhaar / bank rows are wired here so they stay
+ * NOT NULL–safe and match existing UX.
+ */
+function buildKycWriteRow(
+  userId: string,
+  data: KycSubmitData,
+): Record<string, unknown> {
+  const aadhaarUrl = data.aadhaarDocUrl ?? data.panDocUrl
+  return {
+    creator_id: userId,
+    pan_number_hash: hashIdentifier(data.panNumber),
+    pan_name: data.panName,
+    pan_photo_url: data.panDocUrl,
+    aadhaar_number_hash: hashIdentifier(data.aadhaarLast4),
+    aadhaar_name: data.panName,
+    aadhaar_front_url: aadhaarUrl,
+    aadhaar_back_url: aadhaarUrl,
+    bank_account_holder: data.panName,
+    bank_account_number_encrypted: encryptBankAccount(data.bankAccount),
+    bank_account_number_last4: data.bankAccount.slice(-4),
+    bank_ifsc: data.bankIfsc,
+    bank_name: data.bankName,
+    selfie_url: data.selfieUrl,
+    declaration_accepted: true,
+    declaration_accepted_at: new Date().toISOString(),
+  }
+}
+
 // ─── getKycStatus ─────────────────────────────────────────────
 
 export async function getKycStatus(userId: string): Promise<KycStatus> {
@@ -67,8 +110,8 @@ export async function getKycStatus(userId: string): Promise<KycStatus> {
   // Fetch submission details
   const { data: submission, error: subError } = await supabase
     .from('kyc_submissions')
-    .select('status, rejection_reason, submitted_at, reviewed_at')
-    .eq('user_id', userId)
+    .select('status, rejection_reasons, submitted_at, reviewed_at')
+    .eq('creator_id', userId)
     .maybeSingle()
 
   if (subError) {
@@ -80,12 +123,18 @@ export async function getKycStatus(userId: string): Promise<KycStatus> {
     return { status: userKycStatus as KycStatus['status'] }
   }
 
-  const result: KycStatus = {
-    status: submission.status as KycStatus['status'],
-  }
+  // kyc_submissions.status uses 'approved'; KycStatus external type
+  // keeps 'verified' to match users.kyc_status. Normalise.
+  const rawStatus = submission.status as string
+  const mappedStatus: KycStatus['status'] =
+    rawStatus === 'approved' ? 'verified' : (rawStatus as KycStatus['status'])
+  const result: KycStatus = { status: mappedStatus }
 
-  if (submission.rejection_reason != null) {
-    result.rejectionReason = submission.rejection_reason as string
+  const rejections = submission.rejection_reasons as
+    | Array<{ field: string; reason: string }>
+    | null
+  if (rejections && rejections.length > 0) {
+    result.rejectionReason = rejections.map((r) => r.reason).join('; ')
   }
   if (submission.submitted_at != null) {
     result.submittedAt = submission.submitted_at as string
@@ -124,31 +173,17 @@ export async function submitKyc(userId: string, data: KycSubmitData): Promise<vo
   }
 
   const now = new Date().toISOString()
-
-  const insertRow: Record<string, unknown> = {
-    user_id: userId,
-    status: 'pending',
-    pan_number: data.panNumber,
-    pan_name: data.panName,
-    aadhaar_last4: data.aadhaarLast4,
-    bank_account: data.bankAccount,
-    bank_ifsc: data.bankIfsc,
-    bank_name: data.bankName,
-    selfie_url: data.selfieUrl,
-    pan_doc_url: data.panDocUrl,
-    submitted_at: now,
-    updated_at: now,
-  }
-
-  if (data.aadhaarDocUrl !== undefined) {
-    insertRow['aadhaar_doc_url'] = data.aadhaarDocUrl
-  }
+  const insertRow = buildKycWriteRow(userId, data)
+  insertRow['status'] = 'pending'
+  insertRow['submitted_at'] = now
+  insertRow['updated_at'] = now
 
   const { error: insertError } = await supabase
     .from('kyc_submissions')
     .insert(insertRow)
 
   if (insertError) {
+    console.error('[kyc.submit] insert error:', insertError.message)
     throw new AppError('db-error', 500, 'Failed to submit KYC')
   }
 
@@ -172,7 +207,7 @@ export async function resubmitKyc(userId: string, data: KycSubmitData): Promise<
   const { data: submission, error: fetchError } = await supabase
     .from('kyc_submissions')
     .select('status')
-    .eq('user_id', userId)
+    .eq('creator_id', userId)
     .maybeSingle()
 
   if (fetchError) {
@@ -195,34 +230,24 @@ export async function resubmitKyc(userId: string, data: KycSubmitData): Promise<
 
   // Only allowed when status is 'rejected'
   const now = new Date().toISOString()
-
-  const updateRow: Record<string, unknown> = {
-    status: 'pending',
-    pan_number: data.panNumber,
-    pan_name: data.panName,
-    aadhaar_last4: data.aadhaarLast4,
-    bank_account: data.bankAccount,
-    bank_ifsc: data.bankIfsc,
-    bank_name: data.bankName,
-    selfie_url: data.selfieUrl,
-    pan_doc_url: data.panDocUrl,
-    rejection_reason: null,
-    reviewed_at: null,
-    reviewed_by: null,
-    submitted_at: now,
-    updated_at: now,
-  }
-
-  if (data.aadhaarDocUrl !== undefined) {
-    updateRow['aadhaar_doc_url'] = data.aadhaarDocUrl
-  }
+  const updateRow = buildKycWriteRow(userId, data)
+  // creator_id is set on insert only; re-setting on update is redundant
+  // and risks hitting a NOT NULL constraint check needlessly.
+  delete updateRow['creator_id']
+  updateRow['status'] = 'pending'
+  updateRow['rejection_reasons'] = null
+  updateRow['reviewed_at'] = null
+  updateRow['reviewed_by'] = null
+  updateRow['submitted_at'] = now
+  updateRow['updated_at'] = now
 
   const { error: updateError } = await supabase
     .from('kyc_submissions')
     .update(updateRow)
-    .eq('user_id', userId)
+    .eq('creator_id', userId)
 
   if (updateError) {
+    console.error('[kyc.resubmit] update error:', updateError.message)
     throw new AppError('db-error', 500, 'Failed to resubmit KYC')
   }
 
@@ -242,15 +267,18 @@ export async function resubmitKyc(userId: string, data: KycSubmitData): Promise<
 export async function approveKyc(userId: string, adminId: string): Promise<void> {
   const now = new Date().toISOString()
 
+  // kyc_submissions.status enum uses 'approved'; users.kyc_status uses
+  // 'verified'. They describe the same state from two viewpoints — keep
+  // them aligned in sync below.
   const { error: submissionError } = await supabase
     .from('kyc_submissions')
     .update({
-      status: 'verified',
+      status: 'approved',
       reviewed_at: now,
       reviewed_by: adminId,
       updated_at: now,
     })
-    .eq('user_id', userId)
+    .eq('creator_id', userId)
 
   if (submissionError) {
     throw new AppError('db-error', 500, 'Failed to approve KYC submission')
@@ -290,12 +318,12 @@ export async function rejectKyc(userId: string, adminId: string, reason: string)
     .from('kyc_submissions')
     .update({
       status: 'rejected',
-      rejection_reason: reason,
+      rejection_reasons: [{ field: 'general', reason }],
       reviewed_at: now,
       reviewed_by: adminId,
       updated_at: now,
     })
-    .eq('user_id', userId)
+    .eq('creator_id', userId)
 
   if (submissionError) {
     throw new AppError('db-error', 500, 'Failed to reject KYC submission')

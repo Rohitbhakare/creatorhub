@@ -20,9 +20,15 @@ export function Sidebar({ role }: { role: AdminRole }): React.JSX.Element {
         </div>
       </div>
 
-      <nav className="flex flex-col gap-6">
-        {groups.map((group) => (
+      <nav className="flex flex-col">
+        {groups.map((group, idx) => (
           <div key={group.label} className="flex flex-col">
+            {idx > 0 && (
+              <hr
+                className="mx-6 my-4 border-0 border-t"
+                style={{ borderColor: 'var(--color-border)' }}
+              />
+            )}
             <div
               className="px-6 text-xs font-semibold uppercase tracking-wide mb-2"
               style={{ color: 'var(--color-text-subtle)' }}

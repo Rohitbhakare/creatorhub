@@ -1,39 +1,21 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { AppShell } from '../../components/AppShell'
 import { KycQueueList, type KycQueueItem } from '../../components/KycQueueList'
-import { API_INTERNAL_URL, ADMIN_SESSION_COOKIE } from '../../lib/env'
+import {
+  serverFetchList,
+  ApiRequestError,
+  type ListResult,
+} from '../../lib/server-api'
 
 export const metadata: Metadata = { title: 'KYC queue' }
 
-interface KycListEnvelope {
-  success: true
-  data: KycQueueItem[]
-  meta: { next_cursor: string | null; has_more: boolean; per_page: number }
-}
-
 async function loadInitial(): Promise<
-  { items: KycQueueItem[]; nextCursor: string | null } | { error: string }
+  ListResult<KycQueueItem> | { error: string }
 > {
-  const jar = await cookies()
-  const token = jar.get(ADMIN_SESSION_COOKIE)?.value
-  const headers = new Headers()
-  if (token) headers.set('Cookie', `${ADMIN_SESSION_COOKIE}=${token}`)
-
   try {
-    const res = await fetch(`${API_INTERNAL_URL}/api/v1/admin/kyc?limit=25`, {
-      headers,
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as {
-        error?: { detail?: string }
-      } | null
-      return { error: body?.error?.detail ?? res.statusText }
-    }
-    const body = (await res.json()) as KycListEnvelope
-    return { items: body.data, nextCursor: body.meta.next_cursor }
-  } catch {
+    return await serverFetchList<KycQueueItem>('/api/v1/admin/kyc?limit=25')
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.message }
     return { error: 'Failed to load KYC queue.' }
   }
 }

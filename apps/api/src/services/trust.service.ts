@@ -245,7 +245,7 @@ export async function getPendingReports(
   let query = supabase
     .from('reports')
     .select('*')
-    .eq('status', 'pending')
+    .in('status', ['open', 'in_review'])
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
 
@@ -264,6 +264,7 @@ export async function getPendingReports(
   const { data, error } = await query
 
   if (error) {
+    console.error('[trust.getPendingReports] supabase error:', error.message)
     throw new AppError('db-error', 500, 'Failed to fetch pending reports')
   }
 

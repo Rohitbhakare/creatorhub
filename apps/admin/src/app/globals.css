@@ -35,6 +35,30 @@
   --color-role-operations: #4B5563;
 }
 
+/* Dark mode — any ancestor with .dark redefines the tokens for its
+   subtree. The app-wide toggle lives in TopBar and wraps the root
+   layout via DarkModeShell. Palette restrained — greys + coral, no
+   saturated hues. */
+.dark {
+  --color-bg: #0F0F10;
+  --color-surface: #17181A;
+  --color-surface-muted: #1F2023;
+  --color-border: #2A2B2F;
+  --color-border-strong: #3A3B40;
+
+  --color-text: #F5F5F5;
+  --color-text-muted: #A8A8AE;
+  --color-text-subtle: #7A7A80;
+
+  --color-success: #4CAF73;
+  --color-warning: #E0A04A;
+  --color-error: #E56A5B;
+  --color-info: #6BA4E8;
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
 html,
 body {
   background-color: var(--color-bg);

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { AppShell } from '../components/AppShell'
 import { DashboardStats } from '../components/DashboardStats'
 import { serverFetch } from '../lib/server-api'
+import { relativeTime } from '../lib/time'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -31,17 +32,6 @@ async function loadSummary(): Promise<SummaryPayload | null> {
   } catch {
     return null
   }
-}
-
-function formatRelative(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime()
-  const mins = Math.round(diffMs / 60_000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${String(mins)} min ago`
-  const hrs = Math.round(mins / 60)
-  if (hrs < 24) return `${String(hrs)}h ago`
-  const days = Math.round(hrs / 24)
-  return `${String(days)}d ago`
 }
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {
@@ -120,7 +110,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                         className="text-xs shrink-0"
                         style={{ color: 'var(--color-text-subtle)' }}
                       >
-                        {formatRelative(row.created_at)}
+                        {relativeTime(row.created_at)}
                       </span>
                     </div>
                   ))

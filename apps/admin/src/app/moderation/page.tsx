@@ -1,50 +1,32 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { AppShell } from '../../components/AppShell'
 import { ReportTypeFilter } from '../../components/ReportTypeFilter'
 import {
   ModerationQueueList,
   type Report,
 } from '../../components/ModerationQueueList'
-import { API_INTERNAL_URL, ADMIN_SESSION_COOKIE } from '../../lib/env'
+import {
+  serverFetchList,
+  ApiRequestError,
+  type ListResult,
+} from '../../lib/server-api'
 
 export const metadata: Metadata = { title: 'Moderation queue' }
-
-interface ListEnvelope {
-  success: true
-  data: Report[]
-  meta: { next_cursor: string | null; has_more: boolean; per_page: number }
-}
 
 const VALID_TYPES = new Set(['content', 'user', 'comment', 'review'])
 
 async function loadInitial(
   type: string | null,
-): Promise<
-  { items: Report[]; nextCursor: string | null } | { error: string }
-> {
-  const jar = await cookies()
-  const token = jar.get(ADMIN_SESSION_COOKIE)?.value
-  const headers = new Headers()
-  if (token) headers.set('Cookie', `${ADMIN_SESSION_COOKIE}=${token}`)
-
+): Promise<ListResult<Report> | { error: string }> {
   const qs = new URLSearchParams({ limit: '25' })
   if (type !== null) qs.set('reported_type', type)
 
   try {
-    const res = await fetch(
-      `${API_INTERNAL_URL}/api/v1/admin/reports?${qs.toString()}`,
-      { headers, cache: 'no-store' },
+    return await serverFetchList<Report>(
+      `/api/v1/admin/reports?${qs.toString()}`,
     )
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as {
-        error?: { detail?: string }
-      } | null
-      return { error: body?.error?.detail ?? res.statusText }
-    }
-    const body = (await res.json()) as ListEnvelope
-    return { items: body.data, nextCursor: body.meta.next_cursor }
-  } catch {
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.message }
     return { error: 'Failed to load moderation queue.' }
   }
 }

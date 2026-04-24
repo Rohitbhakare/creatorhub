@@ -43,6 +43,28 @@ tags:
     description: Post content type — text + images, no booking, no KYC
   - name: Itineraries
     description: Self-paced itineraries — spot-based day builder, map-first
+  - name: Admin Auth
+    description: Admin login, logout, me, forced password change (session cookie)
+  - name: Admins
+    description: Admin user CRUD (super_admin only) — provision, role change, deactivate, reset
+  - name: Admin Users
+    description: User search, suspend, unsuspend, feature toggle (operator view)
+  - name: Admin Content
+    description: Content moderation — search, takedown, feature toggle
+  - name: Admin KYC
+    description: KYC queue, detail, approve, reject (PII-gated)
+  - name: Admin Bookings
+    description: Booking detail and refund processing (finance roles)
+  - name: Admin Payouts
+    description: Payout list, detail, force-release (finance roles)
+  - name: Admin Editorial
+    description: Editorial collections — CRUD + item ordering
+  - name: Admin Analytics
+    description: Search analytics — top queries, zero-results, CTR
+  - name: Admin Audit
+    description: Immutable audit log read access (cursor-paginated)
+  - name: Admin Dashboard
+    description: Operator home — stat tiles + recent audit preview
 
 # ─── PATHS ───────────────────────────────────────────────────
 paths:
@@ -1880,6 +1902,1013 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
 
+  # ═══════════════════════════════════════════════════════════════
+  # ADMIN PANEL (E4.1) — session-cookie auth
+  # ═══════════════════════════════════════════════════════════════
+  # Every admin path below is gated by `adminSession` unless marked
+  # `security: []`. The legacy `x-admin-secret` header is also
+  # accepted on `/api/v1/admin/*` routes until T23 retires it; the
+  # session cookie is the forward path. RFC 9457 problem details
+  # on every error. See HLD § 11 and docs/epics/E4.1-admin-custom/
+  # for context.
+
+  # ── Admin Auth ──────────────────────────────────────────────
+  /api/v1/admin/auth/login:
+    post:
+      operationId: adminLogin
+      tags: [Admin Auth]
+      summary: Admin sign-in with email + password
+      description: |
+        Verifies credentials against `admin_users.password_hash`
+        (bcrypt) and checks `is_active`. On success, issues a signed
+        JWT in the `ch_admin_session` HttpOnly+Secure+SameSite=Strict
+        cookie. Rate-limited to 10 req/min/IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginRequest"
+      responses:
+        "200":
+          description: Signed in; session cookie set
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: ch_admin_session=<jwt>; HttpOnly; Secure; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminProfile"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /api/v1/admin/auth/logout:
+    post:
+      operationId: adminLogout
+      tags: [Admin Auth]
+      summary: Clear the admin session cookie
+      description: |
+        Idempotent. Accepts missing or expired cookies and always
+        returns 204. The response clears `ch_admin_session` via
+        Set-Cookie with Max-Age=0.
+      security: []
+      responses:
+        "204":
+          description: Signed out (cookie cleared)
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: ch_admin_session=; Max-Age=0
+
+  /api/v1/admin/auth/me:
+    get:
+      operationId: adminMe
+      tags: [Admin Auth]
+      summary: Current signed-in admin profile
+      description: |
+        Tolerates `must_change_password=true` so the UI can render
+        `/change-password` before any other gated action. Rechecks
+        `is_active` — inactive sessions get 403.
+      security:
+        - adminSession: []
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminProfile"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/auth/change-password:
+    post:
+      operationId: adminChangePassword
+      tags: [Admin Auth]
+      summary: Change password (self)
+      description: |
+        Required on first sign-in (`must_change_password=true`) and
+        available to any admin at any time. New password must differ
+        from current and satisfy the policy: ≥12 chars, upper +
+        lower + digit + symbol. On success the session cookie is
+        re-issued; other sessions are not invalidated.
+      security:
+        - adminSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminChangePasswordRequest"
+      responses:
+        "204":
+          description: Password rotated; session re-issued
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  # ── Admins (super_admin only) ───────────────────────────────
+  /api/v1/admin/admins:
+    get:
+      operationId: listAdmins
+      tags: [Admins]
+      summary: List all admin users
+      description: Includes inactive rows. Sorted by created_at desc.
+      security:
+        - adminSession: []
+      responses:
+        "200":
+          description: Admin list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+    post:
+      operationId: createAdmin
+      tags: [Admins]
+      summary: Provision a new admin
+      description: |
+        Generates a one-time temporary password, bcrypts it, inserts
+        the row with `must_change_password=true`, and returns the
+        temp password in the response. The plaintext is shown **once**
+        and never persisted — super_admin must out-of-band this to
+        the new admin.
+      security:
+        - adminSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminRequest"
+      responses:
+        "201":
+          description: Admin created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-CreateAdminResult"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "409":
+          description: Email already belongs to another admin (active or inactive)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/admin/admins/{id}:
+    patch:
+      operationId: updateAdmin
+      tags: [Admins]
+      summary: Update admin role or is_active
+      description: |
+        At least one of `role` or `is_active` required. Demoting or
+        deactivating the last remaining super_admin returns 409
+        (`last_super_admin`, enforced by DB trigger).
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/adminId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminProfile"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Would demote / deactivate the last super_admin
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/admin/admins/{id}/reset-password:
+    post:
+      operationId: resetAdminPassword
+      tags: [Admins]
+      summary: Force-reset another admin's password
+      description: |
+        Generates a fresh one-time temp password, rotates the hash,
+        and flips `must_change_password=true`. Super_admins cannot
+        reset their own password via this endpoint (use
+        `/auth/change-password` instead) — attempting returns 403
+        (`cannot_self_reset`).
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/adminId"
+      responses:
+        "200":
+          description: Temp password issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-TempPassword"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Admin Users (support / content_moderator / super_admin) ─
+  /api/v1/admin/users/search:
+    get:
+      operationId: adminSearchUsers
+      tags: [Admin Users]
+      summary: Search users by phone, email, username, or handle
+      description: |
+        Partial match on `phone`, `email`, `username`, and `handle`.
+        Returns minimal summaries; open a detail page for full PII.
+      security:
+        - adminSession: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 100 }
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: User matches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminUserList"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/users/{userId}:
+    get:
+      operationId: adminGetUserDetail
+      tags: [Admin Users]
+      summary: Full user detail incl. suspension + KYC state
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminUserDetail"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/users/{userId}/suspend:
+    post:
+      operationId: adminSuspendUser
+      tags: [Admin Users]
+      summary: Suspend a user (reason required)
+      description: |
+        Flips `is_suspended=true`. Suspended users cannot publish,
+        book, or comment. Writes `user.suspend` to the audit log.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReasonRequest"
+      responses:
+        "204": { description: Suspended }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/users/{userId}/unsuspend:
+    post:
+      operationId: adminUnsuspendUser
+      tags: [Admin Users]
+      summary: Reverse a suspension (reason required)
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReasonRequest"
+      responses:
+        "204": { description: Unsuspended }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/users/{userId}/feature:
+    post:
+      operationId: adminFeatureUser
+      tags: [Admin Users]
+      summary: Flip is_featured on a creator profile
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureToggleRequest"
+      responses:
+        "204": { description: Featured }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/users/{userId}/unfeature:
+    post:
+      operationId: adminUnfeatureUser
+      tags: [Admin Users]
+      summary: Clear is_featured on a creator profile
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureToggleRequest"
+      responses:
+        "204": { description: Unfeatured }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Admin Content (content_moderator / super_admin) ─────────
+  /api/v1/admin/content/search:
+    get:
+      operationId: adminSearchContent
+      tags: [Admin Content]
+      summary: Search published + draft content across all creators
+      description: |
+        Full-text on title + description. Used by the collection
+        editor's item picker and by moderation triage. Includes the
+        creator's username hydrated bulk-fanout.
+      security:
+        - adminSession: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 100 }
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [post, itinerary, experience, event]
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Content matches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminContentList"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/content/{contentId}:
+    get:
+      operationId: adminGetContentDetail
+      tags: [Admin Content]
+      summary: Full content detail for moderation view
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "200":
+          description: Content detail (moderator view)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminContentDetail"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/content/{contentId}/takedown:
+    post:
+      operationId: adminTakedownContent
+      tags: [Admin Content]
+      summary: Remove content from all public surfaces
+      description: |
+        Sets `status=removed` (soft delete). If the content is a
+        paid experience with live bookings, triggers refunds for
+        all non-attended bookings.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReasonRequest"
+      responses:
+        "204": { description: Taken down }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/content/{contentId}/feature:
+    post:
+      operationId: adminFeatureContent
+      tags: [Admin Content]
+      summary: Flip is_featured on content
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureToggleRequest"
+      responses:
+        "204": { description: Featured }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/content/{contentId}/unfeature:
+    post:
+      operationId: adminUnfeatureContent
+      tags: [Admin Content]
+      summary: Clear is_featured on content
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/contentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureToggleRequest"
+      responses:
+        "204": { description: Unfeatured }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Admin KYC (support / super_admin) ───────────────────────
+  /api/v1/admin/kyc:
+    get:
+      operationId: adminListPendingKyc
+      tags: [Admin KYC]
+      summary: KYC queue (pending submissions, FIFO)
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Pending KYC submissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-KycQueue"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/kyc/{userId}:
+    get:
+      operationId: adminGetKycSubmission
+      tags: [Admin KYC]
+      summary: Full KYC submission with signed document URLs
+      description: |
+        Signed URLs for PAN, Aadhaar (masked), and selfie. URLs
+        expire 10 min after issue. Logs the read to `admin_audit_log`
+        for PII traceability (KYC-FR-032).
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: KYC submission detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-KycSubmission"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/kyc/{userId}/approve:
+    post:
+      operationId: adminApproveKyc
+      tags: [Admin KYC]
+      summary: Approve a KYC submission
+      description: |
+        Flips the user's `kyc_status` to `verified`, fires an FCM
+        notification, and opens paid-content gates.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureToggleRequest"
+      responses:
+        "204": { description: Approved }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/kyc/{userId}/reject:
+    post:
+      operationId: adminRejectKyc
+      tags: [Admin KYC]
+      summary: Reject a KYC submission (reason shown to creator)
+      description: |
+        The reason is surfaced verbatim to the creator in the
+        rejection notification — write actionable text.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReasonRequest"
+      responses:
+        "204": { description: Rejected }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Admin Bookings (finance / super_admin) ──────────────────
+  /api/v1/admin/bookings/{bookingId}:
+    get:
+      operationId: adminGetBookingDetail
+      tags: [Admin Bookings]
+      summary: Full booking detail incl. payout + refund state
+      security:
+        - adminSession: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Booking detail (admin view)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminBookingDetail"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/bookings/{bookingId}/refund:
+    post:
+      operationId: adminProcessRefund
+      tags: [Admin Bookings]
+      summary: Process a full, partial, or goodwill refund
+      description: |
+        Calls Razorpay refund API, updates booking + payout states,
+        audit-logs `booking.refund`.
+      security:
+        - adminSession: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminRefundRequest"
+      responses:
+        "200":
+          description: Refund queued with Razorpay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-RefundResult"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Booking state does not allow refund
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Admin Payouts (finance / super_admin) ───────────────────
+  /api/v1/admin/payouts:
+    get:
+      operationId: adminListPayouts
+      tags: [Admin Payouts]
+      summary: List payouts with filter + cursor pagination
+      security:
+        - adminSession: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, processing, completed, failed]
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Payout list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminPayoutList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/payouts/{payoutId}:
+    get:
+      operationId: adminGetPayoutDetail
+      tags: [Admin Payouts]
+      summary: Full payout detail incl. bank, booking, state machine
+      security:
+        - adminSession: []
+      parameters:
+        - name: payoutId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Payout detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminPayoutDetail"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/payouts/release:
+    post:
+      operationId: adminForceReleasePayout
+      tags: [Admin Payouts]
+      summary: Force-release a payout bypassing the dispute window
+      description: |
+        Sends the payout to Razorpay immediately. Irreversible once
+        Razorpay accepts. Requires `payout_id` + `reason` (min 20
+        chars including ticket ID).
+      security:
+        - adminSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForceReleasePayoutRequest"
+      responses:
+        "200":
+          description: Release accepted by Razorpay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AdminPayoutDetail"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Payout state does not allow release
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  # ── Admin Editorial (content_moderator / super_admin) ───────
+  /api/v1/admin/collections:
+    get:
+      operationId: adminListCollections
+      tags: [Admin Editorial]
+      summary: List editorial collections
+      description: Sorted by priority desc, updated_at desc.
+      security:
+        - adminSession: []
+      responses:
+        "200":
+          description: Collections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-CollectionList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+    post:
+      operationId: adminCreateCollection
+      tags: [Admin Editorial]
+      summary: Create a new collection
+      security:
+        - adminSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCollectionRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-Collection"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "409":
+          description: Slug already in use
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/admin/collections/{id}:
+    get:
+      operationId: adminGetCollection
+      tags: [Admin Editorial]
+      summary: Full collection incl. ordered items
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/collectionId"
+      responses:
+        "200":
+          description: Collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-Collection"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      operationId: adminUpdateCollection
+      tags: [Admin Editorial]
+      summary: Update slug / title / subtitle / priority / items / is_active
+      description: |
+        Passing `content_ids` replaces the ordered item list wholesale
+        (used by the up/down reorder buttons on the editor page).
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/collectionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCollectionRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-Collection"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Slug collision on rename
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+    delete:
+      operationId: adminDeleteCollection
+      tags: [Admin Editorial]
+      summary: Hard-delete a collection (items cascade)
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/collectionId"
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/collections/{id}/items:
+    post:
+      operationId: adminAppendCollectionItem
+      tags: [Admin Editorial]
+      summary: Append a content item to a collection
+      description: |
+        Appends to the end of the ordered list. Use
+        `PATCH /collections/{id}` with a full `content_ids` array to
+        reorder or insert mid-list.
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/collectionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppendCollectionItemRequest"
+      responses:
+        "200":
+          description: Appended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-Collection"
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Content already in the collection, or collection is at 200-item cap
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /api/v1/admin/collections/{id}/items/{contentId}:
+    delete:
+      operationId: adminRemoveCollectionItem
+      tags: [Admin Editorial]
+      summary: Remove one content item from a collection
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/collectionId"
+        - $ref: "#/components/parameters/contentId"
+      responses:
+        "204": { description: Removed }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ── Admin Analytics (all admin roles, read-only) ────────────
+  /api/v1/admin/analytics/search/top:
+    get:
+      operationId: adminSearchAnalyticsTop
+      tags: [Admin Analytics]
+      summary: Top search queries by volume
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/analyticsWindow"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Top queries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-TopQueries"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/analytics/search/zero-results:
+    get:
+      operationId: adminSearchAnalyticsZero
+      tags: [Admin Analytics]
+      summary: Queries that returned no results, ranked by volume
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/analyticsWindow"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Zero-result queries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-TopQueries"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  /api/v1/admin/analytics/search/ctr:
+    get:
+      operationId: adminSearchAnalyticsCtr
+      tags: [Admin Analytics]
+      summary: Click-through rate per top query
+      security:
+        - adminSession: []
+      parameters:
+        - $ref: "#/components/parameters/analyticsWindow"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: CTR per query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-CtrQueries"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  # ── Admin Audit (all admin roles, self-scoped unless super) ─
+  /api/v1/admin/audit-log:
+    get:
+      operationId: adminGetAuditLog
+      tags: [Admin Audit]
+      summary: Read the admin audit log (cursor-paginated)
+      description: |
+        Super_admins see all rows. Non-super_admins see only their
+        own rows. Optional filters on `admin_id`, `action`,
+        `target_type`.
+      security:
+        - adminSession: []
+      parameters:
+        - name: admin_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: action
+          in: query
+          schema: { type: string, maxLength: 60 }
+        - name: target_type
+          in: query
+          schema: { type: string, maxLength: 30 }
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-AuditList"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
+  # ── Admin Dashboard (all admin roles) ───────────────────────
+  /api/v1/admin/dashboard/summary:
+    get:
+      operationId: adminDashboardSummary
+      tags: [Admin Dashboard]
+      summary: Stat tiles + recent audit preview for the home page
+      security:
+        - adminSession: []
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-DashboardSummary"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+
 # ─── COMPONENTS ──────────────────────────────────────────────
 components:
 
@@ -1890,6 +2919,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Firebase ID token or app session token
+
+    adminSession:
+      type: apiKey
+      in: cookie
+      name: ch_admin_session
+      description: |
+        Signed JWT, 8 h rolling expiry, HttpOnly + Secure +
+        SameSite=Strict. Issued by `/api/v1/admin/auth/login`; every
+        gated request re-checks the row's `is_active` and `role`
+        server-side.
 
   # ── Parameters ──────────────────────────────────────────────
   parameters:
@@ -1941,6 +2980,30 @@ components:
         minimum: 1
         maximum: 50
 
+    adminId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    collectionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    analyticsWindow:
+      name: window
+      in: query
+      schema:
+        type: string
+        enum: [7d, 30d]
+        default: 7d
+
   # ── Reusable Responses ──────────────────────────────────────
   responses:
     Unauthorized:
@@ -1978,6 +3041,16 @@ components:
           schema:
             type: integer
           description: Seconds until rate limit resets
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    AdminForbidden:
+      description: |
+        Admin session is valid but the row lacks the required role,
+        `is_active=false`, or the action is blocked (e.g.
+        `cannot_self_reset`, `last_super_admin`).
       content:
         application/problem+json:
           schema:
@@ -3461,3 +4534,570 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DiscoverCreator"
+
+    # ═══════════════════════════════════════════════════════════
+    # ADMIN PANEL (E4.1) schemas
+    # ═══════════════════════════════════════════════════════════
+
+    AdminRole:
+      type: string
+      enum: [super_admin, content_moderator, support, finance, operations]
+
+    AdminProfile:
+      type: object
+      required: [id, email, full_name, role, is_active, must_change_password, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        full_name: { type: string }
+        role: { $ref: "#/components/schemas/AdminRole" }
+        is_active: { type: boolean }
+        must_change_password: { type: boolean }
+        last_login_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    AdminLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 128 }
+
+    AdminChangePasswordRequest:
+      type: object
+      required: [current_password, new_password]
+      properties:
+        current_password: { type: string, minLength: 1, maxLength: 128 }
+        new_password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          description: Must include lower + upper + digit + symbol, and differ from current.
+
+    CreateAdminRequest:
+      type: object
+      required: [email, full_name, role]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        full_name: { type: string, minLength: 2, maxLength: 100 }
+        role: { $ref: "#/components/schemas/AdminRole" }
+
+    UpdateAdminRequest:
+      type: object
+      description: At least one of `role` / `is_active` must be provided.
+      properties:
+        role: { $ref: "#/components/schemas/AdminRole" }
+        is_active: { type: boolean }
+
+    CreateAdminResult:
+      type: object
+      required: [admin, temp_password]
+      properties:
+        admin: { $ref: "#/components/schemas/AdminProfile" }
+        temp_password:
+          type: string
+          description: One-time plaintext. Shown once, never persisted, never returned again.
+
+    TempPasswordResult:
+      type: object
+      required: [temp_password]
+      properties:
+        temp_password: { type: string }
+
+    ReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 500
+
+    FeatureToggleRequest:
+      type: object
+      properties:
+        reason: { type: string, minLength: 3, maxLength: 500 }
+
+    ForceReleasePayoutRequest:
+      type: object
+      required: [payout_id, reason]
+      properties:
+        payout_id: { type: string, format: uuid }
+        reason: { type: string, minLength: 3, maxLength: 500 }
+
+    AdminRefundRequest:
+      type: object
+      required: [amount_paisa, reason, refund_type]
+      properties:
+        amount_paisa: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 20, maxLength: 500 }
+        refund_type:
+          type: string
+          enum: [full, partial, goodwill]
+
+    RefundResult:
+      type: object
+      required: [refund_id, status, amount_paisa]
+      properties:
+        refund_id: { type: string }
+        status:
+          type: string
+          enum: [queued, processed, failed]
+        amount_paisa: { type: integer }
+        razorpay_refund_id: { type: string, nullable: true }
+
+    AdminUserSummary:
+      type: object
+      required: [id, username, handle, phone, is_suspended, kyc_status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        handle: { type: string }
+        full_name: { type: string, nullable: true }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string }
+        is_suspended: { type: boolean }
+        is_featured: { type: boolean }
+        kyc_status:
+          type: string
+          enum: [none, pending, verified, rejected]
+        created_at: { type: string, format: date-time }
+
+    AdminUserDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminUserSummary"
+        - type: object
+          properties:
+            is_creator: { type: boolean }
+            bio: { type: string, nullable: true }
+            avatar_url: { type: string, nullable: true }
+            suspension_reason: { type: string, nullable: true }
+            suspended_at: { type: string, format: date-time, nullable: true }
+            content_counts:
+              type: object
+              properties:
+                posts: { type: integer }
+                itineraries: { type: integer }
+                experiences: { type: integer }
+                events: { type: integer }
+            booking_counts:
+              type: object
+              properties:
+                as_buyer: { type: integer }
+                as_creator: { type: integer }
+
+    AdminContentSummary:
+      type: object
+      required: [id, type, title, status, creator_id, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [post, itinerary, experience, event]
+        title: { type: string }
+        status:
+          type: string
+          enum: [draft, published, unpublished, removed]
+        creator_id: { type: string, format: uuid }
+        creator_username: { type: string, nullable: true }
+        is_featured: { type: boolean }
+        cover_image_url: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    AdminContentDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminContentSummary"
+        - type: object
+          properties:
+            description: { type: string, nullable: true }
+            price_paisa: { type: integer, nullable: true }
+            report_count: { type: integer }
+            takedown_reason: { type: string, nullable: true }
+            takedown_at: { type: string, format: date-time, nullable: true }
+
+    KycSubmissionSummary:
+      type: object
+      required: [user_id, full_name, submitted_at, status]
+      properties:
+        user_id: { type: string, format: uuid }
+        full_name: { type: string }
+        submitted_at: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [pending, verified, rejected]
+
+    KycSubmission:
+      allOf:
+        - $ref: "#/components/schemas/KycSubmissionSummary"
+        - type: object
+          required: [pan_number_masked, aadhaar_last4, bank_ifsc, bank_account_last4]
+          properties:
+            pan_number_masked: { type: string }
+            aadhaar_last4: { type: string }
+            bank_name: { type: string }
+            bank_ifsc: { type: string }
+            bank_account_last4: { type: string }
+            documents:
+              type: object
+              required: [pan_url, aadhaar_url, selfie_url, expires_at]
+              properties:
+                pan_url: { type: string, format: uri }
+                aadhaar_url: { type: string, format: uri }
+                selfie_url: { type: string, format: uri }
+                expires_at: { type: string, format: date-time }
+
+    AdminBookingDetail:
+      type: object
+      required: [id, status, amount_paisa, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        buyer_id: { type: string, format: uuid }
+        buyer_username: { type: string }
+        creator_id: { type: string, format: uuid }
+        creator_username: { type: string }
+        content_id: { type: string, format: uuid }
+        content_title: { type: string }
+        status:
+          type: string
+          enum: [pending, confirmed, attended, cancelled, refunded]
+        amount_paisa: { type: integer }
+        platform_fee_paisa: { type: integer }
+        gst_paisa: { type: integer }
+        creator_net_paisa: { type: integer }
+        razorpay_payment_id: { type: string, nullable: true }
+        payout_id: { type: string, format: uuid, nullable: true }
+        refund_id: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    AdminPayoutSummary:
+      type: object
+      required: [id, status, amount_paisa, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        creator_id: { type: string, format: uuid }
+        creator_username: { type: string, nullable: true }
+        booking_id: { type: string, format: uuid, nullable: true }
+        status:
+          type: string
+          enum: [scheduled, processing, completed, failed]
+        amount_paisa: { type: integer }
+        tds_paisa: { type: integer }
+        release_at: { type: string, format: date-time, nullable: true }
+        processed_at: { type: string, format: date-time, nullable: true }
+        failure_reason: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    AdminPayoutDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminPayoutSummary"
+        - type: object
+          properties:
+            bank_name: { type: string, nullable: true }
+            bank_ifsc: { type: string, nullable: true }
+            bank_account_last4: { type: string, nullable: true }
+            razorpay_payout_id: { type: string, nullable: true }
+            razorpay_transfer_id: { type: string, nullable: true }
+            booking:
+              $ref: "#/components/schemas/AdminBookingDetail"
+              nullable: true
+
+    Collection:
+      type: object
+      required: [id, slug, title, priority, is_active, source, items, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        title: { type: string }
+        subtitle: { type: string, nullable: true }
+        cover_image_url: { type: string, format: uri, nullable: true }
+        priority: { type: integer, minimum: 0, maximum: 1000 }
+        is_active: { type: boolean }
+        source:
+          type: string
+          enum: [algorithmic, manual]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminContentSummary"
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateCollectionRequest:
+      type: object
+      required: [slug, title]
+      properties:
+        slug:
+          type: string
+          minLength: 3
+          maxLength: 60
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        title: { type: string, minLength: 3, maxLength: 100 }
+        subtitle: { type: string, maxLength: 200 }
+        cover_image_url: { type: string, format: uri }
+        priority: { type: integer, minimum: 0, maximum: 1000, default: 0 }
+        source:
+          type: string
+          enum: [algorithmic, manual]
+          default: manual
+        content_ids:
+          type: array
+          items: { type: string, format: uuid }
+          maxItems: 200
+          default: []
+
+    UpdateCollectionRequest:
+      type: object
+      description: At least one field required.
+      properties:
+        slug:
+          type: string
+          minLength: 3
+          maxLength: 60
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        title: { type: string, minLength: 3, maxLength: 100 }
+        subtitle: { type: string, maxLength: 200, nullable: true }
+        cover_image_url: { type: string, format: uri, nullable: true }
+        is_active: { type: boolean }
+        priority: { type: integer, minimum: 0, maximum: 1000 }
+        content_ids:
+          type: array
+          items: { type: string, format: uuid }
+          maxItems: 200
+
+    AppendCollectionItemRequest:
+      type: object
+      required: [content_id]
+      properties:
+        content_id: { type: string, format: uuid }
+
+    QueryVolumeRow:
+      type: object
+      required: [query, count]
+      properties:
+        query: { type: string }
+        count: { type: integer }
+
+    CtrRow:
+      type: object
+      required: [query, searches, clicks, ctr]
+      properties:
+        query: { type: string }
+        searches: { type: integer }
+        clicks: { type: integer }
+        ctr: { type: number, format: float }
+
+    AuditEntry:
+      type: object
+      required: [id, admin_id, action, target_type, target_id, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        admin_id: { type: string, format: uuid }
+        admin_email: { type: string, format: email, nullable: true }
+        action: { type: string }
+        target_type: { type: string }
+        target_id: { type: string, format: uuid, nullable: true }
+        reason: { type: string, nullable: true }
+        details: { type: object, additionalProperties: true, nullable: true }
+        ip_address: { type: string, nullable: true }
+        user_agent: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    PaginationMeta:
+      type: object
+      properties:
+        next_cursor: { type: string, nullable: true }
+
+    DashboardSummary:
+      type: object
+      required:
+        [
+          users_24h,
+          kyc_pending,
+          reports_open,
+          payouts_scheduled,
+          refunds_pending,
+          revenue_7d_paisa,
+          recent_audit,
+        ]
+      properties:
+        users_24h: { type: integer }
+        kyc_pending: { type: integer }
+        reports_open: { type: integer }
+        payouts_scheduled: { type: integer }
+        refunds_pending: { type: integer }
+        revenue_7d_paisa: { type: integer }
+        recent_audit:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditEntry"
+
+    # ── Admin envelopes ─────────────────────────────────────────
+    SuccessResponse-AdminProfile:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/AdminProfile" }
+
+    SuccessResponse-AdminList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminProfile"
+
+    SuccessResponse-CreateAdminResult:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/CreateAdminResult" }
+
+    SuccessResponse-TempPassword:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/TempPasswordResult" }
+
+    SuccessResponse-AdminUserList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUserSummary"
+
+    SuccessResponse-AdminUserDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/AdminUserDetail" }
+
+    SuccessResponse-AdminContentList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminContentSummary"
+
+    SuccessResponse-AdminContentDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/AdminContentDetail" }
+
+    SuccessResponse-KycQueue:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/KycSubmissionSummary"
+        meta: { $ref: "#/components/schemas/PaginationMeta" }
+
+    SuccessResponse-KycSubmission:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/KycSubmission" }
+
+    SuccessResponse-AdminBookingDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/AdminBookingDetail" }
+
+    SuccessResponse-RefundResult:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/RefundResult" }
+
+    SuccessResponse-AdminPayoutList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminPayoutSummary"
+        meta: { $ref: "#/components/schemas/PaginationMeta" }
+
+    SuccessResponse-AdminPayoutDetail:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/AdminPayoutDetail" }
+
+    SuccessResponse-CollectionList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collection"
+
+    SuccessResponse-Collection:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/Collection" }
+
+    SuccessResponse-TopQueries:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/QueryVolumeRow"
+
+    SuccessResponse-CtrQueries:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CtrRow"
+
+    SuccessResponse-AuditList:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditEntry"
+        meta: { $ref: "#/components/schemas/PaginationMeta" }
+
+    SuccessResponse-DashboardSummary:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: { $ref: "#/components/schemas/DashboardSummary" }

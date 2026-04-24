@@ -197,8 +197,11 @@ export async function getTdsInfo(bookingId: string, creatorId: string): Promise<
     throw new AppError('forbidden', 403, 'You do not have access to this booking')
   }
 
-  // Fetch financials, content, creator info, and KYC in parallel
-  const [financialsResult, contentResult, creatorResult, kycResult] = await Promise.all([
+  // Fetch financials, content, and creator info in parallel.
+  // PAN-on-file is intentionally not fetched: schema keeps only
+  // `pan_number_hash`, so the TDS certificate exposes `pan: null`
+  // until a secure plaintext path is added.
+  const [financialsResult, contentResult, creatorResult] = await Promise.all([
     supabase
       .from('booking_financials')
       .select('base_price_paisa, tds_paisa, creator_payout_paisa')
@@ -216,12 +219,6 @@ export async function getTdsInfo(bookingId: string, creatorId: string): Promise<
       .select('display_name, kyc_status')
       .eq('id', creatorId)
       .single(),
-
-    supabase
-      .from('kyc_submissions')
-      .select('pan_number, status')
-      .eq('user_id', creatorId)
-      .maybeSingle(),
   ])
 
   if (!financialsResult.data) {
@@ -234,13 +231,8 @@ export async function getTdsInfo(bookingId: string, creatorId: string): Promise<
   const fin = financialsResult.data as Row
   const content = (contentResult.data as Row | null) ?? {}
   const creator = creatorResult.data as Row
-  const kyc = (kycResult.data as Row | null)
 
-  // PAN only returned when KYC is verified
-  let pan: string | null = null
-  if (kyc && kyc['status'] === 'verified' && kyc['pan_number']) {
-    pan = kyc['pan_number'] as string
-  }
+  const pan: string | null = null
 
   return {
     creatorName: (creator['display_name'] as string) ?? '',

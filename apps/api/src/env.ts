@@ -56,6 +56,15 @@ const envSchema = z.object({
   // Tax — GSTIN of CreatorHub (for buyer invoices)
   CREATORHUB_GSTIN: z.string().optional(),
 
+  // KYC — 32-byte hex key used to AES-256-GCM encrypt bank account
+  // numbers before insert into `kyc_submissions.bank_account_number_encrypted`.
+  // Optional in dev (falls back to a zero key so local inserts succeed)
+  // but MUST be set in production.
+  KYC_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'KYC_ENCRYPTION_KEY must be 64 hex chars (32 bytes)')
+    .optional(),
+
   // Observability — optional everywhere
   SENTRY_DSN: z.string().url().optional(),
 })

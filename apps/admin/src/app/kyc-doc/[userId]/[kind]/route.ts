@@ -12,12 +12,13 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { serverFetch, ApiRequestError } from '../../../../lib/server-api'
 
-const VALID_KINDS = new Set(['selfie', 'pan', 'aadhaar'])
+const VALID_KINDS = new Set(['selfie', 'pan', 'aadhaar-front', 'aadhaar-back'])
 
 interface KycSubmission {
   selfie_url: string
-  pan_doc_url: string
-  aadhaar_doc_url: string | null
+  pan_photo_url: string
+  aadhaar_front_url: string
+  aadhaar_back_url: string
 }
 
 export async function GET(
@@ -28,7 +29,7 @@ export async function GET(
 
   if (!VALID_KINDS.has(kind)) {
     return NextResponse.json(
-      { error: { type: 'validation-failed', title: 'Invalid kind', status: 400, detail: 'kind must be selfie, pan, or aadhaar' } },
+      { error: { type: 'validation-failed', title: 'Invalid kind', status: 400, detail: 'kind must be selfie, pan, aadhaar-front, or aadhaar-back' } },
       { status: 400 },
     )
   }
@@ -55,10 +56,12 @@ export async function GET(
     kind === 'selfie'
       ? submission.selfie_url
       : kind === 'pan'
-        ? submission.pan_doc_url
-        : submission.aadhaar_doc_url
+        ? submission.pan_photo_url
+        : kind === 'aadhaar-front'
+          ? submission.aadhaar_front_url
+          : submission.aadhaar_back_url
 
-  if (url === null || url.length === 0) {
+  if (!url || url.length === 0) {
     return NextResponse.json(
       { error: { type: 'not-found', title: 'Document missing', status: 404, detail: `No ${kind} document on this submission` } },
       { status: 404 },

@@ -555,3 +555,158 @@ Firebase Phone OTP → Firebase JWT → Hono verifyIdToken → App Session
 | ADR-008 | Cursor pagination, not offset | Stable with concurrent inserts, required for infinite scroll |
 | ADR-009 | Fly.io over Railway/Render | Closest to AWS in simplicity, good cold start, global edge |
 | ADR-010 | Vercel for Next.js | Free tier sufficient for MVP, zero-config SSR deployment |
+| ADR-011 | Custom Next.js admin over Retool | First-party UX, same-origin cookies, full audit coverage, matches design system |
+
+---
+
+## 11. Admin panel (E4.1)
+
+A custom Next.js 15 App Router admin console at
+`admin.creatorhub.in`. Replaces the earlier Retool surface (E2.8)
+which spoke to the same Hono API via a shared `x-admin-secret`
+header. E4.1 adds a session-cookie auth model and migrates every
+endpoint; the secret bypass stays live for a 2-week cutover window
+and is removed by T23.
+
+### 11.1 Deployment topology
+
+```
+Browser (admin user)
+     │
+     │  HTTPS, first-party cookie (ch_admin_session, HttpOnly+Secure+SameSite=Strict)
+     ▼
+┌──────────────────────────────┐
+│  Fly.io: creatorhub-admin    │      Same 6PN network + public URL
+│  Next.js 15 (standalone)     │  →   ┌──────────────────────────────┐
+│  region=bom, 512mb           │      │  Fly.io: creatorhub-api      │
+│                              │      │  Hono 4, region=bom, 256mb   │
+│  - Edge middleware (cookie   │      │                              │
+│    presence gate)            │      │  - adminAuth.routes          │
+│  - /api/proxy/[...path]      │─────▶│  - admins.routes             │
+│    catch-all → Hono          │      │  - admin.routes (legacy,     │
+│  - Server components call    │      │    dualAdminAuth)            │
+│    Hono directly via         │      │  - editorial.routes          │
+│    serverFetch()             │      │  - search-analytics.routes   │
+│  - /healthz (public)         │      │  - dashboard.routes          │
+└──────────────────────────────┘      └──────────────────────────────┘
+```
+
+Both apps live on Fly.io in the `bom` region with shared networking
+but separate public URLs. The admin app never speaks to Supabase or
+Firebase directly — every operation is an authenticated call to the
+Hono API.
+
+### 11.2 Auth model
+
+1. **Login:** `POST /api/v1/admin/auth/login` verifies an email +
+   password against `admin_users.password_hash` (bcrypt, cost 12),
+   checks `is_active`, and sets a signed JWT in the
+   `ch_admin_session` cookie. Cookie scope:
+   - `HttpOnly` — no JS access
+   - `Secure` — HTTPS only
+   - `SameSite=Strict` — no cross-site leak
+   - 8-hour expiry, rolling
+   - Signed with `ADMIN_SESSION_SECRET` (64-byte random, rotated
+     per incident or quarterly).
+
+2. **Every request:** `requireAdminRole([roles])` middleware
+   re-reads `admin_users` by ID from the JWT, re-checks
+   `is_active`, and confirms the row's `role` is in the allow list.
+   **JWT claims are not trusted** as the authoritative source for
+   role/active — the DB is. A deactivated admin's next request
+   fails regardless of token expiry.
+
+3. **Dual-auth (transitional, T5–T23):** legacy `x-admin-secret`
+   header still authorizes the `/api/v1/admin/*` surface (minus
+   session-only paths: `/auth`, `/admins`, `/collections`,
+   `/analytics/search`, `/dashboard`). Retool keeps working while
+   ops teams re-train on the new UI. T23 deletes the
+   `dualAdminAuth` middleware and the secret.
+
+4. **Role matrix:**
+
+   | Role | Surface |
+   |------|---------|
+   | `super_admin` | Everything incl. `/admins` |
+   | `content_moderator` | Content takedown, collections, featuring, user suspend |
+   | `support` | Users, KYC |
+   | `finance` | Bookings, refunds, payouts |
+   | `operations` | Read-only dashboard / audit / analytics |
+
+### 11.3 Data flow — same-origin proxy
+
+The browser never calls the Hono API directly. All client-side
+requests go through the Next.js catch-all proxy:
+
+```
+Browser  ──fetch('/api/proxy/admin/users/search')──▶  Next.js route handler
+                                                        │
+                                                        │ forwards:
+                                                        │   - method, body
+                                                        │   - Cookie header
+                                                        │
+                                                        ▼
+                                                    Hono API
+                                                        │
+                                                        │ response +
+                                                        │ Set-Cookie (relayed)
+                                                        ▼
+                                                    Next.js → browser
+```
+
+This keeps the cookie first-party (no `SameSite=None`), lets the
+Hono API be the sole source of truth for cookie issuance, and
+avoids CORS entirely on hot paths.
+
+**Server components** bypass the proxy and call Hono via
+`serverFetch()` — it reads the incoming `Cookie` header from the
+Next.js request context and forwards it unchanged. This gives SSR
+pages access to the API without a double hop.
+
+### 11.4 Audit log
+
+Every state-changing admin action writes one row to
+`admin_audit_log` via a fire-and-forget `recordAdminAudit()` call
+after the DB transaction commits. Failed audit writes log to
+Sentry but never fail the parent request — the mutation is the
+contract, the audit is the breadcrumb.
+
+Schema:
+
+```sql
+admin_audit_log (
+  id             uuid pk,
+  admin_id       uuid fk → admin_users.id,
+  action         text,       -- e.g. 'user.suspend', 'content.takedown'
+  target_type    text,       -- 'user', 'content', 'booking', ...
+  target_id      uuid,
+  reason         text,       -- required for destructive actions
+  details        jsonb,      -- before/after diff
+  created_at     timestamptz default now(),
+  ip_address     inet,
+  user_agent     text
+)
+```
+
+Cursor pagination (base64url of `{createdAt, id}`) via
+`GET /api/v1/admin/audit-log`. Non-super_admins see only their
+own rows (server-side scoping in `getAuditLog()`); super_admins see
+everything.
+
+### 11.5 Session secret rotation
+
+`ADMIN_SESSION_SECRET` can be rotated via
+`fly secrets set ADMIN_SESSION_SECRET=<new> --app creatorhub-admin`.
+Rotating invalidates **all** live admin sessions (no support for
+dual-key verification yet). Quarterly rotation is policy; on-
+incident rotation is expected if any admin session is suspected
+compromised.
+
+### 11.6 Deploy + runbook
+
+- Provisioning, DNS, secrets: [E4.1 DEPLOY.md](../epics/E4.1-admin-custom/DEPLOY.md)
+- Day-to-day playbooks: [E4.1 RUNBOOK.md](../epics/E4.1-admin-custom/RUNBOOK.md)
+- Endpoint contracts: tags `Admin Auth`, `Admins`, `Admin Users`,
+  `Admin Content`, `Admin KYC`, `Admin Bookings`, `Admin Payouts`,
+  `Admin Editorial`, `Admin Analytics`, `Admin Audit`,
+  `Admin Dashboard` in [openapi.yaml](openapi.yaml).
