@@ -158,32 +158,36 @@ class _ContentCardState extends ConsumerState<ContentCard> {
   }
 
   // ── Cover (4:5 portrait, three overlays) ────────────────────────
-  // Outer card Container handles clip/radius; cover renders flush.
   Widget _cover() {
-    final ratio = widget.variant == ContentCardVariant.grid ? 1.0 : 4.0 / 5.0;
-    return AspectRatio(
-      aspectRatio: ratio,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          _coverImage(),
-          Positioned(
-            top: 8,
-            left: 8,
-            child: _CategoryTag(label: _categoryLabel),
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: _SaveToggle(contentId: widget.item.id),
-          ),
-          if (widget.item.pricePaisa > 0)
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(10),
+        bottomRight: Radius.circular(10),
+      ),
+      child: AspectRatio(
+        aspectRatio: 4.0 / 5.0,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _coverImage(),
             Positioned(
-              bottom: 8,
-              right: 8,
-              child: _PriceBadge(pricePaisa: widget.item.pricePaisa),
+              top: 8,
+              left: 8,
+              child: _CategoryTag(label: _categoryLabel),
             ),
-        ],
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _SaveToggle(contentId: widget.item.id),
+            ),
+            if (widget.item.pricePaisa > 0)
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: _PriceBadge(pricePaisa: widget.item.pricePaisa),
+              ),
+          ],
+        ),
       ),
     );
   }
