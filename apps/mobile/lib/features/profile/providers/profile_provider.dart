@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../booking/providers/booking_provider.dart';
+import '../../saved/providers/saved_provider.dart';
 
 // ─── Profile Completion ────────────────────────────────────────
 
@@ -93,6 +95,39 @@ class PublicProfile {
     );
   }
 }
+
+// ─── You Tab Stats ─────────────────────────────────────────────
+
+class YouStats {
+  final int savedItemCount;
+  final int upcomingBookingsCount;
+  final int completedBookingsCount;
+
+  const YouStats({
+    required this.savedItemCount,
+    required this.upcomingBookingsCount,
+    required this.completedBookingsCount,
+  });
+}
+
+final youStatsProvider = FutureProvider.autoDispose<YouStats>((ref) async {
+  final savedState = ref.watch(savedListsProvider);
+  final bookings = await ref.watch(userBookingsProvider.future);
+
+  final savedCount = savedState.lists.fold<int>(0, (sum, l) => sum + l.itemCount);
+  final upcoming = bookings
+      .where((b) => b.status == 'confirmed' || b.status == 'pending_payment')
+      .length;
+  final completed = bookings.where((b) => b.status == 'completed').length;
+
+  return YouStats(
+    savedItemCount: savedCount,
+    upcomingBookingsCount: upcoming,
+    completedBookingsCount: completed,
+  );
+});
+
+// ─── Public Profile ────────────────────────────────────────────
 
 final publicProfileProvider =
     FutureProvider.autoDispose.family<PublicProfile, String>((ref, userId) async {

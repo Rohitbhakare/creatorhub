@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../shared/theme/colors.dart';
 import '../providers/wizard_provider.dart';
 
 class CreateTileSpec {
@@ -52,10 +51,10 @@ const List<CreateTileSpec> kCreateTiles = [
   CreateTileSpec(
     contentType: ContentType.scheduledExperience,
     title: 'Experience',
-    descriptor: 'Lead a paid tour. Arriving soon.',
-    iconFill: Color(0xFFF3F3F3),
-    iconForeground: AppColors.inkSoft,
+    descriptor: 'Lead a paid, guided tour or walk',
+    iconFill: Color(0xFFF3EAFF),
+    iconForeground: Color(0xFF6B21A8),
     icon: PhosphorIconsRegular.compass,
-    comingSoon: true,
+    comingSoon: false,
   ),
 ];
