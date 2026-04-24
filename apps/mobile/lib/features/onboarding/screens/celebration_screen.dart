@@ -39,14 +39,23 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
     final dio = ref.read(authServiceProvider).dio;
     final onboarding = ref.read(onboardingProvider);
     try {
-      // Re-push verticals + city in case earlier steps silently failed —
+      // Re-push city + verticals in case earlier steps silently failed —
       // otherwise `/onboarding/complete` 422s and the router loops us back.
+      final cityId = onboarding.selectedCityId;
+      if (cityId != null && cityId.isNotEmpty) {
+        try {
+          await dio.put('/api/v1/onboarding/city',
+              data: {'city_id': cityId});
+        } on DioException {
+          // Tolerate — complete will surface the real error below.
+        }
+      }
       if (onboarding.selectedVerticals.length >= 3) {
         try {
           await dio.put('/api/v1/onboarding/verticals',
               data: {'verticals': onboarding.selectedVerticals});
         } on DioException {
-          // Tolerate — complete will surface a clearer error if prereq missing.
+          // Tolerate.
         }
       }
       await dio.post('/api/v1/onboarding/complete');

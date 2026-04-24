@@ -142,7 +142,13 @@ void main() {
         'Continue is disabled until a city is selected, enabled after tapping a chip',
         (tester) async {
       await _setPhoneSize(tester);
-      final container = _buildContainer(_CitiesAdapter(const []));
+      // Chip tap resolves to a real city_id via /cities search — the fake id
+      // the chip used to pass directly ("goa") 404'd on setUserCity and
+      // locked users out of the feed.
+      final adapter = _CitiesAdapter(const [
+        {'id': 'in.ga.goa', 'name': 'Goa', 'state': 'GA'},
+      ]);
+      final container = _buildContainer(adapter);
       addTearDown(container.dispose);
 
       await tester.pumpWidget(_wrap(container));
@@ -159,11 +165,9 @@ void main() {
       await tester.pumpAndSettle();
 
       final state = container.read(onboardingProvider);
-      expect(state.selectedCityId, 'goa');
+      expect(state.selectedCityId, 'in.ga.goa');
       expect(state.selectedCityName, 'Goa');
-      // canAdvance is evaluated against the onboarding state machine's
-      // *current* step, which is 1 (profile) by default in this container.
-      // What we're testing here is that selecting a chip updates the city.
+      expect(adapter.getCalls, greaterThan(0));
     });
 
     testWidgets('search field hits /cities API after the debounce',

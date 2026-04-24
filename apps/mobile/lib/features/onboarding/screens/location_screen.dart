@@ -85,11 +85,36 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     });
   }
 
-  void _selectPopularCity(_PopularCity c) {
-    HapticFeedback.selectionClick();
-    // Use name as a stable local id; server-side the city lookup will resolve.
-    ref.read(onboardingProvider.notifier).setCity(c.name.toLowerCase(), c.name);
+  Future<void> _selectPopularCity(_PopularCity c) async {
+    unawaited(HapticFeedback.selectionClick());
     _searchCtrl.text = c.name;
+    // Resolve the chip to a real city_id via the search endpoint —
+    // without this, setUserCity 404s and onboarding can never complete.
+    try {
+      final dio = ref.read(authServiceProvider).dio;
+      final response = await dio.get('/api/v1/cities',
+          queryParameters: {'q': c.name, 'limit': 5});
+      final data = response.data as Map<String, dynamic>;
+      final cities =
+          (data['data'] as List<dynamic>).cast<Map<String, dynamic>>();
+      final match = cities.firstWhere(
+        (r) => (r['name'] as String?)?.toLowerCase() == c.name.toLowerCase(),
+        orElse: () => cities.isNotEmpty ? cities.first : <String, dynamic>{},
+      );
+      final id = match['id'] as String?;
+      if (id == null || id.isEmpty) throw Exception('city_not_found');
+      final name = (match['name'] as String?) ?? c.name;
+      if (!mounted) return;
+      ref.read(onboardingProvider.notifier).setCity(id, name);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Couldn't load ${c.name}. Try search instead."),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _selectSearchCity(Map<String, dynamic> city) {
@@ -107,15 +132,27 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     if (cityId == null || cityId.isEmpty) return;
 
     setState(() => _isSaving = true);
+    var saved = false;
     try {
       final dio = ref.read(authServiceProvider).dio;
       await dio.put('/api/v1/onboarding/city', data: {'city_id': cityId});
+      saved = true;
     } catch (_) {
-      // Non-fatal: local state still advances for offline-friendly UX.
+      // Don't advance — without a persisted city, completeOnboarding 422s
+      // and the router loops the user back to /onboarding/profile.
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
     if (!mounted) return;
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Couldn't save your city. Try again."),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     await HapticFeedback.lightImpact();
     if (!mounted) return;
     ref.read(onboardingProvider.notifier).advanceStep();
@@ -297,7 +334,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       children: _popular.map((c) {
         final selected = selectedName.toLowerCase() == c.name.toLowerCase();
         return GestureDetector(
-          onTap: () => _selectPopularCity(c),
+          onTap: () => unawaited(_selectPopularCity(c)),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
