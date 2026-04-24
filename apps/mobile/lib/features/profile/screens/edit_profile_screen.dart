@@ -177,11 +177,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
+  static final _emailRe = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$');
+
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Display name is required')),
+      );
+      return;
+    }
+
+    final email = _emailController.text.trim();
+    if (email.isNotEmpty && !_emailRe.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid email address')),
       );
       return;
     }
@@ -198,7 +208,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final bio = _bioController.text.trim();
       if (bio != (user?['bio'] as String? ?? '')) body['bio'] = bio;
 
-      final email = _emailController.text.trim();
       if (email.isNotEmpty && email != (user?['email'] as String? ?? '')) body['email'] = email;
 
       if (body.isEmpty) {
