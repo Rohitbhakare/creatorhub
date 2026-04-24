@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-24 (Session fixes: notifications crash, share button, content card row 2, post detail redesign, discover redesign, coralOutline button; M1 pending items documented)
+> Last updated: 2026-04-24 (You tab complete rebuild; Experience unblocked; DPDPA migration 021 deployed — consent_logs + deletion_requests tables created)
 
 ---
 
@@ -431,6 +431,9 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | E1.2/FEAT-001 | Posts | Enhancement | Post detail screen full redesign: `PageView` image carousel with animated dot indicators, share+save icon overlay on hero image, meta row (clock · map pin · date above title), creator header with 2-line subtitle (posts · followers · writing for N months) + `coralOutline` Follow button. `post.service.ts` extended with `follower_count`, `post_count`, `joined_at` via parallel Supabase queries. | `DONE` | — |
 | E1.7/FEAT-001 | Social | Enhancement | Engagement bar simplified to like count + comment count only (outlined `PhosphorIcons.heart` / `chatCircle`; filled when active). Share/save removed from bar — moved to post detail hero image overlay. `_ShareOptionsSheet`, WhatsApp share, and copy-link removed from bar. | `DONE` | — |
 | E1.7/FEAT-002 | Social | Enhancement | Content card meta row changed from chip pill style (`_ContextChip` / `_ContextChipsRow`) to icon + text format (`_MetaItem` / `_MetaRow`) — dot-separated inline items, muted color, no pill background. Type-specific icons (mapPin, clock, leaf, users, tag). | `DONE` | — |
+| E2.11/BUG-001 | DPDPA | Bug | `GET /api/v1/dpdpa/consent` + `GET /api/v1/dpdpa/deletion/status` → 500 in prod. Root cause: `consent_logs` and `deletion_requests` tables never migrated. Fixed: migration `021_dpdpa_legal.sql` written and deployed via Supabase CLI. | `FIXED` | P1 |
+| PRF/FEAT-001 | Profile | Enhancement | You tab (G1 wireframe) full rebuild: header bar, profile hero with inline Edit+Share buttons, 2×2 stats grid (Saved/Bookings/Completed/Following) via `youStatsProvider`, account rows (Creator profile, Connected accounts, Notifications, My bookings, Payouts, Privacy & data), Sign Out at bottom. | `DONE` | — |
+| CRE/FEAT-001 | Content | Enhancement | Experience tile in Create sheet unblocked — `comingSoon: false`. Tile colour updated to purple palette. Descriptor copy updated. | `DONE` | — |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
 
