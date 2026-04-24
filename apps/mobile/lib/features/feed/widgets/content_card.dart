@@ -110,7 +110,7 @@ class _ContentCardState extends ConsumerState<ContentCard> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           _cover(),
           Padding(
