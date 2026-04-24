@@ -24,15 +24,18 @@ class VerticalPickerScreen extends ConsumerStatefulWidget {
 }
 
 class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
+  // Slugs must match `VERTICALS` in packages/shared/src/constants/index.ts.
+  // Divergence here means the API drops unknown slugs and 422s with "At
+  // least 3 verticals required" — which traps users in the onboarding loop.
   final _cats = const <_Cat>[
     _Cat('travel', 'Travel', _mountains),
+    _Cat('stories', 'Stories', _bookOpen),
     _Cat('food', 'Food', _forkKnife),
-    _Cat('culture', 'Culture', _bookOpen),
-    _Cat('adventure', 'Adventure', _barbell),
-    _Cat('wildlife', 'Wildlife', _sun),
-    _Cat('music', 'Music', _musicNotes),
+    _Cat('fitness', 'Fitness', _barbell),
+    _Cat('education', 'Education', _graduationCap),
     _Cat('photography', 'Photography', _camera),
-    _Cat('learning', 'Learning', _graduationCap),
+    _Cat('music', 'Music', _musicNotes),
+    _Cat('wellness', 'Wellness', _heart),
   ];
 
   final Set<String> _selected = {};
@@ -216,10 +219,10 @@ IconData _mountains() => PhosphorIcons.mountains();
 IconData _forkKnife() => PhosphorIcons.forkKnife();
 IconData _bookOpen() => PhosphorIcons.bookOpen();
 IconData _barbell() => PhosphorIcons.barbell();
-IconData _sun() => PhosphorIcons.sun();
 IconData _musicNotes() => PhosphorIcons.musicNotes();
 IconData _camera() => PhosphorIcons.camera();
 IconData _graduationCap() => PhosphorIcons.graduationCap();
+IconData _heart() => PhosphorIcons.heart();
 
 class _Tile extends StatelessWidget {
   final _Cat cat;

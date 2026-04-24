@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,30 +40,47 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
     final dio = ref.read(authServiceProvider).dio;
     final onboarding = ref.read(onboardingProvider);
     try {
-      // Re-push city + verticals in case earlier steps silently failed —
-      // otherwise `/onboarding/complete` 422s and the router loops us back.
       final cityId = onboarding.selectedCityId;
       if (cityId != null && cityId.isNotEmpty) {
         try {
           await dio.put('/api/v1/onboarding/city',
               data: {'city_id': cityId});
-        } on DioException {
-          // Tolerate — complete will surface the real error below.
+        } on DioException catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Onboarding] city push failed: '
+                '${e.response?.statusCode} ${e.response?.data}');
+          }
         }
       }
       if (onboarding.selectedVerticals.length >= 3) {
         try {
           await dio.put('/api/v1/onboarding/verticals',
               data: {'verticals': onboarding.selectedVerticals});
-        } on DioException {
-          // Tolerate.
+        } on DioException catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Onboarding] verticals push failed: '
+                '${e.response?.statusCode} ${e.response?.data}');
+          }
         }
       }
       await dio.post('/api/v1/onboarding/complete');
       ref.read(onboardingProvider.notifier).completeOnboarding();
       await _refreshMe();
-    } catch (_) {
-      // Non-fatal: _openFeed re-verifies before navigating.
+      if (kDebugMode) {
+        final u = ref.read(authProvider).user;
+        debugPrint('[Onboarding] complete OK — '
+            'onboarding_completed_at=${u?['onboarding_completed_at']}');
+      }
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        debugPrint('[Onboarding] complete FAILED: '
+            '${e.response?.statusCode} ${e.response?.data} '
+            'city=${onboarding.selectedCityId} '
+            'verticals=${onboarding.selectedVerticals} '
+            'follows=${onboarding.followedCreatorIds.length}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Onboarding] unexpected: $e');
     }
   }
 

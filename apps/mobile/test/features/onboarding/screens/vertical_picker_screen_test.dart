@@ -49,15 +49,16 @@ void main() {
       expect(find.text('What pulls you in?'), findsOneWidget);
       expect(find.textContaining('Pick at least 3'), findsOneWidget);
 
+      // Must match API VERTICALS whitelist (packages/shared/src/constants).
       for (final name in [
         'Travel',
+        'Stories',
         'Food',
-        'Culture',
-        'Adventure',
-        'Wildlife',
-        'Music',
+        'Fitness',
+        'Education',
         'Photography',
-        'Learning',
+        'Music',
+        'Wellness',
       ]) {
         expect(find.text(name), findsOneWidget, reason: 'category $name');
       }
