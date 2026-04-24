@@ -4,11 +4,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../shared/theme/colors.dart';
 import '../shared/theme/typography.dart';
 
-/// 5-tab bottom navigation shell (SRS C-28, supersedes DD-029 styling).
+/// 5-tab bottom navigation shell.
 ///
-/// Tabs: Home · Discover · Create (FAB) · Studio · You.
-/// Active non-FAB tabs render a coral-tint pill behind the icon + coral label.
-/// Centre Create slot is a 52dp coral FAB with coral-tinted glow.
+/// Tabs: Home · Discover · Create · Saved · You.
+/// Active tabs render a coral-tint pill behind the icon + coral label.
 /// Bar sits on `surface` with a soft upward top-edge shadow.
 class MainShell extends StatelessWidget {
   final int currentIndex;
@@ -56,14 +55,19 @@ class MainShell extends StatelessWidget {
                   isActive: currentIndex == 1,
                   onTap: () => _handleTap(1),
                 ),
-                _CreateFab(
-                  key: const ValueKey('nav_fab_create'),
+                _TabItem(
+                  icon: PhosphorIcons.plusCircle(PhosphorIconsStyle.regular),
+                  activeIcon: PhosphorIcons.plusCircle(PhosphorIconsStyle.fill),
+                  label: 'Create',
+                  isActive: currentIndex == 2,
                   onTap: () => _handleTap(2),
                 ),
                 _TabItem(
-                  icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.regular),
-                  activeIcon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
-                  label: 'Studio',
+                  icon:
+                      PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
+                  activeIcon:
+                      PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
+                  label: 'Saved',
                   isActive: currentIndex == 3,
                   onTap: () => _handleTap(3),
                 ),
@@ -138,40 +142,6 @@ class _TabItem extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CreateFab extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _CreateFab({super.key, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 72,
-      child: Center(
-        child: GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: const BoxDecoration(
-              color: AppColors.coral,
-              shape: BoxShape.circle,
-              boxShadow: AppColors.fabGlowShadow,
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              PhosphorIcons.plus(PhosphorIconsStyle.bold),
-              size: 24,
-              color: AppColors.surface,
-            ),
-          ),
         ),
       ),
     );

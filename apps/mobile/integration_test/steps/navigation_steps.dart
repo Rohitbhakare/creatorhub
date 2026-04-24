@@ -7,7 +7,7 @@ import 'package:creatorhub/features/feed/screens/home_feed_screen.dart';
 // ── Tab navigation ────────────────────────────────────────────────
 
 /// Tap a bottom nav tab by its visible label.
-/// Labels: "Home", "Search", "Studio", "You".
+/// Labels: "Home", "Discover", "Create", "Saved", "You".
 /// Maps to: "When I tap the {string} tab".
 ///
 /// Uses $.tester.tap with bounded pump instead of $(label).tap() / pumpAndSettle.
@@ -22,17 +22,10 @@ Future<void> whenITapTheTab(PatrolIntegrationTester $, String tabLabel) async {
   await $.tester.pump(const Duration(milliseconds: 500));
 }
 
-/// Tap the Create+ tab (the raised coral FAB in the centre of the nav bar).
-///
-/// Post-E0.4c: the FAB has no text label — only a plus icon. It's keyed as
-/// 'nav_fab_create' in production so tests can target it stably.
+/// Tap the Create tab (flat tab, plus-circle icon).
 /// Maps to: "When I tap the Create+ tab".
 Future<void> whenITapTheCreateTab(PatrolIntegrationTester $) async {
-  await $.tester.tap(
-    find.byKey(const ValueKey('nav_fab_create')),
-    warnIfMissed: false,
-  );
-  await $.tester.pump(const Duration(milliseconds: 500));
+  await whenITapTheTab($, 'Create');
 }
 
 // ── Back navigation ───────────────────────────────────────────────

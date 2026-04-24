@@ -158,17 +158,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MainShell(
             currentIndex: navigationShell.currentIndex,
             child: navigationShell,
-            onTabTap: (index) {
-              if (index == 2) {
-                // Create+ tab — navigate to content picker instead of tab switch
-                context.push('/content/create');
-                return;
-              }
-              navigationShell.goBranch(
-                index > 2 ? index - 1 : index, // Adjust for Create+ not being a real branch
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
+            onTabTap: (index) => navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            ),
           );
         },
         branches: [
@@ -181,7 +174,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Tab 1: Search
+          // Tab 1: Discover
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -190,16 +183,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Tab 3: Studio (index 2 in branches, but tab index 3 — Create+ is virtual)
+          // Tab 2: Create — content-type picker
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/studio',
-                builder: (context, state) => const StudioTabScreen(),
+                path: '/create',
+                builder: (context, state) => const ContentTypePickerScreen(),
               ),
             ],
           ),
-          // Tab 4: You (index 3 in branches)
+          // Tab 3: Saved
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/saved',
+                builder: (context, state) => const SavedListsScreen(),
+              ),
+            ],
+          ),
+          // Tab 4: You
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -291,11 +293,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NotificationPreferencesScreen(),
       ),
 
-      // Saved lists
-      GoRoute(
-        path: '/saved',
-        builder: (context, state) => const SavedListsScreen(),
-      ),
+      // Saved list detail (list itself is a shell-tab branch)
       GoRoute(
         path: '/saved/:listId',
         builder: (context, state) => SavedListDetailScreen(
@@ -303,7 +301,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Studio → Earnings
+      // Studio (push-only — not a tab; creators enter from You tab
+      // or deep-links from KYC approval)
+      GoRoute(
+        path: '/studio',
+        builder: (context, state) => const StudioTabScreen(),
+      ),
       GoRoute(
         path: '/studio/earnings',
         builder: (context, state) => const EarningsScreen(),

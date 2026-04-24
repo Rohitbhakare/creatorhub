@@ -33,6 +33,7 @@ class YouTabScreen extends ConsumerWidget {
 
     final user = ref.watch(authProvider.select((s) => s.user));
     final completionAsync = ref.watch(profileCompletionProvider);
+    final isCreator = user?['is_creator'] as bool? ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -57,9 +58,10 @@ class YouTabScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _SettingsCard(
+                  isCreator: isCreator,
                   onEditProfile: () => context.push('/profile/edit'),
+                  onStudio: () => context.push('/studio'),
                   onNotifications: () => context.push('/notifications/preferences'),
-                  onSaved: () => context.push('/saved'),
                   onPrivacy: () => context.push('/privacy-settings'),
                   onSignOut: () => _confirmSignOut(context, ref),
                 ),
@@ -260,22 +262,27 @@ class _CompletionCard extends StatelessWidget {
 // ─── Settings Card ────────────────────────────────────────────────
 
 class _SettingsCard extends StatelessWidget {
+  final bool isCreator;
   final VoidCallback onEditProfile;
+  final VoidCallback onStudio;
   final VoidCallback onNotifications;
-  final VoidCallback onSaved;
   final VoidCallback onPrivacy;
   final VoidCallback onSignOut;
 
   const _SettingsCard({
+    required this.isCreator,
     required this.onEditProfile,
+    required this.onStudio,
     required this.onNotifications,
-    required this.onSaved,
     required this.onPrivacy,
     required this.onSignOut,
   });
 
   @override
   Widget build(BuildContext context) {
+    const divider =
+        Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -290,31 +297,33 @@ class _SettingsCard extends StatelessWidget {
             label: 'Edit Profile',
             onTap: onEditProfile,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
+          if (isCreator) ...[
+            divider,
+            _SettingsRow(
+              icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.regular),
+              label: 'Studio',
+              onTap: onStudio,
+            ),
+          ],
+          divider,
           _SettingsRow(
             icon: PhosphorIcons.bell(PhosphorIconsStyle.regular),
             label: 'Notifications',
             onTap: onNotifications,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
-          _SettingsRow(
-            icon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
-            label: 'Saved',
-            onTap: onSaved,
-          ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
+          divider,
           _SettingsRow(
             icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.regular),
             label: 'Privacy & Data',
             onTap: onPrivacy,
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
+          divider,
           _SettingsRow(
             icon: PhosphorIcons.question(PhosphorIconsStyle.regular),
             label: 'Help',
             onTap: () {},
           ),
-          const Divider(height: 0.5, thickness: 0.5, color: AppColors.hairline, indent: 48),
+          divider,
           _SettingsRow(
             icon: PhosphorIcons.signOut(PhosphorIconsStyle.regular),
             label: 'Sign Out',

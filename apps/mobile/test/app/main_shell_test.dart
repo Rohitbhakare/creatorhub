@@ -16,7 +16,7 @@ Widget _wrap(int currentIndex, void Function(int) onTabTap) {
 }
 
 void main() {
-  group('MainShell — SRS C-28 bottom navigation v2', () {
+  group('MainShell — 5-tab bottom navigation', () {
     testWidgets('bar sits on surface with top-edge shadow', (tester) async {
       await tester.pumpWidget(_wrap(0, (_) {}));
 
@@ -39,11 +39,10 @@ void main() {
       );
     });
 
-    testWidgets('active non-FAB tab renders coral-tint pill + coral label',
+    testWidgets('active tab renders coral-tint pill + coral label',
         (tester) async {
       await tester.pumpWidget(_wrap(0, (_) {}));
 
-      // Active Home tab: icon container with primaryTint background.
       final homeIconFinder =
           find.byIcon(PhosphorIcons.house(PhosphorIconsStyle.fill));
       expect(homeIconFinder, findsOneWidget);
@@ -54,7 +53,6 @@ void main() {
       final decoration = homeContainer.decoration as BoxDecoration;
       expect(decoration.color, AppColors.primaryTint);
 
-      // Active label is coral.
       final label = tester.widget<Text>(find.text('Home'));
       expect(label.style?.color, AppColors.coral);
     });
@@ -66,44 +64,26 @@ void main() {
       expect(discoverLabel.style?.color, AppColors.inkMuted);
     });
 
-    testWidgets('centre Create slot is a 52dp coral FAB with glow',
+    testWidgets('renders 5 tabs: Home · Discover · Create · Saved · You',
         (tester) async {
       await tester.pumpWidget(_wrap(0, (_) {}));
 
-      final fabIcon = find.byIcon(PhosphorIcons.plus(PhosphorIconsStyle.bold));
-      expect(fabIcon, findsOneWidget);
-
-      final fabContainer = tester.firstWidget<Container>(
-        find.ancestor(of: fabIcon, matching: find.byType(Container)),
-      );
-      expect(fabContainer.constraints?.maxWidth, 52);
-      expect(fabContainer.constraints?.maxHeight, 52);
-
-      final decoration = fabContainer.decoration as BoxDecoration;
-      expect(decoration.color, AppColors.coral);
-      expect(decoration.shape, BoxShape.circle);
-      expect(decoration.boxShadow, AppColors.fabGlowShadow);
+      for (final label in ['Home', 'Discover', 'Create', 'Saved', 'You']) {
+        expect(find.text(label), findsOneWidget, reason: 'expected $label tab');
+      }
     });
 
     testWidgets('tap on a tab fires onTabTap with its index', (tester) async {
       final taps = <int>[];
       await tester.pumpWidget(_wrap(0, taps.add));
 
-      await tester.tap(find.text('Studio'));
+      await tester.tap(find.text('Discover'));
+      await tester.tap(find.text('Create'));
+      await tester.tap(find.text('Saved'));
       await tester.tap(find.text('You'));
       await tester.pumpAndSettle();
 
-      expect(taps, [3, 4]);
-    });
-
-    testWidgets('create FAB tap fires index 2', (tester) async {
-      final taps = <int>[];
-      await tester.pumpWidget(_wrap(0, taps.add));
-
-      await tester.tap(find.byIcon(PhosphorIcons.plus(PhosphorIconsStyle.bold)));
-      await tester.pumpAndSettle();
-
-      expect(taps, [2]);
+      expect(taps, [1, 2, 3, 4]);
     });
   });
 }
