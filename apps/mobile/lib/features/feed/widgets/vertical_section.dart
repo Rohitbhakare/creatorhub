@@ -34,30 +34,31 @@ class VerticalSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(
-              eyebrow: eyebrow,
-              title: sectionTitle,
-              onSeeAll: () => context.push(
-                '/feed/vertical/$vertical',
-                extra: {'title': sectionTitle},
+            if (eyebrow.isNotEmpty || sectionTitle.isNotEmpty)
+              SectionHeader(
+                eyebrow: eyebrow,
+                title: sectionTitle,
+                onSeeAll: () => context.push(
+                  '/feed/vertical/$vertical',
+                  extra: {'title': sectionTitle},
+                ),
               ),
-            ),
             SizedBox(
-              height: 260,
+              height: 334,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                clipBehavior: Clip.none,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, i) => ContentCard(
                   item: items[i],
                   variant: ContentCardVariant.rail,
-                  railWidth: 180,
+                  railWidth: 170,
                   onTap: () => openFeedItem(context, items[i]),
                 ),
               ),
             ),
-            const SizedBox(height: 28),
           ],
         );
       },
@@ -88,21 +89,33 @@ class _VerticalSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 260,
+          height: 334,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: 3,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (_, _) => Container(
-              width: 180,
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(14))),
-              child: const SkeletonRect(height: 180),
+            itemBuilder: (_, _) => const SizedBox(
+              width: 170,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 170,
+                    height: 212,
+                    child: SkeletonRect(borderRadius: 12),
+                  ),
+                  SizedBox(height: 8),
+                  SkeletonLine(height: 13),
+                  SizedBox(height: 6),
+                  SkeletonLine(width: 100, height: 11),
+                  SizedBox(height: 6),
+                  SkeletonLine(width: 130, height: 20),
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 28),
       ],
     );
   }

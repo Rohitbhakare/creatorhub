@@ -65,6 +65,10 @@ const envSchema = z.object({
     .regex(/^[0-9a-fA-F]{64}$/, 'KYC_ENCRYPTION_KEY must be 64 hex chars (32 bytes)')
     .optional(),
 
+  // PostHog — optional everywhere; no-op when absent (ANL-FR-001)
+  POSTHOG_API_KEY: z.string().min(1).optional(),
+  POSTHOG_HOST: z.string().url().default('https://app.posthog.com'),
+
   // Observability — optional everywhere
   SENTRY_DSN: z.string().url().optional(),
 })

@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-19 (M0 test backfill: E0.3 + E0.4 + E0.5 — 58 new API tests, 91 new Flutter tests)
+> Last updated: 2026-04-24 (Session fixes: notifications crash, share button, content card row 2, post detail redesign, discover redesign, coralOutline button; M1 pending items documented)
 
 ---
 
@@ -420,8 +420,33 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | E0.5/BUG-002 | Auth/Onboarding | Bug | Auth emulator tokens rejected by API (`FIREBASE_AUTH_EMULATOR_HOST` missing) | `FIXED` | P0 |
 | E0.5/FEAT-001 | Onboarding | Enhancement | Popular cities 3x3 grid with landmark icons (NOT IN SRS — founder-directed) | `OPEN` | — |
 | E0.3/BUG-003 | Auth | Bug | iOS simulator crash: `PhoneAuthProvider.swift:109` nil unwrap — native SDK reCAPTCHA needs `CLIENT_ID` missing from `GoogleService-Info.plist`. Workaround: emulator REST API bypass in debug mode | `WORKAROUND` | P0 |
+| E1.9/BUG-001 | Notifications | Bug | Notifications screen crash — `Container` had both `color:` and `decoration:` in `_DndSection` + `_QuietHoursRow`; Flutter assertion throws on this combination. Fixed: moved `color` inside `BoxDecoration`. | `FIXED` | P0 |
+| E1.7/BUG-001 | Social | Bug | Share button did nothing — `MethodChannel('creatorhub/share')` was never wired in iOS native. Fixed: replaced with `share_plus` package (`Share.share(text, subject:)` static API); opens native iOS `UIActivityViewController`. | `FIXED` | P1 |
+| E1.2/BUG-001 | Posts | Bug | Share button fires 3× on fast taps — no debounce on async `shareNative()` call in post detail hero. Fixed: `bool _isSharing` guard in `_HeroCarouselState`. | `FIXED` | P2 |
+| E1.5/BUG-001 | Feed | Bug | Content card row 2 empty on itineraries/stories — chip row only rendered when tags present; seed data has no tags/duration. Fixed: replaced chip pills with icon+text `_MetaItem` format; added type-based fallback (e.g. "📖 Itinerary") so row is never empty. | `FIXED` | P2 |
+| E1.5/FEAT-001 | Feed | Enhancement | Bell icon in home feed top bar wired to `/notifications/preferences` route via GoRouter `context.push`. | `DONE` | — |
+| E1.5/FEAT-002 | Feed/Discover | Enhancement | Discover creators section moved above "Themes this week" section in Discover tab slivers. | `DONE` | — |
+| E1.5/FEAT-003 | Feed/Discover | Enhancement | Creator chip redesigned — width 100→120, bold name (w700), follower count shown, height 186. Follow button uses `coralOutline` variant. API: `discover.service.ts` + `DiscoverCreator` model extended with `follower_count`. | `DONE` | — |
+| E0.4/FEAT-001 | Design System | Enhancement | `AppButtonVariant.coralOutline` added to shared `AppButton` — coral border (1.5px) + coral text; disabled state uses 40% alpha. Used for all Follow buttons platform-wide. | `DONE` | — |
+| E1.2/FEAT-001 | Posts | Enhancement | Post detail screen full redesign: `PageView` image carousel with animated dot indicators, share+save icon overlay on hero image, meta row (clock · map pin · date above title), creator header with 2-line subtitle (posts · followers · writing for N months) + `coralOutline` Follow button. `post.service.ts` extended with `follower_count`, `post_count`, `joined_at` via parallel Supabase queries. | `DONE` | — |
+| E1.7/FEAT-001 | Social | Enhancement | Engagement bar simplified to like count + comment count only (outlined `PhosphorIcons.heart` / `chatCircle`; filled when active). Share/save removed from bar — moved to post detail hero image overlay. `_ShareOptionsSheet`, WhatsApp share, and copy-link removed from bar. | `DONE` | — |
+| E1.7/FEAT-002 | Social | Enhancement | Content card meta row changed from chip pill style (`_ContextChip` / `_ContextChipsRow`) to icon + text format (`_MetaItem` / `_MetaRow`) — dot-separated inline items, muted color, no pill background. Type-specific icons (mapPin, clock, leaf, users, tag). | `DONE` | — |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
+
+---
+
+## M1 Pending Items (SRS-committed, not yet built)
+
+Items tagged `[M1]` in SRS v1.2 that have no corresponding task in any DONE epic. Must be resolved before M1 gate is considered fully clean.
+
+| ID | SRS FR | Feature | Status | Notes |
+|----|--------|---------|--------|-------|
+| M1-PENDING-001 | IAM-FR-009, PROF-FR-008, PROF-FR-011–016 | Social account connect — Instagram + YouTube OAuth, profile photo import, sync status, subscriber delta tracking, disconnect flow, rate limiting, platform revocation link [DD-031 · LOCKED] | `ON HOLD` | Blocked on Instagram/YouTube OAuth app credentials from Meta/Google. |
+| M1-PENDING-002 | DISC-FR-003 | Category browse sub-screen — vertical chip → sub-category → leaf-type filter | `DONE` | `GET /discover/category`, `CategoryBrowseScreen`, sub-category + leaf type chip rails. Theme tile tap in Discover opens browse screen. Route `/discover/category/:vertical`. |
+| M1-PENDING-003 | DISC-FR-039 | Featured content / "Editor's picks" home feed section | `DONE` | `GET /feed/editors-picks`, `EditorPicksSection` widget (hidden when empty), `editorPicksProvider`. Inserted into For You tab between ranked feed and Travel section. |
+| M1-PENDING-004 | STUD-FR-004 | Studio tab Earnings card — KYC badge + pending payout + next payout date | `DONE` | `_EarningsInfoCard` redesigned: `_KycBadge` (green/amber/coral per status), pending payout amount, next transfer date from earliest scheduled payout. Uses `kycStatusProvider`. |
+| M1-PENDING-005 | ANL-FR-001 | PostHog event tracking | `DONE` | `posthog-node` installed. `posthog.ts` lib (no-op when `POSTHOG_API_KEY` absent). `analytics.service.ts` with named helpers. `020_analytics_events.sql` migration. `POST /api/v1/analytics/track` endpoint. `AnalyticsService` Flutter class. Instrumented: `content_published` (API), `content_viewed` (post detail), `creator_followed`, `content_shared`. |
 
 ---
 

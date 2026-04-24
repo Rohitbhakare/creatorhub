@@ -99,12 +99,20 @@ class WizardState {
   final String? subCategoryId;
   final List<String> tags;
   final String? startingCityId;
+  final String? startingCityName;
   final List<String> destinationCityIds;
   final String pricingModel;
   final int pricePaisa;
   final int dayCount;
   final List<MediaItem> media;
   final bool tncAccepted;
+
+  // Discoverability facets (PR 2 — stored on `content.facets` JSONB and
+  // sent on `PUT /api/v1/{itineraries,events,content}/:id`). All nullable
+  // — the creator may leave them unset.
+  final String? season;
+  final String? tripStyle;
+  final String? audience;
 
   const WizardState({
     this.contentId,
@@ -122,12 +130,16 @@ class WizardState {
     this.subCategoryId,
     this.tags = const [],
     this.startingCityId,
+    this.startingCityName,
     this.destinationCityIds = const [],
     this.pricingModel = 'free',
     this.pricePaisa = 0,
     this.dayCount = 1,
     this.media = const [],
     this.tncAccepted = false,
+    this.season,
+    this.tripStyle,
+    this.audience,
   });
 
   WizardState copyWith({
@@ -145,13 +157,25 @@ class WizardState {
     String? vertical,
     String? subCategoryId,
     List<String>? tags,
+    bool setStartingCityId = false,
     String? startingCityId,
+    bool setStartingCityName = false,
+    String? startingCityName,
     List<String>? destinationCityIds,
     String? pricingModel,
     int? pricePaisa,
     int? dayCount,
     List<MediaItem>? media,
     bool? tncAccepted,
+    // Facets use an explicit "set this field" flag so we can distinguish
+    // "clear to null" from "leave untouched" — the usual `x ?? this.x`
+    // dance would collapse those.
+    bool setSeason = false,
+    String? season,
+    bool setTripStyle = false,
+    String? tripStyle,
+    bool setAudience = false,
+    String? audience,
   }) {
     return WizardState(
       contentId: contentId ?? this.contentId,
@@ -168,13 +192,19 @@ class WizardState {
       vertical: vertical ?? this.vertical,
       subCategoryId: subCategoryId ?? this.subCategoryId,
       tags: tags ?? this.tags,
-      startingCityId: startingCityId ?? this.startingCityId,
+      startingCityId:
+          setStartingCityId ? startingCityId : this.startingCityId,
+      startingCityName:
+          setStartingCityName ? startingCityName : this.startingCityName,
       destinationCityIds: destinationCityIds ?? this.destinationCityIds,
       pricingModel: pricingModel ?? this.pricingModel,
       pricePaisa: pricePaisa ?? this.pricePaisa,
       dayCount: dayCount ?? this.dayCount,
       media: media ?? this.media,
       tncAccepted: tncAccepted ?? this.tncAccepted,
+      season: setSeason ? season : this.season,
+      tripStyle: setTripStyle ? tripStyle : this.tripStyle,
+      audience: setAudience ? audience : this.audience,
     );
   }
 
@@ -195,16 +225,18 @@ class WizardState {
   }
 
   List<String> get _postValidationErrors {
-    // Body is entered on step 1 (BasicsStep), not step 2. Step 2 is the
-    // media attachment step — images are optional (text-only posts are a
-    // first-class travel-story format), so step 2 has no blocking checks.
+    // Step 1 (Basics): title + optional description.
+    // Step 2 (Story + Media): body + optional photos + optional location.
+    //   Body is required; images/location are optional (text-only posts are
+    //   a first-class travel-story format).
     return switch (currentStep) {
       1 => [
           if (title.trim().isEmpty) 'Title is required',
           if (title.trim().length > 100) 'Title must be 100 characters or less',
-          if (body.trim().isEmpty) 'Post body is required',
         ],
-      2 => <String>[],
+      2 => [
+          if (body.trim().isEmpty) 'Tell your story before moving on',
+        ],
       3 => [
           if (!tncAccepted) 'Accept Terms & Conditions',
         ],
@@ -311,9 +343,23 @@ class WizardNotifier extends Notifier<WizardState> {
     state = state.copyWith(tags: value, isDirty: true, saveError: null);
   }
 
-  void setStartingCity(String cityId) {
+  void setStartingCity(String? cityId, {String? cityName}) {
     state = state.copyWith(
+      setStartingCityId: true,
       startingCityId: cityId,
+      setStartingCityName: true,
+      startingCityName: cityName,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void clearStartingCity() {
+    state = state.copyWith(
+      setStartingCityId: true,
+      startingCityId: null,
+      setStartingCityName: true,
+      startingCityName: null,
       isDirty: true,
       saveError: null,
     );
@@ -354,6 +400,35 @@ class WizardNotifier extends Notifier<WizardState> {
 
   void setTncAccepted(bool value) {
     state = state.copyWith(tncAccepted: value, isDirty: true, saveError: null);
+  }
+
+  // ── Discoverability facets (PR 2) ─────────────────────────
+
+  void setSeason(String? value) {
+    state = state.copyWith(
+      setSeason: true,
+      season: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setTripStyle(String? value) {
+    state = state.copyWith(
+      setTripStyle: true,
+      tripStyle: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setAudience(String? value) {
+    state = state.copyWith(
+      setAudience: true,
+      audience: value,
+      isDirty: true,
+      saveError: null,
+    );
   }
 
   // ── Media ──────────────────────────────────────────────────

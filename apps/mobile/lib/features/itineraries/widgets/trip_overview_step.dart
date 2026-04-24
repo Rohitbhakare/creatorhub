@@ -14,6 +14,7 @@ import '../../../shared/components/input.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../content/providers/wizard_provider.dart';
+import '../../content/widgets/discoverability_block.dart';
 import '../providers/itinerary_wizard_provider.dart';
 
 /// Trip Overview step (step 2 of 6 for itinerary wizard).
@@ -342,6 +343,19 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
                 ],
               ],
             ),
+          ),
+
+          // ── Discoverability (PR 2 — facets) ────────────────
+          const SizedBox(height: Spacing.xxl),
+          DiscoverabilityBlock(
+            season: wizard.season,
+            tripStyle: wizard.tripStyle,
+            audience: wizard.audience,
+            contentLabel: 'itinerary',
+            onSeasonChanged: ref.read(wizardProvider.notifier).setSeason,
+            onTripStyleChanged:
+                ref.read(wizardProvider.notifier).setTripStyle,
+            onAudienceChanged: ref.read(wizardProvider.notifier).setAudience,
           ),
           const SizedBox(height: Spacing.xxxl),
         ],

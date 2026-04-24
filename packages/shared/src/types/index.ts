@@ -1,4 +1,12 @@
-import type { Vertical, ContentType, ContentStatus } from '../constants/index.js'
+import type {
+  Vertical,
+  ContentType,
+  ContentStatus,
+  Season,
+  TripStyle,
+  Audience,
+  BudgetTier,
+} from '../constants/index.js'
 
 // ─── City ────────────────────────────────────────────────────
 export type City = {
@@ -73,6 +81,27 @@ export type ContentBase = {
   view_count: number
   created_at: string
   published_at: string | null
+}
+
+// ─── Discoverability facets ─────────────────────────────────
+// Stored on content.facets JSONB. Only itineraries/experiences/events
+// capture these today; posts/stories leave them null.
+export type ContentFacets = {
+  season?: Season | null
+  trip_style?: TripStyle | null
+  audience?: Audience | null
+}
+
+// Feed-card row-2 chip payload. Some fields are server-derived
+// (budget_tier from price_paisa, read_time_min from body, location_label
+// from cities join) and are never written back to the DB.
+export type FeedTags = {
+  season?: Season | null
+  trip_style?: TripStyle | null
+  audience?: Audience | null
+  budget_tier?: BudgetTier | null
+  read_time_min?: number | null
+  location_label?: string | null
 }
 
 // ─── Content Media ──────────────────────────────────────────

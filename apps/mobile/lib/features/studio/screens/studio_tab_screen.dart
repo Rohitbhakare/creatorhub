@@ -17,8 +17,8 @@ import '../../../shared/theme/typography.dart';
 import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/widgets/soft_auth_sheet.dart';
+import '../../kyc/providers/kyc_provider.dart';
 import '../providers/earnings_provider.dart';
-import '../providers/linked_account_provider.dart';
 import '../providers/studio_provider.dart';
 
 class StudioTabScreen extends ConsumerWidget {
@@ -855,24 +855,31 @@ class _ContentError extends StatelessWidget {
 
 // ── Earnings Entry Card ──────────────────────────────────────────────
 
+// ── STUD-FR-004: Earnings Card ────────────────────────────────────────
+
 class _EarningsInfoCard extends ConsumerWidget {
   const _EarningsInfoCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final earnings = ref.watch(earningsProvider);
-    final linkedAccount = ref.watch(linkedAccountProvider);
+    final kycAsync = ref.watch(kycStatusProvider);
 
     final totals = earnings.totals;
-    final hasAny = totals.pendingPaisa > 0 ||
-        totals.processingPaisa > 0 ||
-        totals.paidLast30dPaisa > 0;
+    final pendingPaisa = totals.pendingPaisa + totals.processingPaisa;
+    final hasPending = pendingPaisa > 0;
 
-    final account = linkedAccount.account;
-    final statusLine = _statusLineFor(account, hasAny);
-    final primaryAmount = totals.paidLast30dPaisa > 0
-        ? totals.paidLast30dPaisa
-        : totals.pendingPaisa;
+    // Next payout: earliest scheduledAt among pending/scheduled items
+    final nextPayoutItem = earnings.items
+        .where((i) =>
+            i.status == PayoutStatus.pending ||
+            i.status == PayoutStatus.scheduled)
+        .fold<PayoutSummary?>(
+          null,
+          (acc, i) => acc == null || i.scheduledAt.isBefore(acc.scheduledAt)
+              ? i
+              : acc,
+        );
 
     return GestureDetector(
       onTap: () {
@@ -888,49 +895,59 @@ class _EarningsInfoCard extends ConsumerWidget {
             border: Border.all(color: AppColors.hairline),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  PhosphorIcons.wallet(PhosphorIconsStyle.regular),
-                  size: 20,
-                  color: AppColors.inkSoft,
-                ),
+              // KYC badge (STUD-FR-004)
+              kycAsync.when(
+                loading: () => const SkeletonRect(height: 28, width: 130),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (kyc) => _KycBadge(status: kyc.status),
               ),
-              const SizedBox(width: Spacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      hasAny
-                          ? 'Earnings · ${formatPrice(primaryAmount)}'
-                          : 'Earnings',
-                      style: AppTypography.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+              const SizedBox(height: Spacing.md),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Pending Payout',
+                          style: AppTypography.caption
+                              .copyWith(color: AppColors.inkSoft),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasPending ? formatPrice(pendingPaisa) : '—',
+                          style: AppTypography.h4,
+                        ),
+                        if (nextPayoutItem != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Transfer · ${_fmtDate(nextPayoutItem.scheduledAt)}',
+                            style: AppTypography.caption
+                                .copyWith(color: AppColors.inkSoft),
+                          ),
+                        ] else if (!hasPending) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Appears after your first booking completes',
+                            style: AppTypography.caption
+                                .copyWith(color: AppColors.inkFaint),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      statusLine,
-                      style: AppTypography.caption
-                          .copyWith(color: AppColors.inkSoft),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                PhosphorIcons.caretRight(),
-                size: 16,
-                color: AppColors.inkSoft,
+                  ),
+                  Icon(
+                    PhosphorIcons.caretRight(),
+                    size: 16,
+                    color: AppColors.inkSoft,
+                  ),
+                ],
               ),
             ],
           ),
@@ -939,13 +956,63 @@ class _EarningsInfoCard extends ConsumerWidget {
     );
   }
 
-  String _statusLineFor(LinkedAccount? account, bool hasAny) {
-    if (account == null || account.isMissing) {
-      return 'Set up bank account to receive payouts';
-    }
-    if (account.needsAction) return 'Bank account needs attention';
-    if (account.isPending) return 'Bank setup in progress';
-    if (!hasAny) return 'Payouts appear here after bookings complete';
-    return 'View all payouts';
+  String _fmtDate(DateTime dt) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${dt.day} ${months[dt.month - 1]}';
+  }
+}
+
+class _KycBadge extends StatelessWidget {
+  const _KycBadge({required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final isVerified = status == 'verified';
+    final isPending = status == 'pending';
+
+    final bgColor = isVerified
+        ? const Color(0xFFECFDF5)
+        : isPending
+            ? const Color(0xFFFFF8ED)
+            : AppColors.coral.withValues(alpha: 0.08);
+    final fgColor = isVerified
+        ? const Color(0xFF16A34A)
+        : isPending
+            ? const Color(0xFFD97706)
+            : AppColors.coral;
+    final icon = isVerified
+        ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
+        : PhosphorIcons.warning(PhosphorIconsStyle.fill);
+    final label = isVerified
+        ? 'KYC Verified'
+        : isPending
+            ? 'KYC Under Review'
+            : 'KYC Required';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: fgColor),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: fgColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

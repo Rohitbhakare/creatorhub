@@ -24,6 +24,9 @@ class PostDetailState {
   final String creatorName;
   final String? creatorUsername;
   final String? creatorAvatarUrl;
+  final int creatorFollowerCount;
+  final int creatorPostCount;
+  final DateTime? creatorJoinedAt;
 
   // Engagement
   final int likeCount;
@@ -46,6 +49,9 @@ class PostDetailState {
     this.creatorName = '',
     this.creatorUsername,
     this.creatorAvatarUrl,
+    this.creatorFollowerCount = 0,
+    this.creatorPostCount = 0,
+    this.creatorJoinedAt,
     this.likeCount = 0,
     this.commentCount = 0,
     this.shareCount = 0,
@@ -128,6 +134,11 @@ final postDetailProvider =
       creatorName: (creator?['display_name'] ?? '') as String,
       creatorUsername: creator?['username'] as String?,
       creatorAvatarUrl: creator?['avatar_url'] as String?,
+      creatorFollowerCount: (creator?['follower_count'] ?? 0) as int,
+      creatorPostCount: (creator?['post_count'] ?? 0) as int,
+      creatorJoinedAt: creator?['joined_at'] != null
+          ? DateTime.tryParse(creator!['joined_at'] as String)
+          : null,
       likeCount: (engagement?['like_count'] ?? 0) as int,
       commentCount: (engagement?['comment_count'] ?? 0) as int,
       shareCount: (engagement?['share_count'] ?? 0) as int,

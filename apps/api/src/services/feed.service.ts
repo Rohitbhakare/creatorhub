@@ -1,5 +1,16 @@
 import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
+import {
+  SEASONS,
+  TRIP_STYLES,
+  AUDIENCES,
+  toBudgetTier,
+  readTimeMinFromBody,
+  type Season,
+  type TripStyle,
+  type Audience,
+  type FeedTags,
+} from '@creatorhub/shared'
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -24,6 +35,7 @@ export interface FeedContentItem {
   cover_image_url: string | null
   published_at: string | null
   creator: FeedCreator | null
+  tags: FeedTags
 }
 
 export interface NearYouResult {
@@ -46,20 +58,109 @@ export interface DiscoverCreator {
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
-async function attachCreators(
+// Narrow a raw JSONB facets value to a valid enum member (or null). Defensive
+// on purpose: the column is JSONB so DB writes from other paths could contain
+// garbage. Anything outside the canonical enum becomes null so mobile doesn't
+// have to guard unknown values.
+function pickEnum<T extends string>(value: unknown, allowed: readonly T[]): T | null {
+  if (typeof value !== 'string') return null
+  return (allowed as readonly string[]).includes(value) ? (value as T) : null
+}
+
+function deriveTags(
+  item: Record<string, unknown>,
+  cityById: Map<string, string>,
+): FeedTags {
+  const type = item.type as string
+  const facets = (item.facets && typeof item.facets === 'object' ? item.facets : {}) as Record<
+    string,
+    unknown
+  >
+
+  const season = pickEnum<Season>(facets.season, SEASONS)
+  const tripStyle = pickEnum<TripStyle>(facets.trip_style, TRIP_STYLES)
+  const audience = pickEnum<Audience>(facets.audience, AUDIENCES)
+
+  // Budget tier: posts are always free social content — omit (null) rather
+  // than labelling them "free" which would imply a pricing decision.
+  const budgetTier =
+    type === 'post'
+      ? null
+      : toBudgetTier(item.price_paisa as number | null, item.pricing_model as string | null)
+
+  // Read-time:
+  //   post → derived from body word count
+  //   itinerary → uses duration_minutes (the creator's own estimate)
+  //   experience/event → null (they're scheduled/time-bound, chip is meaningless)
+  let readTimeMin: number | null = null
+  if (type === 'post') {
+    readTimeMin = readTimeMinFromBody(item.body as string | null | undefined)
+  } else if (type === 'self_paced_itinerary') {
+    const d = item.duration_minutes as number | null | undefined
+    readTimeMin = typeof d === 'number' && d > 0 ? d : null
+  }
+
+  const cityId = item.starting_city_id as string | null | undefined
+  const locationLabel = cityId ? (cityById.get(cityId) ?? null) : null
+
+  return {
+    season,
+    trip_style: tripStyle,
+    audience,
+    budget_tier: budgetTier,
+    read_time_min: readTimeMin,
+    location_label: locationLabel,
+  }
+}
+
+/**
+ * Enrich raw content rows with creator summary + FeedTags in a single pass.
+ *
+ * Does two batched lookups:
+ *   1. users (creator display_name/username/avatar_url)
+ *   2. cities (name for starting_city_id → location_label)
+ *
+ * Raw rows must include: facets, body, starting_city_id, type, pricing_model,
+ * price_paisa, duration_minutes — all pulled in the feed SELECT list.
+ */
+async function enrichItems(
   items: Array<{ user_id: string; [k: string]: unknown }>,
 ): Promise<FeedContentItem[]> {
+  if (!items.length) return []
+
   const userIds = [...new Set(items.map((i) => i.user_id as string))]
-  if (!userIds.length) return []
+  const cityIds = [
+    ...new Set(
+      items
+        .map((i) => i.starting_city_id as string | null | undefined)
+        .filter((v): v is string => typeof v === 'string' && v.length > 0),
+    ),
+  ]
 
-  const { data: creators, error } = await supabase
-    .from('users')
-    .select('id, display_name, username, avatar_url')
-    .in('id', userIds)
+  // Parallel fetches — users are always needed, cities only when at least one
+  // row has a starting_city_id. Kept as two Promise.all legs so a missing-city
+  // case doesn't run an empty `.in('id', [])` which Supabase treats oddly.
+  const [creatorsRes, citiesRes] = await Promise.all([
+    userIds.length
+      ? supabase.from('users').select('id, display_name, username, avatar_url').in('id', userIds)
+      : Promise.resolve({ data: [], error: null }),
+    cityIds.length
+      ? supabase.from('cities').select('id, name').in('id', cityIds)
+      : Promise.resolve({ data: [], error: null }),
+  ])
 
-  if (error) throw new AppError('db-error', 500, 'Failed to load creator data')
+  if (creatorsRes.error) throw new AppError('db-error', 500, 'Failed to load creator data')
+  if (citiesRes.error) throw new AppError('db-error', 500, 'Failed to load city data')
 
-  const byId = Object.fromEntries((creators ?? []).map((c) => [c.id, c]))
+  const creatorById = Object.fromEntries(
+    ((creatorsRes.data ?? []) as Array<Record<string, unknown>>).map((c) => [c.id as string, c]),
+  )
+  const cityById = new Map<string, string>(
+    ((citiesRes.data ?? []) as Array<Record<string, unknown>>).map((c) => [
+      c.id as string,
+      c.name as string,
+    ]),
+  )
 
   return items.map((item) => ({
     id: item.id as string,
@@ -74,9 +175,15 @@ async function attachCreators(
     starting_city_id: (item.starting_city_id ?? null) as string | null,
     cover_image_url: (item.cover_image_url ?? null) as string | null,
     published_at: (item.published_at ?? null) as string | null,
-    creator: byId[item.user_id as string] ?? null,
+    creator: (creatorById[item.user_id as string] ?? null) as FeedCreator | null,
+    tags: deriveTags(item, cityById),
   }))
 }
+
+// Back-compat alias — every caller used to be attachCreators. Keep the name
+// so callers below (and any future ones) stay readable, but it now does both
+// creator + tag enrichment.
+const attachCreators = enrichItems
 
 async function getUserLocation(
   userId: string,
@@ -119,7 +226,7 @@ async function getPopularAcrossIndia(): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
     .select(
-      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
     )
     .eq('status', 'published')
     .eq('visibility', 'public')
@@ -162,7 +269,30 @@ export async function getNearYouSection(
     p_limit: 20,
   })
 
-  if (error) throw new AppError('db-error', 500, 'Failed to load near-you section')
+  // RPC may not exist yet (migration 013 pending) — fall back to city-match query
+  if (error) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('content')
+      .select(
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+      )
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .eq('starting_city_id', location.cityId)
+      .order('published_at', { ascending: false })
+      .limit(20)
+
+    if (fallbackError || !fallbackData?.length) {
+      const items = await getPopularAcrossIndia()
+      return { items, fallback_level: 3, label: 'Popular across India', fallback_cities: [] }
+    }
+
+    const items = await attachCreators(
+      fallbackData as Array<{ user_id: string; [k: string]: unknown }>,
+    )
+    return { items, fallback_level: 0, label: `Weekend trips from ${location.cityName}`, fallback_cities: [] }
+  }
 
   const rows = (data ?? []) as Array<{
     id: string
@@ -220,7 +350,7 @@ export async function getVerticalSection(
 ): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
-    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at')
+    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('vertical', vertical)
@@ -290,20 +420,32 @@ export async function getDiscoverSection(userId?: string | null): Promise<Discov
 export async function getForYouSection(userId: string | null): Promise<FeedContentItem[]> {
   if (!userId) return getPopularAcrossIndia()
 
+  // Step 1: get IDs of creators the user follows
+  const { data: followRows, error: followsErr } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', userId)
+
+  if (followsErr) throw new AppError('db-error', 500, 'Failed to load follows')
+
+  const followingIds = (followRows ?? []).map((r) => r.following_id as string)
+
   const [followedRes, verticalsRes] = await Promise.all([
-    supabase
-      .from('content')
-      .select(
-        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, ' +
-          'follows!inner(follower_id, following_id)',
-      )
-      .eq('status', 'published')
-      .eq('visibility', 'public')
-      .is('deleted_at', null)
-      .eq('follows.follower_id', userId)
-      .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('published_at', { ascending: false })
-      .limit(20),
+    // Step 2: content from followed creators (empty array → returns nothing, no DB hit needed)
+    followingIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : supabase
+          .from('content')
+          .select(
+            'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+          )
+          .eq('status', 'published')
+          .eq('visibility', 'public')
+          .is('deleted_at', null)
+          .in('user_id', followingIds)
+          .gte('published_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .order('published_at', { ascending: false })
+          .limit(20),
     supabase
       .from('user_active_verticals')
       .select('vertical')
@@ -324,7 +466,7 @@ export async function getForYouSection(userId: string | null): Promise<FeedConte
     const { data, error } = await supabase
       .from('content')
       .select(
-        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at',
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
       )
       .eq('status', 'published')
       .eq('visibility', 'public')
@@ -367,16 +509,26 @@ export async function getForYouSection(userId: string | null): Promise<FeedConte
 // Guests (userId=null) follow nobody → empty list.
 export async function getFollowingSection(userId: string | null): Promise<FeedContentItem[]> {
   if (!userId) return []
+
+  const { data: followRows, error: followsErr } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', userId)
+
+  if (followsErr) throw new AppError('db-error', 500, 'Failed to load following feed')
+
+  const followingIds = (followRows ?? []).map((r) => r.following_id as string)
+  if (followingIds.length === 0) return []
+
   const { data, error } = await supabase
     .from('content')
     .select(
-      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, ' +
-        'follows!inner(follower_id, following_id)',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
     )
     .eq('status', 'published')
     .eq('visibility', 'public')
     .is('deleted_at', null)
-    .eq('follows.follower_id', userId)
+    .in('user_id', followingIds)
     .order('published_at', { ascending: false })
     .limit(20)
 
@@ -448,4 +600,120 @@ export async function updateUserCity(
   }
 
   return { id: city.id, name: city.name, state: city.state }
+}
+
+// ─── getCategoryBrowse ───────────────────────────────────────────
+// DISC-FR-003: Category browse — vertical → sub-category → leaf type.
+// Returns sub-categories with content counts + content page for the selected node.
+
+export interface SubCategoryItem {
+  id: string
+  slug: string
+  name: string
+  leaf_types: string[]
+  content_count: number
+}
+
+export interface CategoryBrowseResult {
+  sub_categories: SubCategoryItem[]
+  items: FeedContentItem[]
+  next_cursor: string | null
+}
+
+export async function getCategoryBrowse(params: {
+  vertical: string
+  sub_category_id?: string
+  leaf_type?: string
+  limit?: number
+  cursor?: string
+}): Promise<CategoryBrowseResult> {
+  const limit = params.limit ?? 20
+
+  // Sub-categories with content counts (parallel count per sub-cat)
+  const { data: rawSubCats } = await supabase
+    .from('vertical_sub_categories')
+    .select('id, slug, name, leaf_types')
+    .eq('vertical', params.vertical)
+    .eq('active', true)
+    .order('display_order')
+
+  const subCatRows = (rawSubCats ?? []) as Array<{
+    id: string
+    slug: string
+    name: string
+    leaf_types: string[]
+  }>
+
+  const subCatsWithCounts: SubCategoryItem[] = await Promise.all(
+    subCatRows.map(async (sc) => {
+      const { count } = await supabase
+        .from('content')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'published')
+        .eq('sub_category_id', sc.id)
+      return { ...sc, leaf_types: (sc.leaf_types ?? []) as string[], content_count: count ?? 0 }
+    }),
+  )
+
+  // Content page (filtered by sub-category + leaf type)
+  let contentQuery = supabase
+    .from('content')
+    .select(
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
+    )
+    .eq('status', 'published')
+    .eq('vertical', params.vertical)
+    .order('published_at', { ascending: false })
+    .limit(limit)
+
+  if (params.sub_category_id) {
+    contentQuery = contentQuery.eq('sub_category_id', params.sub_category_id)
+  }
+  if (params.leaf_type) {
+    contentQuery = contentQuery.eq('leaf_type', params.leaf_type)
+  }
+  if (params.cursor) {
+    const decoded = Buffer.from(params.cursor, 'base64url').toString('utf8')
+    contentQuery = contentQuery.lt('published_at', decoded)
+  }
+
+  const { data: contentRows, error: contentErr } = await contentQuery
+  if (contentErr) throw new AppError('db-error', 500, 'Failed to load category content')
+
+  const items = await enrichItems(
+    (contentRows ?? []) as Array<{ user_id: string; [k: string]: unknown }>,
+  )
+
+  let next_cursor: string | null = null
+  if (contentRows && contentRows.length === limit) {
+    const last = contentRows.at(-1)
+    if (last) {
+      next_cursor = Buffer.from((last.published_at as string) ?? '', 'utf8').toString('base64url')
+    }
+  }
+
+  return {
+    sub_categories: subCatsWithCounts.filter((sc) => sc.content_count > 0),
+    items,
+    next_cursor,
+  }
+}
+
+// ─── getEditorsPicks ─────────────────────────────────────────────
+// DISC-FR-039: content where featured = true, sorted by recency.
+// Returns empty list (never throws) so the section self-hides on empty.
+
+export async function getEditorsPicks(): Promise<FeedContentItem[]> {
+  const { data, error } = await supabase
+    .from('content')
+    .select(
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
+    )
+    .eq('status', 'published')
+    .eq('featured', true)
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to load editor picks')
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
 }

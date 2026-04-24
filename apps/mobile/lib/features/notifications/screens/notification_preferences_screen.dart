@@ -183,12 +183,12 @@ class _DndSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.lg,
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
+        color: AppColors.surface,
         border: Border(
           bottom: BorderSide(color: AppColors.hairline, width: 0.5),
         ),
@@ -250,12 +250,12 @@ class _QuietHoursRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.lg,
         vertical: Spacing.md,
       ),
       decoration: const BoxDecoration(
+        color: AppColors.surface,
         border: Border(
           bottom: BorderSide(color: AppColors.hairline, width: 0.5),
         ),

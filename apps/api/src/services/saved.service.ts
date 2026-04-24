@@ -172,60 +172,65 @@ export async function getListItems(
     throw new AppError('forbidden', 403, 'You can only view your own lists')
   }
 
-  // Get items with content join
-  let query = supabase
+  // Step 1: get saved_list_items rows (no join — avoids FK-name issues)
+  let itemQuery = supabase
     .from('saved_list_items')
-    .select(`
-      list_id, content_id, added_at,
-      content!saved_list_items_content_id_fkey(id, title, content_type, cover_image_url, price_paisa, status, user_id,
-        users!content_user_id_fkey(id, display_name, username, avatar_url))
-    `)
+    .select('content_id, added_at')
     .eq('list_id', listId)
 
-  if (typeFilter) {
-    query = query.eq('content.content_type', typeFilter)
-  }
-
-  // Apply sort
   switch (sort) {
-    case 'recently_added':
-      query = query.order('added_at', { ascending: false })
-      break
     case 'oldest':
-      query = query.order('added_at', { ascending: true })
+      itemQuery = itemQuery.order('added_at', { ascending: true })
       break
     default:
-      query = query.order('added_at', { ascending: false })
-      break
+      itemQuery = itemQuery.order('added_at', { ascending: false })
   }
-
-  query = query.limit(limit + 1)
 
   if (cursor) {
-    if (sort === 'oldest') {
-      query = query.gt('added_at', cursor)
-    } else {
-      query = query.lt('added_at', cursor)
-    }
+    itemQuery = sort === 'oldest'
+      ? itemQuery.gt('added_at', cursor)
+      : itemQuery.lt('added_at', cursor)
   }
 
-  const { data, error } = await query
+  itemQuery = itemQuery.limit(limit + 1)
 
-  if (error) throw new AppError('db-error', 500, 'Failed to fetch list items')
+  const { data: itemRows, error: itemError } = await itemQuery
+  if (itemError) throw new AppError('db-error', 500, 'Failed to fetch list items')
 
-  const hasMore = (data?.length ?? 0) > limit
-  const items = (data ?? []).slice(0, limit)
-  const nextCursor = hasMore ? items[items.length - 1]!.added_at : null
+  const hasMore = (itemRows?.length ?? 0) > limit
+  const pageRows = (itemRows ?? []).slice(0, limit)
+  const nextCursor = hasMore ? pageRows[pageRows.length - 1]!.added_at : null
 
-  // Supabase returns FK joins as arrays — unwrap to single object
-  type ListItemRow = { content_id: string; added_at: string; content: Record<string, unknown> | Record<string, unknown>[] | null }
-  const unwrap = (row: ListItemRow) => {
-    const c = Array.isArray(row.content) ? row.content[0] : row.content
-    return { content_id: row.content_id, added_at: row.added_at, content: c ?? null }
+  if (pageRows.length === 0) {
+    return { list_name: list.name, items: [], next_cursor: null }
   }
 
-  let formatted = items
-    .map(unwrap)
+  const contentIds = pageRows.map((r) => r.content_id as string)
+
+  // Step 2: fetch content + creator for those IDs
+  let contentQuery = supabase
+    .from('content')
+    .select('id, title, content_type, cover_image_url, price_paisa, status, user_id, users(id, display_name, username, avatar_url)')
+    .in('id', contentIds)
+
+  if (typeFilter) {
+    contentQuery = contentQuery.eq('content_type', typeFilter)
+  }
+
+  const { data: contentRows, error: contentError } = await contentQuery
+  if (contentError) throw new AppError('db-error', 500, 'Failed to fetch list items')
+
+  // Index content by ID for fast lookup
+  const contentMap = new Map<string, Record<string, unknown>>()
+  for (const row of contentRows ?? []) {
+    const r = row as Record<string, unknown>
+    const creator = Array.isArray(r['users']) ? (r['users'] as unknown[])[0] : r['users']
+    contentMap.set(r['id'] as string, { ...r, users: creator ?? null })
+  }
+
+  // Merge: preserve sort order from saved_list_items
+  let formatted = pageRows
+    .map((r) => ({ content_id: r.content_id as string, added_at: r.added_at as string, content: contentMap.get(r.content_id as string) ?? null }))
     .filter((item) => item.content !== null)
 
   if (sort === 'a_z') {

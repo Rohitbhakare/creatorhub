@@ -126,9 +126,29 @@ class DraftAutoSaveService {
       'destination_city_ids': wizard.destinationCityIds,
       'pricing_model': wizard.pricingModel,
       'price_paisa': wizard.pricePaisa,
+      // Discoverability facets (PR 2). Always send — `{}` clears the JSONB
+      // on the content row if the creator un-set everything. Posts don't
+      // use facets, so skip.
+      if (wizard.contentType != ContentType.post)
+        'facets': buildFacetsPayload(wizard),
       // day_count is not a column on the content table — it's derived from
       // itinerary_days and managed via PUT /api/v1/itineraries/:id. Excluding
       // it from the generic content PUT avoids a 500 on Supabase's update.
     };
   }
+}
+
+/// Extracts the `facets` JSON object from a wizard state. Exposed so other
+/// code paths (e.g. `_saveEventDetails` in the wizard shell) can assemble
+/// the same payload shape without duplicating the key-casing rules.
+///
+/// Returns only keys whose value is non-null — sending nulls inside `facets`
+/// is also accepted by the API (the strict Zod schema allows `.nullable()`),
+/// but an empty-ish object mirrors "nothing set" cleanly on the server.
+Map<String, dynamic> buildFacetsPayload(WizardState wizard) {
+  return <String, dynamic>{
+    if (wizard.season != null) 'season': wizard.season,
+    if (wizard.tripStyle != null) 'trip_style': wizard.tripStyle,
+    if (wizard.audience != null) 'audience': wizard.audience,
+  };
 }

@@ -108,7 +108,20 @@ import {
   MAX_EVENT_CAPACITY,
   MAX_EVENT_VENUE_NAME_LENGTH,
   MAX_EVENT_VENUE_ADDRESS_LENGTH,
+  SEASONS,
+  TRIP_STYLES,
+  AUDIENCES,
 } from '../constants/index.js'
+
+// Discoverability facets — stored on content.facets JSONB. Strict to keep
+// the JSONB bag from accumulating stray keys at the validation boundary.
+export const facetsSchema = z
+  .object({
+    season: z.enum(SEASONS).nullable().optional(),
+    trip_style: z.enum(TRIP_STYLES).nullable().optional(),
+    audience: z.enum(AUDIENCES).nullable().optional(),
+  })
+  .strict()
 
 export const createContentSchema = z.object({
   type: z.enum(CONTENT_TYPES),
@@ -141,6 +154,7 @@ export const updateItinerarySchema = z
     price_paisa: z.number().int().min(0).optional(),
     visibility: z.enum(['public', 'unlisted', 'private']).optional(),
     vertical_data: z.record(z.unknown()).optional(),
+    facets: facetsSchema.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided')
 
@@ -230,6 +244,7 @@ export const updateEventSchema = z
         age_restriction: z.string().max(200).optional(),
       })
       .optional(),
+    facets: facetsSchema.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided')
 

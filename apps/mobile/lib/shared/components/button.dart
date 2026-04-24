@@ -12,7 +12,8 @@ import '../theme/animations.dart';
 /// - `dark`: filled ink bg, white text (e.g. Follow button)
 /// - `text`: plain ink text, no bg/border/padding (e.g. "Keep browsing as guest")
 /// - `danger`: filled red bg, white text
-enum AppButtonVariant { primary, secondary, outline, ghost, dark, text, danger }
+/// - `coralOutline`: coral border + coral text (Follow button style)
+enum AppButtonVariant { primary, secondary, outline, ghost, dark, text, danger, coralOutline }
 
 /// Button size.
 enum AppButtonSize {
@@ -149,6 +150,7 @@ class _AppButtonState extends State<AppButton>
           bgColor: AppColors.danger,
           fgColor: AppColors.surface,
         ),
+      AppButtonVariant.coralOutline => _buildCoralOutlined(),
     };
   }
 
@@ -182,6 +184,28 @@ class _AppButtonState extends State<AppButton>
         widget._isDisabled
             ? AppColors.ink.withValues(alpha: 0.4)
             : AppColors.ink,
+      ),
+    );
+  }
+
+  Widget _buildCoralOutlined() {
+    return Container(
+      constraints: const BoxConstraints(minWidth: Layout.minTapTarget),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: widget._isDisabled
+              ? AppColors.coral.withValues(alpha: 0.4)
+              : AppColors.coral,
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.circular(Layout.buttonRadius),
+      ),
+      padding: _padding,
+      alignment: Alignment.center,
+      child: _buildChild(
+        widget._isDisabled
+            ? AppColors.coral.withValues(alpha: 0.4)
+            : AppColors.coral,
       ),
     );
   }

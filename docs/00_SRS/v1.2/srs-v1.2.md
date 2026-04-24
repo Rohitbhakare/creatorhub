@@ -1152,6 +1152,51 @@ All public pages SSR'd by Next.js. Complete HTML, OpenGraph + JSON-LD, in `sitem
 
 ---
 
+#### DISC-FR-023a · [M0] · Home-feed content card — unified shape (Pack F card v2)
+
+**Description.** All feed surfaces (For-you / Following / Near-you / per-vertical rails / "See all" grid) render content items using a single **ContentCard** component in one of two variants — `grid` (fills a 2-col `GridView` column) or `rail` (fixed ~170dp for horizontal scroll). Both variants share an identical anatomy so a card looks the same whether the user sees it in a grid or a rail.
+
+**Anatomy.** Elevated card (14dp radius, 0.5dp `AppColors.hairline` border, surface-white background) containing a 4:5 portrait cover flush at the top, then a 10/8/10/10 padded text block below. Elevation comes from a two-layer soft shadow — an ambient halo (`rgba(16,24,40,0.06)`, blur 18, spread -4, y-offset 6) plus a close-contact tight shadow (`rgba(16,24,40,0.03)`, blur 4, spread -1, y-offset 1) — paired with the hairline border for crisp edge definition. Horizontal rails use `clipBehavior: Clip.none` with 8dp vertical padding so the ambient shadow never clips against the rail boundary. Cards separate from the page via shadow per C-25 ("Cards separate from page via shadow, not background tint"). Cover has three overlays, then title and one context row beneath.
+
+- **Cover overlays:**
+  - Top-left: **category tag** on a white-95% pill. Label is `"Story"`, `"Itinerary"`, `"Experience"`, or `"Event"`. For itineraries with a duration, the tag becomes `"Itinerary · {Nd}"` / `"· {Nh}"` / `"· {Nm}"` (see `formatDurationCompact`). For posts with a non-null `read_time_min`, the tag becomes `"Story · {N} min"` — the reading-time equivalent of the itinerary duration suffix.
+  - Top-right: **save toggle** — a 30dp round white-95% control. Outline ink bookmark when unsaved; filled **coral** (`#E15A41`) bookmark when saved. Tap is optimistic (DD-017, SOC-FR-004) and fires haptic. The filled-coral state is one of the 8 permitted coral contexts (DD-013).
+  - Bottom-right: **price pill** — `AppColors.ink` background, white text, only rendered when `price_paisa > 0`. Free items render no badge (a subdued signal by design).
+- **Below the cover:**
+  - **Title** — 13/500, 2-line ellipsis, `AppColors.ink`.
+  - **Creator row** — 20dp avatar (image or deterministic-color initial), 12/500 short author name (first token of displayName, `@username` fallback, `Creator` as last resort), optional likes (`PhosphorIconsFill.heart` + formatted count, only when `likeCount > 0`).
+
+**State:** pressed scales the whole card to 0.98 for 90ms and fires a selection-click haptic. Missing `cover_image_url` falls back to the neutral two-tone gradient. Missing creator avatar falls back to the hashed initial circle.
+
+**Accessibility.** Save toggle exposes a `Semantics(button: true, toggled: <bool>)` node with label `"Save for later"` / `"Remove from saved"`. Card tap target is the whole card (≥ 44dp in both dimensions by construction).
+
+**Row-2 context chips (PR 2 · 2026-04-24).** A second metadata row of up to 3 context chips renders below the creator row **in the grid variant only** — rails (170×280 fixed) are too space-constrained to fit the chip row without overflowing their height budget. Chip selection is per content type:
+
+- **Story / Post:** `location_label` · `read_time_min m read` · `audience`
+- **Self-paced itinerary:** `season` · `trip_style` · `budget_tier` (`'free'` tier drops the budget chip — free itineraries are a subdued signal)
+- **Scheduled experience:** `season` · `trip_style` · `budget_tier` (`'free'` renders as `"Free"`)
+- **Event:** `location_label` · `audience` · `budget_tier` (`'free'` renders as `"Free"`)
+
+Null/missing values are silently omitted; if all three slots are null the entire row collapses. Chip style: 11/500 Inter, `AppColors.ink` text on `AppColors.surfaceAlt`, 8×4 padding, 999 radius, 6dp gap — **no coral** (not a permitted DD-013 context).
+
+**Feed tag data model.** Wire shape is a `tags` object on every `FeedContentItem`:
+
+```
+tags: {
+  season?: 'spring' | 'summer' | 'monsoon' | 'autumn' | 'winter' | 'year_round' | null,
+  trip_style?: 'adventure' | 'chill' | 'cultural' | 'nightlife' | 'wellness' | 'foodie' | 'offbeat' | null,
+  audience?: 'solo' | 'couple' | 'family' | 'friends' | 'group' | null,
+  budget_tier?: 'free' | '₹' | '₹₹' | '₹₹₹' | '₹₹₹₹' | null,  // derived server-side
+  read_time_min?: number | null,                                // derived server-side
+  location_label?: string | null,                               // joined from cities
+}
+```
+
+- `season / trip_style / audience` are **captured at publish time** via the Discoverability block in the Itinerary / Experience / Event wizards and persisted on `content.facets` JSONB. Posts/stories do not capture these.
+- `budget_tier` is derived from `price_paisa` using the thresholds `<₹1,000 → ₹`, `<₹2,500 → ₹₹`, `<₹5,000 → ₹₹₹`, `≥₹5,000 → ₹₹₹₹`. Zero-price or `pricing_model='free'` returns `'free'`. Posts always get `null`.
+- `read_time_min` for posts = ceil(word_count(body) / 200). For itineraries = `duration_minutes`. For experience/event = `null` (they have date-times, not read-time).
+- `location_label` is `cities.name` joined via `starting_city_id`; no state/country suffix to keep the chip short.
+
 #### DISC-FR-024 · [M0] · Waitlist card for empty-vertical sections (DD-007, DD-012)
 
 **Description.** For verticals the user selected during onboarding that have no content yet, the section renders as a **single dashed-border waitlist card** instead of a content rail. Card shows: vertical icon, "You're on the {vertical} waitlist", current creator count ("X creators have joined so far"), and "We'll notify you when this goes live." Card is tappable and opens a vertical-specific "coming soon" page. (DD-007, DD-012)

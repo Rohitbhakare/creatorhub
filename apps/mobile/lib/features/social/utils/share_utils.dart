@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../auth/providers/auth_provider.dart';
 
@@ -33,23 +35,32 @@ Future<void> recordShare(
   }
 }
 
-/// Share via native share sheet (text + URL).
+/// Share via native iOS/Android share sheet using share_plus.
+/// Falls back to clipboard copy if share fails.
 Future<void> shareNative({
   required String title,
   required String contentId,
   required String contentType,
   required WidgetRef ref,
+  BuildContext? context,
 }) async {
   final url = canonicalUrl(contentType, contentId);
   final shareText = 'Check out "$title" on CreatorHub: $url';
 
-  // Use platform channel to trigger native share
   try {
-    const channel = MethodChannel('creatorhub/share');
-    await channel.invokeMethod<void>('share', {'text': shareText});
+    await Share.share(shareText, subject: title);
   } catch (_) {
     // Fallback: copy to clipboard
     await Clipboard.setData(ClipboardData(text: shareText));
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link copied to clipboard'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   await recordShare(ref, contentId: contentId, platform: 'other');

@@ -15,7 +15,8 @@ import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
-import '../features/feed/screens/search_placeholder_screen.dart';
+import '../features/discover/screens/discover_tab_screen.dart';
+import '../features/discover/screens/category_browse_screen.dart';
 import '../features/feed/screens/vertical_section_full_screen.dart';
 import '../features/studio/screens/earnings_screen.dart';
 import '../features/studio/screens/studio_tab_screen.dart';
@@ -178,8 +179,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/search',
-                builder: (context, state) => const SearchPlaceholderScreen(),
+                path: '/discover',
+                builder: (context, state) => const DiscoverTabScreen(),
               ),
             ],
           ),
@@ -229,6 +230,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ItineraryDetailScreen(
           itineraryId: state.pathParameters['id']!,
         ),
+      ),
+
+      // Category browse (DISC-FR-003)
+      GoRoute(
+        path: '/discover/category/:vertical',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return CategoryBrowseScreen(
+            vertical: state.pathParameters['vertical']!,
+            initialSubCategoryId: extra?['sub_category_id'] as String?,
+          );
+        },
       ),
 
       // Events

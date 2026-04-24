@@ -325,6 +325,12 @@ class CreateExperienceState {
   final bool isSaving;
   final String? saveError;
 
+  // Discoverability facets (PR 2) — sent inside `facets` on
+  // PUT /api/v1/experiences/:id. All nullable.
+  final String? season;
+  final String? tripStyle;
+  final String? audience;
+
   const CreateExperienceState({
     this.contentId,
     this.title = '',
@@ -341,6 +347,9 @@ class CreateExperienceState {
     this.tncAccepted = false,
     this.isSaving = false,
     this.saveError,
+    this.season,
+    this.tripStyle,
+    this.audience,
   });
 
   int get dayCount => days.length;
@@ -369,6 +378,14 @@ class CreateExperienceState {
     bool? tncAccepted,
     bool? isSaving,
     String? saveError,
+    // Explicit "set this field" flags so callers can clear a facet back to
+    // null without the usual `x ?? this.x` rollback.
+    bool setSeason = false,
+    String? season,
+    bool setTripStyle = false,
+    String? tripStyle,
+    bool setAudience = false,
+    String? audience,
   }) {
     return CreateExperienceState(
       contentId: contentId ?? this.contentId,
@@ -386,6 +403,9 @@ class CreateExperienceState {
       tncAccepted: tncAccepted ?? this.tncAccepted,
       isSaving: isSaving ?? this.isSaving,
       saveError: saveError,
+      season: setSeason ? season : this.season,
+      tripStyle: setTripStyle ? tripStyle : this.tripStyle,
+      audience: setAudience ? audience : this.audience,
     );
   }
 }
@@ -425,6 +445,14 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
 
   void setMeetingPoint(MeetingPointInfo mp) =>
       state = state.copyWith(meetingPoint: mp, saveError: null);
+
+  // ── Discoverability facets (PR 2) ────────────────────────────
+  void setSeason(String? value) => state =
+      state.copyWith(setSeason: true, season: value, saveError: null);
+  void setTripStyle(String? value) => state =
+      state.copyWith(setTripStyle: true, tripStyle: value, saveError: null);
+  void setAudience(String? value) => state =
+      state.copyWith(setAudience: true, audience: value, saveError: null);
 
   void addDate(ScheduledDate date) {
     state = state.copyWith(dates: [...state.dates, date], saveError: null);
@@ -468,14 +496,7 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
     final dio = ref.read(authServiceProvider).dio;
     state = state.copyWith(isSaving: true, saveError: null);
     try {
-      await dio.put('/api/v1/experiences/$id', data: {
-        if (state.title.isNotEmpty) 'title': state.title,
-        if (state.description.isNotEmpty) 'description': state.description,
-        'price_paisa': state.pricePaisa,
-        if (state.coverImageUrl != null) 'cover_image_url': state.coverImageUrl,
-        if (state.locationName != null) 'location_name': state.locationName,
-        if (state.tags.isNotEmpty) 'tags': state.tags,
-      });
+      await dio.put('/api/v1/experiences/$id', data: buildUpdatePayload());
       state = state.copyWith(isSaving: false);
       return true;
     } on DioException catch (e) {
@@ -485,6 +506,25 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
       );
       return false;
     }
+  }
+
+  /// Build the PATCH payload sent to `PUT /api/v1/experiences/:id`.
+  /// Exposed on the notifier so tests can assert on the serialized body
+  /// without hitting the network.
+  Map<String, dynamic> buildUpdatePayload() {
+    return <String, dynamic>{
+      if (state.title.isNotEmpty) 'title': state.title,
+      if (state.description.isNotEmpty) 'description': state.description,
+      'price_paisa': state.pricePaisa,
+      if (state.coverImageUrl != null) 'cover_image_url': state.coverImageUrl,
+      if (state.locationName != null) 'location_name': state.locationName,
+      if (state.tags.isNotEmpty) 'tags': state.tags,
+      'facets': <String, dynamic>{
+        if (state.season != null) 'season': state.season,
+        if (state.tripStyle != null) 'trip_style': state.tripStyle,
+        if (state.audience != null) 'audience': state.audience,
+      },
+    };
   }
 
   /// Adds a scheduled date to the experience.

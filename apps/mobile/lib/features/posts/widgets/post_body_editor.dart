@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
@@ -13,12 +14,13 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/components/input.dart';
 import '../../content/providers/wizard_provider.dart';
+import '../../content/widgets/ai_helper_chip.dart';
+import '../../content/widgets/location_picker_sheet.dart';
 
-/// Post body editor — combines body text input + media grid.
+/// Post body editor — combines body text input + media grid + location chip.
 ///
-/// Step 2 of the post wizard. Provides a multi-line text input with
-/// a live character counter, an optional location tag chip (placeholder),
-/// an image grid showing selected images, and an "Add images" button.
+/// Step 2 of the post wizard. The body lives here exclusively (step 1 is
+/// title + description only), alongside photos and an optional city tag.
 class PostBodyEditor extends ConsumerStatefulWidget {
   const PostBodyEditor({super.key});
 
@@ -60,7 +62,6 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
 
       for (final xFile in images) {
         final id = DateTime.now().microsecondsSinceEpoch.toString();
-        // TODO: wire up Firebase upload via media service
         ref.read(wizardProvider.notifier).addMedia(
               MediaItem(
                 id: id,
@@ -79,10 +80,23 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
     ref.read(wizardProvider.notifier).removeMedia(id);
   }
 
+  Future<void> _openLocationPicker() async {
+    unawaited(HapticFeedback.lightImpact());
+    final picked = await showLocationPickerSheet(context);
+    if (picked == null || !mounted) return;
+    ref
+        .read(wizardProvider.notifier)
+        .setStartingCity(picked.id, cityName: picked.name);
+  }
+
+  void _clearLocation() {
+    HapticFeedback.selectionClick();
+    ref.read(wizardProvider.notifier).clearStartingCity();
+  }
+
   @override
   Widget build(BuildContext context) {
     final wizard = ref.watch(wizardProvider);
-    final charCount = wizard.body.length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -93,54 +107,68 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
         children: [
           const SizedBox(height: Spacing.xl),
 
-          // Section header
-          Text('Write your story', style: typ.AppTypography.h3),
-          const SizedBox(height: Spacing.sm),
-          Text(
-            'Share your experience with the community',
-            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+          _StepIntro(
+            kicker: 'STEP 2 OF ${wizard.totalSteps}',
+            headline: 'The moment, in your words.',
+            subhead: 'Photos, place, and the story behind them.',
           ),
           const SizedBox(height: Spacing.xl),
 
-          // Body text input
+          // ── Body ─────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Text(
+                  'Body',
+                  style: typ.AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                const AiHelperChip(),
+              ],
+            ),
+          ),
           AppInput(
             controller: _bodyController,
-            label: 'Body',
             hint: 'Tell your story...',
             maxLines: 8,
             maxLength: _maxChars,
             keyboardType: TextInputType.multiline,
             textInputAction: TextInputAction.newline,
-            onChanged: (value) {
-              ref.read(wizardProvider.notifier).setBody(value);
-            },
+            onChanged: ref.read(wizardProvider.notifier).setBody,
           ),
-
-          // Character counter
-          _CharacterCounter(current: charCount, max: _maxChars),
+          const SizedBox(height: Spacing.xs),
+          const _Microtip(
+            'The first two lines are what hooks readers — make them count.',
+          ),
           const SizedBox(height: Spacing.xl),
 
-          // Location tag placeholder
-          _LocationTagChip(),
+          // ── Location ─────────────────────────────────────────
+          _LocationChip(
+            cityName: wizard.startingCityName,
+            onTap: _openLocationPicker,
+            onClear: _clearLocation,
+          ),
           const SizedBox(height: Spacing.xl),
 
-          // Image section header
+          // ── Photos ───────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Photos',
-                style: typ.AppTypography.h4,
-              ),
+              Text('Photos', style: typ.AppTypography.h4),
               Text(
                 '${wizard.media.length}/$_maxImages images',
                 style: typ.AppTypography.caption,
               ),
             ],
           ),
+          const SizedBox(height: Spacing.xs),
+          const _Microtip('Up to 5 — the first image is your cover.'),
           const SizedBox(height: Spacing.md),
 
-          // Image grid
           if (wizard.media.isNotEmpty) ...[
             _ImageGrid(
               media: wizard.media,
@@ -149,7 +177,6 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
             const SizedBox(height: Spacing.md),
           ],
 
-          // Add images button
           if (wizard.media.length < _maxImages)
             GestureDetector(
               onTap: _pickImages,
@@ -162,7 +189,6 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
                   borderRadius: BorderRadius.circular(Layout.cardRadius),
                   border: Border.all(
                     color: AppColors.hairline,
-                    style: BorderStyle.solid,
                   ),
                 ),
                 child: Column(
@@ -193,51 +219,93 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
   }
 }
 
-/// Live character counter with color thresholds.
-/// < 850: muted, 850-999: amber/warning, 1000: danger.
-class _CharacterCounter extends StatelessWidget {
-  final int current;
-  final int max;
+class _StepIntro extends StatelessWidget {
+  final String kicker;
+  final String headline;
+  final String subhead;
 
-  const _CharacterCounter({
-    required this.current,
-    required this.max,
+  const _StepIntro({
+    required this.kicker,
+    required this.headline,
+    required this.subhead,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color color;
-    if (current >= max) {
-      color = AppColors.danger;
-    } else if (current >= 850) {
-      color = AppColors.warning;
-    } else {
-      color = AppColors.inkSoft;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: Spacing.xs),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Text(
-          '$current/$max',
-          style: typ.AppTypography.caption.copyWith(color: color),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          kicker,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
+            color: AppColors.coral,
+          ),
         ),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          headline,
+          style: GoogleFonts.fraunces(
+            fontSize: 28,
+            fontWeight: FontWeight.w500,
+            height: 1.15,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: Spacing.xs),
+        Text(
+          subhead,
+          style: GoogleFonts.fraunces(
+            fontSize: 18,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w400,
+            height: 1.25,
+            color: AppColors.inkSoft,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Microtip extends StatelessWidget {
+  final String text;
+  const _Microtip(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        height: 1.35,
+        color: AppColors.inkMuted,
       ),
     );
   }
 }
 
-/// Placeholder location tag chip.
-/// Actual Places integration works via API — this is a UI placeholder.
-class _LocationTagChip extends StatelessWidget {
+/// Coral pill when a city is selected, grey chip when empty. Tapping the
+/// body opens the city picker; tapping the `x` on the filled state clears.
+class _LocationChip extends StatelessWidget {
+  final String? cityName;
+  final VoidCallback onTap;
+  final VoidCallback onClear;
+
+  const _LocationChip({
+    required this.cityName,
+    required this.onTap,
+    required this.onClear,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final selected = cityName != null && cityName!.isNotEmpty;
     return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        // TODO: open Places search bottom sheet (E1.x)
-      },
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -245,24 +313,46 @@ class _LocationTagChip extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surfaceAlt,
+          color: selected ? AppColors.coralSurface : AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
-          border: Border.all(color: AppColors.hairline),
+          border: Border.all(
+            color: selected ? AppColors.coral : AppColors.hairline,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               PhosphorIconsFill.mapPin,
               size: 16,
-              color: AppColors.inkMuted,
+              color: selected ? AppColors.coral : AppColors.inkMuted,
             ),
             const SizedBox(width: Spacing.sm),
-            Text(
-              'Add location',
-              style:
-                  typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+            Flexible(
+              child: Text(
+                selected ? cityName! : 'Add location',
+                style: typ.AppTypography.bodySmall.copyWith(
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? AppColors.ink : AppColors.inkSoft,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            if (selected) ...[
+              const SizedBox(width: Spacing.sm),
+              GestureDetector(
+                onTap: onClear,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.all(Spacing.xs),
+                  child: Icon(
+                    PhosphorIconsFill.xCircle,
+                    size: 18,
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -320,7 +410,6 @@ class _ImageTile extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Local file image thumbnail
           Image.file(
             File(item.uri),
             fit: BoxFit.cover,
@@ -335,8 +424,6 @@ class _ImageTile extends StatelessWidget {
               ),
             ),
           ),
-
-          // Remove button (top-right)
           Positioned(
             top: Spacing.xs,
             right: Spacing.xs,

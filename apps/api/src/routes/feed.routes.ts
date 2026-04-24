@@ -8,6 +8,7 @@ import {
   handleFollowingSection,
   handleHeroSection,
   handleUpdateUserCity,
+  handleEditorsPicks,
 } from '../handlers/feed.js'
 
 const feedRoutes = new Hono()
@@ -20,5 +21,6 @@ feedRoutes.get('/following', optionalAuthenticate, handleFollowingSection)
 feedRoutes.get('/hero', optionalAuthenticate, handleHeroSection)
 feedRoutes.get('/vertical/:vertical', optionalAuthenticate, handleVerticalSection)
 feedRoutes.get('/discover', optionalAuthenticate, handleDiscoverSection)
+feedRoutes.get('/editors-picks', optionalAuthenticate, handleEditorsPicks)
 
 export default feedRoutes

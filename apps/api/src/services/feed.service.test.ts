@@ -67,6 +67,10 @@ const CONTENT_ROW = {
 
 const CREATOR = { id: 'u1', display_name: 'Riya', username: 'riya', avatar_url: null }
 
+// Cities lookup result — shared across tests where a row has a non-null
+// starting_city_id so enrichItems fires a cities batch.
+const CITY_LOOKUP = [{ id: 'in.mh.pune', name: 'Pune' }]
+
 // ─── getNearYouSection ────────────────────────────────────────────
 
 describe('getNearYouSection', () => {
@@ -98,10 +102,12 @@ describe('getNearYouSection', () => {
     // 1. users query → has current_city_id
     vi.mocked(supabase.from)
       .mockReturnValueOnce(mockChain({ data: { current_city_id: 'in.mh.pune' }, error: null }) as never)
-      // 2. cities query → lat/lng
+      // 2. cities query → lat/lng for getUserLocation
       .mockReturnValueOnce(mockChain({ data: CITY, error: null }) as never)
-      // 3. creators query after attaching
+      // 3. enrichItems: creators lookup
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      // 4. enrichItems: cities lookup (for tags.location_label)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     // rpc → waterfall returns rows at level 0
     vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: Array(5).fill(CONTENT_ROW), error: null } as never)
@@ -119,10 +125,12 @@ describe('getNearYouSection', () => {
     vi.mocked(supabase.from)
       .mockReturnValueOnce(mockChain({ data: { current_city_id: 'in.mh.pune' }, error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: CITY, error: null }) as never)
-      // fallback cities lookup
+      // fallback cities lookup (for banner)
       .mockReturnValueOnce(mockChain({ data: [{ id: 'in.mh.nashik', name: 'Nashik' }], error: null }) as never)
-      // creators
+      // enrichItems: creators
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      // enrichItems: cities (tag lookup)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: Array(5).fill(row1), error: null } as never)
 
@@ -166,6 +174,7 @@ describe('getVerticalSection', () => {
     vi.mocked(supabase.from)
       .mockReturnValueOnce(contentChain as never)
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getVerticalSection('travel')
     expect(items).toHaveLength(1)
@@ -306,6 +315,7 @@ describe('getForYouSection', () => {
       .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: [verticalOnly], error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: [CREATOR, { ...CREATOR, id: 'u2', display_name: 'Arjun' }], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getForYouSection('user-1')
     expect(items).toHaveLength(2)
@@ -322,6 +332,7 @@ describe('getForYouSection', () => {
       .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: [verticalSame], error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getForYouSection('user-1')
     expect(items).toHaveLength(1)
@@ -334,6 +345,7 @@ describe('getForYouSection', () => {
       .mockReturnValueOnce(mockChain({ data: [], error: null }) as never) // verticals empty
       .mockReturnValueOnce(mockChain({ data: [verticalRow], error: null }) as never) // popular fallback
       .mockReturnValueOnce(mockChain({ data: [{ ...CREATOR, id: 'u2' }], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getForYouSection('user-1')
     expect(items).toHaveLength(1)
@@ -436,5 +448,166 @@ describe('getHeroForTab', () => {
 
     const hero = await getHeroForTab('user-1', 'for_you')
     expect(hero?.id).toBe('c1')
+  })
+})
+
+// ─── FeedTags enrichment (row-2 context chips) ────────────────────
+// Covers DISC-FR-023a: budget_tier / read_time_min / location_label /
+// season / trip_style / audience attached to every FeedContentItem via
+// enrichItems. Exercised through getVerticalSection because it is the
+// thinnest path that hits enrichItems with a single row.
+
+describe('FeedTags enrichment', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  // Mobile should always get a tags object — omitting it would force clients
+  // to null-guard the outer object.
+  it('always attaches a tags object to every feed item', async () => {
+    const row = {
+      id: 'x1', type: 'post', title: 'A post', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: null, body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      // no cities chain — starting_city_id is null so enrichItems skips cities
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags).toBeDefined()
+    expect(items[0]!.tags).toEqual(
+      expect.objectContaining({
+        season: null,
+        trip_style: null,
+        audience: null,
+        budget_tier: null,      // post → null (free social content)
+        read_time_min: null,    // body is null → omitted
+        location_label: null,
+      }),
+    )
+  })
+
+  it('derives budget_tier from price_paisa buckets', async () => {
+    const freeRow = {
+      id: 'f1', type: 'self_paced_itinerary', title: 'Free guide', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: {}, body: null,
+    }
+    const midRow = { ...freeRow, id: 'm1', pricing_model: 'paid', price_paisa: 150_000 }
+    const hiRow = { ...freeRow, id: 'h1', pricing_model: 'paid', price_paisa: 800_000 }
+
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [freeRow, midRow, hiRow], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    const byId = new Map(items.map((i) => [i.id, i]))
+    expect(byId.get('f1')!.tags.budget_tier).toBe('free')
+    expect(byId.get('m1')!.tags.budget_tier).toBe('₹₹')
+    expect(byId.get('h1')!.tags.budget_tier).toBe('₹₹₹₹')
+  })
+
+  it('resolves location_label from the cities batch lookup', async () => {
+    const withCity = {
+      id: 'c1', type: 'self_paced_itinerary', title: 'Trip', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: 'in.mh.pune', cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: {}, body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [withCity], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [{ id: 'in.mh.pune', name: 'Pune' }], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.location_label).toBe('Pune')
+  })
+
+  it('returns null location_label when starting_city_id is missing', async () => {
+    const noCity = {
+      id: 'n1', type: 'self_paced_itinerary', title: 'Trip', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: {}, body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [noCity], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.location_label).toBeNull()
+  })
+
+  it('reflects content.facets.season when valid', async () => {
+    const row = {
+      id: 's1', type: 'self_paced_itinerary', title: 'Trip', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null,
+      facets: { season: 'monsoon', trip_style: 'adventure', audience: 'solo' },
+      body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.season).toBe('monsoon')
+    expect(items[0]!.tags.trip_style).toBe('adventure')
+    expect(items[0]!.tags.audience).toBe('solo')
+  })
+
+  it('returns null season when facets JSONB contains garbage', async () => {
+    const row = {
+      id: 'g1', type: 'self_paced_itinerary', title: 'Trip', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null,
+      facets: { season: 'not_a_real_season', trip_style: 42, audience: null },
+      body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.season).toBeNull()
+    expect(items[0]!.tags.trip_style).toBeNull()
+    expect(items[0]!.tags.audience).toBeNull()
+  })
+
+  it('derives read_time_min from body for posts and nulls budget_tier', async () => {
+    // 250 words → ceil(250/200) = 2 min
+    const body = 'word '.repeat(250).trim()
+    const post = {
+      id: 'p1', type: 'post', title: 'A long post', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: null, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: {}, body,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [post], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.read_time_min).toBe(2)
+    expect(items[0]!.tags.budget_tier).toBeNull()
+  })
+
+  it('uses duration_minutes for itinerary read_time_min', async () => {
+    const itin = {
+      id: 'i1', type: 'self_paced_itinerary', title: 'Day trip', vertical: 'travel',
+      pricing_model: 'free', price_paisa: 0, like_count: 0, comment_count: 0,
+      duration_minutes: 180, starting_city_id: null, cover_image_url: null,
+      user_id: 'u1', published_at: null, facets: {}, body: null,
+    }
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ data: [itin], error: null }) as never)
+      .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+
+    const items = await getVerticalSection('travel')
+    expect(items[0]!.tags.read_time_min).toBe(180)
   })
 })

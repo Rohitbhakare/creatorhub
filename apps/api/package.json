@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
+    "@hono/zod-validator": "^0.7.6",
     "@supabase/supabase-js": "^2.47.0",
     "firebase-admin": "^13.0.0",
     "hono": "^4.7.0",
     "jose": "^6.2.2",
+    "posthog-node": "^5.30.3",
     "razorpay": "^2.9.6",
     "zod": "^3.24.0"
   },

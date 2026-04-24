@@ -7,7 +7,7 @@ import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
 import '../providers/vertical_section_provider.dart';
 import '../utils/feed_navigation.dart';
-import '../widgets/feed_content_card.dart';
+import '../widgets/content_card.dart';
 
 /// Full-list view for a single vertical — reached via "See all".
 class VerticalSectionFullScreen extends ConsumerWidget {
@@ -42,13 +42,14 @@ class VerticalSectionFullScreen extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 200 / 230,
+                      mainAxisSpacing: 18,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.62,
                     ),
                     itemCount: items.length,
-                    itemBuilder: (context, i) => FeedRailCard(
+                    itemBuilder: (context, i) => ContentCard(
                       item: items[i],
+                      variant: ContentCardVariant.grid,
                       onTap: () => openFeedItem(context, items[i]),
                     ),
                   );
@@ -99,15 +100,24 @@ class _LoadingGrid extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 200 / 230,
+        mainAxisSpacing: 18,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.62,
       ),
       itemCount: 6,
-      itemBuilder: (_, _) => Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(14))),
-        child: const SkeletonRect(height: 230),
+      itemBuilder: (_, _) => const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(
+            aspectRatio: 4 / 5,
+            child: SkeletonRect(borderRadius: 12),
+          ),
+          SizedBox(height: 8),
+          SkeletonLine(height: 13),
+          SizedBox(height: 6),
+          SkeletonLine(width: 100, height: 11),
+        ],
       ),
     );
   }

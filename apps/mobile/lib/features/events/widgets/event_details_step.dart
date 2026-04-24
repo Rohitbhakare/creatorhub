@@ -17,6 +17,7 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../auth/providers/auth_provider.dart';
 import '../../content/providers/wizard_provider.dart';
+import '../../content/widgets/discoverability_block.dart';
 import '../providers/event_wizard_provider.dart';
 
 /// Event Details step (step 2 of 5 for the event wizard).
@@ -235,6 +236,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
   @override
   Widget build(BuildContext context) {
     final event = ref.watch(eventWizardProvider);
+    final wizard = ref.watch(wizardProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: Layout.screenPaddingH),
@@ -385,6 +387,19 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
             variant: AppButtonVariant.secondary,
             size: AppButtonSize.medium,
             leadingIcon: PhosphorIconsFill.plus,
+          ),
+
+          // ── Discoverability (PR 2 — facets) ────────────────
+          const SizedBox(height: Spacing.xxl),
+          DiscoverabilityBlock(
+            season: wizard.season,
+            tripStyle: wizard.tripStyle,
+            audience: wizard.audience,
+            contentLabel: 'event',
+            onSeasonChanged: ref.read(wizardProvider.notifier).setSeason,
+            onTripStyleChanged:
+                ref.read(wizardProvider.notifier).setTripStyle,
+            onAudienceChanged: ref.read(wizardProvider.notifier).setAudience,
           ),
           const SizedBox(height: Spacing.xxxl),
         ],
@@ -876,6 +891,7 @@ class _WhatToBringSheetState extends ConsumerState<_WhatToBringSheet> {
                 hint: 'e.g. Binoculars',
                 textInputAction: TextInputAction.done,
                 maxLength: 200,
+                showCounter: false,
                 onSubmitted: (_) => _addCustomItem(),
               ),
             ),

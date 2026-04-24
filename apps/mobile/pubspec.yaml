@@ -54,6 +54,7 @@ dependencies:
   firebase_storage: ^13.3.0
   razorpay_flutter: ^1.4.4
   shared_preferences: ^2.3.3
+  share_plus: ^10.1.4
 
 dev_dependencies:
   flutter_test:
@@ -74,8 +75,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - lib/features/content/data/daily_prompts.json
+
+  # To add more assets to your application, add them to the list above, like:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

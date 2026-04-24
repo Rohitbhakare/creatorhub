@@ -277,7 +277,9 @@ class ItineraryWizardNotifier extends Notifier<ItineraryWizardState> {
   // ── City Management ──────────────────────────────────────────
 
   void setStartingCity(String cityId, String cityName) {
-    ref.read(wizardProvider.notifier).setStartingCity(cityId);
+    ref
+        .read(wizardProvider.notifier)
+        .setStartingCity(cityId, cityName: cityName);
     state = state.copyWith(startingCityName: cityName);
   }
 
@@ -305,7 +307,7 @@ class ItineraryWizardNotifier extends Notifier<ItineraryWizardState> {
   }
 
   void clearStartingCity() {
-    ref.read(wizardProvider.notifier).setStartingCity('');
+    ref.read(wizardProvider.notifier).clearStartingCity();
     state = state.copyWith(startingCityName: null);
   }
 

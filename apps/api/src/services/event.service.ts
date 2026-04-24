@@ -248,6 +248,7 @@ export async function updateEvent(
   if (input.sub_category_id !== undefined) contentUpdates.sub_category_id = input.sub_category_id
   if (input.visibility !== undefined) contentUpdates.visibility = input.visibility
   if (input.vertical_data !== undefined) contentUpdates.vertical_data = input.vertical_data
+  if (input.facets !== undefined) contentUpdates.facets = input.facets
 
   if (input.start_at !== undefined) occurrenceUpdates.start_at = input.start_at
   if (input.end_at !== undefined) occurrenceUpdates.end_at = input.end_at

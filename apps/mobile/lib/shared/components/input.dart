@@ -6,6 +6,11 @@ import '../theme/layout.dart';
 import '../theme/typography.dart' as typ;
 
 /// Standard text input with label, helper text, error state.
+///
+/// When `maxLength` is set, a right-aligned character counter is rendered
+/// below the field with threshold colors (muted → amber → danger). Set
+/// `showCounter: false` to suppress it for fixed-length formats (PAN,
+/// Aadhaar, IFSC, OTP) where the counter reads as noise.
 class AppInput extends StatelessWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
@@ -17,6 +22,7 @@ class AppInput extends StatelessWidget {
   final bool autofocus;
   final int maxLines;
   final int? maxLength;
+  final bool showCounter;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
@@ -45,6 +51,7 @@ class AppInput extends StatelessWidget {
     this.autofocus = false,
     this.maxLines = 1,
     this.maxLength,
+    this.showCounter = true,
     this.keyboardType,
     this.textInputAction,
     this.inputFormatters,
@@ -59,6 +66,9 @@ class AppInput extends StatelessWidget {
 
   bool get _effectiveReadOnly =>
       readOnly ?? (controller == null && onChanged == null);
+
+  bool get _shouldShowCounter =>
+      maxLength != null && showCounter && controller != null;
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +108,48 @@ class AppInput extends StatelessWidget {
               suffixIcon: suffix,
               errorText: errorText,
               helperText: helperText,
-              counterText: maxLength != null ? null : '',
+              counterText: '',
             ),
           ),
+          if (_shouldShowCounter)
+            _AppInputCounter(controller: controller!, max: maxLength!),
         ],
+      ),
+    );
+  }
+}
+
+class _AppInputCounter extends StatelessWidget {
+  final TextEditingController controller;
+  final int max;
+
+  const _AppInputCounter({required this.controller, required this.max});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: ListenableBuilder(
+          listenable: controller,
+          builder: (_, _) {
+            final current = controller.text.characters.length;
+            final pct = max > 0 ? (current / max) * 100 : 0;
+            final Color color;
+            if (pct >= 100) {
+              color = AppColors.danger;
+            } else if (pct >= 85) {
+              color = AppColors.warning;
+            } else {
+              color = AppColors.inkMuted;
+            }
+            return Text(
+              '$current / $max',
+              style: typ.AppTypography.caption.copyWith(color: color),
+            );
+          },
+        ),
       ),
     );
   }

@@ -26,18 +26,21 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  eyebrow,
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.inkMuted,
-                    letterSpacing: 0.6,
+                if (eyebrow.isNotEmpty) ...[
+                  Text(
+                    eyebrow,
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.inkMuted,
+                      letterSpacing: 0.6,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: AppTypography.h3.copyWith(color: AppColors.ink),
-                ),
+                  const SizedBox(height: 2),
+                ],
+                if (title.isNotEmpty)
+                  Text(
+                    title,
+                    style: AppTypography.h3.copyWith(color: AppColors.ink),
+                  ),
               ],
             ),
           ),

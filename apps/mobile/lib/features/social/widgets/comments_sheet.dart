@@ -415,6 +415,7 @@ class _CommentInput extends ConsumerStatefulWidget {
 
 class _CommentInputState extends ConsumerState<_CommentInput> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isSending = false;
   int _charCount = 0;
 
@@ -427,6 +428,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -450,6 +452,16 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
 
   @override
   Widget build(BuildContext context) {
+    // Auto-focus input when user taps Reply on a comment
+    ref.listen(
+      commentsProvider(widget.contentId).select((s) => s.replyToId),
+      (prev, next) {
+        if (next != null && prev == null) {
+          Future.microtask(() => _focusNode.requestFocus());
+        }
+      },
+    );
+
     final replyToName = widget.state.replyToName;
     final authState = ref.watch(authProvider);
     final avatarUrl = authState.user?['avatar_url'] as String?;
@@ -507,6 +519,7 @@ class _CommentInputState extends ConsumerState<_CommentInput> {
                       constraints: const BoxConstraints(maxHeight: 100),
                       child: TextField(
                         controller: _controller,
+                        focusNode: _focusNode,
                         maxLength: 500,
                         maxLines: null,
                         textInputAction: TextInputAction.newline,

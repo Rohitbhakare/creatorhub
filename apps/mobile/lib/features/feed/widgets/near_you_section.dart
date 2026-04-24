@@ -51,16 +51,17 @@ class _NearYouContent extends StatelessWidget {
         if (result.fallbackLevel > 0 && result.fallbackCities.isNotEmpty)
           _FallbackBanner(cities: result.fallbackCities),
         SizedBox(
-          height: 260,
+          height: 310,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             itemCount: result.items.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => ContentCard(
               item: result.items[i],
               variant: ContentCardVariant.rail,
-              railWidth: 180,
+              railWidth: 170,
               onTap: () => openFeedItem(context, result.items[i]),
             ),
           ),
@@ -119,24 +120,22 @@ class _NearYouSkeleton extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 260,
+          height: 310,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: 3,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (_, _) => const SizedBox(
-              width: 180,
+              width: 170,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SkeletonRect(width: 180, height: 180, borderRadius: 14),
-                  SizedBox(height: 10),
-                  SkeletonLine(width: 160, height: 13),
-                  SizedBox(height: 6),
-                  SkeletonLine(width: 110, height: 13),
+                  SkeletonRect(width: 170, height: 212, borderRadius: 12),
                   SizedBox(height: 8),
-                  SkeletonLine(width: 90, height: 10),
+                  SkeletonLine(height: 13),
+                  SizedBox(height: 6),
+                  SkeletonLine(width: 100, height: 11),
                 ],
               ),
             ),

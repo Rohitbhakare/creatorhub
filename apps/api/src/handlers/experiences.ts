@@ -32,6 +32,7 @@ import type {
   UpdateSpotInput,
   ReorderSpotsInput,
 } from '@creatorhub/shared'
+import { facetsSchema } from '@creatorhub/shared'
 
 const EXPERIENCE_ALLOWED = ['scheduled_experience'] as const
 
@@ -86,6 +87,7 @@ export async function handleUpdateExperience(c: Context): Promise<Response> {
   if (body.sub_category_id !== undefined) updateData.subCategoryId = String(body.sub_category_id)
   if (body.visibility !== undefined) updateData.visibility = String(body.visibility)
   if (body.vertical_data !== undefined) updateData.verticalData = body.vertical_data as Record<string, unknown>
+  if (body.facets !== undefined) updateData.facets = facetsSchema.parse(body.facets) as Record<string, unknown>
   await updateExperience(contentId, userId, updateData)
 
   return c.json({ success: true, data: { id: contentId } })

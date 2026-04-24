@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
+import { trackContentPublished } from './analytics.service.js'
 
 // ─── publish ────────────────────────────────────────────────────
 
@@ -68,6 +69,9 @@ export async function publish(
   if (updateError || !updated) {
     throw new AppError('db-error', 500, 'Failed to publish content')
   }
+
+  // Track publish event (ANL-FR-001)
+  trackContentPublished(userId, contentId, updated.type as string)
 
   // Increment user content_count (fire-and-forget)
   void supabase.rpc('increment_count', {

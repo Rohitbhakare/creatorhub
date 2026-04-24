@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
 import '../../../../shared/theme/colors.dart';
@@ -9,11 +10,13 @@ import '../../../../shared/theme/spacing.dart';
 import '../../../../shared/theme/layout.dart';
 import '../../../../shared/components/button.dart';
 import '../../providers/wizard_provider.dart';
+import '../post_preview_card.dart';
 
 /// Review & Publish step — the final step in the wizard.
 ///
-/// Shows a validation checklist and a T&C checkbox.
-/// Tapping a failed validation item navigates back to the relevant step.
+/// For posts: shows a live preview card above the checklist so creators
+/// see roughly how the post will look. For paid content types, keeps the
+/// pricing block.
 class ReviewStep extends ConsumerWidget {
   /// Optional callback when the user presses Publish.
   final VoidCallback? onPublish;
@@ -25,7 +28,6 @@ class ReviewStep extends ConsumerWidget {
     final wizard = ref.watch(wizardProvider);
     final isPost = wizard.contentType == ContentType.post;
 
-    // Build checklist items
     final items = _buildChecklistItems(wizard);
     final allPassed = items.every((item) => item.passed);
 
@@ -38,16 +40,18 @@ class ReviewStep extends ConsumerWidget {
         children: [
           const SizedBox(height: Spacing.xl),
 
-          // Section title
-          Text('Review & Publish', style: typ.AppTypography.h3),
-          const SizedBox(height: Spacing.sm),
-          Text(
-            'Make sure everything looks good before publishing',
-            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+          _StepIntro(
+            kicker: 'STEP ${wizard.totalSteps} OF ${wizard.totalSteps}',
+            headline: 'One last look.',
+            subhead: "Here's how it'll appear in the feed.",
           ),
           const SizedBox(height: Spacing.xl),
 
-          // Validation checklist
+          if (isPost) ...[
+            const PostPreviewCard(),
+            const SizedBox(height: Spacing.xl),
+          ],
+
           Container(
             decoration: BoxDecoration(
               color: AppColors.surface,
@@ -79,33 +83,19 @@ class ReviewStep extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: Spacing.xl),
 
-          // Content type summary
-          Container(
-            padding: const EdgeInsets.all(Layout.cardPadding),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Content type',
-                  style: typ.AppTypography.caption,
-                ),
-                const SizedBox(height: Spacing.xs),
-                Text(
-                  wizard.contentType.label,
-                  style: typ.AppTypography.h4,
-                ),
-                if (!isPost) ...[
-                  const SizedBox(height: Spacing.md),
-                  Text(
-                    'Pricing',
-                    style: typ.AppTypography.caption,
-                  ),
+          if (!isPost) ...[
+            const SizedBox(height: Spacing.xl),
+            Container(
+              padding: const EdgeInsets.all(Layout.cardPadding),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(Layout.cardRadius),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pricing', style: typ.AppTypography.caption),
                   const SizedBox(height: Spacing.xs),
                   Text(
                     wizard.pricingModel == 'paid'
@@ -118,12 +108,12 @@ class ReviewStep extends ConsumerWidget {
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
+          ],
+
           const SizedBox(height: Spacing.xl),
 
-          // T&C checkbox
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
@@ -184,7 +174,6 @@ class ReviewStep extends ConsumerWidget {
           ),
           const SizedBox(height: Spacing.xl),
 
-          // Publish button
           AppButton(
             label: 'Publish',
             onPressed:
@@ -205,7 +194,6 @@ class ReviewStep extends ConsumerWidget {
     final isPost = wizard.contentType == ContentType.post;
     final items = <_ChecklistItem>[];
 
-    // Title check
     final titleMin = isPost ? 1 : 5;
     items.add(_ChecklistItem(
       label: 'Title',
@@ -214,23 +202,20 @@ class ReviewStep extends ConsumerWidget {
       step: 1,
     ));
 
-    // Description (optional but if provided, check length)
     items.add(_ChecklistItem(
       label: 'Description',
       passed: wizard.description.length <= 280,
       step: 1,
     ));
 
-    // Body (posts only)
     if (isPost) {
       items.add(_ChecklistItem(
         label: 'Post body',
-        passed: wizard.body.length <= 1000,
-        step: 1,
+        passed: wizard.body.trim().isNotEmpty && wizard.body.length <= 1000,
+        step: 2,
       ));
     }
 
-    // Pricing (itinerary/experience only)
     if (!isPost) {
       items.add(_ChecklistItem(
         label: 'Pricing set',
@@ -241,6 +226,57 @@ class ReviewStep extends ConsumerWidget {
     }
 
     return items;
+  }
+}
+
+class _StepIntro extends StatelessWidget {
+  final String kicker;
+  final String headline;
+  final String subhead;
+
+  const _StepIntro({
+    required this.kicker,
+    required this.headline,
+    required this.subhead,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          kicker,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
+            color: AppColors.coral,
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          headline,
+          style: GoogleFonts.fraunces(
+            fontSize: 28,
+            fontWeight: FontWeight.w500,
+            height: 1.15,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: Spacing.xs),
+        Text(
+          subhead,
+          style: GoogleFonts.fraunces(
+            fontSize: 18,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w400,
+            height: 1.25,
+            color: AppColors.inkSoft,
+          ),
+        ),
+      ],
+    );
   }
 }
 

@@ -14,6 +14,7 @@ import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/format.dart';
+import '../../content/widgets/discoverability_block.dart';
 import '../../itineraries/providers/itinerary_wizard_provider.dart'
     show SpotState;
 import '../../itineraries/widgets/spot_editor_sheet.dart';
@@ -438,6 +439,18 @@ class _BasicsStep extends ConsumerWidget {
                 },
               ),
             ],
+          ),
+
+          // ── Discoverability (PR 2 — facets) ────────────────
+          const SizedBox(height: Spacing.xxl),
+          DiscoverabilityBlock(
+            season: state.season,
+            tripStyle: state.tripStyle,
+            audience: state.audience,
+            contentLabel: 'experience',
+            onSeasonChanged: notifier.setSeason,
+            onTripStyleChanged: notifier.setTripStyle,
+            onAudienceChanged: notifier.setAudience,
           ),
           const SizedBox(height: Spacing.xxxl),
         ],

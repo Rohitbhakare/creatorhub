@@ -27,6 +27,7 @@ export type UpdateExperienceData = {
   subCategoryId?: string
   visibility?: string
   verticalData?: Record<string, unknown>
+  facets?: Record<string, unknown>
 }
 
 type SpotSummary = {
@@ -381,6 +382,7 @@ export async function updateExperience(
   if (data.subCategoryId !== undefined) updates.sub_category_id = data.subCategoryId
   if (data.visibility !== undefined) updates.visibility = data.visibility
   if (data.verticalData !== undefined) updates.vertical_data = data.verticalData
+  if (data.facets !== undefined) updates.facets = data.facets
 
   if (Object.keys(updates).length === 0) {
     return

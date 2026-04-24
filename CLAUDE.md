@@ -139,6 +139,15 @@ Read `.claude/instructions/precommit.md` for the full step-by-step checklist.
 - **Migrations:** Must be deployed to Supabase before DB queries work
 - **Pending creds:** Google Places API key, Razorpay keys (not yet needed — payments are M2 scope)
 
+## Session Documentation Rule (NON-NEGOTIABLE)
+
+**Any bug fix, UI change, new requirement, or enhancement made during a Claude session MUST be documented in `docs/epics/TRACKING.md` before the session ends.** No exceptions.
+
+- **Bug fixed** → add a row to the Open Bugs & Enhancements table with status `FIXED` and the root cause.
+- **New requirement / enhancement** → add a row with status `DONE` or `OPEN`, with the SRS FR reference if one exists.
+- **Pending M1/M2 item discovered** → add to the M1/M2 Pending Items section with the SRS FR ID.
+- Do NOT rely on git history or memory — TRACKING.md is the single source of truth.
+
 ## Current Sprint
 
 **Phase:** M0 Complete — Starting M1 (Private Alpha)

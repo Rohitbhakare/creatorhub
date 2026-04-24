@@ -59,6 +59,33 @@ String formatCount(int n) {
   return n.toString();
 }
 
+/// Compact duration for card category tags: "7d", "3h", "45m".
+/// Rounds down — loses precision on purpose (card tag is a glance-only signal).
+String formatDurationCompact(int totalMinutes) {
+  if (totalMinutes <= 0) return '';
+  final days = totalMinutes ~/ 1440;
+  if (days > 0) return '${days}d';
+  final hours = totalMinutes ~/ 60;
+  if (hours > 0) return '${hours}h';
+  return '${totalMinutes}m';
+}
+
+/// Short display name for cards: first word of displayName, or '@username',
+/// or 'Creator' as last resort. Preserves dots in single-token names
+/// ("S. Iyer"), trims trailing periods.
+String shortAuthorName({String? displayName, String? username}) {
+  final name = displayName?.trim();
+  if (name != null && name.isNotEmpty) {
+    final first = name.split(RegExp(r'\s+')).first;
+    return first.isNotEmpty ? first : name;
+  }
+  final handle = username?.trim();
+  if (handle != null && handle.isNotEmpty) {
+    return handle.startsWith('@') ? handle : '@$handle';
+  }
+  return 'Creator';
+}
+
 /// Format relative time: "2m ago", "3h ago", "5d ago".
 String formatTimeAgo(DateTime dateTime) {
   final diff = DateTime.now().difference(dateTime);

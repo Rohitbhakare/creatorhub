@@ -31,7 +31,7 @@ type CreatorSummary = {
 type PostDetailResult = {
   content: ContentRow
   media: ContentRow[]
-  creator: CreatorSummary & { follower_count: number }
+  creator: CreatorSummary & { follower_count: number; post_count: number; joined_at: string | null }
   is_liked: boolean
   is_saved: boolean
 }
@@ -66,12 +66,19 @@ export async function getPostDetail(
     throw new AppError('not-found', 404, 'Post not found')
   }
 
-  // Fetch follower_count for creator
-  const { data: creatorFull } = await supabase
-    .from('users')
-    .select('follower_count')
-    .eq('id', result.creator.id)
-    .single()
+  // Fetch creator stats in parallel
+  const [creatorFullRes, postCountRes] = await Promise.all([
+    supabase
+      .from('users')
+      .select('follower_count, created_at')
+      .eq('id', result.creator.id)
+      .single(),
+    supabase
+      .from('content')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', result.creator.id)
+      .eq('status', 'published'),
+  ])
 
   // Determine is_liked and is_saved for the requester
   let isLiked = false
@@ -89,7 +96,9 @@ export async function getPostDetail(
     media: result.media,
     creator: {
       ...result.creator,
-      follower_count: (creatorFull?.follower_count as number) ?? 0,
+      follower_count: (creatorFullRes.data?.follower_count as number) ?? 0,
+      post_count: postCountRes.count ?? 0,
+      joined_at: (creatorFullRes.data?.created_at as string | null) ?? null,
     },
     is_liked: isLiked,
     is_saved: isSaved,

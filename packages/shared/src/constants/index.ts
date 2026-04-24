@@ -97,3 +97,46 @@ export const MIN_EVENT_CAPACITY = 1
 export const MAX_EVENT_VENUE_NAME_LENGTH = 200
 export const MAX_EVENT_VENUE_ADDRESS_LENGTH = 500
 export const MAX_EVENT_IMAGES = 5
+
+// ─── Discoverability facets (DISC-FR-023a row-2 chips) ─────
+// Stored in content.facets JSONB. Powers feed-card context chips and
+// future filter/search. Keep enums stable — schema changes are breaking.
+
+export const SEASONS = [
+  'spring',
+  'summer',
+  'monsoon',
+  'autumn',
+  'winter',
+  'year_round',
+] as const
+export type Season = (typeof SEASONS)[number]
+
+export const TRIP_STYLES = [
+  'adventure',
+  'chill',
+  'cultural',
+  'nightlife',
+  'wellness',
+  'foodie',
+  'offbeat',
+] as const
+export type TripStyle = (typeof TRIP_STYLES)[number]
+
+export const AUDIENCES = ['solo', 'couple', 'family', 'friends', 'group'] as const
+export type Audience = (typeof AUDIENCES)[number]
+
+// Derived server-side from price_paisa — never persisted
+export const BUDGET_TIERS = ['free', '₹', '₹₹', '₹₹₹', '₹₹₹₹'] as const
+export type BudgetTier = (typeof BUDGET_TIERS)[number]
+
+// Paisa thresholds for budget tier bucketing (exclusive upper bound)
+export const BUDGET_TIER_THRESHOLDS_PAISA = {
+  low: 100_000,   // <  ₹1,000  → ₹
+  mid: 250_000,   // <  ₹2,500  → ₹₹
+  high: 500_000,  // <  ₹5,000  → ₹₹₹
+                  // >= ₹5,000  → ₹₹₹₹
+} as const
+
+// Reading speed for deriving read_time_min from post body
+export const WORDS_PER_MINUTE = 200

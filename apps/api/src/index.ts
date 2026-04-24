@@ -42,6 +42,8 @@ import dashboardRoutes from './routes/dashboard.routes.js'
 import webhooksRoutes from './routes/webhooks.routes.js'
 import creatorsRoutes from './routes/creators.routes.js'
 import internalRoutes from './routes/internal.routes.js'
+import discoverRoutes from './routes/discover.routes.js'
+import analyticsRoutes from './routes/analytics.routes.js'
 
 const app = new Hono()
 
@@ -106,6 +108,7 @@ app.route('/api/v1/itineraries', itinerariesRoutes)
 app.route('/api/v1/events', eventsRoutes)
 app.route('/api/v1/experiences', experiencesRoutes)
 app.route('/api/v1/feed', feedRoutes)
+app.route('/api/v1/discover', discoverRoutes)
 app.route('/api/v1/users', usersRoutes)
 app.route('/api/v1', socialRoutes)
 app.route('/api/v1/studio', studioRoutes)
@@ -127,6 +130,7 @@ app.route('/api/v1/admin', adminRoutes)
 app.route('/api/v1/webhooks', webhooksRoutes)
 app.route('/api/v1/creators', creatorsRoutes)
 app.route('/internal', internalRoutes)
+app.route('/api/v1/analytics', analyticsRoutes)
 
 // ─── Error Handler ───────────────────────────────────────────
 app.onError(errorHandler)

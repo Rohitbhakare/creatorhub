@@ -8,6 +8,7 @@ import {
   getFollowingSection,
   getHeroForTab,
   updateUserCity,
+  getEditorsPicks,
   type HeroTab,
 } from '../services/feed.service.js'
 
@@ -71,6 +72,13 @@ export async function handleDiscoverSection(c: Context): Promise<Response> {
   const userId = (c.get('userId') as string | undefined) ?? null
   const creators = await getDiscoverSection(userId)
   return c.json({ success: true, data: creators })
+}
+
+// ─── GET /api/v1/feed/editors-picks ─────────────────────────────
+// DISC-FR-039: featured content. Section hidden on mobile when list is empty.
+export async function handleEditorsPicks(c: Context): Promise<Response> {
+  const items = await getEditorsPicks()
+  return c.json({ success: true, data: items })
 }
 
 // ─── PUT /api/v1/users/me/city ───────────────────────────────────

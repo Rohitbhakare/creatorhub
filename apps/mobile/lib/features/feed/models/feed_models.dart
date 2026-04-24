@@ -21,6 +21,51 @@ class FeedCreator {
       );
 }
 
+/// Row-2 context chips payload for feed cards.
+///
+/// All fields optional — the UI picks up to 3 chips per card type and omits
+/// any null/empty value. Wire format is snake_case JSON; see
+/// [FeedTags.fromJson].
+class FeedTags {
+  final String? season;
+  final String? tripStyle;
+  final String? audience;
+
+  /// One of: `'free' | '₹' | '₹₹' | '₹₹₹' | '₹₹₹₹'`.
+  final String? budgetTier;
+  final int? readTimeMin;
+  final String? locationLabel;
+
+  const FeedTags({
+    this.season,
+    this.tripStyle,
+    this.audience,
+    this.budgetTier,
+    this.readTimeMin,
+    this.locationLabel,
+  });
+
+  factory FeedTags.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const FeedTags();
+    return FeedTags(
+      season: json['season'] as String?,
+      tripStyle: json['trip_style'] as String?,
+      audience: json['audience'] as String?,
+      budgetTier: json['budget_tier'] as String?,
+      readTimeMin: (json['read_time_min'] as num?)?.toInt(),
+      locationLabel: json['location_label'] as String?,
+    );
+  }
+
+  bool get isEmpty =>
+      season == null &&
+      tripStyle == null &&
+      audience == null &&
+      budgetTier == null &&
+      readTimeMin == null &&
+      locationLabel == null;
+}
+
 class FeedContentItem {
   final String id;
   final String type;
@@ -35,6 +80,7 @@ class FeedContentItem {
   final String? coverImageUrl;
   final DateTime? publishedAt;
   final FeedCreator? creator;
+  final FeedTags tags;
 
   const FeedContentItem({
     required this.id,
@@ -50,6 +96,7 @@ class FeedContentItem {
     this.coverImageUrl,
     this.publishedAt,
     this.creator,
+    this.tags = const FeedTags(),
   });
 
   factory FeedContentItem.fromJson(Map<String, dynamic> json) => FeedContentItem(
@@ -70,6 +117,7 @@ class FeedContentItem {
         creator: json['creator'] != null
             ? FeedCreator.fromJson(json['creator'] as Map<String, dynamic>)
             : null,
+        tags: FeedTags.fromJson(json['tags'] as Map<String, dynamic>?),
       );
 }
 

@@ -15,6 +15,7 @@ import '../../../shared/components/button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/wizard_provider.dart';
 import '../services/draft_auto_save_service.dart';
+import '../widgets/publish_celebration.dart';
 import '../widgets/wizard_step_indicator.dart';
 import '../widgets/steps/basics_step.dart';
 import '../widgets/steps/media_step.dart';
@@ -130,9 +131,16 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   }
 
   /// Save event-specific fields (venue, dates, capacity) to PUT /api/v1/events/:id.
+  /// Also sends the Discoverability facets captured on the step (PR 2) so the
+  /// event's content row gets its `facets` JSONB populated via the
+  /// event-update endpoint alongside the venue/date columns.
   Future<void> _saveEventDetails(Dio dio, String contentId) async {
     final eventState = ref.read(eventWizardProvider);
-    final payload = eventState.toApiPayload();
+    final wizard = ref.read(wizardProvider);
+    final payload = <String, dynamic>{
+      ...eventState.toApiPayload(),
+      'facets': buildFacetsPayload(wizard),
+    };
     if (payload.isEmpty) return;
 
     try {
@@ -198,29 +206,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       ref.read(wizardProvider.notifier).markSaved();
 
       if (mounted) {
-        final successMessage = switch (wizard.contentType) {
-          ContentType.post => 'Post published!',
-          ContentType.selfPacedItinerary => 'Itinerary published!',
-          ContentType.event => 'Event published!',
-          ContentType.scheduledExperience => 'Experience published!',
-        };
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              successMessage,
-              style:
-                  typ.AppTypography.bodySmall.copyWith(color: AppColors.surface),
-            ),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-            ),
-          ),
+        await PublishCelebration.show(
+          context,
+          contentType: wizard.contentType,
         );
-        // Navigate back to home or content list
-        context.go('/');
+        if (mounted) context.go('/');
       }
     } catch (e) {
       ref
