@@ -462,4 +462,364 @@ SRS CRT-FR-013 requires events to collect:
 
 ---
 
+---
+
+## 13 · Deep Audit — Home Feed (B1)
+
+> Point-by-point comparison of B1 wireframe against `home_feed_screen.dart`.
+
+### 13.1 Chip Rail Navigation
+
+| Design B1 | SRS Ref | In code? | Notes |
+|-----------|---------|:--------:|-------|
+| "For you" chip | DISC-FR-001 | ✅ `kFeedNavForYou` | |
+| "Following" chip | DISC-FR-006 | ✅ `kFeedNavFollowing` | |
+| **"Local"** chip | DISC-FR-007 DD-007 | ⚠️ PARTIAL | Code uses **"Near you"** — label mismatch vs design. Same data, wrong label. |
+| Category chips: Travel / Stories (scroll-jump) | DISC-FR-010 | ✅ | `_handleCategoryJump()` scrolls to section anchor |
+| Segmented solid control (not pills) | B1 design | ⚠️ PARTIAL | Code uses `_ChipRailDelegate` pill chips; design shows a segmented-bar control with solid selection fill. Visual treatment differs. Functional parity exists. |
+
+### 13.2 Top Bar
+
+| Design element | SRS Ref | In code? | Notes |
+|----------------|---------|:--------:|-------|
+| Location pin pill (left) | DD-007 | ✅ | `_FeedTopBarDelegate` has location tap |
+| Search pill (centre) | DISC-FR-033 | ✅ | Opens `/discover` |
+| Bell icon (right) | NOT-FR-001 | ✅ | Routes to `/notifications/preferences` |
+| **Unread badge count on bell** | NOT-FR-001 | ❌ MISSING | Bell has no badge — users can't tell they have new notifications without tapping |
+| Coral location pin colour | C-17 (context 3) | ✅ | |
+
+### 13.3 For-You Feed Sections
+
+| Design B1 section | SRS Ref | In code? | Notes |
+|-------------------|---------|:--------:|-------|
+| Hero card (large editorial) | DD-025 | ✅ `HeroCard` | |
+| For-you ranked content grid | DISC-FR-001 | ✅ `_ForYouVerticalFeed` | |
+| Editor's picks row | DISC-FR-039 | ✅ `EditorPicksSection` | Hidden when empty |
+| Travel section | DISC-FR-002 | ✅ `VerticalSection('travel')` | |
+| Stories section | DISC-FR-003 | ✅ `VerticalSection('stories')` | |
+| Serendipity / Discover section | DISC-FR-037 | ✅ `DiscoverSection` | |
+| **"Trending in [city]" section** | B1 design, DD-007 | ❌ MISSING | Design shows a city-specific trending rail. No implementation. |
+| **Waitlist card** (empty vertical) | DD-012 | ❌ MISSING | SRS §1.5 says dashed border empty-state when vertical has no content. Not built. |
+
+### 13.4 Near-You Tab
+
+| Design element | SRS Ref | In code? | Notes |
+|----------------|---------|:--------:|-------|
+| Fallback honesty banner | DD-009 | ✅ `_FallbackBanner` | Shows warm tint when using nearby city |
+| City-scoped content | DISC-FR-007 | ✅ `NearYouSection` | |
+| **Empty state when no location set** | DD-007 | ⚠️ PARTIAL | Prompts guest for location; no specific empty state for authenticated users who skipped |
+
+### 13.5 Priority — Home Feed Gaps
+
+| Gap | Severity | Effort |
+|-----|----------|--------|
+| Rename "Near you" → "Local" | 🟡 MEDIUM | XS |
+| Bell badge (unread notification count) | 🟡 MEDIUM | S |
+| "Trending in [city]" rail | 🟡 MEDIUM | M |
+| Waitlist card for empty verticals | 🟡 MEDIUM | S |
+| Visual chip-bar → segmented control | 🔵 LOW | M |
+
+---
+
+## 14 · Deep Audit — Discover Tab (B2)
+
+> Comparison against `discover_tab_screen.dart`.
+
+### 14.1 Discover Sections
+
+| Design B2 element | SRS Ref | In code? | Notes |
+|-------------------|---------|:--------:|-------|
+| Sticky header with search pill + filter icon | DISC-FR-032 | ✅ `_DiscoverHeaderDelegate` | |
+| Editorial themes grid (2-col) | DISC-FR-035 | ✅ `_ThemesGrid` | Taps into `CategoryBrowseScreen` |
+| Creator rail (horizontal scroll) | DISC-FR-036 | ✅ `_CreatorsRail` | Follow button uses `coralOutline` |
+| Upcoming experiences compact list | DISC-FR-037 | ✅ `_UpcomingExperiences` | |
+| Themes chip rail (sub-category filter) | DISC-FR-034 | ✅ `DiscoverFilterSheet` | Filter sheet on icon tap |
+| "Discover creators near [city]" | DISC-FR-036 | ✅ | Rail title is city-aware |
+| **Serendipity / "You might also like"** | DISC-FR-037 | ❌ MISSING | Design shows a 3rd section below experiences — not implemented |
+| **Vertical deep-dive tile** (tap theme → category browse) | DISC-FR-003 | ✅ | Routes to `CategoryBrowseScreen` |
+
+### 14.2 Design Rule Check
+
+| Rule | Status | Notes |
+|------|:------:|-------|
+| Filter chips: C-26 outlined at rest, coral border selected | ⚠️ PARTIAL | `DiscoverFilterSheet` uses a custom chip style — not verified as C-26 |
+| Creator cards: follow button `coralOutline` variant | ✅ | |
+| Search results use `SaveToListSheet` | ✅ | |
+
+### 14.3 Priority — Discover Tab Gaps
+
+| Gap | Severity | Effort |
+|-----|----------|--------|
+| Serendipity "You might also like" section | 🔵 LOW | M |
+| Verify `DiscoverFilterSheet` chip C-26 compliance | 🟡 MEDIUM | XS |
+
+---
+
+## 15 · Deep Audit — You Tab (G1)
+
+> Comparison against `you_tab_screen.dart`.
+
+### 15.1 Profile Hero Block
+
+| Design G1 element | SRS Ref | In code? | Notes |
+|-------------------|---------|:--------:|-------|
+| Avatar (64dp, creator = coral ring) | PROF-FR-001 | ✅ | 2.5px coral ring for creators |
+| Display name (Fraunces 22px) | PROF-FR-001 | ✅ | |
+| `@username · City` subtitle | PROF-FR-001 | ✅ | `handleLine` join |
+| Verified creator badge (green) | PROF-FR-001 | ✅ `_CreatorBadge` | |
+| Bio (Fraunces italic) | PROF-FR-006 | ✅ | |
+| Edit + Share row | PROF-FR-006 | ✅ | Share → snackbar "coming soon" |
+| **Follower / following count in hero** | PROF-FR-001 | ❌ MISSING | Design shows small follower count below bio in hero. Code only shows it in the stats grid. |
+| **"View my page" quick link (creators only)** | PROF-FR-012 | ❌ MISSING | Design shows a small "View public profile →" link. Code has "Creator profile" in the account list below. |
+
+### 15.2 Stats Grid
+
+| Design G1 tile | SRS Ref | In code? | Notes |
+|----------------|---------|:--------:|-------|
+| Saved (tap → `/saved`) | PROF-FR-001 | ✅ | |
+| Bookings (tap → `/bookings`) | BK-FR-014 | ✅ | |
+| Completed (tap → `/bookings`) | BK-FR-014 | ✅ | |
+| Following (tap → following list) | SOC-FR-001 | ⚠️ PARTIAL | Tile rendered but `onTap: null` — no navigation |
+| **Followers count tile** | PROF-FR-001 | ❌ MISSING | Design shows Followers as a 5th stat (or replaces Completed). Code has 4 tiles — no Followers tile on You tab. |
+
+### 15.3 Account List
+
+| Design G1 row | SRS Ref | In code? | Notes |
+|---------------|---------|:--------:|-------|
+| Creator profile | PROF-FR-012 | ✅ | Shown only for creators |
+| Connected accounts | IAM-FR-009 | **🐛 BUG FIXED** | Was showing "coming soon" snackbar; fixed this session — now routes to `/profile/connected-accounts` |
+| Notifications | NOT-FR-003 | ✅ | Routes to `/notifications/preferences` |
+| My bookings | BK-FR-014 | ✅ | Routes to `/bookings` |
+| Payouts | STUD-FR-003 | ✅ | Routes to `/studio` (correct — Studio has earnings card) |
+| Privacy & data | DPDPA-FR-001 | ✅ | Routes to `/privacy-settings` |
+| **KYC / Identity** | KYC-FR-005 | ❌ MISSING | Design G1 shows a "KYC & Identity" row. Code doesn't expose KYC status from You tab. |
+| **Legal** | WEB-FR-009 | ❌ MISSING | No T&C / Privacy Policy link in You tab account list. |
+
+### 15.4 Profile Completion Card
+
+| Element | Status |
+|---------|:------:|
+| Progress bar (coral) | ✅ |
+| Checklist items | ✅ |
+| Hides at 100% | ✅ |
+| **Tapping checklist item navigates to that section** | ❌ MISSING — items are display-only, no actionable links |
+
+### 15.5 Priority — You Tab Gaps
+
+| Gap | Severity | Effort |
+|-----|----------|--------|
+| "Connected accounts" → snackbar bug | 🔴 CRITICAL | **FIXED** |
+| Following tile no-op (no navigation) | 🟠 HIGH | S |
+| Followers count tile missing | 🟠 HIGH | S |
+| KYC row missing from account list | 🟡 MEDIUM | XS |
+| Legal link missing from account list | 🟡 MEDIUM | XS |
+| "View public profile" quick link (creators) | 🟡 MEDIUM | XS |
+| Profile completion items not actionable | 🔵 LOW | M |
+
+---
+
+## 16 · Deep Audit — Studio Tab (H2)
+
+> Comparison against `studio_tab_screen.dart`.
+
+### 16.1 Top Bar
+
+| Design H2 element | SRS Ref | In code? | Notes |
+|-------------------|---------|:--------:|-------|
+| "Studio" Fraunces title | STUD-FR-001 | ✅ | |
+| Bell icon (right) | STUD-FR-001 | ⚠️ PARTIAL | **Renders but is a no-op** — `onTap` does nothing (comment says "no-op for M1"). Should route to `/notifications/preferences`. |
+| **Insights link / quick nav** | STUD-FR-002 | ❌ MISSING | Design H2 shows an "Insights →" text link in top bar. Code has none — insights are only reachable from the earnings card area or direct URL. |
+
+### 16.2 Alert Hero Card
+
+| Design H2 element | Status | Notes |
+|-------------------|:------:|-------|
+| Action alert (KYC/linked account) | ✅ | `_ActionAlertCard` |
+| Quiet state (no alert) | ✅ | `_QuietStateCard` |
+| **Background uses hardcoded `Color(0xFFF2EEE8)`** | ⚠️ | Should use `AppColors.surfaceAlt` or a design token. Quiet state has warm-tinted hardcoded bg. |
+| **Alert card uses hardcoded `Color(0xFFFFF5F1)`** | ⚠️ | Should use `AppColors.primaryTint` or `AppColors.coralSurface`. |
+
+### 16.3 Stats Grid
+
+| Design H2 tile | SRS Ref | In code? | Notes |
+|----------------|---------|:--------:|-------|
+| Views | STUD-FR-001 | ✅ | |
+| **Revenue / Earnings** | STUD-FR-003 | ❌ MISMATCH | Code shows "Saves" not "Revenue". Design H2 shows total earnings. |
+| Bookings | STUD-FR-001 | ✅ | |
+| Followers | STUD-FR-001 | ✅ | |
+| **Period selector (7D / 30D)** | STUD-FR-002 | ❌ MISSING | Design shows a period toggle on the stats. Code shows only all-time totals. |
+| **Tap-to-insights on stat tile** | STUD-FR-002 | ❌ MISSING | Tapping a stat should navigate to `/studio/insights`. Tiles are not interactive. |
+
+### 16.4 Content Section
+
+| Design H2 element | Status | Notes |
+|-------------------|:------:|-------|
+| Filter chips (All / Published / Drafts) with counts | ✅ `StudioFilterChips` | |
+| Rich content cards with progress bar | ✅ `StudioContentCard` | |
+| See all link | ✅ | Routes to `/studio/content-list` |
+| Create button | ✅ | Routes to `/content/create` |
+| **Horizontal scroll on cards** | ⚠️ | Design shows horizontal card scroll; code uses vertical list. Acceptable difference for M1. |
+
+### 16.5 Earnings Info Card
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| KYC badge (green/amber/coral) | ✅ `_KycBadge` | |
+| Pending payout amount | ✅ | |
+| Next transfer date | ✅ | |
+| Tap → `/studio/earnings` | ✅ | |
+| **"View Insights →" link in card** | ❌ MISSING | Design H2 shows a small insights link inside the earnings card. Currently no `/studio/insights` entry point in the main Studio tab UI. |
+
+### 16.6 Priority — Studio Tab Gaps
+
+| Gap | Severity | Effort |
+|-----|----------|--------|
+| Bell icon is no-op | 🟠 HIGH | XS |
+| Stats "Saves" → "Revenue" mismatch | 🟠 HIGH | S |
+| Stats tiles not tappable (no insights link) | 🟠 HIGH | S |
+| Period selector missing from stats | 🟡 MEDIUM | M |
+| "View Insights →" link in earnings card | 🟡 MEDIUM | XS |
+| Hardcoded bg colours in alert cards | 🔵 LOW | XS |
+
+---
+
+## 17 · Deep Audit — Edit Profile (G2)
+
+> Comparison against `edit_profile_screen.dart`.
+
+### 17.1 Fields
+
+| Design G2 field | SRS Ref | In code? | Notes |
+|-----------------|---------|:--------:|-------|
+| Avatar (tap to change) | PROF-FR-006 | ✅ | `image_picker` + Firebase Storage |
+| Display name | PROF-FR-006 | ✅ | |
+| Username (creators, 30-day cooldown) | PROF-FR-006 | ✅ | Shown for all users but only editable if creator |
+| Bio (280 chars) | PROF-FR-006 | ✅ | |
+| Email (optional) | PROF-FR-006 | ✅ | With client-side validation |
+| **Pronouns** | PROF-FR-006 | ❌ MISSING | SRS mentions pronouns field. Not in code. |
+| **Social handles (Instagram / YouTube)** | PROF-FR-008 | ❌ MISSING | G2 design shows social URL fields. These should link to Connected Accounts screen or be editable here. |
+| **Website URL** | PROF-FR-006 | ❌ MISSING | Profile bio usually includes website link. Not in code. |
+
+### 17.2 UX Details
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| Dirty-state detection | ✅ | `_isDirty` flag + back dialog |
+| Save button | ✅ | `PUT /api/v1/users/me` |
+| Back navigation guard | ✅ | Discard changes dialog |
+| **Username edit cooldown UI** | ⚠️ PARTIAL | Code renders username field but no cooldown indicator or edit-lock (30-day rule is SRS PROF-FR-006 AC). |
+| **Preview of how profile looks** | ❌ MISSING | No preview mode — creator can't see how their public profile looks before saving. |
+
+### 17.3 Priority — Edit Profile Gaps
+
+| Gap | Severity | Effort |
+|-----|----------|--------|
+| Pronouns field | 🟡 MEDIUM | XS |
+| Social handles (links to Connected Accounts) | 🟡 MEDIUM | S |
+| Website URL field | 🟡 MEDIUM | XS |
+| Username edit cooldown UI indicator | 🟡 MEDIUM | S |
+
+---
+
+## 18 · Quick Audit — Remaining Screens
+
+### 18.1 Notifications (G4 — `notification_preferences_screen.dart`)
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| Toggle groups (booking/social/digest/legal) | ✅ | |
+| DND quiet hours | ✅ | |
+| `Switch` uses deprecated `activeColor` | ⚠️ | Should use `activeThumbColor` (Flutter 3.31+ deprecation) |
+| **Push vs WhatsApp channel selection** | ❌ MISSING | SRS NOT-FR-003 says user picks preferred channel. Code only shows per-category toggles, no channel selector. |
+
+### 18.2 Booking Detail / Booking Flow (D1–D3)
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| Seat hold timer | ✅ | `booking_sheet.dart` |
+| Pay method tiles (C-26 selection) | ✅ | |
+| Confirmation screen | ✅ | `booking_confirmation_screen.dart` |
+| Dispute window (48h post-completion) | ✅ | Built previous session |
+| **"Write a review" CTA after completed booking** | ⚠️ PARTIAL | Booking detail has a "Rate this experience" button for completed bookings. Route to `WriteReviewScreen` works. But button only appears for `scheduled_experience` type. |
+| **Booking receipt / invoice download** | ❌ MISSING | SRS BK-FR-013 says booking confirmation includes downloadable PDF receipt. Not built. |
+
+### 18.3 KYC Flow (F1–F10)
+
+All 10 steps confirmed ✅ in earlier §5 audit. Only gap:
+- **KYC entry point from You tab missing** — covered in §15.3 above.
+
+### 18.4 My Bookings (G5 — `my_bookings_screen.dart`)
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| Upcoming / Past tab filter | ✅ | |
+| Booking card with status pill | ✅ | |
+| Tap → booking detail | ✅ | |
+| **"Upcoming" sorted by date** | ⚠️ | Ordering is server-side — unverified |
+| **Empty state (no bookings)** | ⚠️ | Need to verify empty state widget renders correctly |
+
+### 18.5 Saved Lists (Saved tab — `saved_lists_screen.dart`)
+
+| Element | Status | Notes |
+|---------|:------:|-------|
+| Lists grid | ✅ | |
+| Create new list | ✅ | |
+| List detail | ✅ | `saved_list_detail_screen.dart` |
+| **"Saved" accessible without Saved tab (C-28 nav removes it)** | ⚠️ | Currently a top-level nav tab. C-28 removes this — access should move to You tab stats tile (already wired: `onTap: () => context.push('/saved')`). When bottom nav is restructured (G-01), this path remains. |
+
+---
+
+## 19 · Cross-Screen Gap Summary
+
+> All gaps identified across §13–§18, consolidated by severity.
+
+### 🔴 CRITICAL (blocks user flow or SRS BR)
+
+| ID | Screen | Gap |
+|----|--------|-----|
+| BUG-YOU-001 | You Tab | "Connected accounts" → snackbar instead of route → **FIXED** (this session) |
+
+### 🟠 HIGH (visible UX gap vs design / SRS requirement)
+
+| ID | Screen | Gap | Effort |
+|----|--------|-----|--------|
+| GAP-STU-001 | Studio | Bell icon is no-op — must route to notifications | XS |
+| GAP-STU-002 | Studio | Stats "Saves" tile should be "Revenue" (total earnings) | S |
+| GAP-STU-003 | Studio | Stats tiles are not tappable (should link to `/studio/insights`) | S |
+| GAP-YOU-001 | You Tab | "Following" stat tile has `onTap: null` — no navigation | S |
+| GAP-YOU-002 | You Tab | No "Followers" count tile on You tab stats | S |
+
+### 🟡 MEDIUM (design parity or SRS optional requirement)
+
+| ID | Screen | Gap | Effort |
+|----|--------|-----|--------|
+| GAP-B1-001 | Home Feed | "Near you" chip label → should be "Local" | XS |
+| GAP-B1-002 | Home Feed | No unread badge on bell icon | S |
+| GAP-B1-003 | Home Feed | "Trending in [city]" section missing | M |
+| GAP-B1-004 | Home Feed | Waitlist card (empty vertical dashed state) | S |
+| GAP-STU-004 | Studio | Period selector (7D/30D) missing from stats | M |
+| GAP-STU-005 | Studio | "View Insights →" entry point in earnings card | XS |
+| GAP-STU-006 | Studio | Alert card background uses hardcoded hex (not design tokens) | XS |
+| GAP-YOU-003 | You Tab | KYC row missing from account list | XS |
+| GAP-YOU-004 | You Tab | Legal (T&C / Privacy Policy) link missing | XS |
+| GAP-YOU-005 | You Tab | "View public profile" quick link for creators | XS |
+| GAP-YOU-006 | You Tab | Follower count not shown in hero block | S |
+| GAP-PRF-001 | Edit Profile | Pronouns field missing | XS |
+| GAP-PRF-002 | Edit Profile | Social handles (Instagram/YouTube) fields | S |
+| GAP-PRF-003 | Edit Profile | Website URL field | XS |
+| GAP-PRF-004 | Edit Profile | Username edit cooldown indicator | S |
+| GAP-NOT-001 | Notifications | Push vs WhatsApp channel selector missing | M |
+| GAP-NOT-002 | Notifications | `Switch.activeColor` deprecated warning | XS |
+| GAP-BK-001 | Bookings | PDF receipt / invoice download (BK-FR-013) | M |
+
+### 🔵 LOW (visual polish, no SRS requirement)
+
+| ID | Screen | Gap | Effort |
+|----|--------|-----|--------|
+| GAP-B1-005 | Home Feed | Segmented control (not pill chips) visual | M |
+| GAP-B2-001 | Discover | Serendipity section below experiences | M |
+| GAP-YOU-007 | You Tab | Profile completion items not actionable | M |
+
+---
+
 *This file is a point-in-time audit. Update TRACKING.md as items are resolved.*

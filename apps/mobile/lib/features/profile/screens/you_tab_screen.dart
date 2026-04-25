@@ -648,11 +648,7 @@ class _AccountCard extends StatelessWidget {
             subtitle: 'Instagram, YouTube & more',
             onTap: () {
               HapticFeedback.selectionClick();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Social account linking coming soon'),
-                ),
-              );
+              context.push('/profile/connected-accounts');
             },
           ),
           divider,
