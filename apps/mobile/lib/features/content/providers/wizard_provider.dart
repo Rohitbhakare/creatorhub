@@ -114,6 +114,13 @@ class WizardState {
   final String? tripStyle;
   final String? audience;
 
+  // Budget range for itineraries (budget | mid_range | luxury)
+  final String? budgetRange;
+
+  // Inclusions/exclusions (CRT-FR-024) — for experiences and itineraries
+  final List<String> inclusions;
+  final List<String> exclusions;
+
   const WizardState({
     this.contentId,
     this.contentType = ContentType.post,
@@ -140,6 +147,9 @@ class WizardState {
     this.season,
     this.tripStyle,
     this.audience,
+    this.budgetRange,
+    this.inclusions = const [],
+    this.exclusions = const [],
   });
 
   WizardState copyWith({
@@ -176,6 +186,10 @@ class WizardState {
     String? tripStyle,
     bool setAudience = false,
     String? audience,
+    bool setBudgetRange = false,
+    String? budgetRange,
+    List<String>? inclusions,
+    List<String>? exclusions,
   }) {
     return WizardState(
       contentId: contentId ?? this.contentId,
@@ -205,6 +219,9 @@ class WizardState {
       season: setSeason ? season : this.season,
       tripStyle: setTripStyle ? tripStyle : this.tripStyle,
       audience: setAudience ? audience : this.audience,
+      budgetRange: setBudgetRange ? budgetRange : this.budgetRange,
+      inclusions: inclusions ?? this.inclusions,
+      exclusions: exclusions ?? this.exclusions,
     );
   }
 
@@ -426,6 +443,31 @@ class WizardNotifier extends Notifier<WizardState> {
     state = state.copyWith(
       setAudience: true,
       audience: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setBudgetRange(String? value) {
+    state = state.copyWith(
+      setBudgetRange: true,
+      budgetRange: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setInclusions(List<String> value) {
+    state = state.copyWith(
+      inclusions: List.unmodifiable(value),
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setExclusions(List<String> value) {
+    state = state.copyWith(
+      exclusions: List.unmodifiable(value),
       isDirty: true,
       saveError: null,
     );

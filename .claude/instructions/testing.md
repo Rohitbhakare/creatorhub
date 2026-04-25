@@ -4,10 +4,24 @@
 
 ## Stack
 
-- **API tests:** Vitest (TypeScript)
-- **Flutter tests:** `flutter_test` (unit + widget) + `integration_test` (e2e)
-- **Web tests:** Vitest + Playwright (e2e, when web is built)
+- **API tests:** Vitest + `vi.mock()` — never hit real DB except in `*.integration.test.ts` files
+- **Flutter tests:** `flutter_test` (unit + widget) + Patrol (e2e on device)
+- **Web tests:** Vitest (unit, pure functions only) + Playwright (E2E, SSR page-level)
 - **CI:** All tests run on every PR — green required to merge (NFR-MAINT-003)
+
+## V-Model
+
+```
+Acceptance ←→ E2E       API: —          Flutter: Patrol     Web: Playwright
+System     ←→ Integr.   API: app.request() + vi.mock   Flutter: WidgetTester   Web: —
+Unit       ←→ Unit      API: Vitest+vi.mock  Flutter: flutter_test  Web: Vitest (pure fn)
+```
+
+### Web testing architecture (Next.js SSR)
+React Server Components cannot be tested with React Testing Library. Instead:
+- **Unit (Vitest):** Only `src/lib/api.ts` pure functions (`formatPrice`, fetch helpers with mocked `fetch`)
+- **E2E (Playwright):** Starts two local servers — mock API (port 4000) + Next.js (port 3001). Mock API intercepts SSR `fetch()` calls, making tests hermetic with no real Hono API required.
+- Playwright projects: Desktop Chrome + iPhone 14 (mobile-first validation)
 
 ---
 

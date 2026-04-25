@@ -10,12 +10,15 @@ class CreateTile extends StatefulWidget {
   final CreateTileSpec spec;
   final VoidCallback? onTap;
   final VoidCallback? onNotifyMe;
+  // Show KYC badge when the type requires KYC and the user is not yet verified
+  final bool showKycBadge;
 
   const CreateTile({
     super.key,
     required this.spec,
     this.onTap,
     this.onNotifyMe,
+    this.showKycBadge = false,
   });
 
   @override
@@ -64,6 +67,7 @@ class _CreateTileState extends State<CreateTile>
   @override
   Widget build(BuildContext context) {
     final spec = widget.spec;
+    final showKycBadge = widget.showKycBadge && spec.requiresKyc && !spec.comingSoon;
     final shadow = spec.comingSoon
         ? const [
             BoxShadow(
@@ -143,6 +147,27 @@ class _CreateTileState extends State<CreateTile>
               top: 14,
               right: 14,
               child: _NotifyMeButton(onTap: widget.onNotifyMe),
+            ),
+          if (showKycBadge)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3CD),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFD4A017), width: 0.5),
+                ),
+                child: Text(
+                  'Requires KYC',
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF7B5E00),
+                  ),
+                ),
+              ),
             ),
         ],
       ),

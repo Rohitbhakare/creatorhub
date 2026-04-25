@@ -581,7 +581,7 @@ class _FeedGrid extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 18,
           crossAxisSpacing: 12,
-          childAspectRatio: 0.54,
+          childAspectRatio: 0.65,
         ),
         itemCount: items.length,
         itemBuilder: (context, i) => ContentCard(
@@ -609,7 +609,7 @@ class _FeedGridSkeleton extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 18,
           crossAxisSpacing: 12,
-          childAspectRatio: 0.54,
+          childAspectRatio: 0.65,
         ),
         itemCount: 4,
         itemBuilder: (_, _) => const Column(
@@ -677,3 +677,4 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+

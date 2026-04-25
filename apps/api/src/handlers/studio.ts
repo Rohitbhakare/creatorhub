@@ -4,6 +4,7 @@ import {
   dismissAlert,
   getCreatorStats,
   listCreatorContent,
+  getContentCounts,
 } from '../services/studio.service.js'
 import { AppError } from '../errors/AppError.js'
 
@@ -63,6 +64,14 @@ export async function handleGetStats(c: Context): Promise<Response> {
       bookings: stats.bookings,
     },
   })
+}
+
+// ─── GET /studio/content/counts ──────────────────────────────────
+
+export async function handleGetContentCounts(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const counts = await getContentCounts(userId)
+  return c.json({ success: true, data: counts })
 }
 
 // ─── GET /studio/content ─────────────────────────────────────────

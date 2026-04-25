@@ -41,8 +41,7 @@ void main() {
       expect(taps, 1);
     });
 
-    testWidgets('coming-soon tile does not fire onTap when tapped',
-        (tester) async {
+    testWidgets('Experience tile fires onTap when tapped', (tester) async {
       var tileTaps = 0;
       await tester.pumpWidget(_wrap(CreateTile(
         spec: _experienceSpec(),
@@ -53,27 +52,17 @@ void main() {
       await tester.tap(find.text('Experience'));
       await tester.pumpAndSettle();
 
-      expect(tileTaps, 0);
+      expect(tileTaps, 1);
     });
 
-    testWidgets('coming-soon tile renders a Notify me button that fires '
-        'onNotifyMe independently', (tester) async {
-      var tileTaps = 0;
-      var notifyTaps = 0;
+    testWidgets('Experience tile does not show Notify me button',
+        (tester) async {
       await tester.pumpWidget(_wrap(CreateTile(
         spec: _experienceSpec(),
-        onTap: () => tileTaps++,
-        onNotifyMe: () => notifyTaps++,
       )));
       await tester.pumpAndSettle();
 
-      expect(find.text('Notify me'), findsOneWidget);
-
-      await tester.tap(find.text('Notify me'));
-      await tester.pumpAndSettle();
-
-      expect(notifyTaps, 1, reason: 'notify-me should fire');
-      expect(tileTaps, 0, reason: 'tile onTap must not bubble');
+      expect(find.text('Notify me'), findsNothing);
     });
 
     testWidgets('accessible label combines title and descriptor',

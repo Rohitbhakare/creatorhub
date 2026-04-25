@@ -635,7 +635,7 @@ class _AccountCard extends StatelessWidget {
         children: [
           if (isCreator) ...[
             _AccountRow(
-              icon: PhosphorIcons.identification(PhosphorIconsStyle.regular),
+              icon: PhosphorIcons.identificationCard(PhosphorIconsStyle.regular),
               label: 'Creator profile',
               subtitle: 'Your public page',
               onTap: () => context.push('/profile/$userId'),

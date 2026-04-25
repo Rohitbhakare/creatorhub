@@ -70,7 +70,7 @@ void main() {
       expect(find.text('Share a story, photo, or moment'), findsOneWidget);
       expect(find.text('Plan a route others can follow'), findsOneWidget);
       expect(find.text('Host a meet-up or gathering'), findsOneWidget);
-      expect(find.text('Lead a paid tour. Arriving soon.'), findsOneWidget);
+      expect(find.text('Lead a paid, guided tour or walk'), findsOneWidget);
     });
 
     testWidgets('renders editorial heading + section label + prompt',
@@ -122,7 +122,8 @@ void main() {
       expect(find.textContaining('WIZARD:'), findsOneWidget);
     });
 
-    testWidgets('tapping Experience does NOT navigate', (tester) async {
+    testWidgets('tapping Experience navigates to the experience wizard',
+        (tester) async {
       final navLog = <String>[];
       await _setPhoneSize(tester);
       await tester.pumpWidget(_wrap(navLog: navLog));
@@ -131,26 +132,8 @@ void main() {
       await tester.tap(find.text('Experience'));
       await tester.pumpAndSettle();
 
-      expect(navLog, isEmpty);
-      expect(find.text('Experience'), findsOneWidget);
-    });
-
-    testWidgets('tapping Notify me shows toast without navigation',
-        (tester) async {
-      final navLog = <String>[];
-      await _setPhoneSize(tester);
-      await tester.pumpWidget(_wrap(navLog: navLog));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Notify me'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(
-        find.text("We'll let you know when Experiences launch"),
-        findsOneWidget,
-      );
-      expect(navLog, isEmpty);
+      expect(navLog, [ContentType.scheduledExperience.name]);
+      expect(find.textContaining('WIZARD:'), findsOneWidget);
     });
 
     testWidgets('reduce-motion skips translate animation', (tester) async {

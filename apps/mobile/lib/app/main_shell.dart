@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../shared/theme/colors.dart';
 import '../shared/theme/typography.dart';
 
 /// 5-tab bottom navigation shell.
 ///
-/// Tabs: Home · Discover · Create · Saved · You.
+/// Tabs: Home · Discover · Studio · Saved · You.
+/// Create is a floating action button (coral, bottom-right).
 /// Active tabs render a coral-tint pill behind the icon + coral label.
 /// Bar sits on `surface` with a soft upward top-edge shadow.
 class MainShell extends StatelessWidget {
@@ -25,8 +27,12 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
+    // FAB only on Home (0) and Discover (1)
+    final showFab = currentIndex == 0 || currentIndex == 1;
+
     return Scaffold(
       body: child,
+      floatingActionButton: showFab ? _ShellCreateFab() : null,
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: AppColors.surface,
@@ -47,26 +53,22 @@ class MainShell extends StatelessWidget {
                   onTap: () => _handleTap(0),
                 ),
                 _TabItem(
-                  icon:
-                      PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
-                  activeIcon:
-                      PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.fill),
+                  icon: PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
+                  activeIcon: PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.fill),
                   label: 'Discover',
                   isActive: currentIndex == 1,
                   onTap: () => _handleTap(1),
                 ),
                 _TabItem(
-                  icon: PhosphorIcons.plusCircle(PhosphorIconsStyle.regular),
-                  activeIcon: PhosphorIcons.plusCircle(PhosphorIconsStyle.fill),
-                  label: 'Create',
+                  icon: PhosphorIcons.chartBar(PhosphorIconsStyle.regular),
+                  activeIcon: PhosphorIcons.chartBar(PhosphorIconsStyle.fill),
+                  label: 'Studio',
                   isActive: currentIndex == 2,
                   onTap: () => _handleTap(2),
                 ),
                 _TabItem(
-                  icon:
-                      PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
-                  activeIcon:
-                      PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
+                  icon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.regular),
+                  activeIcon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
                   label: 'Saved',
                   isActive: currentIndex == 3,
                   onTap: () => _handleTap(3),
@@ -89,6 +91,34 @@ class MainShell extends StatelessWidget {
   void _handleTap(int index) {
     HapticFeedback.selectionClick();
     onTabTap(index);
+  }
+}
+
+class _ShellCreateFab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/content/create');
+      },
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.coral,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.coral.withValues(alpha: 0.30),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 18),
+      ),
+    );
   }
 }
 

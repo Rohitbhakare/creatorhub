@@ -331,6 +331,9 @@ class CreateExperienceState {
   final String? tripStyle;
   final String? audience;
 
+  // Cancellation policy: 'flexible' | 'moderate' | 'strict'
+  final String cancellationPolicy;
+
   const CreateExperienceState({
     this.contentId,
     this.title = '',
@@ -350,6 +353,7 @@ class CreateExperienceState {
     this.season,
     this.tripStyle,
     this.audience,
+    this.cancellationPolicy = 'flexible',
   });
 
   int get dayCount => days.length;
@@ -378,6 +382,7 @@ class CreateExperienceState {
     bool? tncAccepted,
     bool? isSaving,
     String? saveError,
+    String? cancellationPolicy,
     // Explicit "set this field" flags so callers can clear a facet back to
     // null without the usual `x ?? this.x` rollback.
     bool setSeason = false,
@@ -403,6 +408,7 @@ class CreateExperienceState {
       tncAccepted: tncAccepted ?? this.tncAccepted,
       isSaving: isSaving ?? this.isSaving,
       saveError: saveError,
+      cancellationPolicy: cancellationPolicy ?? this.cancellationPolicy,
       season: setSeason ? season : this.season,
       tripStyle: setTripStyle ? tripStyle : this.tripStyle,
       audience: setAudience ? audience : this.audience,
@@ -445,6 +451,12 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
 
   void setMeetingPoint(MeetingPointInfo mp) =>
       state = state.copyWith(meetingPoint: mp, saveError: null);
+
+  void setCancellationPolicy(String policy) =>
+      state = state.copyWith(cancellationPolicy: policy, saveError: null);
+
+  void setContentId(String id) =>
+      state = state.copyWith(contentId: id, saveError: null);
 
   // ── Discoverability facets (PR 2) ────────────────────────────
   void setSeason(String? value) => state =
@@ -519,6 +531,7 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
       if (state.coverImageUrl != null) 'cover_image_url': state.coverImageUrl,
       if (state.locationName != null) 'location_name': state.locationName,
       if (state.tags.isNotEmpty) 'tags': state.tags,
+      'cancellation_policy': state.cancellationPolicy,
       'facets': <String, dynamic>{
         if (state.season != null) 'season': state.season,
         if (state.tripStyle != null) 'trip_style': state.tripStyle,

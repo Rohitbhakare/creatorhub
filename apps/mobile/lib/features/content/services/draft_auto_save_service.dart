@@ -118,7 +118,7 @@ class DraftAutoSaveService {
       'title': wizard.title,
       'description': wizard.description,
       if (wizard.contentType == ContentType.post) 'body': wizard.body,
-      'vertical': wizard.vertical,
+      if (wizard.vertical.isNotEmpty) 'vertical': wizard.vertical,
       if (wizard.subCategoryId != null) 'sub_category_id': wizard.subCategoryId,
       'tags': wizard.tags,
       if (wizard.startingCityId != null)
@@ -131,6 +131,16 @@ class DraftAutoSaveService {
       // use facets, so skip.
       if (wizard.contentType != ContentType.post)
         'facets': buildFacetsPayload(wizard),
+      if (wizard.contentType == ContentType.selfPacedItinerary &&
+          wizard.budgetRange != null)
+        'budget_range': wizard.budgetRange,
+      // Inclusions/exclusions stored in vertical_data JSONB (CRT-FR-024)
+      if (wizard.contentType == ContentType.selfPacedItinerary ||
+          wizard.contentType == ContentType.scheduledExperience)
+        'vertical_data': {
+          'inclusions': wizard.inclusions,
+          'exclusions': wizard.exclusions,
+        },
       // day_count is not a column on the content table — it's derived from
       // itinerary_days and managed via PUT /api/v1/itineraries/:id. Excluding
       // it from the generic content PUT avoids a 500 on Supabase's update.

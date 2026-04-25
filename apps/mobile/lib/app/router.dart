@@ -18,8 +18,11 @@ import '../features/feed/screens/home_feed_screen.dart';
 import '../features/discover/screens/discover_tab_screen.dart';
 import '../features/discover/screens/category_browse_screen.dart';
 import '../features/feed/screens/vertical_section_full_screen.dart';
+import '../features/profile/screens/connected_accounts_screen.dart';
 import '../features/studio/screens/earnings_screen.dart';
+import '../features/studio/screens/studio_insights_screen.dart';
 import '../features/studio/screens/studio_tab_screen.dart';
+import '../features/studio/screens/studio_content_list_screen.dart';
 import '../features/profile/screens/you_tab_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_view_screen.dart';
@@ -184,12 +187,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Tab 2: Create — content-type picker
+          // Tab 2: Studio
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/create',
-                builder: (context, state) => const ContentTypePickerScreen(),
+                path: '/studio',
+                builder: (context, state) => const StudioTabScreen(),
               ),
             ],
           ),
@@ -215,6 +218,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // ── Overlay routes (pushed on top of tabs) ────────────
+
+      // Create — content-type picker (FAB entry point)
+      GoRoute(
+        path: '/create',
+        builder: (context, state) => const ContentTypePickerScreen(),
+      ),
 
       // Posts
       GoRoute(
@@ -276,6 +285,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Profile
       GoRoute(
+        path: '/profile/connected-accounts',
+        builder: (context, state) => const ConnectedAccountsScreen(),
+      ),
+      GoRoute(
         path: '/profile/edit',
         builder: (context, state) => const EditProfileScreen(),
       ),
@@ -314,15 +327,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Studio (push-only — not a tab; creators enter from You tab
-      // or deep-links from KYC approval)
-      GoRoute(
-        path: '/studio',
-        builder: (context, state) => const StudioTabScreen(),
-      ),
+      // Studio earnings (child screen; Studio root is a tab branch)
       GoRoute(
         path: '/studio/earnings',
         builder: (context, state) => const EarningsScreen(),
+      ),
+
+      // Studio insights (STUD-FR-002)
+      GoRoute(
+        path: '/studio/insights',
+        builder: (context, state) => const StudioInsightsScreen(),
+      ),
+
+      // Studio — full content list ("See all")
+      GoRoute(
+        path: '/studio/content-list',
+        builder: (context, state) => const StudioContentListScreen(),
       ),
 
       // Bookings

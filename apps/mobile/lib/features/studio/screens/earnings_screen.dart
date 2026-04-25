@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,11 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/app_header.dart';
+import '../../../shared/components/button.dart';
 import '../../../shared/components/empty_state.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/earnings_provider.dart';
 import '../providers/linked_account_provider.dart';
 import '../widgets/linked_account_banner.dart';
@@ -104,6 +108,10 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: Spacing.sm)),
                   _PayoutListSliver(state: earnings),
+                  const SliverToBoxAdapter(child: SizedBox(height: Spacing.xl)),
+
+                  // TAX-FR-005: Tax documents section
+                  const SliverToBoxAdapter(child: _TaxDocumentsSection()),
                   const SliverToBoxAdapter(
                     child: SizedBox(height: Spacing.xxxl),
                   ),
@@ -278,6 +286,256 @@ class _EmptyPayouts extends StatelessWidget {
       title: 'No payouts yet',
       description:
           'Payouts appear here after a booking completes. They settle 48 hours after the experience ends.',
+    );
+  }
+}
+
+// ── TAX-FR-005: Tax documents section ──────────────────────────────
+
+class _TaxDocumentsSection extends ConsumerStatefulWidget {
+  const _TaxDocumentsSection();
+
+  @override
+  ConsumerState<_TaxDocumentsSection> createState() =>
+      _TaxDocumentsSectionState();
+}
+
+class _TaxDocumentsSectionState extends ConsumerState<_TaxDocumentsSection> {
+  int? _selectedYear;
+  bool _isDownloading = false;
+
+  int get _currentFY {
+    final now = DateTime.now();
+    // FY starts April 1; if before April, current FY started last year
+    return now.month >= 4 ? now.year : now.year - 1;
+  }
+
+  List<int> get _availableYears {
+    final fy = _currentFY;
+    return [fy, fy - 1, fy - 2];
+  }
+
+  String _fyLabel(int startYear) => 'FY ${startYear}–${(startYear + 1).toString().substring(2)}';
+
+  Future<void> _download(String docType) async {
+    if (_selectedYear == null) return;
+    setState(() => _isDownloading = true);
+    HapticFeedback.lightImpact();
+
+    try {
+      final dio = ref.read(authServiceProvider).dio;
+      // TAX-FR-005: GET /api/v1/studio/tax-documents?type=form16a&fy=2024
+      await dio.get(
+        '/api/v1/studio/tax-documents',
+        queryParameters: {'type': docType, 'fy': _selectedYear},
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$docType download started'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        final msg = e.response?.statusCode == 404
+            ? 'No ${docType} available for ${_fyLabel(_selectedYear!)}'
+            : 'Download failed. Try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.danger,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                PhosphorIcons.filePdf(PhosphorIconsStyle.regular),
+                size: 18,
+                color: AppColors.ink,
+              ),
+              const SizedBox(width: Spacing.xs),
+              Text('Tax documents', style: AppTypography.h4),
+            ],
+          ),
+          const SizedBox(height: Spacing.xs),
+          Text(
+            'Download Form 16A (TDS certificate) and GST summary for your tax filing.',
+            style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: Spacing.md),
+
+          // Financial year selector
+          Text(
+            'Financial year',
+            style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: Spacing.xs),
+          Row(
+            children: _availableYears.map((y) {
+              final isSelected = y == _selectedYear;
+              return Padding(
+                padding: const EdgeInsets.only(right: Spacing.sm),
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _selectedYear = y);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.md,
+                      vertical: Spacing.xs + 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryTint
+                          : AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color:
+                            isSelected ? AppColors.coral : AppColors.hairline,
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Text(
+                      _fyLabel(y),
+                      style: AppTypography.caption.copyWith(
+                        color: isSelected ? AppColors.coral : AppColors.ink,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: Spacing.lg),
+
+          // Document buttons
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(Layout.cardRadius),
+              border: Border.all(color: AppColors.hairline),
+            ),
+            child: Column(
+              children: [
+                _TaxDocTile(
+                  icon: PhosphorIconsRegular.filePdf,
+                  title: 'Form 16A',
+                  subtitle: 'TDS certificate (Sec 194-O) issued by the platform',
+                  enabled: _selectedYear != null && !_isDownloading,
+                  onTap: () => _download('form16a'),
+                ),
+                const Divider(height: 1, color: AppColors.hairline),
+                _TaxDocTile(
+                  icon: PhosphorIconsRegular.fileText,
+                  title: 'GSTR-1 / 3B Summary',
+                  subtitle:
+                      'GST collected summary for returns filing (if GST registered)',
+                  enabled: _selectedYear != null && !_isDownloading,
+                  onTap: () => _download('gstr'),
+                ),
+              ],
+            ),
+          ),
+
+          if (_selectedYear == null)
+            Padding(
+              padding: const EdgeInsets.only(top: Spacing.sm),
+              child: Text(
+                'Select a financial year to enable downloads.',
+                style:
+                    AppTypography.caption.copyWith(color: AppColors.inkFaint),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TaxDocTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _TaxDocTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Layout.cardPadding,
+          vertical: Spacing.md,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: enabled ? AppColors.ink : AppColors.inkFaint,
+            ),
+            const SizedBox(width: Spacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: enabled ? AppColors.ink : AppColors.inkFaint,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTypography.caption.copyWith(
+                        color: AppColors.inkSoft),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: Spacing.sm),
+            Icon(
+              PhosphorIcons.downloadSimple(PhosphorIconsStyle.regular),
+              size: 18,
+              color: enabled ? AppColors.coral : AppColors.inkFaint,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

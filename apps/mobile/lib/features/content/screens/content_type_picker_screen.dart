@@ -10,6 +10,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsRegula
 import '../../../shared/theme/animations.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/utils/toast.dart';
+import '../../kyc/providers/kyc_provider.dart';
 import '../config/create_tile_config.dart';
 import '../providers/wizard_provider.dart';
 import '../services/daily_prompt_service.dart';
@@ -29,6 +30,9 @@ class ContentTypePickerScreen extends ConsumerWidget {
     final reduceMotion = Anim.shouldReduceMotion(context);
     final DraftSummary? draft =
         kContinueDraftingEnabled ? _resolveLatestDraft(ref) : null;
+    // KYC badge: show on tiles that requiresKyc when user is not yet verified
+    final kycAsync = ref.watch(kycStatusProvider);
+    final kycVerified = kycAsync.asData?.value.status == 'verified';
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -61,6 +65,7 @@ class ContentTypePickerScreen extends ConsumerWidget {
                     spec: kCreateTiles[i],
                     onTap: () => _selectType(context, ref, kCreateTiles[i].contentType),
                     onNotifyMe: () => _onNotifyMe(context),
+                    showKycBadge: !kycVerified,
                   ),
                 ),
               ],

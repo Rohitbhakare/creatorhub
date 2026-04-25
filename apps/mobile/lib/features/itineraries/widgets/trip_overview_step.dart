@@ -345,6 +345,37 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
             ),
           ),
 
+          // ── Budget range ────────────────────────────────────
+          const SizedBox(height: Spacing.xxl),
+          Text(
+            'Budget range',
+            style: typ.AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.inkSoft,
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+          Row(
+            children: [
+              for (final option in _budgetOptions) ...[
+                Expanded(
+                  child: _BudgetChip(
+                    label: option.$1,
+                    emoji: option.$2,
+                    isSelected: wizard.budgetRange == option.$3,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ref.read(wizardProvider.notifier).setBudgetRange(
+                            wizard.budgetRange == option.$3 ? null : option.$3,
+                          );
+                    },
+                  ),
+                ),
+                if (option != _budgetOptions.last) const SizedBox(width: Spacing.sm),
+              ],
+            ],
+          ),
+
           // ── Discoverability (PR 2 — facets) ────────────────
           const SizedBox(height: Spacing.xxl),
           DiscoverabilityBlock(
@@ -359,6 +390,63 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
           ),
           const SizedBox(height: Spacing.xxxl),
         ],
+      ),
+    );
+  }
+}
+
+// ── Budget options (label, emoji, API value) ──────────────────
+
+const _budgetOptions = [
+  ('Budget', '🎒', 'budget'),
+  ('Mid-range', '🏨', 'mid_range'),
+  ('Luxury', '✨', 'luxury'),
+];
+
+class _BudgetChip extends StatelessWidget {
+  final String label;
+  final String emoji;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _BudgetChip({
+    required this.label,
+    required this.emoji,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryTint : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+          border: Border.all(
+            color: isSelected ? AppColors.coral : AppColors.hairline,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: typ.AppTypography.caption.copyWith(
+                color: isSelected ? AppColors.ink : AppColors.inkSoft,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

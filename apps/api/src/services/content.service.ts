@@ -126,6 +126,10 @@ export async function updateDraft(
     throw new AppError('unprocessable', 422, 'Only draft content can be edited')
   }
 
+  // Strip enum fields that are empty strings — they fail DB CHECK constraints
+  // and signal "not set yet" rather than an intentional clear.
+  if (updates.vertical === '') delete (updates as Record<string, unknown>).vertical
+
   const { data, error } = await supabase
     .from('content')
     .update(updates)

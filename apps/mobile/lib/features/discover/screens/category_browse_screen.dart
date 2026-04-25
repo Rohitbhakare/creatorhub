@@ -338,7 +338,7 @@ class _ContentBody extends ConsumerWidget {
           title: 'Something went wrong',
           description: state.error!,
           ctaLabel: 'Try again',
-          onCta: () => ref.read(categoryBrowseProvider(params).notifier).refresh(),
+          onCtaPressed: () => ref.read(categoryBrowseProvider(params).notifier).refresh(),
         ),
       );
     }
@@ -359,7 +359,7 @@ class _ContentBody extends ConsumerWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.54,
+        childAspectRatio: 0.65,
       ),
       itemCount: state.items.length + (state.isLoadingMore ? 2 : 0),
       itemBuilder: (context, i) {
@@ -387,7 +387,7 @@ class _ContentSkeleton extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.54,
+        childAspectRatio: 0.65,
       ),
       itemCount: 6,
       itemBuilder: (_, __) => const SkeletonRect(borderRadius: 12),

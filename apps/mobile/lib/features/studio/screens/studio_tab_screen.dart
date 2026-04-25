@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/button.dart';
-import '../../../shared/components/empty_state.dart';
 import '../../../shared/components/guest_tab_placeholder.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/theme/colors.dart';
@@ -20,6 +18,7 @@ import '../../auth/widgets/soft_auth_sheet.dart';
 import '../../kyc/providers/kyc_provider.dart';
 import '../providers/earnings_provider.dart';
 import '../providers/studio_provider.dart';
+import '../widgets/studio_content_widgets.dart';
 
 class StudioTabScreen extends ConsumerWidget {
   const StudioTabScreen({super.key});
@@ -142,6 +141,15 @@ class _AlertHeroCard extends ConsumerWidget {
 class _QuietStateCard extends StatelessWidget {
   const _QuietStateCard();
 
+  void _showExamplesSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _ExamplesSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -204,7 +212,7 @@ class _QuietStateCard extends StatelessWidget {
                     size: AppButtonSize.small,
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      // No-op for M1
+                      _showExamplesSheet(context);
                     },
                   ),
                 ),
@@ -401,6 +409,8 @@ class _StatTile extends StatelessWidget {
 
 // ── Content Section ──────────────────────────────────────────────────
 
+const _kPreviewLimit = 5;
+
 class _ContentSection extends ConsumerStatefulWidget {
   const _ContentSection();
 
@@ -433,6 +443,9 @@ class _ContentSectionState extends ConsumerState<_ContentSection> {
   @override
   Widget build(BuildContext context) {
     final contentState = ref.watch(studioContentProvider);
+    final hasMore =
+        contentState.hasMore || contentState.items.length > _kPreviewLimit;
+    final preview = contentState.items.take(_kPreviewLimit).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,31 +457,57 @@ class _ContentSectionState extends ConsumerState<_ContentSection> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Your content', style: AppTypography.h4),
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  context.push('/content/create');
-                },
-                child: SizedBox(
-                  height: Layout.minTapTarget,
-                  child: Center(
-                    child: Text(
-                      'Create',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.coral,
-                        fontWeight: FontWeight.w600,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasMore && !contentState.isLoading)
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/studio/content-list');
+                      },
+                      child: SizedBox(
+                        height: Layout.minTapTarget,
+                        child: Center(
+                          child: Text(
+                            'See all',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.inkSoft,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (hasMore && !contentState.isLoading)
+                    const SizedBox(width: Spacing.sm),
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      context.push('/content/create');
+                    },
+                    child: SizedBox(
+                      height: Layout.minTapTarget,
+                      child: Center(
+                        child: Text(
+                          'Create',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.coral,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
         ),
         const SizedBox(height: Spacing.md),
 
-        // Filter chips
-        _FilterChips(
+        // Filter chips with counts
+        StudioFilterChips(
           currentFilter: contentState.statusFilter,
           onChanged: (filter) {
             HapticFeedback.lightImpact();
@@ -479,97 +518,65 @@ class _ContentSectionState extends ConsumerState<_ContentSection> {
 
         // Content list / loading / empty / error
         if (contentState.isLoading)
-          _ContentSkeleton()
+          const StudioContentSkeleton()
         else if (contentState.error != null && contentState.items.isEmpty)
-          _ContentError(
+          StudioContentError(
             onRetry: () =>
                 ref.read(studioContentProvider.notifier).retry(),
           )
         else if (contentState.items.isEmpty)
-          _ContentEmpty(filter: contentState.statusFilter)
+          StudioContentEmpty(filter: contentState.statusFilter)
         else
-          _ContentList(
-            items: contentState.items,
-            hasMore: contentState.hasMore,
-            isLoadingMore: contentState.isLoadingMore,
+          _ContentCardList(
+            items: preview,
             scrollController: _scrollController,
+          ),
+
+        // "See all" footer link
+        if (hasMore && !contentState.isLoading && contentState.items.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.mlg, Spacing.sm, Spacing.mlg, 0),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/studio/content-list');
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.hairline),
+                ),
+                child: Text(
+                  'See all content →',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           ),
       ],
     );
   }
 }
 
-class _FilterChips extends StatelessWidget {
-  final String currentFilter;
-  final ValueChanged<String> onChanged;
+// _FilterChips, _ContentCard, _EngageStat, _ThumbnailPlaceholder,
+// _ContentSkeleton, _ContentEmpty, _ContentError are extracted to
+// studio_content_widgets.dart as public classes (StudioFilterChips, etc.)
 
-  const _FilterChips({
-    required this.currentFilter,
-    required this.onChanged,
-  });
-
-  static const _filters = [
-    ('all', 'All'),
-    ('published', 'Published'),
-    ('draft', 'Drafts'),
-    ('archived', 'Archived'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-        scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
-        itemBuilder: (context, i) {
-          final (value, label) = _filters[i];
-          final isSelected = currentFilter == value;
-          return GestureDetector(
-            onTap: () => onChanged(value),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(
-                horizontal: Spacing.lg,
-                vertical: Spacing.sm,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.coral : AppColors.surface,
-                borderRadius: BorderRadius.circular(Layout.chipRadius),
-                border: Border.all(
-                  color:
-                      isSelected ? AppColors.coral : AppColors.hairline,
-                ),
-              ),
-              child: Text(
-                label,
-                style: AppTypography.bodySmall.copyWith(
-                  color: isSelected ? AppColors.surface : AppColors.ink,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ContentList extends StatelessWidget {
+class _ContentCardList extends StatelessWidget {
   final List<StudioContentItem> items;
-  final bool hasMore;
-  final bool isLoadingMore;
-  final ScrollController scrollController;
+  final ScrollController? scrollController;
 
-  const _ContentList({
+  const _ContentCardList({
     required this.items,
-    required this.hasMore,
-    required this.isLoadingMore,
-    required this.scrollController,
+    this.scrollController,
   });
 
   @override
@@ -579,279 +586,13 @@ class _ContentList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-      itemCount: items.length + (isLoadingMore ? 1 : 0),
-      separatorBuilder: (_, __) => const Divider(
-        height: 1,
-        color: AppColors.hairline,
-      ),
-      itemBuilder: (context, i) {
-        if (i == items.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: Spacing.lg),
-            child: Center(
-              child: SkeletonRect(height: 56, borderRadius: 8),
-            ),
-          );
-        }
-        return _ContentRow(item: items[i]);
-      },
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: Spacing.sm),
+      itemBuilder: (context, i) => StudioContentCard(item: items[i]),
     );
   }
 }
 
-class _ContentRow extends ConsumerWidget {
-  final StudioContentItem item;
-
-  const _ContentRow({required this.item});
-
-  void _onTap(BuildContext context) {
-    HapticFeedback.lightImpact();
-    if (item.status == 'draft') {
-      context.push('/content/wizard');
-      return;
-    }
-    switch (item.contentType) {
-      case 'post':
-        context.push('/posts/${item.id}');
-      case 'itinerary':
-        context.push('/itineraries/${item.id}');
-      case 'event':
-        context.push('/events/${item.id}');
-      default:
-        context.push('/posts/${item.id}');
-    }
-  }
-
-  String _subtitleText() {
-    final type = switch (item.contentType) {
-      'post' => 'Post',
-      'itinerary' => 'Itinerary',
-      'event' => 'Event',
-      _ => item.contentType,
-    };
-    final status = switch (item.status) {
-      'published' => 'Published',
-      'draft' => 'Draft',
-      'archived' => 'Archived',
-      _ => item.status,
-    };
-    final price = item.isFree ? 'Free' : formatPrice(item.pricePaisa);
-    return '$type · $status · $price';
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () => _onTap(context),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        height: 72,
-        child: Row(
-          children: [
-            // Thumbnail
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: item.coverUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: item.coverUrl!,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        width: 56,
-                        height: 56,
-                        color: AppColors.surfaceAlt,
-                      ),
-                      errorWidget: (_, __, ___) => _ThumbnailPlaceholder(
-                        contentType: item.contentType,
-                      ),
-                    )
-                  : _ThumbnailPlaceholder(contentType: item.contentType),
-            ),
-            const SizedBox(width: Spacing.md),
-
-            // Title + subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item.title,
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _subtitleText(),
-                    style: AppTypography.caption,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: Spacing.sm),
-
-            // Like + comment micro counts
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  PhosphorIcons.heart(PhosphorIconsStyle.regular),
-                  size: 13,
-                  color: AppColors.inkMuted,
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  formatCount(item.likeCount),
-                  style: AppTypography.caption,
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(
-                  PhosphorIcons.chatCircle(PhosphorIconsStyle.regular),
-                  size: 13,
-                  color: AppColors.inkMuted,
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  formatCount(item.commentCount),
-                  style: AppTypography.caption,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ThumbnailPlaceholder extends StatelessWidget {
-  final String contentType;
-
-  const _ThumbnailPlaceholder({required this.contentType});
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (contentType) {
-      'post' => PhosphorIcons.newspaper(PhosphorIconsStyle.regular),
-      'itinerary' => PhosphorIcons.mapTrifold(PhosphorIconsStyle.regular),
-      'event' => PhosphorIcons.calendarBlank(PhosphorIconsStyle.regular),
-      _ => PhosphorIcons.file(PhosphorIconsStyle.regular),
-    };
-
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Icon(icon, size: 20, color: AppColors.inkMuted),
-    );
-  }
-}
-
-class _ContentSkeleton extends StatelessWidget {
-  const _ContentSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return SkeletonLoader(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-        child: Column(
-          children: List.generate(4, (i) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: Spacing.md),
-              child: Row(
-                children: [
-                  const SkeletonRect(width: 56, height: 56, borderRadius: 8),
-                  const SizedBox(width: Spacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        FractionallySizedBox(
-                          widthFactor: 0.65,
-                          child: SkeletonLine(height: 14),
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                        FractionallySizedBox(
-                          widthFactor: 0.45,
-                          child: SkeletonLine(height: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContentEmpty extends StatelessWidget {
-  final String filter;
-
-  const _ContentEmpty({required this.filter});
-
-  @override
-  Widget build(BuildContext context) {
-    final description = filter == 'all'
-        ? 'Create your first post, itinerary, or event to get started.'
-        : "You don't have any ${filter == 'draft' ? 'drafts' : filter == 'published' ? 'published content' : 'archived content'} yet.";
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.mlg,
-        vertical: Spacing.xl,
-      ),
-      child: EmptyState(
-        icon: PhosphorIcons.pencilSimpleLine(PhosphorIconsStyle.regular),
-        title: 'Nothing here yet',
-        description: description,
-        ctaLabel: filter == 'all' ? 'Create something' : null,
-        onCtaPressed: filter == 'all'
-            ? () {
-                HapticFeedback.lightImpact();
-                context.push('/content/create');
-              }
-            : null,
-      ),
-    );
-  }
-}
-
-class _ContentError extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _ContentError({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.mlg,
-        vertical: Spacing.xl,
-      ),
-      child: EmptyState(
-        icon: PhosphorIcons.warningCircle(PhosphorIconsStyle.regular),
-        title: 'Could not load content',
-        description: 'Check your connection and try again.',
-        ctaLabel: 'Retry',
-        onCtaPressed: onRetry,
-      ),
-    );
-  }
-}
 
 // ── Earnings Entry Card ──────────────────────────────────────────────
 
@@ -1010,6 +751,253 @@ class _KycBadge extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: fgColor,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Examples Sheet ─────────────────────────────────────────────────────────
+
+class _ExampleItem {
+  final String type;
+  final String title;
+  final String excerpt;
+  final int likes;
+  final int views;
+  final String emoji;
+
+  const _ExampleItem({
+    required this.type,
+    required this.title,
+    required this.excerpt,
+    required this.likes,
+    required this.views,
+    required this.emoji,
+  });
+}
+
+const _kExamples = [
+  _ExampleItem(
+    type: 'post',
+    title: '3 days in Coorg: what nobody tells you',
+    excerpt:
+        "Skip the resorts. Here's the hidden waterfall trail most tourists never find, plus a family-run homestay that'll change how you see travel.",
+    likes: 412,
+    views: 3200,
+    emoji: '☕',
+  ),
+  _ExampleItem(
+    type: 'itinerary',
+    title: 'Spiti Valley in 10 days — complete budget guide',
+    excerpt:
+        'Day-by-day plan covering Kaza, Kibber, Langza & Key monastery. Includes bus schedules, permit info, and off-the-beaten-path campsites.',
+    likes: 1840,
+    views: 22000,
+    emoji: '🏔️',
+  ),
+  _ExampleItem(
+    type: 'post',
+    title: 'Why I quit my job to walk the Camino de Santiago',
+    excerpt:
+        '800 km. 35 days. One pair of broken boots. This is the story of how a month of walking became the best decision of my life.',
+    likes: 2100,
+    views: 18500,
+    emoji: '🚶',
+  ),
+  _ExampleItem(
+    type: 'event',
+    title: 'Monsoon trek to Naneghat — small group, big views',
+    excerpt:
+        'Join 8 fellow travelers for a guided morning trek. Breakfast at the top, photography walk on the descent. All skill levels welcome.',
+    likes: 290,
+    views: 5100,
+    emoji: '🌿',
+  ),
+];
+
+class _ExamplesSheet extends StatelessWidget {
+  const _ExamplesSheet();
+
+  String _typeLabel(String type) => switch (type) {
+        'itinerary' => 'Itinerary',
+        'event' => 'Event',
+        _ => 'Post',
+      };
+
+  Color _typeColor(String type) => switch (type) {
+        'itinerary' => const Color(0xFF7C5CFC),
+        'event' => const Color(0xFF0EA5E9),
+        _ => AppColors.coral,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.88,
+      maxChildSize: 0.95,
+      minChildSize: 0.5,
+      expand: false,
+      builder: (_, scrollController) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bg,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.hairline,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'INSPIRATION',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.coral,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'What great content looks like.',
+                    style: GoogleFonts.fraunces(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Your first piece could be just as good.',
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.inkSoft),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: Spacing.lg),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.mlg, 0, Spacing.mlg, Spacing.xxxl),
+                itemCount: _kExamples.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: Spacing.md),
+                itemBuilder: (_, i) => _ExampleCard(
+                  item: _kExamples[i],
+                  typeLabel: _typeLabel(_kExamples[i].type),
+                  typeColor: _typeColor(_kExamples[i].type),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExampleCard extends StatelessWidget {
+  final _ExampleItem item;
+  final String typeLabel;
+  final Color typeColor;
+
+  const _ExampleCard({
+    required this.item,
+    required this.typeLabel,
+    required this.typeColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Layout.cardRadius),
+        border: Border.all(color: AppColors.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: typeColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  typeLabel.toUpperCase(),
+                  style: AppTypography.caption.copyWith(
+                    color: typeColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(item.emoji, style: const TextStyle(fontSize: 20)),
+            ],
+          ),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            item.title,
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: Spacing.xs),
+          Text(
+            item.excerpt,
+            style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Spacing.md),
+          Row(
+            children: [
+              Icon(
+                PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                size: 13,
+                color: AppColors.coral,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                formatCount(item.likes),
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.inkSoft,
+                ),
+              ),
+              const SizedBox(width: Spacing.md),
+              Icon(
+                PhosphorIcons.eye(PhosphorIconsStyle.regular),
+                size: 13,
+                color: AppColors.inkMuted,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                formatCount(item.views),
+                style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
+              ),
+            ],
           ),
         ],
       ),

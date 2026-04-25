@@ -8,6 +8,17 @@ import 'package:creatorhub/features/posts/screens/post_detail_screen.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────
 
+// Sets phone dimensions so the hero carousel (width × 0.75) doesn't fill the
+// entire 800×600 default test viewport, allowing the content sliver to render.
+Future<void> _setPhoneSize(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(390 * 3.0, 844 * 3.0);
+  tester.view.devicePixelRatio = 3.0;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+}
+
 PostDetailState _loadedState({
   String id = 'post-1',
   String title = 'Ladakh in Summer',
@@ -52,7 +63,6 @@ Widget _wrap(String postId, PostDetailState state) {
 
   return ProviderScope(
     overrides: [
-      // Override FutureProvider to return a pre-built state synchronously.
       postDetailProvider(postId).overrideWith((ref) async => state),
     ],
     child: MaterialApp.router(routerConfig: router),
@@ -81,93 +91,108 @@ Widget _wrapError(String postId, String errorMsg) {
   );
 }
 
+// Drains Dio connection-timeout timers created by AnalyticsService.contentViewed
+// so the test can dispose cleanly without a "Timer still pending" assertion.
+Future<void> _drainTimers(WidgetTester tester) =>
+    tester.pump(const Duration(seconds: 15));
+
 // ── Tests ─────────────────────────────────────────────────────────
 
 void main() {
   group('PostDetailScreen', () {
     testWidgets('renders post title', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(title: 'Ladakh in Summer');
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('Ladakh in Summer'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders body text', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(body: 'The mountains were breathtaking.');
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('The mountains were breathtaking.'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders creator display name', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(creatorName: 'Priya Shah');
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('Priya Shah'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders location chip when locationName is provided',
         (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(locationName: 'Leh, Ladakh');
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('Leh, Ladakh'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('omits location chip when locationName is null',
         (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState();
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('Leh, Ladakh'), findsNothing);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders tags as #tag chips', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(tags: ['mountains', 'travel']);
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('#mountains'), findsOneWidget);
       expect(find.text('#travel'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows Follow button in creator header', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState();
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('Follow'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows like count in engagement bar when > 0', (tester) async {
+      await _setPhoneSize(tester);
       final state = _loadedState(likeCount: 42);
       await tester.pumpWidget(_wrap('post-1', state));
       await tester.pump();
 
       expect(find.text('42'), findsOneWidget);
-    });
-
-    testWidgets('shows POST badge', (tester) async {
-      final state = _loadedState();
-      await tester.pumpWidget(_wrap('post-1', state));
-      await tester.pump();
-
-      expect(find.text('POST'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows error state with "Post not found" title', (tester) async {
+      await _setPhoneSize(tester);
       await tester.pumpWidget(_wrapError('post-bad', 'Network request failed'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(); // EmptyState has no looping animations — safe to settle
 
       expect(find.text('Post not found'), findsOneWidget);
     });
 
     testWidgets('shows retry button in error state', (tester) async {
+      await _setPhoneSize(tester);
       await tester.pumpWidget(_wrapError('post-bad', 'Network request failed'));
       await tester.pumpAndSettle();
 

@@ -17,3 +17,15 @@ Date: 24 apr
 [ ] Make for you following near you catgory pill bar horizontal with category filters
 [ ] social links to the profile -> take example how substack is doing -> show links button that will open drawer will all links
 [ ] make post section similar to substack -> publish article
+[ ] Experiance detail -> location should have lat long
+
+
+Date: 25 apr
+[ ] onboarding flow 
+    [ ] take name, profile photo (optional) and bio(optional) on on boading 
+        [ ] for profile photo -> give crop overlay
+        [ ] crop overlay should work as instagram is using it  
+
+
+------------------------------------
+

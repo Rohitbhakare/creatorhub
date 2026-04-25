@@ -11,6 +11,8 @@ class CreateTileSpec {
   final Color iconForeground;
   final IconData icon;
   final bool comingSoon;
+  // Whether this content type requires KYC verification before publishing
+  final bool requiresKyc;
 
   const CreateTileSpec({
     required this.contentType,
@@ -20,6 +22,7 @@ class CreateTileSpec {
     required this.iconForeground,
     required this.icon,
     this.comingSoon = false,
+    this.requiresKyc = false,
   });
 }
 
@@ -55,6 +58,6 @@ const List<CreateTileSpec> kCreateTiles = [
     iconFill: Color(0xFFF3EAFF),
     iconForeground: Color(0xFF6B21A8),
     icon: PhosphorIconsRegular.compass,
-    comingSoon: false,
+    requiresKyc: true,
   ),
 ];

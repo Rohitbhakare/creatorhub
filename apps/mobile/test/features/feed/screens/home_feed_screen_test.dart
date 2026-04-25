@@ -77,60 +77,75 @@ Widget _wrap({
   );
 }
 
+// Drains pending Dio connection-timeout timers (configured at 10 s) so the
+// test can dispose cleanly without a "Timer still pending" assertion failure.
+Future<void> _drainTimers(WidgetTester tester) =>
+    tester.pump(const Duration(seconds: 15));
+
 void main() {
   group('HomeFeedScreen', () {
     testWidgets('renders location chip with city name', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pump();
       expect(find.text('Pune'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders fallback label when no city set', (tester) async {
       await tester.pumpWidget(_wrap(city: const UserCityState(cityName: null)));
       await tester.pump();
       expect(find.text('Set location'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders segmented tabs — For you, Following, Near you', (tester) async {
       await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('For you'), findsOneWidget);
       expect(find.text('Following'), findsOneWidget);
       expect(find.text('Near you'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders hero when forYou tab has a hero item', (tester) async {
       await tester.pumpWidget(_wrap(heroForYou: _item(title: 'Big trip')));
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Big trip'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('hides hero when for-you hero is null', (tester) async {
       await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Featured for you'), findsNothing);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders travel section title under For-you when items present', (tester) async {
       await tester.pumpWidget(_wrap(travel: [_item()]));
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Trips worth your weekend', skipOffstage: false), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows empty state on Following tab when follows list is empty', (tester) async {
       await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
+      await tester.pump(); // resolve providers
       await tester.tap(find.text('Following'));
-      await tester.pumpAndSettle();
+      await tester.pump(); // process tap
+      await tester.pump(); // rebuild tab content
       expect(find.text('Your follows live here'), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows follows content on Following tab when items present', (tester) async {
       await tester.pumpWidget(_wrap(following: [_item(title: 'From creator Riya')]));
-      await tester.pumpAndSettle();
+      await tester.pump(); // resolve providers
       await tester.tap(find.text('Following'));
-      await tester.pumpAndSettle();
-      expect(find.text('From creator Riya'), findsOneWidget);
+      await tester.pump(); // process tap
+      await tester.pump(); // rebuild tab content
+      expect(find.text('From creator Riya', skipOffstage: false), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('shows near-you section label on Near you tab when items present', (tester) async {
@@ -141,10 +156,12 @@ void main() {
         fallbackCities: const [],
       );
       await tester.pumpWidget(_wrap(nearYou: result));
-      await tester.pumpAndSettle();
+      await tester.pump(); // resolve providers
       await tester.tap(find.text('Near you'));
-      await tester.pumpAndSettle();
+      await tester.pump(); // process tap
+      await tester.pump(); // rebuild tab content
       expect(find.text('Weekend trips from Pune', skipOffstage: false), findsOneWidget);
+      await _drainTimers(tester);
     });
 
     testWidgets('renders discover section on For-you tab when creators present', (tester) async {
@@ -155,8 +172,9 @@ void main() {
         vertical: 'stories',
       );
       await tester.pumpWidget(_wrap(discover: [creator]));
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Creators we like this month', skipOffstage: false), findsOneWidget);
+      await _drainTimers(tester);
     });
   });
 }

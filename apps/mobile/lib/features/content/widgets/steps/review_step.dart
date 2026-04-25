@@ -50,6 +50,9 @@ class ReviewStep extends ConsumerWidget {
           if (isPost) ...[
             const PostPreviewCard(),
             const SizedBox(height: Spacing.xl),
+          ] else ...[
+            _ContentSummaryCard(wizard: wizard),
+            const SizedBox(height: Spacing.xl),
           ],
 
           Container(
@@ -291,6 +294,179 @@ class _ChecklistItem {
     required this.passed,
     required this.step,
   });
+}
+
+/// Content summary preview card shown in the Review step for non-post types.
+class _ContentSummaryCard extends StatelessWidget {
+  final WizardState wizard;
+  const _ContentSummaryCard({required this.wizard});
+
+  @override
+  Widget build(BuildContext context) {
+    final typeLabel = wizard.contentType.label;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Layout.cardRadius),
+        border: Border.all(color: AppColors.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // PREVIEW banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: Spacing.xs),
+            decoration: BoxDecoration(
+              color: AppColors.primaryTint,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(Layout.cardRadius),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                'PREVIEW',
+                style: typ.AppTypography.label.copyWith(
+                  color: AppColors.coral,
+                  letterSpacing: 1.2,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(Layout.cardPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Content type badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.sm,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    typeLabel.toUpperCase(),
+                    style: typ.AppTypography.caption.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.inkMuted,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: Spacing.sm),
+
+                // Title
+                Text(
+                  wizard.title.trim().isNotEmpty
+                      ? wizard.title
+                      : 'No title yet',
+                  style: typ.AppTypography.h4.copyWith(
+                    color: wizard.title.trim().isNotEmpty
+                        ? AppColors.ink
+                        : AppColors.inkMuted,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                if (wizard.description.trim().isNotEmpty) ...[
+                  const SizedBox(height: Spacing.xs),
+                  Text(
+                    wizard.description,
+                    style: typ.AppTypography.bodySmall
+                        .copyWith(color: AppColors.inkSoft),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+
+                const SizedBox(height: Spacing.md),
+                const Divider(color: AppColors.hairline),
+                const SizedBox(height: Spacing.md),
+
+                // Key details row
+                Wrap(
+                  spacing: Spacing.lg,
+                  runSpacing: Spacing.sm,
+                  children: _buildDetailChips(wizard),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildDetailChips(WizardState wizard) {
+    final chips = <Widget>[];
+
+    // Vertical
+    if (wizard.vertical.isNotEmpty) {
+      chips.add(_DetailChip(
+        icon: Icons.category_outlined,
+        label: wizard.vertical[0].toUpperCase() + wizard.vertical.substring(1),
+      ));
+    }
+
+    // Pricing
+    chips.add(_DetailChip(
+      icon: wizard.pricingModel == 'paid'
+          ? Icons.sell_outlined
+          : Icons.lock_open_outlined,
+      label: wizard.pricingModel == 'paid'
+          ? '\u20B9${(wizard.pricePaisa / 100).toStringAsFixed(0)}'
+          : 'Free',
+    ));
+
+    // Day count (itinerary)
+    if (wizard.contentType == ContentType.selfPacedItinerary &&
+        wizard.dayCount > 0) {
+      chips.add(_DetailChip(
+        icon: Icons.calendar_today_outlined,
+        label: '${wizard.dayCount} ${wizard.dayCount == 1 ? 'day' : 'days'}',
+      ));
+    }
+
+    // Media count
+    if (wizard.media.isNotEmpty) {
+      chips.add(_DetailChip(
+        icon: Icons.photo_outlined,
+        label: '${wizard.media.length} photo${wizard.media.length == 1 ? '' : 's'}',
+      ));
+    }
+
+    return chips;
+  }
+}
+
+class _DetailChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _DetailChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.inkSoft),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+        ),
+      ],
+    );
+  }
 }
 
 /// Row widget for a checklist item.

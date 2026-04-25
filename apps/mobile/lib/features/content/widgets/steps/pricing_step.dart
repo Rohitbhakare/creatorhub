@@ -11,6 +11,7 @@ import '../../../../shared/theme/layout.dart';
 import '../../../../shared/components/input.dart';
 import '../../../../shared/utils/format.dart';
 import '../../providers/wizard_provider.dart';
+import '../inclusions_exclusions_block.dart';
 
 /// Pricing step for itinerary/experience content types.
 ///
@@ -53,17 +54,18 @@ class _PricingStepState extends ConsumerState<PricingStep> {
     });
   }
 
-  void _onTogglePricing(bool isPaid) {
+  void _selectFree() {
     HapticFeedback.lightImpact();
-    if (isPaid) {
-      final currentPaisa = ref.read(wizardProvider).pricePaisa;
-      ref
-          .read(wizardProvider.notifier)
-          .setPricing('paid', currentPaisa > 0 ? currentPaisa : 0);
-    } else {
-      _priceController.clear();
-      ref.read(wizardProvider.notifier).setPricing('free', 0);
-    }
+    _priceController.clear();
+    ref.read(wizardProvider.notifier).setPricing('free', 0);
+  }
+
+  void _selectPaid() {
+    HapticFeedback.lightImpact();
+    final currentPaisa = ref.read(wizardProvider).pricePaisa;
+    ref
+        .read(wizardProvider.notifier)
+        .setPricing('paid', currentPaisa > 0 ? currentPaisa : 0);
   }
 
   @override
@@ -71,6 +73,8 @@ class _PricingStepState extends ConsumerState<PricingStep> {
     final wizard = ref.watch(wizardProvider);
     final isPaid = wizard.pricingModel == 'paid';
     final pricePaisa = wizard.pricePaisa;
+    final showInclusions = wizard.contentType == ContentType.selfPacedItinerary ||
+        wizard.contentType == ContentType.scheduledExperience;
 
     // Pricing calculations (all in paisa)
     final basePaisa = pricePaisa;
@@ -89,7 +93,6 @@ class _PricingStepState extends ConsumerState<PricingStep> {
         children: [
           const SizedBox(height: Spacing.xl),
 
-          // Section title
           Text('Pricing', style: typ.AppTypography.h3),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -98,47 +101,29 @@ class _PricingStepState extends ConsumerState<PricingStep> {
           ),
           const SizedBox(height: Spacing.xl),
 
-          // Free / Paid toggle
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: Spacing.lg,
-              vertical: Spacing.md,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-              border: Border.all(color: AppColors.hairline),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isPaid ? 'Paid content' : 'Free content',
-                        style: typ.AppTypography.h4,
-                      ),
-                      const SizedBox(height: Spacing.xs),
-                      Text(
-                        isPaid
-                            ? 'Buyers pay to access this content'
-                            : 'Anyone can access this for free',
-                        style: typ.AppTypography.caption,
-                      ),
-                    ],
-                  ),
+          // Free / Paid selection tiles
+          Row(
+            children: [
+              Expanded(
+                child: _PricingTile(
+                  icon: Icons.lock_open_rounded,
+                  label: 'Free',
+                  subtitle: 'Anyone can access',
+                  selected: !isPaid,
+                  onTap: _selectFree,
                 ),
-                const SizedBox(width: Spacing.md),
-                Switch.adaptive(
-                  value: isPaid,
-                  onChanged: _onTogglePricing,
-                  activeThumbColor: AppColors.coral,
-                  activeTrackColor: AppColors.coralLight,
+              ),
+              const SizedBox(width: Spacing.md),
+              Expanded(
+                child: _PricingTile(
+                  icon: Icons.sell_rounded,
+                  label: 'Paid',
+                  subtitle: 'Set your own price',
+                  selected: isPaid,
+                  onTap: _selectPaid,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           // Paid pricing details
@@ -251,6 +236,21 @@ class _PricingStepState extends ConsumerState<PricingStep> {
             ],
           ],
 
+          // ── Inclusions / exclusions (CRT-FR-024) ─────────────
+          if (showInclusions) ...[
+            const SizedBox(height: Spacing.xl),
+            const Divider(color: AppColors.hairline),
+            const SizedBox(height: Spacing.xl),
+            Text('Inclusions & exclusions', style: typ.AppTypography.h3),
+            const SizedBox(height: Spacing.sm),
+            Text(
+              "Let travelers know exactly what's covered.",
+              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: Spacing.xl),
+            const InclusionsExclusionsBlock(),
+          ],
+
           const SizedBox(height: Spacing.xxxl),
         ],
       ),
@@ -296,6 +296,78 @@ class _PricingRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Free / Paid selection tile for the pricing step.
+class _PricingTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PricingTile({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg,
+          vertical: Spacing.lg,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryTint : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+          border: Border.all(
+            color: selected ? AppColors.coral : AppColors.hairline,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.coral : AppColors.surfaceSunk,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: selected ? AppColors.surface : AppColors.inkMuted,
+              ),
+            ),
+            const SizedBox(height: Spacing.md),
+            Text(
+              label,
+              style: typ.AppTypography.h4.copyWith(
+                color: selected ? AppColors.ink : AppColors.inkSoft,
+              ),
+            ),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              subtitle,
+              style: typ.AppTypography.caption.copyWith(
+                color: selected ? AppColors.inkSoft : AppColors.inkMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

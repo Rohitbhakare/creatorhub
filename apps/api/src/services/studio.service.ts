@@ -124,6 +124,33 @@ export async function getCreatorStats(userId: string): Promise<StudioStats> {
   }
 }
 
+// ─── getContentCounts ────────────────────────────────────────────
+
+export interface ContentCounts {
+  all: number
+  draft: number
+  published: number
+  archived: number
+}
+
+export async function getContentCounts(userId: string): Promise<ContentCounts> {
+  const { data, error } = await supabase
+    .from('content')
+    .select('status')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to fetch content counts')
+
+  const rows = (data ?? []) as Array<{ status: string }>
+  return {
+    all: rows.length,
+    draft: rows.filter((r) => r.status === 'draft').length,
+    published: rows.filter((r) => r.status === 'published').length,
+    archived: rows.filter((r) => r.status === 'archived').length,
+  }
+}
+
 // ─── listCreatorContent ──────────────────────────────────────────
 
 export async function listCreatorContent(
@@ -138,6 +165,7 @@ export async function listCreatorContent(
       'id, title, type, status, cover_image_url, price_paisa, like_count, comment_count, save_count, updated_at',
     )
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .order('updated_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit + 1)

@@ -165,7 +165,7 @@ class _ContentCardState extends ConsumerState<ContentCard> {
         bottomRight: Radius.circular(10),
       ),
       child: AspectRatio(
-        aspectRatio: 4.0 / 5.0,
+        aspectRatio: 1.0,
         child: Stack(
           fit: StackFit.expand,
           children: [

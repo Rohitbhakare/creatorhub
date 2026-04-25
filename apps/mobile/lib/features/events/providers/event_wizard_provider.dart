@@ -84,6 +84,9 @@ class EventWizardState {
   final String? cityName;
   final int capacity;
   final List<String> whatToBring;
+  // Optional fields (CRT-FR-013)
+  final String? dressCode;
+  final String? ageRestriction; // 'none' | '18+' | '21+'
 
   const EventWizardState({
     this.startAt,
@@ -97,6 +100,8 @@ class EventWizardState {
     this.cityName,
     this.capacity = 20,
     this.whatToBring = const [],
+    this.dressCode,
+    this.ageRestriction,
   });
 
   EventWizardState copyWith({
@@ -111,6 +116,10 @@ class EventWizardState {
     String? cityName,
     int? capacity,
     List<String>? whatToBring,
+    bool setDressCode = false,
+    String? dressCode,
+    bool setAgeRestriction = false,
+    String? ageRestriction,
   }) {
     return EventWizardState(
       startAt: startAt ?? this.startAt,
@@ -124,6 +133,8 @@ class EventWizardState {
       cityName: cityName ?? this.cityName,
       capacity: capacity ?? this.capacity,
       whatToBring: whatToBring ?? this.whatToBring,
+      dressCode: setDressCode ? dressCode : this.dressCode,
+      ageRestriction: setAgeRestriction ? ageRestriction : this.ageRestriction,
     );
   }
 
@@ -140,6 +151,10 @@ class EventWizardState {
       if (cityId != null) 'city_id': cityId,
       'capacity': capacity,
       'what_to_bring': whatToBring,
+      if (dressCode != null && dressCode!.trim().isNotEmpty)
+        'dress_code': dressCode!.trim(),
+      if (ageRestriction != null && ageRestriction != 'none')
+        'age_restriction': ageRestriction,
     };
   }
 }
@@ -190,7 +205,15 @@ class EventWizardNotifier extends Notifier<EventWizardState> {
         cityName: null,
         capacity: state.capacity,
         whatToBring: state.whatToBring,
+        dressCode: state.dressCode,
+        ageRestriction: state.ageRestriction,
       );
+
+  void setDressCode(String? value) =>
+      state = state.copyWith(setDressCode: true, dressCode: value);
+
+  void setAgeRestriction(String? value) =>
+      state = state.copyWith(setAgeRestriction: true, ageRestriction: value);
 
   void setCapacity(int value) =>
       state = state.copyWith(capacity: value.clamp(1, 10000));

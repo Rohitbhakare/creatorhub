@@ -44,7 +44,7 @@ class VerticalSectionFullScreen extends ConsumerWidget {
                       crossAxisCount: 2,
                       mainAxisSpacing: 18,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.62,
+                      childAspectRatio: 0.72,
                     ),
                     itemCount: items.length,
                     itemBuilder: (context, i) => ContentCard(
@@ -102,7 +102,7 @@ class _LoadingGrid extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 18,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.62,
+        childAspectRatio: 0.72,
       ),
       itemCount: 6,
       itemBuilder: (_, _) => const Column(

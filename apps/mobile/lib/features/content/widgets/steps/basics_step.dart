@@ -44,9 +44,11 @@ class _BasicsStepState extends ConsumerState<BasicsStep> {
   Widget build(BuildContext context) {
     final wizard = ref.watch(wizardProvider);
     final isPost = wizard.contentType == ContentType.post;
+    final isEvent = wizard.contentType == ContentType.event;
     const titleMax = 100;
     final titleMin = isPost ? 1 : 5;
-    const descriptionMax = 280;
+    // SRS CRT-FR-013: events allow up to 500 chars in description
+    final descriptionMax = isEvent ? 500 : 280;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(

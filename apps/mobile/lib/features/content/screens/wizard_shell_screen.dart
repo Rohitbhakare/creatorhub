@@ -26,6 +26,9 @@ import '../../itineraries/widgets/trip_overview_step.dart';
 import '../../itineraries/screens/day_builder_screen.dart';
 import '../../events/providers/event_wizard_provider.dart';
 import '../../events/widgets/event_details_step.dart';
+import '../../experiences/providers/experience_provider.dart';
+import '../../experiences/widgets/experience_details_step.dart';
+import '../../studio/providers/studio_provider.dart';
 
 /// The wizard shell screen — a reusable container for multi-step
 /// content creation. Handles step navigation, auto-save, and
@@ -100,12 +103,76 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     super.dispose();
   }
 
+  /// X button: always prompts to save or discard regardless of step.
+  void _onClose() {
+    HapticFeedback.lightImpact();
+    _showDiscardDialog();
+  }
+
+  /// Trash icon: confirm then hard-delete the draft and exit.
+  void _onDelete() {
+    HapticFeedback.lightImpact();
+    final wizard = ref.read(wizardProvider);
+    final contentId = wizard.contentId;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+        ),
+        title: Text('Delete draft?', style: typ.AppTypography.h3),
+        content: Text(
+          'This draft will be permanently deleted and cannot be recovered.',
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Keep editing',
+              style: typ.AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              HapticFeedback.lightImpact();
+              Navigator.of(ctx).pop();
+              if (contentId != null) {
+                try {
+                  final dio = ref.read(authServiceProvider).dio;
+                  await dio.delete('/api/v1/content/$contentId');
+                  // Refresh studio list so the deleted draft disappears
+                  ref.read(studioContentProvider.notifier).retry();
+                } catch (_) {
+                  // Best-effort — exit regardless
+                }
+              }
+              if (mounted) context.pop();
+            },
+            child: Text(
+              'Delete',
+              style: typ.AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.danger,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Back arrow in bottom nav: navigate to the previous step.
   void _onBack() {
     HapticFeedback.lightImpact();
     final wizard = ref.read(wizardProvider);
 
     if (wizard.currentStep == 1) {
-      // Show discard dialog
       _showDiscardDialog();
     } else {
       ref.read(wizardProvider.notifier).prevStep();
@@ -123,6 +190,27 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       unawaited(_saveEventDetails(
         ref.read(authServiceProvider).dio,
         wizard.contentId!,
+      ));
+    }
+
+    // Experiences: persist cancellation policy + meeting point on leaving Step 2
+    if (wizard.contentType == ContentType.scheduledExperience &&
+        wizard.currentStep == 2 &&
+        wizard.contentId != null) {
+      unawaited(_saveExperienceDetails(
+        ref.read(authServiceProvider).dio,
+        wizard.contentId!,
+      ));
+    }
+
+    // Itineraries: send day_count so the API creates itinerary_days rows
+    if (wizard.contentType == ContentType.selfPacedItinerary &&
+        wizard.currentStep == 2 &&
+        wizard.contentId != null) {
+      unawaited(_saveItineraryDayCount(
+        ref.read(authServiceProvider).dio,
+        wizard.contentId!,
+        wizard.dayCount,
       ));
     }
 
@@ -147,6 +235,39 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       await dio.put('/api/v1/events/$contentId', data: payload);
     } catch (_) {
       // Fire and forget — auto-save will retry
+    }
+  }
+
+  /// Save experience-specific fields (cancellation policy, meeting point) to
+  /// PUT /api/v1/experiences/:id when leaving the Details step.
+  Future<void> _saveExperienceDetails(Dio dio, String contentId) async {
+    final expState = ref.read(createExperienceProvider);
+    final payload = <String, dynamic>{
+      'cancellation_policy': expState.cancellationPolicy,
+      if (expState.meetingPoint != null)
+        'meeting_point': {
+          'public_area_name': expState.meetingPoint!.publicAreaName,
+          if (expState.meetingPoint!.privateExactName != null)
+            'private_exact_name': expState.meetingPoint!.privateExactName,
+        },
+    };
+    try {
+      await dio.put('/api/v1/experiences/$contentId', data: payload);
+    } catch (_) {
+      // Fire and forget — non-blocking
+    }
+  }
+
+  /// Send day_count to PUT /api/v1/itineraries/:id so the API syncs itinerary_days rows.
+  Future<void> _saveItineraryDayCount(
+    Dio dio,
+    String contentId,
+    int dayCount,
+  ) async {
+    try {
+      await dio.put('/api/v1/itineraries/$contentId', data: {'day_count': dayCount});
+    } catch (_) {
+      // Fire and forget
     }
   }
 
@@ -237,6 +358,9 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   }
 
   void _showDiscardDialog() {
+    final wizard = ref.read(wizardProvider);
+    final hasDraft = wizard.contentId != null;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -244,9 +368,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Layout.cardRadius),
         ),
-        title: Text('Discard draft?', style: typ.AppTypography.h3),
+        title: Text('Exit wizard?', style: typ.AppTypography.h3),
         content: Text(
-          'Your unsaved changes will be lost.',
+          hasDraft
+              ? 'Your draft is saved. You can continue from here later.'
+              : 'Your unsaved changes will be lost.',
           style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
         actions: [
@@ -263,20 +389,38 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
               ),
             ),
           ),
-          TextButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.of(context).pop();
-              this.context.pop();
-            },
-            child: Text(
-              'Discard',
-              style: typ.AppTypography.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.danger,
+          if (hasDraft)
+            TextButton(
+              onPressed: () async {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).pop();
+                // Flush pending changes so the draft is current on the server
+                await _autoSave?.flushNow();
+                if (mounted) this.context.pop();
+              },
+              child: Text(
+                'Save & exit',
+                style: typ.AppTypography.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.coral,
+                ),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).pop();
+                this.context.pop();
+              },
+              child: Text(
+                'Discard',
+                style: typ.AppTypography.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.danger,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -293,17 +437,16 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
           children: [
             const SizedBox(height: Spacing.sm),
 
-            // Top bar with close button and save status
+            // Top bar: [X close] [save status centered] [trash delete]
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: Layout.screenPaddingH,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Close button
                   GestureDetector(
-                    onTap: _onBack,
+                    onTap: _onClose,
                     behavior: HitTestBehavior.opaque,
                     child: const SizedBox(
                       width: Layout.minTapTarget,
@@ -319,8 +462,33 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
                     ),
                   ),
 
-                  // Save status indicator
-                  _SaveStatusIndicator(wizard: wizard),
+                  // Save status — centered
+                  Expanded(
+                    child: Center(
+                      child: _SaveStatusIndicator(wizard: wizard),
+                    ),
+                  ),
+
+                  // Delete (trash) icon — only shown when a draft exists
+                  if (wizard.contentId != null)
+                    GestureDetector(
+                      onTap: _onDelete,
+                      behavior: HitTestBehavior.opaque,
+                      child: const SizedBox(
+                        width: Layout.minTapTarget,
+                        height: Layout.minTapTarget,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Icon(
+                            PhosphorIconsFill.trash,
+                            size: 20,
+                            color: AppColors.inkMuted,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: Layout.minTapTarget),
                 ],
               ),
             ),
@@ -404,48 +572,17 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   Widget _buildExperienceStep(int step) {
     return switch (step) {
       1 => const BasicsStep(),
-      2 => _buildPlaceholderStep('Details', 'Add experience details'),
-      3 => _buildPlaceholderStep('Media', 'Add photos'),
+      2 => const ExperienceDetailsStep(),
+      3 => const MediaStep(
+          title: 'Add experience photos',
+          subtitle: 'Show participants what to expect.',
+        ),
       4 => const PricingStep(),
       5 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };
   }
 
-  /// Placeholder for steps not yet implemented (Media, Details, Itinerary).
-  Widget _buildPlaceholderStep(String title, String subtitle) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Layout.screenPaddingH,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              PhosphorIconsFill.wrench,
-              size: 48,
-              color: AppColors.inkMuted,
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text(title, style: typ.AppTypography.h3),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              subtitle,
-              style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              'This step will be built in a future sprint',
-              style: typ.AppTypography.caption,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// Free-only pricing step for events (M1). Paid events ship in M2 —

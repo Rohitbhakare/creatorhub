@@ -12,6 +12,25 @@ import '../providers/user_city_provider.dart';
 import '../providers/near_you_provider.dart';
 import '../providers/vertical_section_provider.dart';
 
+// ── Popular cities (hardcoded) ────────────────────────────────
+
+class _PopularCity {
+  final String name;
+  final String emoji;
+  const _PopularCity(this.name, this.emoji);
+}
+
+const _popularCities = [
+  _PopularCity('Pune', '🏯'),
+  _PopularCity('Mumbai', '🌊'),
+  _PopularCity('Bangalore', '🌳'),
+  _PopularCity('Delhi', '🏛️'),
+  _PopularCity('Hyderabad', '💎'),
+  _PopularCity('Chennai', '🌴'),
+  _PopularCity('Kolkata', '🎭'),
+  _PopularCity('Ahmedabad', '🎨'),
+];
+
 // ── City search provider ─────────────────────────────────────
 
 final _citySearchResultsProvider = FutureProvider.autoDispose
@@ -19,7 +38,7 @@ final _citySearchResultsProvider = FutureProvider.autoDispose
   final dio = ref.read(authServiceProvider).dio;
   final res = await dio.get('/api/v1/cities', queryParameters: {
     if (query.trim().isNotEmpty) 'q': query,
-    'limit': '12',
+    'limit': '20',
   });
   final items = (res.data as Map<String, dynamic>)['data'] as List<dynamic>;
   return items.map(_CityResult.fromJson).toList();
@@ -29,8 +48,14 @@ class _CityResult {
   final String id;
   final String name;
   final String state;
+  final int? tripCount;
 
-  const _CityResult({required this.id, required this.name, required this.state});
+  const _CityResult({
+    required this.id,
+    required this.name,
+    required this.state,
+    this.tripCount,
+  });
 
   factory _CityResult.fromJson(dynamic json) {
     final m = json as Map<String, dynamic>;
@@ -38,6 +63,7 @@ class _CityResult {
       id: m['id'] as String,
       name: m['name'] as String,
       state: m['state'] as String,
+      tripCount: m['trip_count'] as int?,
     );
   }
 }
@@ -45,7 +71,7 @@ class _CityResult {
 // ── Screen ────────────────────────────────────────────────────
 
 /// Location picker bottom sheet (DISC-FR-026).
-/// "Use current location" + search + popular cities.
+/// "Use current location" + search + popular cities grid + other cities list.
 /// When [showSkip] is true, renders a "Skip for now" button that dismisses
 /// the sheet without picking a city — used for the guest first-visit prompt.
 class LocationPickerScreen extends ConsumerStatefulWidget {
@@ -72,7 +98,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     setState(() => _isLocating = true);
 
     try {
-      // Check / request permission
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -87,7 +112,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
         return;
       }
 
-      // Get position
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.low,
@@ -97,7 +121,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
 
       if (!mounted) return;
 
-      // Resolve to nearest city via API
       final dio = ref.read(authServiceProvider).dio;
       final res = await dio.get('/api/v1/cities/nearby', queryParameters: {
         'lat': position.latitude.toString(),
@@ -147,6 +170,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   @override
   Widget build(BuildContext context) {
     final resultsAsync = ref.watch(_citySearchResultsProvider(_query));
+    final currentCityName = ref.watch(userCityProvider).cityName;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Container(
@@ -169,25 +193,38 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Title
+
+          // Header row: title + X button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Where are you?',
-              style: AppTypography.h3.copyWith(color: AppColors.ink),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'We use your location to show trips near you.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+            child: Row(
+              children: [
+                Text(
+                  'Change city',
+                  style: AppTypography.h3.copyWith(color: AppColors.ink),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceAlt,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: AppColors.inkSoft),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // Use current location button
+          // Use current location card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: GestureDetector(
@@ -197,16 +234,24 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.coralSurface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.coral.withValues(alpha: 0.2)),
+                  border: Border.all(color: AppColors.coral.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      PhosphorIconsFill.navigationArrow,
-                      size: 18,
-                      color: _isLocating ? AppColors.inkMuted : AppColors.coral,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.coral,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        PhosphorIconsFill.navigationArrow,
+                        size: 18,
+                        color: _isLocating ? AppColors.surface.withValues(alpha: 0.6) : AppColors.surface,
+                      ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _isLocating ? 'Detecting location...' : 'Use current location',
@@ -224,13 +269,15 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                           strokeWidth: 2,
                           color: AppColors.coral,
                         ),
-                      ),
+                      )
+                    else
+                      const Icon(Icons.chevron_right, size: 20, color: AppColors.coral),
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // Search input
           Padding(
@@ -278,64 +325,15 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          // Section label
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _query.isEmpty ? 'POPULAR IN INDIA' : 'RESULTS',
-                style: AppTypography.label.copyWith(
-                  color: AppColors.inkMuted,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+          const SizedBox(height: 16),
+
+          // Cities section
+          Flexible(
+            child: _query.isEmpty
+                ? _buildPopularAndOther(resultsAsync, currentCityName)
+                : _buildSearchResults(resultsAsync),
           ),
-          // Results list
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 260),
-            child: resultsAsync.when(
-              loading: () => const _CityListSkeleton(),
-              error: (_, _) => Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Failed to load cities.',
-                  style: AppTypography.body.copyWith(color: AppColors.inkSoft),
-                ),
-              ),
-              data: (cities) {
-                if (cities.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      'No cities found for "$_query".',
-                      style: AppTypography.body.copyWith(color: AppColors.inkSoft),
-                    ),
-                  );
-                }
-                return ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: cities.length,
-                  separatorBuilder: (_, _) => const Divider(
-                    height: 0.5,
-                    thickness: 0.5,
-                    color: AppColors.hairline,
-                    indent: 56,
-                  ),
-                  itemBuilder: (context, i) {
-                    final city = cities[i];
-                    return _CityTile(
-                      city: city,
-                      isSaving: _isSaving,
-                      onTap: () => _selectCity(city),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+
           if (widget.showSkip) ...[
             const SizedBox(height: 4),
             Center(
@@ -363,7 +361,259 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
       ),
     );
   }
+
+  Widget _buildPopularAndOther(
+    AsyncValue<List<_CityResult>> resultsAsync,
+    String? currentCityName,
+  ) {
+    return resultsAsync.when(
+      loading: () => const _PopularCitySkeleton(),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          'Failed to load cities.',
+          style: AppTypography.body.copyWith(color: AppColors.inkSoft),
+        ),
+      ),
+      data: (cities) {
+        final popularNames =
+            _popularCities.map((c) => c.name.toLowerCase()).toSet();
+        final otherCities = cities
+            .where((c) => !popularNames.contains(c.name.toLowerCase()))
+            .toList();
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // POPULAR CITIES label
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Text(
+                  'POPULAR CITIES',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.inkMuted,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+
+              // 4-column grid of popular cities
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 0.82,
+                  ),
+                  itemCount: _popularCities.length,
+                  itemBuilder: (context, i) {
+                    final pop = _popularCities[i];
+                    final match = cities
+                        .where((c) =>
+                            c.name.toLowerCase() == pop.name.toLowerCase())
+                        .firstOrNull;
+                    final isSelected = currentCityName?.toLowerCase() ==
+                        pop.name.toLowerCase();
+                    return _PopularCityTile(
+                      city: pop,
+                      isSelected: isSelected,
+                      isSaving: _isSaving,
+                      onTap: match != null ? () => _selectCity(match) : null,
+                    );
+                  },
+                ),
+              ),
+
+              if (otherCities.isNotEmpty) ...[
+                const SizedBox(height: 20),
+
+                // OTHER CITIES label
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                  child: Text(
+                    'OTHER CITIES',
+                    style: AppTypography.label.copyWith(
+                      color: AppColors.inkMuted,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ),
+
+                // Other cities list
+                ...otherCities.map((city) => _OtherCityTile(
+                      city: city,
+                      isSaving: _isSaving,
+                      onTap: () => _selectCity(city),
+                    )),
+              ],
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResults(AsyncValue<List<_CityResult>> resultsAsync) {
+    return resultsAsync.when(
+      loading: () => const _CityListSkeleton(),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          'Failed to load cities.',
+          style: AppTypography.body.copyWith(color: AppColors.inkSoft),
+        ),
+      ),
+      data: (cities) {
+        if (cities.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'No cities found for "$_query".',
+              style: AppTypography.body.copyWith(color: AppColors.inkSoft),
+            ),
+          );
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          itemCount: cities.length,
+          separatorBuilder: (_, _) => const Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: AppColors.hairline,
+            indent: 56,
+          ),
+          itemBuilder: (context, i) {
+            final city = cities[i];
+            return _CityTile(
+              city: city,
+              isSaving: _isSaving,
+              onTap: () => _selectCity(city),
+            );
+          },
+        );
+      },
+    );
+  }
 }
+
+// ── Popular city grid tile ────────────────────────────────────
+
+class _PopularCityTile extends StatelessWidget {
+  final _PopularCity city;
+  final bool isSelected;
+  final bool isSaving;
+  final VoidCallback? onTap;
+
+  const _PopularCityTile({
+    required this.city,
+    required this.isSelected,
+    required this.isSaving,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: (onTap == null || isSaving) ? null : () {
+        HapticFeedback.selectionClick();
+        onTap!();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.ink : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              city.emoji,
+              style: const TextStyle(fontSize: 26),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                city.name,
+                style: AppTypography.caption.copyWith(
+                  color: isSelected ? Colors.white : AppColors.ink,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Other city list tile ───────────────────────────────────────
+
+class _OtherCityTile extends StatelessWidget {
+  final _CityResult city;
+  final bool isSaving;
+  final VoidCallback onTap;
+
+  const _OtherCityTile({
+    required this.city,
+    required this.isSaving,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: isSaving ? null : () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    city.name,
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    city.state,
+                    style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
+                  ),
+                ],
+              ),
+            ),
+            if (city.tripCount != null)
+              Text(
+                '${city.tripCount} trips',
+                style: AppTypography.caption.copyWith(color: AppColors.inkMuted),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Search result tile (used when querying) ───────────────────
 
 class _CityTile extends StatelessWidget {
   final _CityResult city;
@@ -413,6 +663,35 @@ class _CityTile extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Skeletons ─────────────────────────────────────────────────
+
+class _PopularCitySkeleton extends StatelessWidget {
+  const _PopularCitySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 0.82,
+        ),
+        itemCount: 8,
+        itemBuilder: (_, _) => const SkeletonRect(
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: 12,
         ),
       ),
     );

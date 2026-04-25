@@ -35,6 +35,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
   final _venueNameController = TextEditingController();
   final _venueAddressController = TextEditingController();
   final _cityController = TextEditingController();
+  final _dressCodeController = TextEditingController();
 
   List<Map<String, dynamic>> _cityResults = [];
   bool _isSearchingCity = false;
@@ -49,6 +50,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
       final event = ref.read(eventWizardProvider);
       _venueNameController.text = event.venueName;
       _venueAddressController.text = event.venueAddress;
+      if (event.dressCode != null) _dressCodeController.text = event.dressCode!;
     });
   }
 
@@ -57,6 +59,7 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
     _venueNameController.dispose();
     _venueAddressController.dispose();
     _cityController.dispose();
+    _dressCodeController.dispose();
     _cityDebounce?.cancel();
     _cityCancelToken.cancel();
     super.dispose();
@@ -350,6 +353,42 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
           ),
           const SizedBox(height: Spacing.xl),
 
+          // ── Optional: Dress code ──────────────────────────────
+          const _SectionLabel('Dress code (optional)'),
+          const SizedBox(height: Spacing.sm),
+          AppInput(
+            controller: _dressCodeController,
+            hint: 'e.g. Smart casual, Comfortable shoes',
+            maxLength: 100,
+            textInputAction: TextInputAction.next,
+            onChanged: ref.read(eventWizardProvider.notifier).setDressCode,
+          ),
+          const SizedBox(height: Spacing.xl),
+
+          // ── Optional: Age restriction ─────────────────────────
+          const _SectionLabel('Age restriction (optional)'),
+          const SizedBox(height: Spacing.sm),
+          Row(
+            children: [
+              for (final opt in _ageOptions) ...[
+                Expanded(
+                  child: _AgeChip(
+                    label: opt,
+                    isSelected: (event.ageRestriction ?? 'none') == opt,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ref
+                          .read(eventWizardProvider.notifier)
+                          .setAgeRestriction(opt == 'None' ? 'none' : opt);
+                    },
+                  ),
+                ),
+                if (opt != _ageOptions.last) const SizedBox(width: Spacing.sm),
+              ],
+            ],
+          ),
+          const SizedBox(height: Spacing.xl),
+
           // ── What to bring ─────────────────────────────────────
           const _SectionLabel('What to bring'),
           const SizedBox(height: Spacing.sm),
@@ -403,6 +442,50 @@ class _EventDetailsStepState extends ConsumerState<EventDetailsStep> {
           ),
           const SizedBox(height: Spacing.xxxl),
         ],
+      ),
+    );
+  }
+}
+
+// ── Age options ───────────────────────────────────────────────────
+
+const _ageOptions = ['None', '18+', '21+'];
+
+class _AgeChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AgeChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.sm + 2),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryTint : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+          border: Border.all(
+            color: isSelected ? AppColors.coral : AppColors.hairline,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: typ.AppTypography.body.copyWith(
+            color: isSelected ? AppColors.ink : AppColors.inkSoft,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

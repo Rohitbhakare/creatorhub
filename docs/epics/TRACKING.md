@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-25 (Avatar upload in Edit Profile; onboarding now saves display_name+username; notification prefs crash fixed)
+> Last updated: 2026-04-25 (Web testing setup complete: 16 Vitest unit tests + 90/90 Playwright E2E passing; V-model TEST-DEC-001 documented)
 
 ---
 
@@ -437,6 +437,25 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | NTF/BUG-001 | Notifications | Bug | `NotificationPreferencesNotifier.build()` called `_load()` synchronously; first line read `state` before build returned → "uninitialized provider" crash on nav to `/notifications/preferences`. Fixed: wrapped `_load()` in `Future.microtask`. | `FIXED` | P0 |
 | PRF/FEAT-002 | Profile | Enhancement | Edit Profile avatar upload implemented: `image_picker` + Firebase Storage + `POST /api/v1/media/signed-url` + `PUT /api/v1/users/me`. Bottom sheet source picker (gallery/camera). | `DONE` | — |
 | ONB/BUG-001 | Onboarding | Bug | `celebration_screen.dart` never submitted `display_name`, `email`, or `username` to the API — Edit Profile always showed empty fields for new users. Fixed: `_completeOnboarding()` now calls `PUT /api/v1/users/me` and `PUT /api/v1/users/me/username` before city/verticals. | `FIXED` | P1 |
+| E2.1/FEAT-001 | Experiences | Enhancement | Experience wizard Step 2 (`ExperienceDetailsStep`) built: scheduled dates list (add via bottom sheet with date range picker + capacity stepper), meeting point (public name + optional private address + reveal hours selector 12/24/48h), cancellation policy picker (flexible/moderate/strict). `cancellationPolicy` field added to `CreateExperienceState` + `buildUpdatePayload()`. | `DONE` | — |
+| E2.1/FEAT-002 | Experiences | Enhancement | Experience wizard Step 3 wired to existing `MediaStep` (title: "Add experience photos"). Step 2 and 3 now fully functional; `_buildPlaceholderStep()` removed. | `DONE` | — |
+| CRE/BUG-002 | Content | Bug | Auto-save 500 error — `PUT /api/v1/content/:id` failed with DB CHECK constraint because `wizard.vertical` was `""`. Fixed: mobile skips empty vertical in payload; API strips empty-string `vertical` before DB update. | `FIXED` | P1 |
+| STU/FEAT-001 | Studio | Enhancement | Wizard close (X) button now always shows Save/Exit dialog regardless of step (previously navigated back instead of prompting). | `DONE` | — |
+| STU/FEAT-002 | Studio | Enhancement | Studio draft cards: delete (bin) icon added, delete dialog has two variants (empty draft → "Keep editing/Discard"; has content → "Keep editing/Delete"), progress bar with motivational text, completion % indicator. | `DONE` | — |
+| STU/FEAT-003 | Studio | Enhancement | "See examples" button now opens a `DraggableScrollableSheet` with 4 curated content examples (emoji, type badge, title, excerpt, likes, views). | `DONE` | — |
+| STU/FEAT-004 | Studio | Enhancement | Filter chips now show counts: "All (4)", "Published (1)", "Drafts (3)". New API endpoint `GET /api/v1/studio/content/counts`. New `studioContentCountsProvider`. | `DONE` | — |
+| STU/FEAT-005 | Studio | Enhancement | "See all" button shows in Studio header when items > 5. Tapping opens `StudioContentListScreen` (full screen with back + chips + infinite scroll). Route `/studio/content-list`. | `DONE` | — |
+| STU/FEAT-006 | Studio | Enhancement | Studio content redesigned as rich cards (`StudioContentCard`): type badge (colored), 2-line title, price/status row, draft progress bar with motivational text, published engagement gamification row (❤ 🔥 TRENDING badge). Shared to `studio_content_widgets.dart`. | `DONE` | — |
+| FAB/FEAT-001 | Feed | Enhancement | Floating Create FAB: moved from per-tab to shell level (`main_shell.dart`), shows only on Home (0) and Discover (1) tabs — hidden on Studio, Saved, You. Size reduced to 40×40 circle. | `DONE` | — |
+| DD/GAP-009 | Feed | Enhancement | DD-009 Near You honesty banner confirmed implemented: API returns `fallback_level` + `fallback_cities`, mobile `_FallbackBanner` shows warm-tinted message when `fallbackLevel > 0`. No additional work needed. | `DONE` | — |
+| WIZ/FEAT-001 | Content Wizard | Enhancement | Added trash/delete icon to top-right of wizard header (all steps). Visible only after draft is created. Tapping shows "Delete draft?" confirm dialog → hard-deletes via `DELETE /api/v1/content/:id`, refreshes studio list, and exits wizard. Top bar now: [X close] [save status centered] [trash right]. | `DONE` | — |
+| STU/BUG-001 | Studio | Bug | Delete retry loop: `listCreatorContent` and `getContentCounts` in `studio.service.ts` did not filter `deleted_at IS NULL`, so soft-deleted items reappeared after `_fetch()` as drafts with delete buttons → infinite 404 delete loop. Fixed: added `.is('deleted_at', null)` to both queries. Also fixed mobile `deleteContent` to skip `_fetch()` on 404 (optimistic remove was correct). | `FIXED` | P0 |
+| GAP/FEAT-001 | Profile | Enhancement | IAM-FR-009 Connected Accounts screen (G3) built: `ConnectedAccountsScreen` at route `/profile/connected-accounts`. Instagram + YouTube platform tiles with connect/disconnect/manual-sync (5-min rate-limit enforced server-side). IAM-FR-012 permissions transparency card (read-only access, no post/DM). `ConnectedAccountsNotifier` (Notifier<State> + microtask load). | `DONE` | — |
+| GAP/FEAT-002 | Studio | Enhancement | STUD-FR-002 Studio Insights screen (H3) built: `StudioInsightsScreen` at route `/studio/insights`. Period selector (7d/30d/90d). 3 summary metric tiles (Views, New Followers, Bookings) with delta %. 3 sparkline chart cards with bezier curve + gradient fill via `CustomPainter`. Falls back to placeholder on API error. `InsightsNotifier` (Notifier<State>). | `DONE` | — |
+| GAP/FEAT-003 | Studio/Tax | Enhancement | TAX-FR-005 Tax downloads section added to `EarningsScreen`. Financial year selector (3 FYs). Form 16A (TDS cert) + GSTR-1/3B summary download tiles. Calls `GET /api/v1/studio/tax-documents?type=&fy=`. 404 → friendly "no document available" message. | `DONE` | — |
+| GAP/FEAT-004 | Trust | Enhancement | TRUST-FR-001 Report content bottom sheet built: `showReportSheet()` in `lib/shared/components/report_sheet.dart`. 7 report categories (spam/hate/misinformation/nudity/violence/IP/other). Optional description (300 chars). Submit calls `POST /api/v1/trust/reports`. Success state with check icon. Reusable across all content types (post/itinerary/experience/event). | `DONE` | — |
+| GAP/FEAT-005 | Booking | Enhancement | BK-FR-011 Dispute window UI added to `BookingDetailScreen`. Shows 48h countdown after `status == 'completed'`. Live remaining time label (Xh Ym left / Closed). "Raise a dispute" CTA opens `_DisputeSheet` bottom sheet with 5 reason options + optional description. Window-closed state shows neutral grey card. | `DONE` | — |
+| GAP/AUD-001 | All | Audit | Deep point-by-point audit of publish wizard vs Pack E design and content detail screens vs Pack C. Added §11 (Wizard gaps) and §12 (Detail screen gaps) to `docs/epics/status_v2.md`. Catalogued: missing sub-category picker, E4 Tags step, CRT-FR-004 adaptive fields, Event dress-code/age/what-to-bring, itinerary cover photo, "Start chapter 1" CTA, "things to carry" section, post drop cap, floating action bar. | `DONE` | — |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
 
@@ -448,7 +467,7 @@ Items tagged `[M1]` in SRS v1.2 that have no corresponding task in any DONE epic
 
 | ID | SRS FR | Feature | Status | Notes |
 |----|--------|---------|--------|-------|
-| M1-PENDING-001 | IAM-FR-009, PROF-FR-008, PROF-FR-011–016 | Social account connect — Instagram + YouTube OAuth, profile photo import, sync status, subscriber delta tracking, disconnect flow, rate limiting, platform revocation link [DD-031 · LOCKED] | `ON HOLD` | Blocked on Instagram/YouTube OAuth app credentials from Meta/Google. |
+| M1-PENDING-001 | IAM-FR-009, PROF-FR-008, PROF-FR-011–016 | Social account connect — Instagram + YouTube OAuth, profile photo import, sync status, subscriber delta tracking, disconnect flow, rate limiting, platform revocation link [DD-031 · LOCKED] | `PARTIAL` | Connected Accounts screen (G3) + disconnect + manual sync UI built (GAP/FEAT-001). OAuth deep-link flow stubbed — blocked on Instagram/YouTube OAuth app credentials from Meta/Google. |
 | M1-PENDING-002 | DISC-FR-003 | Category browse sub-screen — vertical chip → sub-category → leaf-type filter | `DONE` | `GET /discover/category`, `CategoryBrowseScreen`, sub-category + leaf type chip rails. Theme tile tap in Discover opens browse screen. Route `/discover/category/:vertical`. |
 | M1-PENDING-003 | DISC-FR-039 | Featured content / "Editor's picks" home feed section | `DONE` | `GET /feed/editors-picks`, `EditorPicksSection` widget (hidden when empty), `editorPicksProvider`. Inserted into For You tab between ranked feed and Travel section. |
 | M1-PENDING-004 | STUD-FR-004 | Studio tab Earnings card — KYC badge + pending payout + next payout date | `DONE` | `_EarningsInfoCard` redesigned: `_KycBadge` (green/amber/coral per status), pending payout amount, next transfer date from earliest scheduled payout. Uses `kycStatusProvider`. |
@@ -716,3 +735,53 @@ Issues found and fixed during E3.1 E2E test development:
 | KYC | `kyc_scenarios_test.dart` | 4 | ✅ 3 | 0 | — | iPhone 16 Pro (F11-S04 skipped — experience wizard placeholders; F11-S03 needs `--dart-define=CH_E2E_STUB_UPLOADS=true`) |
 | Booking | `booking_scenarios_test.dart` | 5 | — | — | — | Skipped — Razorpay sandbox + booking seed fixtures pending |
 | **TOTAL (active)** | | **42** | **✅ 41** | **0** | | 1 skipped inside KYC + 5 skipped in Booking |
+
+---
+
+## Engineering Decisions
+
+### TEST-DEC-001 — V-Model Testing Strategy (2026-04-25)
+
+**Decision:** Adopt V-model testing across all three apps with tool selection matched to each level. The previous blanket rule ("no DB mocking in integration tests") is **revised** — only `.integration.test.ts` files should hit a real DB; all other tests use `vi.mock()`.
+
+#### V-Model Mapping
+
+```
+Requirements ─────────────────────────────── Acceptance (E2E / Patrol / Playwright)
+  System Design ─────────────────── System Tests (Playwright page-level / Patrol flows)
+    Architecture ─────── Integration (Vitest + app.request() with vi.mock Supabase)
+      Module ─── Unit (Vitest vi.mock() / flutter_test / Vitest pure functions)
+```
+
+#### Tool Decisions by Layer
+
+| Layer | Unit | Integration | E2E |
+|-------|------|-------------|-----|
+| **API (Hono)** | Vitest + `vi.mock()` — never hit DB | Vitest + `app.request()` + mocked Supabase | — |
+| **Mobile (Flutter)** | `flutter_test` (providers, Dart logic) | `flutter_test` + WidgetTester (components) | Patrol on device/simulator |
+| **Web (Next.js)** | Vitest (pure functions in `lib/api.ts`) | — (all pages are RSC, no client logic) | Playwright (Desktop Chrome + iPhone 14) |
+
+#### Key Rules Established
+
+- API `*.test.ts` → Vitest + `vi.mock('../lib/supabase.js')` — **never hit real DB**
+- API `*.integration.test.ts` → Vitest + real Supabase test project (separate from prod)
+- Web unit tests → Vitest (node env, no DOM) for pure functions only
+- Web E2E → Playwright starts **two servers**: mock API (port **9876**) + Next.js (port **3003**); mock API intercepts SSR `fetch()` calls so tests are hermetic — no real API needed (ports 3001=Hono, 3002=Admin app, 4000=Firebase Emulator UI — all reserved)
+- Flutter widget → `flutter_test` + `WidgetTester` for all shared components
+- Flutter E2E → Patrol (already installed, `^3.14.0`)
+
+**Rationale:** SSR pages cannot be tested with React Testing Library (RSC limitation). Playwright running against a live Next.js + mock API server is the correct level for page-level verification. Pure function unit tests (formatPrice, fetch helpers) belong in Vitest.
+
+#### Implementation Status
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| `apps/web/vitest.config.ts` | DONE | node env, no DOM, `src/**/*.test.ts` |
+| `apps/web/src/lib/api.test.ts` | DONE | 16 Vitest unit tests — all green |
+| `apps/web/playwright.config.ts` | DONE | Desktop Chrome + iPhone 14, two webServers |
+| `apps/web/tests/mock-api-server.mjs` | DONE | Port 9876; hermetic fixtures for testcreator + 2 content items |
+| `apps/web/tests/home.spec.ts` | DONE | 9 tests — all green |
+| `apps/web/tests/legal.spec.ts` | DONE | 4 tests (Terms, Privacy, Community Guidelines) — all green |
+| `apps/web/tests/creator-minisite.spec.ts` | DONE | 15 tests — all green |
+| `apps/web/tests/content-detail.spec.ts` | DONE | 16 tests — all green |
+| **Total E2E** | **DONE** | **90/90 passing (Desktop Chrome + iPhone 14)** |

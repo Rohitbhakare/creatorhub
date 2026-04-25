@@ -65,6 +65,7 @@ class StudioContentItem {
   final int pricePaisa;
   final int likeCount;
   final int commentCount;
+  final int saveCount;
   final DateTime updatedAt;
 
   const StudioContentItem({
@@ -76,6 +77,7 @@ class StudioContentItem {
     required this.pricePaisa,
     required this.likeCount,
     required this.commentCount,
+    this.saveCount = 0,
     required this.updatedAt,
   });
 
@@ -91,10 +93,54 @@ class StudioContentItem {
         pricePaisa: (json['price_paisa'] as num?)?.toInt() ?? 0,
         likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
         commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
+        saveCount: (json['save_count'] as num?)?.toInt() ?? 0,
         updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? '') ??
             DateTime.now(),
       );
 }
+
+// ── Content Counts Model ───────────────────────────────────────────
+
+class ContentCounts {
+  final int all;
+  final int draft;
+  final int published;
+  final int archived;
+
+  const ContentCounts({
+    this.all = 0,
+    this.draft = 0,
+    this.published = 0,
+    this.archived = 0,
+  });
+
+  factory ContentCounts.fromJson(Map<String, dynamic> json) => ContentCounts(
+        all: (json['all'] as num?)?.toInt() ?? 0,
+        draft: (json['draft'] as num?)?.toInt() ?? 0,
+        published: (json['published'] as num?)?.toInt() ?? 0,
+        archived: (json['archived'] as num?)?.toInt() ?? 0,
+      );
+
+  int forFilter(String filter) => switch (filter) {
+        'draft' => draft,
+        'published' => published,
+        'archived' => archived,
+        _ => all,
+      };
+}
+
+final studioContentCountsProvider =
+    FutureProvider.autoDispose<ContentCounts>((ref) async {
+  final dio = ref.read(authServiceProvider).dio;
+  try {
+    final res = await dio.get('/api/v1/studio/content/counts');
+    final data =
+        (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+    return ContentCounts.fromJson(data);
+  } on DioException {
+    return const ContentCounts();
+  }
+});
 
 // ── Alert Provider ─────────────────────────────────────────────────
 
@@ -265,6 +311,20 @@ class StudioContentNotifier extends Notifier<StudioContentState> {
   }
 
   void retry() => _fetch();
+
+  /// Soft-delete a draft and remove it from local state immediately.
+  Future<void> deleteContent(String id) async {
+    state = state.copyWith(
+      items: state.items.where((i) => i.id != id).toList(),
+    );
+    try {
+      final dio = ref.read(authServiceProvider).dio;
+      await dio.delete('/api/v1/content/$id');
+    } on DioException catch (e) {
+      // 404 = already deleted; optimistic removal was correct, no need to reconcile
+      if (e.response?.statusCode != 404) _fetch();
+    }
+  }
 }
 
 final studioContentProvider =

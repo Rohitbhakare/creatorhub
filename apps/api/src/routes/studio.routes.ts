@@ -5,6 +5,7 @@ import {
   handleDismissAlert,
   handleGetStats,
   handleListContent,
+  handleGetContentCounts,
 } from '../handlers/studio.js'
 
 const studio = new Hono()
@@ -18,6 +19,7 @@ studio.get('/stats', authenticate, handleGetStats)
 
 // ─── Content ─────────────────────────────────────────────────────
 // query: status, type, cursor, limit
+studio.get('/content/counts', authenticate, handleGetContentCounts)
 studio.get('/content', authenticate, handleListContent)
 
 export default studio
