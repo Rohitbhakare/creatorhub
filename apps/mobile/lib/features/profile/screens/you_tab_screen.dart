@@ -454,13 +454,12 @@ class _StatsGrid extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: statsAsync.when(
-        loading: () => _buildGrid(context, 0, 0, 0, followingCount, loading: true),
-        error: (_, __) => _buildGrid(context, 0, 0, 0, followingCount),
+        loading: () => _buildGrid(context, 0, 0, followingCount, loading: true),
+        error: (_, __) => _buildGrid(context, 0, 0, followingCount),
         data: (s) => _buildGrid(
           context,
           s.savedItemCount,
           s.upcomingBookingsCount,
-          s.completedBookingsCount,
           followingCount,
         ),
       ),
@@ -471,11 +470,24 @@ class _StatsGrid extends ConsumerWidget {
     BuildContext context,
     int saved,
     int bookings,
-    int completed,
     int following, {
     bool loading = false,
   }) {
+    final userId = user?['id'] as String? ?? '';
+    final followersCount = user?['followers_count'] as int? ?? 0;
     final tiles = [
+      _TileData(
+        icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+        label: 'Followers',
+        count: followersCount,
+        onTap: () => context.push('/profile/$userId/followers'),
+      ),
+      _TileData(
+        icon: PhosphorIcons.userPlus(PhosphorIconsStyle.fill),
+        label: 'Following',
+        count: following,
+        onTap: () => context.push('/profile/$userId/following'),
+      ),
       _TileData(
         icon: PhosphorIcons.bookmark(PhosphorIconsStyle.fill),
         label: 'Saved',
@@ -487,18 +499,6 @@ class _StatsGrid extends ConsumerWidget {
         label: 'Bookings',
         count: bookings,
         onTap: () => context.push('/bookings'),
-      ),
-      _TileData(
-        icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
-        label: 'Completed',
-        count: completed,
-        onTap: () => context.push('/bookings'),
-      ),
-      _TileData(
-        icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
-        label: 'Following',
-        count: following,
-        onTap: null,
       ),
     ];
 
@@ -673,6 +673,13 @@ class _AccountCard extends StatelessWidget {
               subtitle: 'Earnings & bank details',
               onTap: () => context.push('/studio'),
             ),
+            divider,
+            _AccountRow(
+              icon: PhosphorIcons.identificationBadge(PhosphorIconsStyle.regular),
+              label: 'KYC Verification',
+              subtitle: 'Required to publish paid content',
+              onTap: () => context.push('/kyc'),
+            ),
           ],
           divider,
           _AccountRow(
@@ -680,6 +687,13 @@ class _AccountCard extends StatelessWidget {
             label: 'Privacy & data',
             subtitle: null,
             onTap: () => context.push('/privacy-settings'),
+          ),
+          divider,
+          _AccountRow(
+            icon: PhosphorIcons.scroll(PhosphorIconsStyle.regular),
+            label: 'Legal',
+            subtitle: 'Terms, privacy & refund policy',
+            onTap: () => context.push('/legal/terms'),
           ),
         ],
       ),

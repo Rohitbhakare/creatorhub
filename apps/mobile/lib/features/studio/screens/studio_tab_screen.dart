@@ -93,7 +93,7 @@ class _StudioTopBar extends StatelessWidget {
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              // Notifications — no-op for M1
+              context.push('/notifications/preferences');
             },
             child: SizedBox(
               width: Layout.minTapTarget,
@@ -373,7 +373,12 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          context.push('/studio/insights');
+        },
+        child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: Spacing.sm,
           vertical: Spacing.md,
@@ -401,6 +406,7 @@ class _StatTile extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
         ),
       ),
     );

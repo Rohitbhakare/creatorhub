@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-25 (Itinerary wizard Step 1 redesigned as `ItineraryBasicsStep` with category grid; difficulty picker added to Step 2; WizardState deselect bug fixed; 329/329 tests passing; main_shell_test corrected for FAB-based Create)
+> Last updated: 2026-04-25 (Studio bell wired + stats tiles tappable; You Tab: Followers tile added, Following wired, KYC + Legal rows added; 329/329 tests passing)
 
 ---
 
@@ -461,6 +461,11 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | TST/FIX-001 | Tests | Bug | `main_shell_test.dart` expected "Create" tab label in bottom nav, but Create is a FAB (not a tab). Tab labels are: Home · Discover · Studio · Saved · You. Updated 2 failing tests to match actual nav structure. `basics_step_test.dart` updated: removed stale itinerary test (itinerary now uses `ItineraryBasicsStep`), added event flow test. Total: 329/329 passing. | `FIXED` | P2 |
 | BUG-YOU-001 | Profile/You Tab | Bug | "Connected accounts" row in You Tab (`you_tab_screen.dart:649`) showed `ScaffoldMessenger` "coming soon" snackbar instead of routing to `/profile/connected-accounts` — even though the screen was built (GAP/FEAT-001). Fixed: replaced snackbar with `context.push('/profile/connected-accounts')`. | `FIXED` | P1 |
 | GAP-AUD-002 | All | Audit | Deep point-by-point audit of all other screens documented in `docs/epics/status_v2.md` §13–§19. Covers: Home Feed (B1) — "Near you" label, missing bell badge, trending section, waitlist card; Discover (B2) — mostly complete; You Tab (G1) — BUG-YOU-001 fixed, Following tile no-op, missing Followers tile, missing KYC/Legal rows; Studio (H2) — bell no-op, "Saves" vs "Revenue" mismatch, stats not tappable, no period selector; Edit Profile (G2) — missing pronouns/social/website fields; Notifications — missing channel selector; Bookings — missing PDF receipt. 19 HIGH/MEDIUM gaps catalogued in §19 cross-screen summary. | `DONE` | — |
+| GAP-STU-001 | Studio | Bug | Studio top bar bell icon was a no-op (comment said "Notifications — no-op for M1"). Fixed: `context.push('/notifications/preferences')` on tap. | `FIXED` | P1 |
+| GAP-STU-003 | Studio | Enhancement | Studio stats tiles (Views/Saves/Books/Followers) were non-interactive. Wrapped each `_StatTile` in `GestureDetector` → `context.push('/studio/insights')`. | `DONE` | — |
+| GAP-YOU-001 | Profile/You Tab | Bug | Following tile in You Tab stats grid had `onTap: null`. Fixed: routes to `/profile/$userId/following`. Followers tile added (was missing entirely) using `user?['followers_count']` → routes to `/profile/$userId/followers`. Stats grid now shows: Followers · Following · Saved · Bookings. | `FIXED` | P1 |
+| GAP-YOU-003 | Profile/You Tab | Enhancement | KYC row missing from You Tab account list for creators. Added `_AccountRow` with `PhosphorIcons.identificationBadge` → `/kyc`. Shown only when `isCreator == true`. | `DONE` | — |
+| GAP-YOU-004 | Profile/You Tab | Enhancement | Legal link missing from You Tab account list. Added `_AccountRow` "Legal" with `PhosphorIcons.scroll` → `/legal/terms`. | `DONE` | — |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
 
