@@ -14,6 +14,9 @@ import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
+import '../features/onboarding/screens/guest_location_screen.dart';
+import '../features/onboarding/screens/guest_category_screen.dart';
+import '../features/onboarding/screens/guest_celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
 import '../features/discover/screens/discover_tab_screen.dart';
 import '../features/discover/screens/category_browse_screen.dart';
@@ -68,6 +71,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnAuthScreen = location == '/auth';
       final isOnWelcome = location == '/welcome';
       final isOnOnboarding = location.startsWith('/onboarding');
+      final isOnGuestSetup = location.startsWith('/guest-setup');
       final isOnContent = location.startsWith('/content');
 
       if (kDebugMode) {
@@ -86,8 +90,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/auth';
       }
 
-      // Not authenticated and not guest — redirect to welcome
-      if (!isAuth && !isGuest && !isOnAuthScreen && !isOnWelcome) {
+      // Not authenticated and not guest — redirect to welcome (allow guest setup flow)
+      if (!isAuth && !isGuest && !isOnAuthScreen && !isOnWelcome && !isOnGuestSetup) {
         if (kDebugMode) debugPrint('[Router] → /welcome (not authenticated)');
         return '/welcome';
       }
@@ -132,6 +136,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth',
         builder: (context, state) => const PhoneOtpScreen(),
+      ),
+
+      // Guest setup flow (no auth required)
+      GoRoute(
+        path: '/guest-setup/location',
+        builder: (context, state) => const GuestLocationScreen(),
+      ),
+      GoRoute(
+        path: '/guest-setup/categories',
+        builder: (context, state) => const GuestCategoryScreen(),
+      ),
+      GoRoute(
+        path: '/guest-setup/done',
+        builder: (context, state) => const GuestCelebrationScreen(),
       ),
 
       // Onboarding flow

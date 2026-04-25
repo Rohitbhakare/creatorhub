@@ -6,8 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/components/button.dart';
 import '../../../shared/theme/colors.dart';
-import '../../auth/providers/auth_provider.dart';
-
 /// Welcome screen — Pack A / S_Welcome (SRS IAM-FR-001).
 ///
 /// Visual spec: `docs/01_wireframes/v2/project/pack-a-onboarding.jsx` § S_Welcome.
@@ -39,7 +37,7 @@ class WelcomeScreen extends ConsumerWidget {
                 onGetStarted: () => context.go('/auth'),
                 onSignIn: () => context.go('/auth'),
                 onBrowseAsGuest: () {
-                  ref.read(authProvider.notifier).enterGuestMode();
+                  context.go('/guest-setup/location');
                 },
               ),
             ),

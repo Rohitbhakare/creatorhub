@@ -33,6 +33,11 @@ Widget _wrap({String? initialLocation, ProviderContainer? container}) {
         builder: (_, _) =>
             const Scaffold(body: Center(child: Text('AUTH_SCREEN'))),
       ),
+      GoRoute(
+        path: '/guest-setup/location',
+        builder: (_, _) =>
+            const Scaffold(body: Center(child: Text('GUEST_LOCATION'))),
+      ),
     ],
   );
   return UncontrolledProviderScope(
@@ -93,7 +98,7 @@ void main() {
       expect(find.text('Browse as guest'), findsOneWidget);
     });
 
-    testWidgets('tap Browse as guest puts auth state into guest mode',
+    testWidgets('tap Browse as guest navigates to guest setup flow',
         (tester) async {
       await _setPhoneSize(tester);
       final container = ProviderContainer(overrides: [
@@ -104,13 +109,13 @@ void main() {
       await tester.pumpWidget(_wrap(container: container));
       await tester.pumpAndSettle();
 
-      expect(container.read(authProvider).isGuest, isFalse);
-
       await tester.ensureVisible(find.text('Browse as guest'));
       await tester.tap(find.text('Browse as guest'));
       await tester.pumpAndSettle();
 
-      expect(container.read(authProvider).isGuest, isTrue);
+      // Guest mode is set at the END of the setup flow (GuestCelebrationScreen),
+      // not on the welcome screen tap. Tapping here navigates to /guest-setup/location.
+      expect(find.text('GUEST_LOCATION'), findsOneWidget);
     });
 
     testWidgets('hero uses coral→coralDeep gradient (no Image widget)',
