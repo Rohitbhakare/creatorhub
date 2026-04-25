@@ -104,10 +104,30 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     super.dispose();
   }
 
-  /// X button: always prompts to save or discard regardless of step.
+  /// X button: exit immediately if untouched; prompt only when user has entered data.
   void _onClose() {
     HapticFeedback.lightImpact();
-    _showDiscardDialog();
+    final wizard = ref.read(wizardProvider);
+    if (!wizard.isDirty) {
+      _discardAndExit();
+    } else {
+      _showDiscardDialog();
+    }
+  }
+
+  /// Silently delete the stub draft (if one was created) and pop.
+  Future<void> _discardAndExit() async {
+    final contentId = ref.read(wizardProvider).contentId;
+    if (contentId != null) {
+      try {
+        final dio = ref.read(authServiceProvider).dio;
+        await dio.delete('/api/v1/content/$contentId');
+        ref.read(studioContentProvider.notifier).retry();
+      } catch (_) {
+        // Best-effort — exit regardless
+      }
+    }
+    if (mounted) context.pop();
   }
 
   /// Trash icon: confirm then hard-delete the draft and exit.
@@ -174,7 +194,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     final wizard = ref.read(wizardProvider);
 
     if (wizard.currentStep == 1) {
-      _showDiscardDialog();
+      if (!wizard.isDirty) {
+        _discardAndExit();
+      } else {
+        _showDiscardDialog();
+      }
     } else {
       ref.read(wizardProvider.notifier).prevStep();
     }
