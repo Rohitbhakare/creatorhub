@@ -13,12 +13,16 @@ import '../../../shared/components/button.dart';
 import '../../../shared/components/steps.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/guest_prefs_provider.dart';
 import '../providers/onboarding_provider.dart';
 
 /// A3 Location (IAM-FR-006 · ONB-FR-002).
-/// Step 2 of 5. Search + city chips + precise-location toggle.
+/// Step 2 of 5 for authenticated users; Step 1 of 2 for guests (isGuest=true).
+/// Guest mode: city is optional (Skip available), saves to GuestPrefsProvider.
 class LocationScreen extends ConsumerStatefulWidget {
-  const LocationScreen({super.key});
+  final bool isGuest;
+  const LocationScreen({super.key, this.isGuest = false});
+
 
   @override
   ConsumerState<LocationScreen> createState() => _LocationScreenState();
@@ -127,6 +131,19 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
   }
 
   Future<void> _onContinue() async {
+    if (widget.isGuest) {
+      final s = ref.read(onboardingProvider);
+      final cityId = s.selectedCityId;
+      final cityName = s.selectedCityName;
+      if (cityId != null && cityId.isNotEmpty && cityName != null) {
+        ref.read(guestPrefsProvider.notifier).setCity(cityId, cityName);
+      }
+      await HapticFeedback.lightImpact();
+      if (!mounted) return;
+      context.go('/guest-setup/categories');
+      return;
+    }
+
     final s = ref.read(onboardingProvider);
     final cityId = s.selectedCityId;
     if (cityId == null || cityId.isEmpty) return;
@@ -159,10 +176,16 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     context.go('/onboarding/verticals');
   }
 
+  void _skipCity() {
+    HapticFeedback.selectionClick();
+    context.go('/guest-setup/categories');
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(onboardingProvider);
     final selectedName = s.selectedCityName ?? '';
+    final canContinue = s.canAdvance;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
@@ -170,16 +193,21 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
         backgroundColor: AppColors.surface,
         body: Column(
           children: [
-            AppHeader(
-              showBack: true,
-              onBack: () => context.canPop()
-                  ? context.pop()
-                  : context.go('/onboarding/profile'),
-              title: '',
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: StepsBar(current: 2, total: 5),
+            if (widget.isGuest)
+              _guestTopBar()
+            else
+              AppHeader(
+                showBack: true,
+                onBack: () => context.canPop()
+                    ? context.pop()
+                    : context.go('/onboarding/profile'),
+                title: '',
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: widget.isGuest
+                  ? _stepPill('Step 1 of 2')
+                  : const StepsBar(current: 2, total: 5),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -187,7 +215,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _eyebrow('Step 2 of 5'),
+                    _eyebrow(widget.isGuest ? 'Step 1 of 2' : 'Step 2 of 5'),
                     const SizedBox(height: 8),
                     Text(
                       'Where do you call home?',
@@ -217,14 +245,67 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                     ],
                     const SizedBox(height: 18),
                     _cityChips(selectedName),
-                    const SizedBox(height: 28),
-                    _preciseLocationCard(),
+                    if (!widget.isGuest) ...[
+                      const SizedBox(height: 28),
+                      _preciseLocationCard(),
+                    ],
                   ],
                 ),
               ),
             ),
-            _footerBar(),
+            _footerBar(canContinue),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _guestTopBar() {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 4, 16, 0),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(PhosphorIcons.x(), size: 20, color: AppColors.ink),
+              onPressed: () => context.go('/welcome'),
+              tooltip: 'Close',
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: _skipCity,
+              child: Text(
+                'Skip',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.inkMuted,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stepPill(String label) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.inkMuted,
+          ),
         ),
       ),
     );
@@ -410,9 +491,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     );
   }
 
-  Widget _footerBar() {
-    final s = ref.watch(onboardingProvider);
-    final canContinue = s.canAdvance;
+  Widget _footerBar(bool canContinue) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
       decoration: const BoxDecoration(
@@ -421,24 +500,28 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       ),
       child: Row(
         children: [
-          AppButton(
-            label: 'Back',
-            variant: AppButtonVariant.outline,
-            size: AppButtonSize.medium,
-            onPressed: () => context.canPop()
-                ? context.pop()
-                : context.go('/onboarding/profile'),
-          ),
-          const SizedBox(width: 10),
+          if (!widget.isGuest) ...[
+            AppButton(
+              label: 'Back',
+              variant: AppButtonVariant.outline,
+              size: AppButtonSize.medium,
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go('/onboarding/profile'),
+            ),
+            const SizedBox(width: 10),
+          ],
           Expanded(
             child: AppButton(
-              label: 'Continue',
+              label: widget.isGuest && !canContinue ? 'Skip for now' : 'Continue',
               variant: AppButtonVariant.primary,
               size: AppButtonSize.medium,
               fullWidth: true,
               trailingIcon: Icons.arrow_forward_rounded,
               isLoading: _isSaving,
-              onPressed: canContinue && !_isSaving ? _onContinue : null,
+              onPressed: !_isSaving
+                  ? (canContinue || widget.isGuest ? _onContinue : null)
+                  : null,
             ),
           ),
         ],

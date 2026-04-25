@@ -14,9 +14,6 @@ import '../features/onboarding/screens/location_screen.dart';
 import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
-import '../features/onboarding/screens/guest_location_screen.dart';
-import '../features/onboarding/screens/guest_category_screen.dart';
-import '../features/onboarding/screens/guest_celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
 import '../features/discover/screens/discover_tab_screen.dart';
 import '../features/discover/screens/category_browse_screen.dart';
@@ -138,18 +135,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PhoneOtpScreen(),
       ),
 
-      // Guest setup flow (no auth required)
+      // Guest setup flow (no auth required) — reuses existing screens with isGuest:true
       GoRoute(
         path: '/guest-setup/location',
-        builder: (context, state) => const GuestLocationScreen(),
+        builder: (context, state) => const LocationScreen(isGuest: true),
       ),
       GoRoute(
         path: '/guest-setup/categories',
-        builder: (context, state) => const GuestCategoryScreen(),
+        builder: (context, state) => const VerticalPickerScreen(isGuest: true),
       ),
       GoRoute(
         path: '/guest-setup/done',
-        builder: (context, state) => const GuestCelebrationScreen(),
+        builder: (context, state) => const CelebrationScreen(isGuest: true),
       ),
 
       // Onboarding flow

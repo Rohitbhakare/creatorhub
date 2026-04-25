@@ -13,12 +13,14 @@ import '../../../shared/components/button.dart';
 import '../../../shared/components/steps.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/guest_prefs_provider.dart';
 import '../providers/onboarding_provider.dart';
 
 /// A6 Celebrate (IAM-FR-010 · ONB-FR-005).
-/// Step 5 of 5. Chapter 1 pill + display H1 + "Today's read" recommendation.
+/// Step 5 of 5 for auth users; milestone screen for guests (isGuest=true).
 class CelebrationScreen extends ConsumerStatefulWidget {
-  const CelebrationScreen({super.key});
+  final bool isGuest;
+  const CelebrationScreen({super.key, this.isGuest = false});
 
   @override
   ConsumerState<CelebrationScreen> createState() => _CelebrationScreenState();
@@ -32,8 +34,16 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(_completeOnboarding());
-    unawaited(_fetchTodaysRead());
+    if (widget.isGuest) {
+      unawaited(_enterGuestMode());
+    } else {
+      unawaited(_completeOnboarding());
+      unawaited(_fetchTodaysRead());
+    }
+  }
+
+  Future<void> _enterGuestMode() async {
+    ref.read(authProvider.notifier).enterGuestMode();
   }
 
   Future<void> _completeOnboarding() async {
@@ -169,6 +179,12 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
 
   Future<void> _openFeed() async {
     await HapticFeedback.lightImpact();
+    if (!mounted) return;
+
+    if (widget.isGuest) {
+      context.go('/home');
+      return;
+    }
 
     // Guard against the router bouncing us back to /onboarding/profile
     // when the initial /onboarding/complete call failed silently.
@@ -190,6 +206,8 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isGuest) return _buildGuestView();
+
     final onboarding = ref.watch(onboardingProvider);
     final firstName = onboarding.firstName?.trim();
     final displayName =
@@ -247,6 +265,134 @@ class _CelebrationScreenState extends ConsumerState<CelebrationScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestView() {
+    final guestPrefs = ref.watch(guestPrefsProvider);
+    final cats = guestPrefs.categories;
+    final cityName = guestPrefs.cityName;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 40, 28, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryTint,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'ALL SET · GUEST MODE',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.coralDeep,
+                      letterSpacing: 0.12 * 10,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "You're all\nset",
+                        style: GoogleFonts.fraunces(
+                          fontSize: 44,
+                          height: 0.96,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.018 * 44,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '.',
+                        style: GoogleFonts.fraunces(
+                          fontSize: 44,
+                          height: 0.96,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                          letterSpacing: -0.018 * 44,
+                          color: AppColors.coral,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  cityName != null
+                      ? 'Showing you creators near $cityName across your picks.'
+                      : 'Your feed is curated around what you picked.',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    height: 1.55,
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+                if (cats.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: cats.map((slug) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        border: Border.all(color: AppColors.hairlineStrong),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        _titleCase(slug),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                ],
+                const Spacer(),
+                AppButton(
+                  label: 'Take me there',
+                  variant: AppButtonVariant.primary,
+                  size: AppButtonSize.large,
+                  fullWidth: true,
+                  trailingIcon: Icons.arrow_forward_rounded,
+                  onPressed: _openFeed,
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go('/auth'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.inkMuted,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      minimumSize: const Size(0, 44),
+                    ),
+                    child: Text(
+                      'Create an account to save your progress',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.inkMuted,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

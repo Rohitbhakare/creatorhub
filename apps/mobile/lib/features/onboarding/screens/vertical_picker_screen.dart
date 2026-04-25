@@ -11,12 +11,15 @@ import '../../../shared/components/button.dart';
 import '../../../shared/components/steps.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/guest_prefs_provider.dart';
 import '../providers/onboarding_provider.dart';
 
 /// A4 Interests (IAM-FR-007 · ONB-FR-003).
-/// Step 3 of 5. 2×4 SelectionTile grid, min-3 counter.
+/// Step 3 of 5 for auth users; Step 2 of 2 for guests (isGuest=true).
+/// Guest mode: travel sub-categories, saves to GuestPrefsProvider.
 class VerticalPickerScreen extends ConsumerStatefulWidget {
-  const VerticalPickerScreen({super.key});
+  final bool isGuest;
+  const VerticalPickerScreen({super.key, this.isGuest = false});
 
   @override
   ConsumerState<VerticalPickerScreen> createState() =>
@@ -27,7 +30,7 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
   // Slugs must match `VERTICALS` in packages/shared/src/constants/index.ts.
   // Divergence here means the API drops unknown slugs and 422s with "At
   // least 3 verticals required" — which traps users in the onboarding loop.
-  final _cats = const <_Cat>[
+  static const _authCats = <_Cat>[
     _Cat('travel', 'Travel', _mountains),
     _Cat('stories', 'Stories', _bookOpen),
     _Cat('food', 'Food', _forkKnife),
@@ -37,6 +40,20 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     _Cat('music', 'Music', _musicNotes),
     _Cat('wellness', 'Wellness', _heart),
   ];
+
+  static const _guestCats = <_GuestCat>[
+    _GuestCat('road_trips', 'Road Trips', '🚗', Color(0xFFFFF3E0)),
+    _GuestCat('street_food', 'Street Food', '🍜', Color(0xFFFCE4EC)),
+    _GuestCat('adventure', 'Adventure', '🏔️', Color(0xFFE8F5E9)),
+    _GuestCat('cultural', 'Cultural', '🎭', Color(0xFFEDE7F6)),
+    _GuestCat('wildlife', 'Wildlife', '🦁', Color(0xFFF3E5F5)),
+    _GuestCat('offbeat', 'Offbeat', '🗺️', Color(0xFFE0F7FA)),
+    _GuestCat('solo_budget', 'Solo & Budget', '🎒', Color(0xFFFFF8E1)),
+    _GuestCat('luxury', 'Luxury', '✨', Color(0xFFEFEBE9)),
+  ];
+
+  List<_Cat> get _cats => _authCats;
+  List<_GuestCat> get _guestCatList => _guestCats;
 
   final Set<String> _selected = {};
   bool _isSaving = false;
@@ -55,6 +72,15 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
 
   Future<void> _onContinue() async {
     if (_selected.length < _minRequired) return;
+
+    if (widget.isGuest) {
+      ref.read(guestPrefsProvider.notifier).setCategories(_selected.toList());
+      await HapticFeedback.lightImpact();
+      if (!mounted) return;
+      context.go('/guest-setup/done');
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       final dio = ref.read(authServiceProvider).dio;
@@ -82,16 +108,21 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
         backgroundColor: AppColors.surface,
         body: Column(
           children: [
-            AppHeader(
-              showBack: true,
-              onBack: () => context.canPop()
-                  ? context.pop()
-                  : context.go('/onboarding/location'),
-              title: '',
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: StepsBar(current: 3, total: 5),
+            if (widget.isGuest)
+              _guestTopBar()
+            else
+              AppHeader(
+                showBack: true,
+                onBack: () => context.canPop()
+                    ? context.pop()
+                    : context.go('/onboarding/location'),
+                title: '',
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: widget.isGuest
+                  ? _stepPill('Step 2 of 2')
+                  : const StepsBar(current: 3, total: 5),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -99,10 +130,12 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _eyebrow('Step 3 of 5'),
+                    _eyebrow(widget.isGuest ? 'Step 2 of 2' : 'Step 3 of 5'),
                     const SizedBox(height: 6),
                     Text(
-                      'What pulls you in?',
+                      widget.isGuest
+                          ? 'What gets you packing?'
+                          : 'What pulls you in?',
                       style: GoogleFonts.fraunces(
                         fontSize: 30,
                         fontWeight: FontWeight.w500,
@@ -121,10 +154,10 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _grid(),
+                    widget.isGuest ? _guestGrid() : _authGrid(),
                     const SizedBox(height: 14),
                     Text(
-                      '${_selected.length} of ${_cats.length} selected · '
+                      '${_selected.length} of ${widget.isGuest ? _guestCatList.length : _cats.length} selected · '
                       'minimum $_minRequired',
                       style: GoogleFonts.inter(
                         fontSize: 12,
@@ -142,7 +175,49 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     );
   }
 
-  Widget _grid() {
+  Widget _guestTopBar() {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 4, 16, 0),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(PhosphorIcons.arrowLeft(), size: 20, color: AppColors.ink),
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go('/guest-setup/location'),
+              tooltip: 'Back',
+            ),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stepPill(String label) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.inkMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _authGrid() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -161,6 +236,25 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
     );
   }
 
+  Widget _guestGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        mainAxisExtent: 96,
+      ),
+      itemCount: _guestCatList.length,
+      itemBuilder: (_, i) {
+        final c = _guestCatList[i];
+        final selected = _selected.contains(c.slug);
+        return _GuestTile(cat: c, selected: selected, onTap: () => _toggle(c.slug));
+      },
+    );
+  }
+
   Widget _footerBar(bool canContinue) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -170,15 +264,17 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
       ),
       child: Row(
         children: [
-          AppButton(
-            label: 'Back',
-            variant: AppButtonVariant.outline,
-            size: AppButtonSize.medium,
-            onPressed: () => context.canPop()
-                ? context.pop()
-                : context.go('/onboarding/location'),
-          ),
-          const SizedBox(width: 10),
+          if (!widget.isGuest) ...[
+            AppButton(
+              label: 'Back',
+              variant: AppButtonVariant.outline,
+              size: AppButtonSize.medium,
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go('/onboarding/location'),
+            ),
+            const SizedBox(width: 10),
+          ],
           Expanded(
             child: AppButton(
               label: 'Continue',
@@ -213,6 +309,14 @@ class _Cat {
   final String name;
   final IconData Function() iconBuilder;
   const _Cat(this.slug, this.name, this.iconBuilder);
+}
+
+class _GuestCat {
+  final String slug;
+  final String name;
+  final String emoji;
+  final Color bgColor;
+  const _GuestCat(this.slug, this.name, this.emoji, this.bgColor);
 }
 
 IconData _mountains() => PhosphorIcons.mountains();
@@ -267,6 +371,73 @@ class _Tile extends StatelessWidget {
                   size: 22,
                   color: selected ? AppColors.coral : AppColors.inkSoft,
                 ),
+                Text(
+                  cat.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                    letterSpacing: -0.005,
+                  ),
+                ),
+              ],
+            ),
+            if (selected)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: AppColors.coral,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    PhosphorIcons.check(PhosphorIconsStyle.bold),
+                    size: 11,
+                    color: AppColors.surface,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GuestTile extends StatelessWidget {
+  final _GuestCat cat;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _GuestTile({required this.cat, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? cat.bgColor : AppColors.surface,
+          border: Border.all(
+            color: selected ? AppColors.coral : AppColors.hairlineStrong,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: AppColors.cardRaisedShadow,
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(cat.emoji, style: const TextStyle(fontSize: 24)),
                 Text(
                   cat.name,
                   style: GoogleFonts.inter(
