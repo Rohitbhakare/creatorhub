@@ -178,6 +178,26 @@ class _TripOverviewStepState extends ConsumerState<TripOverviewStep> {
           ),
           const SizedBox(height: Spacing.xl),
 
+          // ── Difficulty ─────────────────────────────────────
+          Text(
+            'Difficulty level',
+            style: typ.AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.inkSoft,
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+          _DifficultyPicker(
+            selected: wizard.difficulty,
+            onSelect: (val) {
+              HapticFeedback.selectionClick();
+              ref.read(wizardProvider.notifier).setDifficulty(
+                    wizard.difficulty == val ? null : val,
+                  );
+            },
+          ),
+          const SizedBox(height: Spacing.xl),
+
           // Day count stepper
           Text(
             'Number of days',
@@ -667,6 +687,110 @@ class _CityResultsList extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Difficulty Picker ─────────────────────────────────────────
+
+const _difficultyOptions = [
+  ('easy', '🥾', 'Easy', 'Flat paths, anyone'),
+  ('moderate', '🏃', 'Moderate', 'Some climbs & effort'),
+  ('tough', '🧗', 'Tough', 'Challenging terrain'),
+];
+
+class _DifficultyPicker extends StatelessWidget {
+  final String? selected;
+  final ValueChanged<String> onSelect;
+
+  const _DifficultyPicker({
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (int i = 0; i < _difficultyOptions.length; i++) ...[
+          Expanded(
+            child: _DifficultyCard(
+              emoji: _difficultyOptions[i].$2,
+              label: _difficultyOptions[i].$3,
+              sublabel: _difficultyOptions[i].$4,
+              isSelected: selected == _difficultyOptions[i].$1,
+              onTap: () => onSelect(_difficultyOptions[i].$1),
+            ),
+          ),
+          if (i < _difficultyOptions.length - 1)
+            const SizedBox(width: Spacing.sm),
+        ],
+      ],
+    );
+  }
+}
+
+class _DifficultyCard extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String sublabel;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DifficultyCard({
+    required this.emoji,
+    required this.label,
+    required this.sublabel,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          vertical: Spacing.md,
+          horizontal: Spacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryTint : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(Layout.cardRadius),
+          border: Border.all(
+            color: isSelected ? AppColors.coral : AppColors.hairline,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              label,
+              style: typ.AppTypography.caption.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isSelected ? AppColors.coral : AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              sublabel,
+              style: typ.AppTypography.caption.copyWith(
+                fontSize: 10,
+                color: AppColors.inkMuted,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

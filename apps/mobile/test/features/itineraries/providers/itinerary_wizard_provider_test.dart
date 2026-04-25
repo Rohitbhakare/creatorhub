@@ -101,4 +101,77 @@ void main() {
       expect(payload.containsKey('audience'), isFalse);
     });
   });
+
+  group('Itinerary difficulty field', () {
+    ProviderContainer makeContainer() => ProviderContainer();
+
+    test('difficulty is null by default', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      c.read(wizardProvider.notifier).initWizard(
+            ContentType.selfPacedItinerary,
+            'travel',
+          );
+
+      expect(c.read(wizardProvider).difficulty, isNull);
+    });
+
+    test('setDifficulty sets value and marks dirty', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      c.read(wizardProvider.notifier).initWizard(
+            ContentType.selfPacedItinerary,
+            'travel',
+          );
+
+      c.read(wizardProvider.notifier).setDifficulty('moderate');
+      final s = c.read(wizardProvider);
+
+      expect(s.difficulty, 'moderate');
+      expect(s.isDirty, isTrue);
+    });
+
+    test('setDifficulty(null) clears the field', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      c.read(wizardProvider.notifier).initWizard(
+            ContentType.selfPacedItinerary,
+            'travel',
+          );
+
+      c.read(wizardProvider.notifier).setDifficulty('tough');
+      c.read(wizardProvider.notifier).setDifficulty(null);
+
+      expect(c.read(wizardProvider).difficulty, isNull);
+    });
+  });
+
+  group('Itinerary step-1 category validation', () {
+    ProviderContainer makeContainer() => ProviderContainer();
+
+    test('canAdvance is false without subCategoryId', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      c.read(wizardProvider.notifier).initWizard(
+            ContentType.selfPacedItinerary,
+            'travel',
+          );
+      c.read(wizardProvider.notifier).setTitle('3 Days in Goa');
+
+      expect(c.read(wizardProvider).canAdvance, isFalse);
+    });
+
+    test('canAdvance is true with subCategoryId + valid title', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      c.read(wizardProvider.notifier).initWizard(
+            ContentType.selfPacedItinerary,
+            'travel',
+          );
+      c.read(wizardProvider.notifier).setSubCategory('adventure');
+      c.read(wizardProvider.notifier).setTitle('3 Days in Coorg');
+
+      expect(c.read(wizardProvider).canAdvance, isTrue);
+    });
+  });
 }

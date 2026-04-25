@@ -22,6 +22,7 @@ import '../widgets/steps/media_step.dart';
 import '../widgets/steps/pricing_step.dart';
 import '../widgets/steps/review_step.dart';
 import '../../posts/widgets/post_media_step.dart';
+import '../../itineraries/widgets/itinerary_basics_step.dart';
 import '../../itineraries/widgets/trip_overview_step.dart';
 import '../../itineraries/screens/day_builder_screen.dart';
 import '../../events/providers/event_wizard_provider.dart';
@@ -542,7 +543,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
 
   Widget _buildItineraryStep(int step) {
     return switch (step) {
-      1 => const BasicsStep(),
+      1 => const ItineraryBasicsStep(),
       2 => const TripOverviewStep(),
       3 => const DayBuilderStep(),
       4 => const MediaStep(

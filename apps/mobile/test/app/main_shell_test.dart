@@ -64,13 +64,15 @@ void main() {
       expect(discoverLabel.style?.color, AppColors.inkMuted);
     });
 
-    testWidgets('renders 5 tabs: Home · Discover · Create · Saved · You',
+    testWidgets('renders 5 tabs: Home · Discover · Studio · Saved · You',
         (tester) async {
       await tester.pumpWidget(_wrap(0, (_) {}));
 
-      for (final label in ['Home', 'Discover', 'Create', 'Saved', 'You']) {
+      for (final label in ['Home', 'Discover', 'Studio', 'Saved', 'You']) {
         expect(find.text(label), findsOneWidget, reason: 'expected $label tab');
       }
+      // Create is a FAB, not a tab
+      expect(find.text('Create'), findsNothing);
     });
 
     testWidgets('tap on a tab fires onTabTap with its index', (tester) async {
@@ -78,7 +80,7 @@ void main() {
       await tester.pumpWidget(_wrap(0, taps.add));
 
       await tester.tap(find.text('Discover'));
-      await tester.tap(find.text('Create'));
+      await tester.tap(find.text('Studio'));
       await tester.tap(find.text('Saved'));
       await tester.tap(find.text('You'));
       await tester.pumpAndSettle();

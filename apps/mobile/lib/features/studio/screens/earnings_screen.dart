@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/app_header.dart';
-import '../../../shared/components/button.dart';
 import '../../../shared/components/empty_state.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/theme/colors.dart';

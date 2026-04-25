@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-25 (Web testing setup complete: 16 Vitest unit tests + 90/90 Playwright E2E passing; V-model TEST-DEC-001 documented)
+> Last updated: 2026-04-25 (Itinerary wizard Step 1 redesigned as `ItineraryBasicsStep` with category grid; difficulty picker added to Step 2; WizardState deselect bug fixed; 329/329 tests passing; main_shell_test corrected for FAB-based Create)
 
 ---
 
@@ -456,6 +456,9 @@ Canonical token migration (`surface #FFFFFF`, `bg #F7F7F5`, `surfaceAlt #F2F1EE`
 | GAP/FEAT-004 | Trust | Enhancement | TRUST-FR-001 Report content bottom sheet built: `showReportSheet()` in `lib/shared/components/report_sheet.dart`. 7 report categories (spam/hate/misinformation/nudity/violence/IP/other). Optional description (300 chars). Submit calls `POST /api/v1/trust/reports`. Success state with check icon. Reusable across all content types (post/itinerary/experience/event). | `DONE` | — |
 | GAP/FEAT-005 | Booking | Enhancement | BK-FR-011 Dispute window UI added to `BookingDetailScreen`. Shows 48h countdown after `status == 'completed'`. Live remaining time label (Xh Ym left / Closed). "Raise a dispute" CTA opens `_DisputeSheet` bottom sheet with 5 reason options + optional description. Window-closed state shows neutral grey card. | `DONE` | — |
 | GAP/AUD-001 | All | Audit | Deep point-by-point audit of publish wizard vs Pack E design and content detail screens vs Pack C. Added §11 (Wizard gaps) and §12 (Detail screen gaps) to `docs/epics/status_v2.md`. Catalogued: missing sub-category picker, E4 Tags step, CRT-FR-004 adaptive fields, Event dress-code/age/what-to-bring, itinerary cover photo, "Start chapter 1" CTA, "things to carry" section, post drop cap, floating action bar. | `DONE` | — |
+| WIZ/FEAT-002 | Content/Itinerary | Enhancement | CRT-FR-002 Itinerary wizard Step 1 fully redesigned as `ItineraryBasicsStep`. Editorial category picker grid (8 types: Adventure/Road Trip/Food Trail/Cultural/Weekend/Budget/Luxury/Other) using animated cards with emoji, label, sublabel. After category selected, animated cross-fade reveals title + description + hashtag chip input (max 5). `WizardState.subCategoryId` deselect bug fixed (added `setSubCategoryId` flag to `copyWith`). Category required for step 1 validation. `WizardShellScreen` now routes step 1 of itinerary to `ItineraryBasicsStep` instead of generic `BasicsStep`. 15 new tests passing. | `DONE` | — |
+| WIZ/FEAT-003 | Content/Itinerary | Enhancement | Difficulty level picker added to `TripOverviewStep` (step 2). Three animated cards: Easy 🥾 / Moderate 🏃 / Tough 🧗 with label + sublabel. `WizardState.difficulty` field + `setDifficulty()` notifier method added. Deselect (toggle) supported. 3 new unit tests. | `DONE` | — |
+| TST/FIX-001 | Tests | Bug | `main_shell_test.dart` expected "Create" tab label in bottom nav, but Create is a FAB (not a tab). Tab labels are: Home · Discover · Studio · Saved · You. Updated 2 failing tests to match actual nav structure. `basics_step_test.dart` updated: removed stale itinerary test (itinerary now uses `ItineraryBasicsStep`), added event flow test. Total: 329/329 passing. | `FIXED` | P2 |
 
 > Detail files: `docs/epics/<epic-id>/bugs/`
 

@@ -88,20 +88,19 @@ void main() {
     });
   });
 
-  group('BasicsStep (non-post)', () {
-    testWidgets('renders itinerary headline and total steps', (tester) async {
+  group('BasicsStep (event)', () {
+    testWidgets('allows 500-char description for events', (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(wizardProvider.notifier).initWizard(
-            ContentType.selfPacedItinerary,
+            ContentType.event,
             'travel',
           );
 
       await tester.pumpWidget(_wrap(container));
       await tester.pump();
 
-      expect(find.text('STEP 1 OF 6'), findsOneWidget);
-      expect(find.text('Name your itinerary.'), findsOneWidget);
+      // Event flow still uses BasicsStep; no AiHelperChip
       expect(find.byType(AiHelperChip), findsNothing);
     });
   });

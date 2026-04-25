@@ -117,6 +117,9 @@ class WizardState {
   // Budget range for itineraries (budget | mid_range | luxury)
   final String? budgetRange;
 
+  // Difficulty level for itineraries (easy | moderate | tough)
+  final String? difficulty;
+
   // Inclusions/exclusions (CRT-FR-024) — for experiences and itineraries
   final List<String> inclusions;
   final List<String> exclusions;
@@ -148,6 +151,7 @@ class WizardState {
     this.tripStyle,
     this.audience,
     this.budgetRange,
+    this.difficulty,
     this.inclusions = const [],
     this.exclusions = const [],
   });
@@ -165,6 +169,7 @@ class WizardState {
     String? description,
     String? body,
     String? vertical,
+    bool setSubCategoryId = false,
     String? subCategoryId,
     List<String>? tags,
     bool setStartingCityId = false,
@@ -188,6 +193,8 @@ class WizardState {
     String? audience,
     bool setBudgetRange = false,
     String? budgetRange,
+    bool setDifficulty = false,
+    String? difficulty,
     List<String>? inclusions,
     List<String>? exclusions,
   }) {
@@ -204,7 +211,7 @@ class WizardState {
       description: description ?? this.description,
       body: body ?? this.body,
       vertical: vertical ?? this.vertical,
-      subCategoryId: subCategoryId ?? this.subCategoryId,
+      subCategoryId: setSubCategoryId ? subCategoryId : this.subCategoryId,
       tags: tags ?? this.tags,
       startingCityId:
           setStartingCityId ? startingCityId : this.startingCityId,
@@ -220,6 +227,7 @@ class WizardState {
       tripStyle: setTripStyle ? tripStyle : this.tripStyle,
       audience: setAudience ? audience : this.audience,
       budgetRange: setBudgetRange ? budgetRange : this.budgetRange,
+      difficulty: setDifficulty ? difficulty : this.difficulty,
       inclusions: inclusions ?? this.inclusions,
       exclusions: exclusions ?? this.exclusions,
     );
@@ -264,6 +272,8 @@ class WizardState {
   List<String> get _itineraryValidationErrors {
     return switch (currentStep) {
       1 => [
+          if (subCategoryId == null || subCategoryId!.isEmpty)
+            'Select a journey style to continue',
           if (title.trim().length < 5) 'Title must be at least 5 characters',
           if (title.trim().length > 100)
             'Title must be 100 characters or less',
@@ -392,6 +402,7 @@ class WizardNotifier extends Notifier<WizardState> {
 
   void setSubCategory(String? id) {
     state = state.copyWith(
+      setSubCategoryId: true,
       subCategoryId: id,
       isDirty: true,
       saveError: null,
@@ -452,6 +463,15 @@ class WizardNotifier extends Notifier<WizardState> {
     state = state.copyWith(
       setBudgetRange: true,
       budgetRange: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setDifficulty(String? value) {
+    state = state.copyWith(
+      setDifficulty: true,
+      difficulty: value,
       isDirty: true,
       saveError: null,
     );
