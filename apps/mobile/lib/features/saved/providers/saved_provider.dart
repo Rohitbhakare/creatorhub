@@ -15,6 +15,7 @@ class SavedList {
   final String name;
   final int itemCount;
   final String? coverUrl;
+  final List<String> previewUrls;
   final DateTime updatedAt;
 
   const SavedList({
@@ -22,16 +23,25 @@ class SavedList {
     required this.name,
     required this.itemCount,
     this.coverUrl,
+    this.previewUrls = const [],
     required this.updatedAt,
   });
 
-  factory SavedList.fromJson(Map<String, dynamic> json) => SavedList(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        itemCount: json['item_count'] as int? ?? 0,
-        coverUrl: json['cover_url'] as String?,
-        updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? '') ?? DateTime.now(),
-      );
+  factory SavedList.fromJson(Map<String, dynamic> json) {
+    final cover = json['cover_url'] as String?;
+    final rawPreviews = json['preview_urls'] as List<dynamic>?;
+    final previews = rawPreviews != null
+        ? rawPreviews.map((e) => e as String).toList()
+        : (cover != null ? [cover] : <String>[]);
+    return SavedList(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      itemCount: json['item_count'] as int? ?? 0,
+      coverUrl: cover,
+      previewUrls: previews,
+      updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? '') ?? DateTime.now(),
+    );
+  }
 }
 
 class SavedListItem {
@@ -188,7 +198,7 @@ class SavedListsNotifier extends Notifier<SavedListsState> {
       await dio.put('/api/v1/saved-lists/$listId', data: {'name': name});
       state = state.copyWith(
         lists: state.lists.map((l) => l.id == listId
-            ? SavedList(id: l.id, name: name, itemCount: l.itemCount, coverUrl: l.coverUrl, updatedAt: DateTime.now())
+            ? SavedList(id: l.id, name: name, itemCount: l.itemCount, coverUrl: l.coverUrl, previewUrls: l.previewUrls, updatedAt: DateTime.now())
             : l).toList(),
       );
       return true;
