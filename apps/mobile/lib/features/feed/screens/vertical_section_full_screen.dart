@@ -22,7 +22,8 @@ class VerticalSectionFullScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(verticalSectionProvider(vertical));
+    final params = VerticalSectionParams(vertical);
+    final async = ref.watch(verticalSectionProvider(params));
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -34,7 +35,7 @@ class VerticalSectionFullScreen extends ConsumerWidget {
               child: async.when(
                 loading: () => _LoadingGrid(),
                 error: (_, _) => _ErrorState(
-                  onRetry: () => ref.invalidate(verticalSectionProvider(vertical)),
+                  onRetry: () => ref.invalidate(verticalSectionProvider(params)),
                 ),
                 data: (items) {
                   if (items.isEmpty) return const _EmptyState();

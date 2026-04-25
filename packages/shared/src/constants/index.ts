@@ -140,3 +140,20 @@ export const BUDGET_TIER_THRESHOLDS_PAISA = {
 
 // Reading speed for deriving read_time_min from post body
 export const WORDS_PER_MINUTE = 200
+
+// ─── 3-level taxonomy ────────────────────────────────────────────
+
+export const GROUP_SIZES = ['solo', 'pair', 'small_group', 'large_group'] as const
+export type GroupSize = typeof GROUP_SIZES[number]
+
+export const DIFFICULTY_LEVELS = ['easy', 'moderate', 'hard', 'expert'] as const
+export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number]
+
+export const TRAVEL_SUB_CATEGORIES = [
+  'road_trips', 'trekking', 'adventure', 'heritage', 'food_trails',
+  'wildlife', 'photo_walks', 'wellness', 'family', 'luxury', 'offbeat', 'nightlife',
+] as const
+
+export const STORIES_SUB_CATEGORIES = [
+  'travel_stories', 'photo_essays', 'tips_guides',
+] as const

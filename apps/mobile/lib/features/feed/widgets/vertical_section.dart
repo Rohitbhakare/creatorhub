@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../shared/theme/colors.dart';
+import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
 import '../providers/vertical_section_provider.dart';
+import '../providers/sub_categories_provider.dart';
 import '../utils/feed_navigation.dart';
 import 'section_header.dart';
 import 'content_card.dart';
 
-/// Per-vertical content rail (DISC-FR-023).
+/// Per-vertical content rail with sub-category filter chips (DISC-FR-023).
 /// Hidden entirely when the section returns empty or errors.
-class VerticalSection extends ConsumerWidget {
+///
+/// [subCategoryId] — if non-null, filters to that sub-category.
+class VerticalSection extends ConsumerStatefulWidget {
   final String vertical;
   final String sectionTitle;
   final String eyebrow;
@@ -22,43 +28,81 @@ class VerticalSection extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(verticalSectionProvider(vertical));
+  ConsumerState<VerticalSection> createState() => _VerticalSectionState();
+}
+
+class _VerticalSectionState extends ConsumerState<VerticalSection> {
+  String? _activeSubCatId; // null = All
+
+  @override
+  Widget build(BuildContext context) {
+    final params = VerticalSectionParams(
+      widget.vertical,
+      subCategoryId: _activeSubCatId,
+    );
+    final async = ref.watch(verticalSectionProvider(params));
+    final subCatsAsync = ref.watch(subCategoriesProvider(widget.vertical));
 
     return async.when(
-      loading: () => _VerticalSkeleton(sectionTitle: sectionTitle, eyebrow: eyebrow),
+      loading: () => _VerticalSkeleton(
+        sectionTitle: widget.sectionTitle,
+        eyebrow: widget.eyebrow,
+      ),
       error: (_, _) => const SizedBox.shrink(),
       data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
+        if (items.isEmpty && _activeSubCatId == null) return const SizedBox.shrink();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (eyebrow.isNotEmpty || sectionTitle.isNotEmpty)
+            if (widget.eyebrow.isNotEmpty || widget.sectionTitle.isNotEmpty)
               SectionHeader(
-                eyebrow: eyebrow,
-                title: sectionTitle,
+                eyebrow: widget.eyebrow,
+                title: widget.sectionTitle,
                 onSeeAll: () => context.push(
-                  '/feed/vertical/$vertical',
-                  extra: {'title': sectionTitle},
+                  '/feed/vertical/${widget.vertical}',
+                  extra: {'title': widget.sectionTitle},
                 ),
               ),
-            SizedBox(
-              height: 334,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                itemCount: items.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => ContentCard(
-                  item: items[i],
-                  variant: ContentCardVariant.rail,
-                  railWidth: 170,
-                  onTap: () => openFeedItem(context, items[i]),
-                ),
-              ),
+
+            // Sub-category chip rail
+            subCatsAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (cats) {
+                if (cats.isEmpty) return const SizedBox.shrink();
+                return _SubCatChipRail(
+                  vertical: widget.vertical,
+                  cats: cats,
+                  activeId: _activeSubCatId,
+                  onSelect: (id) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _activeSubCatId = id);
+                  },
+                );
+              },
             ),
+
+            if (items.isEmpty)
+              const SizedBox(height: 32)
+            else
+              SizedBox(
+                height: 334,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) => ContentCard(
+                    item: items[i],
+                    variant: ContentCardVariant.rail,
+                    railWidth: 170,
+                    onTap: () => openFeedItem(context, items[i]),
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -66,11 +110,117 @@ class VerticalSection extends ConsumerWidget {
   }
 }
 
+// ── Sub-category horizontal chip rail ────────────────────────────────────────
+
+class _SubCatChipRail extends StatelessWidget {
+  final String vertical;
+  final List<SubCategory> cats;
+  final String? activeId;
+  final void Function(String? id) onSelect;
+
+  const _SubCatChipRail({
+    required this.vertical,
+    required this.cats,
+    required this.activeId,
+    required this.onSelect,
+  });
+
+  static const _maxVisible = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = cats.take(_maxVisible).toList();
+    final hasMore = cats.length > _maxVisible;
+
+    return SizedBox(
+      height: 46,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            // "All" chip
+            _SubCatChip(
+              label: 'All',
+              selected: activeId == null,
+              onTap: () => onSelect(null),
+            ),
+            const SizedBox(width: 8),
+            // Category chips
+            ...visible.map((cat) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _SubCatChip(
+                    label: cat.name,
+                    selected: activeId == cat.id,
+                    onTap: () => onSelect(cat.id),
+                  ),
+                )),
+            // More chip
+            if (hasMore)
+              _SubCatChip(
+                label: 'More ›',
+                selected: false,
+                onTap: () => context.push('/discover/category/$vertical'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SubCatChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SubCatChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? AppColors.ink : Colors.transparent,
+          border: Border.all(
+            color: selected ? AppColors.ink : AppColors.hairlineStrong,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: selected ? AppColors.surface : AppColors.ink,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            height: 1.0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Skeleton ─────────────────────────────────────────────────────────────────
+
 class _VerticalSkeleton extends StatelessWidget {
   final String sectionTitle;
   final String eyebrow;
 
-  const _VerticalSkeleton({required this.sectionTitle, required this.eyebrow});
+  const _VerticalSkeleton({
+    required this.sectionTitle,
+    required this.eyebrow,
+  });
 
   @override
   Widget build(BuildContext context) {

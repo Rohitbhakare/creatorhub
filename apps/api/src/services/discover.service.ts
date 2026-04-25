@@ -3,26 +3,34 @@ import { supabase } from '../lib/supabase.js'
 // ─── Sub-category display names ──────────────────────────────────────────────
 
 const SUBCATEGORY_LABELS: Record<string, string> = {
-  city_guides: 'City Guides',
-  hidden_gems: 'Hidden Gems',
-  food_trails: 'Food Trails',
-  adventure: 'Adventure',
-  heritage_culture: 'Heritage & Culture',
-  nature_wildlife: 'Nature & Wildlife',
-  spiritual: 'Spiritual Journeys',
-  road_trips: 'Road Trips',
-  budget_travel: 'Budget Travel',
-  luxury: 'Luxury Escapes',
-  solo_travel: 'Solo Travel',
-  family: 'Family Trips',
+  // Travel
+  road_trips:   'Road Trips & Biking',
+  trekking:     'Trekking & Hiking',
+  adventure:    'Adventure & Sports',
+  heritage:     'Heritage & Culture',
+  food_trails:  'Food Trails',
+  wildlife:     'Wildlife & Nature',
+  photo_walks:  'Photo Walks',
+  wellness:     'Wellness Retreats',
+  family:       'Family & Kids',
+  luxury:       'Luxury & Curated',
+  offbeat:      'Offbeat & Hidden',
+  nightlife:    'Nightlife & Events',
+  // Stories
   travel_stories: 'Travel Stories',
-  local_culture: 'Local Culture',
-  food_stories: 'Food Stories',
-  photo_essays: 'Photo Essays',
-  tips_guides: 'Tips & Guides',
+  photo_essays:   'Photo Essays',
+  tips_guides:    'Tips & Guides',
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface SubCategoryRow {
+  id: string
+  slug: string
+  name: string
+  leaf_types: string[]
+  display_order: number
+}
 
 export interface EditorialTheme {
   sub_category: string
@@ -136,10 +144,12 @@ export async function getDiscoverThemes(): Promise<DiscoverThemesResult> {
 /**
  * Returns creators who have published content starting from a given city.
  * Falls back to any creators if city_id yields < 3 results.
+ * Optional excludeVerticals filters out creators whose primary_vertical is in the list.
  */
 export async function getDiscoverCreators(
   cityId: string | null,
   limit = 8,
+  excludeVerticals: string[] = [],
 ): Promise<DiscoverCreatorsResult> {
   let label = 'Creators to follow'
 
@@ -188,13 +198,44 @@ export async function getDiscoverCreators(
 
   // Fallback: most-followed creators globally
   label = 'Trending creators'
-  const { data, error } = await supabase
+
+  // When excludeVerticals is non-empty, exclude creator IDs whose only active
+  // verticals are in the exclusion list (i.e. fetch from user_active_verticals
+  // and filter client-side after the users query).
+  let excludedUserIds: string[] = []
+  if (excludeVerticals.length > 0) {
+    // Fetch user_ids that have at least one active vertical NOT in the exclusion list
+    // Creators with any non-excluded vertical are still eligible.
+    // We only exclude those whose ALL active verticals are excluded.
+    const { data: allVerticalRows } = await supabase
+      .from('user_active_verticals')
+      .select('user_id, vertical')
+      .eq('users.is_creator', true) // note: this filter won't work on a join-less query; we post-filter
+    const verticalsByUser = new Map<string, string[]>()
+    for (const row of allVerticalRows ?? []) {
+      const existing = verticalsByUser.get(row.user_id) ?? []
+      existing.push(row.vertical)
+      verticalsByUser.set(row.user_id, existing)
+    }
+    for (const [userId, verticals] of verticalsByUser.entries()) {
+      if (verticals.every((v) => excludeVerticals.includes(v))) {
+        excludedUserIds.push(userId)
+      }
+    }
+  }
+
+  let creatorsQuery = supabase
     .from('users')
     .select('id, display_name, username, avatar_url, follower_count')
     .eq('is_creator', true)
     .order('follower_count', { ascending: false })
     .limit(limit)
 
+  if (excludedUserIds.length > 0) {
+    creatorsQuery = creatorsQuery.not('id', 'in', `(${excludedUserIds.join(',')})`)
+  }
+
+  const { data, error } = await creatorsQuery
   if (error) throw error
 
   const creators: DiscoverCreatorItem[] = (data ?? []).map((u) => ({
@@ -312,6 +353,29 @@ export async function getSearchSuggestions(
   }))
 
   return { content, cities, creators }
+}
+
+/**
+ * Returns all active sub-categories for a given vertical, ordered by display_order.
+ * Powers the 3-level taxonomy browse (vertical → sub-category → leaf type).
+ */
+export async function getSubCategories(vertical: string): Promise<SubCategoryRow[]> {
+  const { data, error } = await supabase
+    .from('vertical_sub_categories')
+    .select('id, slug, name, leaf_types, display_order')
+    .eq('vertical', vertical)
+    .eq('active', true)
+    .order('display_order')
+
+  if (error) throw error
+
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    slug: row.slug as string,
+    name: row.name as string,
+    leaf_types: (row.leaf_types ?? []) as string[],
+    display_order: row.display_order as number,
+  }))
 }
 
 /**

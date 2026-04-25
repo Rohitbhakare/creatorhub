@@ -154,8 +154,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     try {
       await ref.read(userCityProvider.notifier).updateCity(city.id, city.name);
       ref.invalidate(nearYouProvider);
-      ref.invalidate(verticalSectionProvider('travel'));
-      ref.invalidate(verticalSectionProvider('stories'));
+      ref.invalidate(verticalSectionProvider);
       if (mounted) Navigator.of(context).pop();
     } on DioException {
       setState(() => _isSaving = false);

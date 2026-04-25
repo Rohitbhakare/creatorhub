@@ -347,8 +347,9 @@ export async function getNearYouSection(
 export async function getVerticalSection(
   vertical: string,
   _userId?: string | null,
+  subCategoryId?: string,
 ): Promise<FeedContentItem[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('content')
     .select('id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body')
     .eq('status', 'published')
@@ -359,6 +360,11 @@ export async function getVerticalSection(
     .order('published_at', { ascending: false })
     .limit(10)
 
+  if (subCategoryId !== undefined) {
+    query = query.eq('sub_category_id', subCategoryId)
+  }
+
+  const { data, error } = await query
   if (error) throw new AppError('db-error', 500, 'Failed to load vertical section')
 
   return attachCreators(data ?? [])

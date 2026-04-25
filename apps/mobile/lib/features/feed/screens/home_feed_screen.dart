@@ -10,7 +10,9 @@ import '../../../shared/components/skeleton.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/near_you_provider.dart';
 import '../providers/vertical_section_provider.dart';
+import '../providers/sub_categories_provider.dart';
 import '../providers/discover_provider.dart';
+import '../providers/discover_new_provider.dart';
 import '../providers/editors_picks_provider.dart';
 import '../providers/for_you_provider.dart';
 import '../providers/following_provider.dart';
@@ -21,6 +23,7 @@ import '../models/feed_models.dart';
 import '../widgets/near_you_section.dart';
 import '../widgets/vertical_section.dart';
 import '../widgets/discover_section.dart';
+import '../widgets/discover_new_section.dart';
 import '../widgets/editors_picks_section.dart';
 import '../widgets/content_card.dart';
 import '../widgets/hero_card.dart';
@@ -77,9 +80,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     ref.invalidate(forYouProvider);
     ref.invalidate(followingProvider);
     ref.invalidate(nearYouProvider);
-    ref.invalidate(verticalSectionProvider('travel'));
-    ref.invalidate(verticalSectionProvider('stories'));
+    ref.invalidate(verticalSectionProvider);
+    ref.invalidate(subCategoriesProvider);
     ref.invalidate(discoverProvider);
+    ref.invalidate(discoverNewProvider);
     ref.invalidate(editorPicksProvider);
   }
 
@@ -188,6 +192,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             ),
           ),
           const SliverToBoxAdapter(child: DiscoverSection()),
+          const SliverToBoxAdapter(child: DiscoverNewSection()),
         ];
 
       case kFeedNavForYou:
@@ -227,6 +232,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
           // Serendipity
           const SliverToBoxAdapter(child: DiscoverSection()),
+
+          // Discover something new — outside usual verticals
+          const SliverToBoxAdapter(child: DiscoverNewSection()),
         ];
     }
   }
@@ -362,35 +370,40 @@ class _LocationChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cityName = ref.watch(userCityProvider).cityName ?? 'Set location';
+    final cityName = ref.watch(userCityProvider).cityName ?? 'Select city';
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(PhosphorIconsFill.mapPin, size: 14, color: AppColors.coral),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                cityName,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+            size: 14,
+            color: AppColors.coral,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              cityName,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.ink,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.expand_more, size: 16, color: AppColors.inkSoft),
-          ],
-        ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            PhosphorIcons.caretDown(PhosphorIconsStyle.regular),
+            size: 14,
+            color: AppColors.inkSoft,
+          ),
+        ],
       ),
     );
   }

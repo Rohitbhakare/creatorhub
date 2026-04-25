@@ -111,6 +111,8 @@ import {
   SEASONS,
   TRIP_STYLES,
   AUDIENCES,
+  GROUP_SIZES,
+  DIFFICULTY_LEVELS,
 } from '../constants/index.js'
 
 // Discoverability facets — stored on content.facets JSONB. Strict to keep
@@ -120,6 +122,8 @@ export const facetsSchema = z
     season: z.enum(SEASONS).nullable().optional(),
     trip_style: z.enum(TRIP_STYLES).nullable().optional(),
     audience: z.enum(AUDIENCES).nullable().optional(),
+    group_size: z.enum(GROUP_SIZES).nullable().optional(),
+    difficulty: z.enum(DIFFICULTY_LEVELS).nullable().optional(),
   })
   .strict()
 
@@ -136,6 +140,7 @@ export const updatePostSchema = z
     tags: z.array(z.string().max(50)).max(5).optional(),
     starting_city_id: z.string().optional(),
     sub_category_id: z.string().optional(),
+    leaf_type: z.string().optional(),
     visibility: z.enum(['public', 'unlisted', 'private']).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided')
@@ -148,6 +153,7 @@ export const updateItinerarySchema = z
     starting_city_id: z.string().optional(),
     destination_city_ids: z.array(z.string()).optional(),
     sub_category_id: z.string().optional(),
+    leaf_type: z.string().optional(),
     duration_minutes: z.number().int().min(0).optional(),
     day_count: z.number().int().min(1).max(30).optional(),
     pricing_model: z.enum(['free', 'paid']).optional(),
@@ -236,6 +242,7 @@ export const updateEventSchema = z
     capacity: z.number().int().min(MIN_EVENT_CAPACITY).max(MAX_EVENT_CAPACITY).optional(),
     tags: z.array(z.string().max(50)).max(5).optional(),
     sub_category_id: z.string().optional(),
+    leaf_type: z.string().optional(),
     visibility: z.enum(['public', 'unlisted', 'private']).optional(),
     what_to_bring: z.array(z.string().max(200)).max(30).optional(),
     vertical_data: z

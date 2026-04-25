@@ -42,14 +42,14 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
   ];
 
   static const _guestCats = <_GuestCat>[
-    _GuestCat('road_trips', 'Road Trips', '🚗', Color(0xFFFFF3E0)),
-    _GuestCat('street_food', 'Street Food', '🍜', Color(0xFFFCE4EC)),
-    _GuestCat('adventure', 'Adventure', '🏔️', Color(0xFFE8F5E9)),
-    _GuestCat('cultural', 'Cultural', '🎭', Color(0xFFEDE7F6)),
-    _GuestCat('wildlife', 'Wildlife', '🦁', Color(0xFFF3E5F5)),
-    _GuestCat('offbeat', 'Offbeat', '🗺️', Color(0xFFE0F7FA)),
-    _GuestCat('solo_budget', 'Solo & Budget', '🎒', Color(0xFFFFF8E1)),
-    _GuestCat('luxury', 'Luxury', '✨', Color(0xFFEFEBE9)),
+    _GuestCat('road_trips',  'Road Trips',   '🚗', Color(0xFFFFF3E0)),
+    _GuestCat('trekking',    'Trekking',     '🏔️', Color(0xFFE8F5E9)),
+    _GuestCat('adventure',   'Adventure',    '🧗', Color(0xFFE3F2FD)),
+    _GuestCat('food_trails', 'Food Trails',  '🍜', Color(0xFFFCE4EC)),
+    _GuestCat('wildlife',    'Wildlife',     '🦁', Color(0xFFF3E5F5)),
+    _GuestCat('heritage',    'Heritage',     '🏛️', Color(0xFFEDE7F6)),
+    _GuestCat('offbeat',     'Offbeat',      '🗺️', Color(0xFFE0F7FA)),
+    _GuestCat('luxury',      'Luxury',       '✨', Color(0xFFEFEBE9)),
   ];
 
   List<_Cat> get _cats => _authCats;

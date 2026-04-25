@@ -9,6 +9,7 @@ import {
   getDiscoverExperiences,
   getSearchSuggestions,
   logSearchQuery,
+  getSubCategories,
 } from '../services/discover.service.js'
 import { getCategoryBrowse } from '../services/feed.service.js'
 
@@ -42,6 +43,10 @@ const searchQuerySchema = z.object({
 const searchLogSchema = z.object({
   query: z.string().min(2).max(100),
   result_count: z.number().int().min(0),
+})
+
+const subCategoriesQuerySchema = z.object({
+  vertical: z.enum(['travel', 'stories']),
 })
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
@@ -83,6 +88,13 @@ async function handleSearch(c: Context): Promise<Response> {
   return c.json({ success: true, data: result })
 }
 
+// DISC-FR-003: Sub-category list for a vertical — powers taxonomy navigation.
+async function handleGetSubCategories(c: Context): Promise<Response> {
+  const { vertical } = c.get('validatedQuery') as z.infer<typeof subCategoriesQuerySchema>
+  const result = await getSubCategories(vertical)
+  return c.json({ success: true, data: result })
+}
+
 async function handleLogSearch(c: Context): Promise<Response> {
   const userId = c.get('userId') as string
   const { query, result_count } = c.get('validatedBody') as z.infer<typeof searchLogSchema>
@@ -100,6 +112,13 @@ discoverRoutes.get(
 )
 
 discoverRoutes.get('/themes', optionalAuthenticate, handleGetThemes)
+
+discoverRoutes.get(
+  '/sub-categories',
+  optionalAuthenticate,
+  validateQuery(subCategoriesQuerySchema),
+  handleGetSubCategories,
+)
 
 discoverRoutes.get(
   '/creators',

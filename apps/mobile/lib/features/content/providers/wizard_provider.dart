@@ -120,6 +120,13 @@ class WizardState {
   // Difficulty level for itineraries (easy | moderate | tough)
   final String? difficulty;
 
+  // Leaf type — optional deeper classification within a sub-category
+  // (e.g. 'day_trip', 'weekend_getaway'). Cleared when sub-category changes.
+  final String? leafType;
+
+  // Group size — itinerary + experience only (solo | small | medium | large)
+  final String? groupSize;
+
   // Inclusions/exclusions (CRT-FR-024) — for experiences and itineraries
   final List<String> inclusions;
   final List<String> exclusions;
@@ -152,6 +159,8 @@ class WizardState {
     this.audience,
     this.budgetRange,
     this.difficulty,
+    this.leafType,
+    this.groupSize,
     this.inclusions = const [],
     this.exclusions = const [],
   });
@@ -195,6 +204,10 @@ class WizardState {
     String? budgetRange,
     bool setDifficulty = false,
     String? difficulty,
+    bool setLeafType = false,
+    String? leafType,
+    bool setGroupSize = false,
+    String? groupSize,
     List<String>? inclusions,
     List<String>? exclusions,
   }) {
@@ -228,6 +241,8 @@ class WizardState {
       audience: setAudience ? audience : this.audience,
       budgetRange: setBudgetRange ? budgetRange : this.budgetRange,
       difficulty: setDifficulty ? difficulty : this.difficulty,
+      leafType: setLeafType ? leafType : this.leafType,
+      groupSize: setGroupSize ? groupSize : this.groupSize,
       inclusions: inclusions ?? this.inclusions,
       exclusions: exclusions ?? this.exclusions,
     );
@@ -401,9 +416,30 @@ class WizardNotifier extends Notifier<WizardState> {
   }
 
   void setSubCategory(String? id) {
+    // Changing sub-category invalidates any previously chosen leaf type.
     state = state.copyWith(
       setSubCategoryId: true,
       subCategoryId: id,
+      setLeafType: true,
+      leafType: null,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setLeafType(String? value) {
+    state = state.copyWith(
+      setLeafType: true,
+      leafType: value,
+      isDirty: true,
+      saveError: null,
+    );
+  }
+
+  void setGroupSize(String? value) {
+    state = state.copyWith(
+      setGroupSize: true,
+      groupSize: value,
       isDirty: true,
       saveError: null,
     );

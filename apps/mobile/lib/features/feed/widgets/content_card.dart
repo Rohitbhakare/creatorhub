@@ -21,8 +21,28 @@ import '../models/feed_models.dart';
 ///   top-left:  category tag ("Itinerary · 7d"-style for itineraries)
 ///   top-right: save/bookmark toggle (coral fill when saved — DD-013, SOC-FR-004)
 ///   bottom-right: price pill (paid content only; free items show no badge)
-/// Below the cover: 14/500 title (2-line ellipsis) → row 1 (avatar · author · likes).
+/// Below the cover: sub-category pill (if present) → 14/500 title (2-line ellipsis)
+///   → row 1 (avatar · author · likes).
 enum ContentCardVariant { grid, rail }
+
+/// Display names for known sub-category IDs (travel + stories verticals).
+const _kSubCatNames = <String, String>{
+  'travel.road_trips': 'Road Trips',
+  'travel.trekking': 'Trekking',
+  'travel.adventure': 'Adventure',
+  'travel.heritage': 'Heritage & Culture',
+  'travel.food_trails': 'Food Trails',
+  'travel.wildlife': 'Wildlife',
+  'travel.photo_walks': 'Photo Walks',
+  'travel.wellness': 'Wellness',
+  'travel.family': 'Family',
+  'travel.luxury': 'Luxury',
+  'travel.offbeat': 'Offbeat',
+  'travel.nightlife': 'Nightlife',
+  'stories.travel_stories': 'Travel Stories',
+  'stories.photo_essays': 'Photo Essays',
+  'stories.tips_guides': 'Tips & Guides',
+};
 
 class ContentCard extends ConsumerStatefulWidget {
   final FeedContentItem item;
@@ -119,6 +139,9 @@ class _ContentCardState extends ConsumerState<ContentCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Sub-category pill — grid variant only, when id is known
+                if (widget.variant == ContentCardVariant.grid)
+                  _SubCategoryBadge(subCategoryId: widget.item.subCategoryId),
                 _title(),
                 const SizedBox(height: 6),
                 _creatorRow(),
@@ -275,6 +298,38 @@ class _ContentCardState extends ConsumerState<ContentCard> {
           Text(formatCount(likes), style: likesStyle),
         ],
       ],
+    );
+  }
+}
+
+// ── Sub-category badge (below cover, grid variant only) ──────────────────────
+
+class _SubCategoryBadge extends StatelessWidget {
+  final String? subCategoryId;
+  const _SubCategoryBadge({this.subCategoryId});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = subCategoryId != null ? _kSubCatNames[subCategoryId] : null;
+    if (name == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          name,
+          style: AppTypography.caption.copyWith(
+            color: AppColors.inkMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            height: 1.2,
+          ),
+        ),
+      ),
     );
   }
 }

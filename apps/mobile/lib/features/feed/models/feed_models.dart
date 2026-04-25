@@ -82,6 +82,9 @@ class FeedContentItem {
   final FeedCreator? creator;
   final FeedTags tags;
 
+  /// e.g. 'travel.trekking', 'stories.photo_essays'. Null for uncategorised.
+  final String? subCategoryId;
+
   const FeedContentItem({
     required this.id,
     required this.type,
@@ -97,6 +100,7 @@ class FeedContentItem {
     this.publishedAt,
     this.creator,
     this.tags = const FeedTags(),
+    this.subCategoryId,
   });
 
   factory FeedContentItem.fromJson(Map<String, dynamic> json) => FeedContentItem(
@@ -118,6 +122,7 @@ class FeedContentItem {
             ? FeedCreator.fromJson(json['creator'] as Map<String, dynamic>)
             : null,
         tags: FeedTags.fromJson(json['tags'] as Map<String, dynamic>?),
+        subCategoryId: json['sub_category_id'] as String?,
       );
 }
 

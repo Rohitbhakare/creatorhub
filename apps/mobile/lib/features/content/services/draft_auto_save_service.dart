@@ -134,6 +134,13 @@ class DraftAutoSaveService {
       if (wizard.contentType == ContentType.selfPacedItinerary &&
           wizard.budgetRange != null)
         'budget_range': wizard.budgetRange,
+      // Leaf type — optional deeper sub-category classification
+      if (wizard.leafType != null) 'leaf_type': wizard.leafType,
+      // Group size — itinerary + experience only
+      if ((wizard.contentType == ContentType.selfPacedItinerary ||
+              wizard.contentType == ContentType.scheduledExperience) &&
+          wizard.groupSize != null)
+        'group_size': wizard.groupSize,
       // Inclusions/exclusions stored in vertical_data JSONB (CRT-FR-024)
       if (wizard.contentType == ContentType.selfPacedItinerary ||
           wizard.contentType == ContentType.scheduledExperience)
@@ -160,5 +167,7 @@ Map<String, dynamic> buildFacetsPayload(WizardState wizard) {
     if (wizard.season != null) 'season': wizard.season,
     if (wizard.tripStyle != null) 'trip_style': wizard.tripStyle,
     if (wizard.audience != null) 'audience': wizard.audience,
+    if (wizard.difficulty != null) 'difficulty': wizard.difficulty,
+    if (wizard.groupSize != null) 'group_size': wizard.groupSize,
   };
 }
