@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:creatorhub/features/itineraries/providers/itinerary_detail_provider.dart';
 import 'package:creatorhub/features/itineraries/providers/itinerary_wizard_provider.dart';
 import 'package:creatorhub/features/itineraries/screens/itinerary_detail_screen.dart';
+import 'package:creatorhub/features/reviews/providers/reviews_summary_provider.dart';
+import 'package:creatorhub/shared/components/sticky_booking_bar.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -54,6 +56,9 @@ Widget _wrap(String itineraryId, ItineraryDetail detail) {
     overrides: [
       itineraryDetailProvider(itineraryId).overrideWith(
         (ref) async => detail,
+      ),
+      reviewsSummaryProvider(itineraryId).overrideWith(
+        (ref) async => ReviewsSummary.empty(),
       ),
     ],
     child: MaterialApp.router(routerConfig: router),
@@ -112,12 +117,20 @@ void main() {
       expect(find.text('1 day'), findsOneWidget);
     });
 
-    testWidgets('shows FREE price badge for free itinerary', (tester) async {
+    testWidgets('hides sticky booking bar for free itinerary', (tester) async {
       final detail = _makeItinerary(pricingModel: 'free', pricePaisa: 0);
       await tester.pumpWidget(_wrap('itin-1', detail));
       await tester.pump();
 
-      expect(find.text('FREE'), findsOneWidget);
+      expect(find.byType(StickyBookingBar), findsNothing);
+    });
+
+    testWidgets('shows sticky booking bar for paid itinerary', (tester) async {
+      final detail = _makeItinerary(pricingModel: 'paid', pricePaisa: 99900);
+      await tester.pumpWidget(_wrap('itin-1', detail));
+      await tester.pump();
+
+      expect(find.byType(StickyBookingBar), findsOneWidget);
     });
 
     testWidgets('renders day tabs when days are provided', (tester) async {
@@ -129,8 +142,8 @@ void main() {
       await tester.pumpWidget(_wrap('itin-1', detail));
       await tester.pump();
 
-      expect(find.text('Day 1'), findsOneWidget);
-      expect(find.text('Day 2'), findsOneWidget);
+      expect(find.text('Day 1', skipOffstage: false), findsOneWidget);
+      expect(find.text('Day 2', skipOffstage: false), findsOneWidget);
     });
 
     testWidgets('shows empty-day message when selected day has no spots',
