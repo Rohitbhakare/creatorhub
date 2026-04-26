@@ -6,12 +6,14 @@ import '../../../shared/theme/typography.dart';
 class SectionHeader extends StatelessWidget {
   final String eyebrow;
   final String title;
+  final String? subtitle;
   final VoidCallback? onSeeAll;
 
   const SectionHeader({
     super.key,
     required this.eyebrow,
     required this.title,
+    this.subtitle,
     this.onSeeAll,
   });
 
@@ -41,6 +43,16 @@ class SectionHeader extends StatelessWidget {
                     title,
                     style: AppTypography.h3.copyWith(color: AppColors.ink),
                   ),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.inkMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

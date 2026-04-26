@@ -71,13 +71,20 @@ const EMPTY_TAGS = {
   location_label: null,
 }
 
+const EMPTY_EVENT_FIELDS = {
+  start_at: null,
+  going_count: null,
+  capacity: null,
+  is_creator_meetup: false,
+}
+
 const NEAR_YOU_RESULT = {
   items: [{
     id: 'c1', type: 'post', title: 'Spiti', vertical: 'travel',
     pricing_model: 'free', price_paisa: 0,
     like_count: 5, comment_count: 0, duration_minutes: null,
     starting_city_id: 'in.mh.pune', cover_image_url: null, published_at: null,
-    creator: null, tags: EMPTY_TAGS,
+    creator: null, tags: EMPTY_TAGS, ...EMPTY_EVENT_FIELDS,
   }],
   fallback_level: 0,
   label: 'Weekend trips from Pune',
@@ -90,7 +97,7 @@ const CONTENT_ITEMS = [
     pricing_model: 'free', price_paisa: 0,
     like_count: 10, comment_count: 0, duration_minutes: null,
     starting_city_id: null, cover_image_url: null, published_at: null,
-    creator: null, tags: EMPTY_TAGS,
+    creator: null, tags: EMPTY_TAGS, ...EMPTY_EVENT_FIELDS,
   },
 ]
 

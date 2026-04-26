@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 
-/// 2x2 grid of large intent tiles below the hero. Each tile pushes to a
-/// pre-locked SectionGridScreen / posts feed.
+/// 4-col flex grid of compact intent tiles. Adding more tiles auto-wraps to
+/// the next row. Each tile pushes to a pre-locked SectionGridScreen / posts feed.
 class QuickIntentStrip extends StatelessWidget {
   const QuickIntentStrip({super.key});
 
@@ -14,38 +14,34 @@ class QuickIntentStrip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       child: GridView.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        crossAxisCount: 4,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 1.55,
+        childAspectRatio: 0.78,
         children: [
           _IntentTile(
             emoji: '🏖️',
-            eyebrow: 'THIS WEEKEND',
-            title: 'Sat–Sun · ≤90 km',
+            title: 'This weekend',
             tint: const Color(0xFFFEF2EE),
             onTap: () => context.push('/feed/section/this-weekend'),
           ),
           _IntentTile(
             emoji: '🚗',
-            eyebrow: 'DAY TRIPS',
-            title: 'Return same day',
+            title: 'Day trips',
             tint: const Color(0xFFFFF6E8),
             onTap: () => context.push('/feed/section/day-trips'),
           ),
           _IntentTile(
             emoji: '🏔️',
-            eyebrow: 'WEEKEND GETAWAYS',
-            title: '2-day trips',
+            title: 'Getaways',
             tint: const Color(0xFFEEF6F0),
             onTap: () => context.push('/feed/section/weekend-getaways'),
           ),
           _IntentTile(
             emoji: '🎟️',
-            eyebrow: 'UPCOMING EVENTS',
-            title: 'Next 30 days',
+            title: 'Events',
             tint: const Color(0xFFF1EEFA),
             onTap: () => context.push('/feed/section/upcoming-events'),
           ),
@@ -57,14 +53,12 @@ class QuickIntentStrip extends StatelessWidget {
 
 class _IntentTile extends StatelessWidget {
   final String emoji;
-  final String eyebrow;
   final String title;
   final Color tint;
   final VoidCallback onTap;
 
   const _IntentTile({
     required this.emoji,
-    required this.eyebrow,
     required this.title,
     required this.tint,
     required this.onTap,
@@ -72,47 +66,39 @@ class _IntentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highlight = Color.alphaBlend(Colors.white.withValues(alpha: 0.55), tint);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         decoration: BoxDecoration(
-          color: tint,
-          borderRadius: BorderRadius.circular(16),
+          gradient: RadialGradient(
+            center: const Alignment(-0.4, -0.6),
+            radius: 1.2,
+            colors: [highlight, tint],
+          ),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.hairline, width: 0.5),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  eyebrow,
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.inkMuted,
-                    fontSize: 10,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            Text(emoji, style: const TextStyle(fontSize: 24, height: 1.0)),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+              ),
             ),
           ],
         ),

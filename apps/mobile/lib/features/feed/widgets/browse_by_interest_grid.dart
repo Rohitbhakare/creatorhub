@@ -45,7 +45,8 @@ const _kBrowseTiles = <BrowseByInterestTile>[
   ),
 ];
 
-/// 2-col tile grid that, on tap, applies a sub-cat chip filter on the home feed.
+/// 4-col flex grid of compact tiles. Adding more tiles auto-wraps to next row.
+/// Tap applies a sub-cat chip filter on the home feed.
 class BrowseByInterestGrid extends StatelessWidget {
   final ValueChanged<String> onSelectSubCat;
 
@@ -56,12 +57,12 @@ class BrowseByInterestGrid extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: GridView.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        crossAxisCount: 4,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 1.55,
+        childAspectRatio: 0.78,
         children: [
           for (final t in _kBrowseTiles)
             _Tile(
@@ -85,25 +86,36 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = tile.tint;
+    final highlight = Color.alphaBlend(Colors.white.withValues(alpha: 0.55), base);
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         decoration: BoxDecoration(
-          color: tile.tint,
-          borderRadius: BorderRadius.circular(16),
+          gradient: RadialGradient(
+            center: const Alignment(-0.4, -0.6),
+            radius: 1.2,
+            colors: [highlight, base],
+          ),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.hairline, width: 0.5),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(tile.emoji, style: const TextStyle(fontSize: 26)),
+            Text(tile.emoji, style: const TextStyle(fontSize: 24, height: 1.0)),
+            const SizedBox(height: 6),
             Text(
               tile.label,
-              style: AppTypography.h4.copyWith(
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(
                 color: AppColors.ink,
-                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
               ),
             ),
           ],

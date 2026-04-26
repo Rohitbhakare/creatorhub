@@ -24,7 +24,7 @@ class HorizontalRailSection extends StatelessWidget {
     required this.eyebrow,
     required this.title,
     this.onSeeAll,
-    this.railHeight = 310,
+    this.railHeight = 285,
     this.railWidth = 170,
   });
 

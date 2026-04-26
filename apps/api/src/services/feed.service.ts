@@ -36,6 +36,12 @@ export interface FeedContentItem {
   published_at: string | null
   creator: FeedCreator | null
   tags: FeedTags
+  // Event-only fields (null for non-event/experience types).
+  // Surfaced so the date-block EventCard can render without a second round-trip.
+  start_at: string | null
+  going_count: number | null
+  capacity: number | null
+  is_creator_meetup: boolean
 }
 
 export interface NearYouResult {
@@ -137,20 +143,46 @@ async function enrichItems(
     ),
   ]
 
+  // Event/experience IDs — we batch-fetch occurrence rows so the date-block
+  // EventCard can render start_at/capacity/going_count without a per-item
+  // round-trip.
+  const eventIds = items
+    .filter((i) => i.type === 'event')
+    .map((i) => i.id as string)
+  const expIds = items
+    .filter((i) => i.type === 'scheduled_experience')
+    .map((i) => i.id as string)
+
   // Parallel fetches — users are always needed, cities only when at least one
   // row has a starting_city_id. Kept as two Promise.all legs so a missing-city
   // case doesn't run an empty `.in('id', [])` which Supabase treats oddly.
-  const [creatorsRes, citiesRes] = await Promise.all([
+  const [creatorsRes, citiesRes, eventOccRes, expDateRes] = await Promise.all([
     userIds.length
       ? supabase.from('users').select('id, display_name, username, avatar_url').in('id', userIds)
       : Promise.resolve({ data: [], error: null }),
     cityIds.length
       ? supabase.from('cities').select('id, name').in('id', cityIds)
       : Promise.resolve({ data: [], error: null }),
+    eventIds.length
+      ? supabase
+          .from('event_occurrences')
+          .select('content_id, start_at, capacity, spots_booked, rsvp_count, is_free')
+          .in('content_id', eventIds)
+      : Promise.resolve({ data: [], error: null }),
+    expIds.length
+      ? supabase
+          .from('scheduled_dates')
+          .select('content_id, start_date, capacity, spots_booked, is_active')
+          .in('content_id', expIds)
+          .eq('is_active', true)
+          .order('start_date', { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
   ])
 
   if (creatorsRes.error) throw new AppError('db-error', 500, 'Failed to load creator data')
   if (citiesRes.error) throw new AppError('db-error', 500, 'Failed to load city data')
+  if (eventOccRes.error) throw new AppError('db-error', 500, 'Failed to load event occurrences')
+  if (expDateRes.error) throw new AppError('db-error', 500, 'Failed to load scheduled dates')
 
   const creatorById = Object.fromEntries(
     ((creatorsRes.data ?? []) as Array<Record<string, unknown>>).map((c) => [c.id as string, c]),
@@ -162,22 +194,90 @@ async function enrichItems(
     ]),
   )
 
-  return items.map((item) => ({
-    id: item.id as string,
-    type: item.type as string,
-    title: item.title as string,
-    vertical: item.vertical as string,
-    pricing_model: item.pricing_model as string,
-    price_paisa: item.price_paisa as number,
-    like_count: (item.like_count ?? 0) as number,
-    comment_count: (item.comment_count ?? 0) as number,
-    duration_minutes: (item.duration_minutes ?? null) as number | null,
-    starting_city_id: (item.starting_city_id ?? null) as string | null,
-    cover_image_url: (item.cover_image_url ?? null) as string | null,
-    published_at: (item.published_at ?? null) as string | null,
-    creator: (creatorById[item.user_id as string] ?? null) as FeedCreator | null,
-    tags: deriveTags(item, cityById),
-  }))
+  // Event occurrences — keyed by content_id (one occurrence per event row).
+  const eventOccById = new Map<
+    string,
+    { start_at: string; capacity: number | null; spots_booked: number; rsvp_count: number; is_free: boolean }
+  >()
+  for (const r of (eventOccRes.data ?? []) as Array<Record<string, unknown>>) {
+    eventOccById.set(r.content_id as string, {
+      start_at: r.start_at as string,
+      capacity: (r.capacity ?? null) as number | null,
+      spots_booked: (r.spots_booked ?? 0) as number,
+      rsvp_count: (r.rsvp_count ?? 0) as number,
+      is_free: Boolean(r.is_free),
+    })
+  }
+
+  // Scheduled dates — pick earliest active date per content_id (already ordered ASC).
+  const expDateByContentId = new Map<
+    string,
+    { start_at: string; capacity: number | null; spots_booked: number }
+  >()
+  for (const r of (expDateRes.data ?? []) as Array<Record<string, unknown>>) {
+    const cid = r.content_id as string
+    if (expDateByContentId.has(cid)) continue
+    expDateByContentId.set(cid, {
+      start_at: `${r.start_date as string}T00:00:00.000Z`,
+      capacity: (r.capacity ?? null) as number | null,
+      spots_booked: (r.spots_booked ?? 0) as number,
+    })
+  }
+
+  return items.map((item) => {
+    const type = item.type as string
+    const id = item.id as string
+    const pricePaisa = item.price_paisa as number
+
+    // Event-only field derivation
+    let startAt: string | null = null
+    let goingCount: number | null = null
+    let capacity: number | null = null
+    let isCreatorMeetup = false
+
+    if (type === 'event') {
+      const occ = eventOccById.get(id)
+      if (occ) {
+        startAt = occ.start_at
+        capacity = occ.capacity
+        // "Going" = paid bookings + free RSVPs. They occupy different columns
+        // depending on whether the event is_free, and rarely overlap.
+        goingCount = Math.max(occ.spots_booked, occ.rsvp_count)
+        // Free events are creator meetups; paid events read as formal events.
+        isCreatorMeetup = occ.is_free
+      }
+    } else if (type === 'scheduled_experience') {
+      const sd = expDateByContentId.get(id)
+      if (sd) {
+        startAt = sd.start_at
+        capacity = sd.capacity
+        goingCount = sd.spots_booked
+        // Free experiences also surface as meetup-style; paid as commercial.
+        isCreatorMeetup = pricePaisa === 0
+      }
+    }
+
+    return {
+      id,
+      type,
+      title: item.title as string,
+      vertical: item.vertical as string,
+      pricing_model: item.pricing_model as string,
+      price_paisa: pricePaisa,
+      like_count: (item.like_count ?? 0) as number,
+      comment_count: (item.comment_count ?? 0) as number,
+      duration_minutes: (item.duration_minutes ?? null) as number | null,
+      starting_city_id: (item.starting_city_id ?? null) as string | null,
+      cover_image_url: (item.cover_image_url ?? null) as string | null,
+      published_at: (item.published_at ?? null) as string | null,
+      creator: (creatorById[item.user_id as string] ?? null) as FeedCreator | null,
+      tags: deriveTags(item, cityById),
+      start_at: startAt,
+      going_count: goingCount,
+      capacity,
+      is_creator_meetup: isCreatorMeetup,
+    }
+  })
 }
 
 // Back-compat alias — every caller used to be attachCreators. Keep the name
@@ -883,6 +983,86 @@ export async function getThisWeekend(params: NearLocationParams): Promise<FeedCo
     return enrichItems((fb ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
   }
   return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getHappeningThisWeekend ────────────────────────────────────
+// Events + scheduled experiences with the next occurrence falling in the
+// upcoming Sat/Sun window. Mirrors getThisWeekend but narrowed to
+// time-bound types only — feeds the new date-block EventCard rail on home.
+export async function getHappeningThisWeekend(
+  params: NearLocationParams,
+): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  const { start, end } = nextWeekendBounds()
+
+  const [eventOcc, expOcc] = await Promise.all([
+    supabase
+      .from('event_occurrences')
+      .select('content_id, start_at')
+      .gte('start_at', start)
+      .lte('start_at', end)
+      .order('start_at', { ascending: true }),
+    supabase
+      .from('scheduled_dates')
+      .select('content_id, start_date, is_active')
+      .eq('is_active', true)
+      .gte('start_date', start.slice(0, 10))
+      .lte('start_date', end.slice(0, 10))
+      .order('start_date', { ascending: true }),
+  ])
+
+  if (eventOcc.error) throw new AppError('db-error', 500, 'Failed to load weekend events')
+  if (expOcc.error) throw new AppError('db-error', 500, 'Failed to load weekend experiences')
+
+  const eventOrder = new Map<string, number>()
+  ;(eventOcc.data ?? []).forEach((r, i) => eventOrder.set(r.content_id as string, i))
+  const expOrder = new Map<string, number>()
+  ;(expOcc.data ?? []).forEach((r, i) => expOrder.set(r.content_id as string, i))
+
+  const contentIds = [
+    ...new Set([...eventOrder.keys(), ...expOrder.keys()]),
+  ]
+  if (!contentIds.length) return []
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .in('type', ['event', 'scheduled_experience'])
+    .in('id', contentIds)
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+
+  let { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load happening-this-weekend feed')
+
+  // City-scoped soft fallback so the rail isn't empty in low-content cities.
+  if (!data?.length && loc) {
+    const fb = await supabase
+      .from('content')
+      .select(TRAVEL_FEED_SELECT)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .in('type', ['event', 'scheduled_experience'])
+      .in('id', contentIds)
+      .limit(10)
+    if (fb.error) throw new AppError('db-error', 500, 'Failed to load happening-this-weekend feed')
+    data = fb.data
+  }
+
+  // Sort chronologically by the matched occurrence start time.
+  const sorted = ((data ?? []) as Array<{ id: string; user_id: string; [k: string]: unknown }>).sort(
+    (a, b) => {
+      const aOrd = eventOrder.get(a.id) ?? expOrder.get(a.id) ?? 999
+      const bOrd = eventOrder.get(b.id) ?? expOrder.get(b.id) ?? 999
+      return aOrd - bOrd
+    },
+  )
+  return enrichItems(sorted)
 }
 
 // ─── getUpcomingEvents ──────────────────────────────────────────

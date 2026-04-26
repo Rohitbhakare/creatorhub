@@ -11,6 +11,7 @@ import {
   handleHotNearYou,
   handleTripsFromCity,
   handleThisWeekend,
+  handleHappeningThisWeekend,
   handleUpcomingEvents,
   handleDayTrips,
   handleWeekendGetaways,
@@ -33,6 +34,7 @@ feedRoutes.get('/editors-picks', optionalAuthenticate, handleEditorsPicks)
 feedRoutes.get('/hot-near-you', optionalAuthenticate, handleHotNearYou)
 feedRoutes.get('/trips-from-city', optionalAuthenticate, handleTripsFromCity)
 feedRoutes.get('/this-weekend', optionalAuthenticate, handleThisWeekend)
+feedRoutes.get('/happening-this-weekend', optionalAuthenticate, handleHappeningThisWeekend)
 feedRoutes.get('/upcoming-events', optionalAuthenticate, handleUpcomingEvents)
 feedRoutes.get('/day-trips', optionalAuthenticate, handleDayTrips)
 feedRoutes.get('/weekend-getaways', optionalAuthenticate, handleWeekendGetaways)

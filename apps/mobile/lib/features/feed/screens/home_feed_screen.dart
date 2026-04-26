@@ -18,6 +18,7 @@ import '../models/feed_models.dart';
 import '../widgets/browse_by_interest_grid.dart';
 import '../widgets/content_card.dart';
 import '../widgets/feed_chip_rail.dart';
+import '../widgets/happening_this_weekend_section.dart';
 import '../widgets/horizontal_rail_section.dart';
 import '../widgets/quick_intent_strip.dart';
 import '../widgets/stories_rail_section.dart';
@@ -78,6 +79,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     ref.invalidate(upcomingEventsProvider(params));
     ref.invalidate(dayTripsProvider(params));
     ref.invalidate(weekendGetawaysProvider(params));
+    ref.invalidate(happeningThisWeekendProvider(params));
     ref.invalidate(storiesRailProvider(cityId));
     ref.invalidate(subCategoriesProvider);
     ref.invalidate(followingProvider);
@@ -183,6 +185,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     return [
       const SliverToBoxAdapter(child: SizedBox(height: 12)),
       const SliverToBoxAdapter(child: QuickIntentStrip()),
+
+      const SliverToBoxAdapter(child: HappeningThisWeekendSection()),
 
       const SliverToBoxAdapter(child: StoriesRailSection()),
 

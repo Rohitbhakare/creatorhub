@@ -6,6 +6,9 @@ import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../discover/models/discover_filters.dart';
+import '../../discover/providers/discover_results_provider.dart';
+import '../../discover/screens/filter_sheet.dart';
 import '../models/feed_models.dart';
 import '../providers/section_rails_provider.dart';
 import '../providers/user_city_provider.dart';
@@ -24,7 +27,7 @@ enum SectionKind {
   subCat,
 }
 
-class SectionGridScreen extends ConsumerWidget {
+class SectionGridScreen extends ConsumerStatefulWidget {
   final SectionKind kind;
 
   /// For [SectionKind.subCat]: 'travel.road_trips', 'travel.biking', etc.
@@ -36,9 +39,19 @@ class SectionGridScreen extends ConsumerWidget {
     this.subCategorySlug,
   });
 
+  @override
+  ConsumerState<SectionGridScreen> createState() => _SectionGridScreenState();
+}
+
+class _SectionGridScreenState extends ConsumerState<SectionGridScreen> {
+  /// User-applied filters from the bottom sheet. When null, the screen uses
+  /// the section's default rail provider. When non-null, it switches to
+  /// discoverResultsProvider with locked + extra filters merged.
+  DiscoverFilters? _extraFilters;
+
   String _title(String? cityName) {
     final city = cityName ?? 'you';
-    switch (kind) {
+    switch (widget.kind) {
       case SectionKind.hotNearYou:
         return "What's hot near $city";
       case SectionKind.tripsFromCity:
@@ -52,7 +65,7 @@ class SectionGridScreen extends ConsumerWidget {
       case SectionKind.weekendGetaways:
         return 'Weekend getaways';
       case SectionKind.subCat:
-        final label = _subCatLabel(subCategorySlug);
+        final label = _subCatLabel(widget.subCategorySlug);
         return '$label near $city';
     }
   }
@@ -72,11 +85,69 @@ class SectionGridScreen extends ConsumerWidget {
     }
   }
 
-  AsyncValue<List<FeedContentItem>> _watch(
-    WidgetRef ref,
-    SectionRailParams params,
-  ) {
-    switch (kind) {
+  /// Filters that the section locks in by default — these compose with
+  /// whatever the user picks in the filter sheet.
+  DiscoverFilters _lockedFilters(String? cityId) {
+    switch (widget.kind) {
+      case SectionKind.hotNearYou:
+        return const DiscoverFilters(sort: 'trending', distanceKm: 100);
+      case SectionKind.tripsFromCity:
+        return DiscoverFilters(startingCityId: cityId, distanceKm: 100);
+      case SectionKind.thisWeekend:
+        return const DiscoverFilters(timeWindow: 'this_weekend', distanceKm: 100);
+      case SectionKind.upcomingEvents:
+        return const DiscoverFilters(contentType: 'event', timeWindow: 'this_month');
+      case SectionKind.dayTrips:
+        return const DiscoverFilters(
+          durationBuckets: {'day_trip'},
+          distanceKm: 100,
+        );
+      case SectionKind.weekendGetaways:
+        return const DiscoverFilters(durationBuckets: {'weekend'}, distanceKm: 250);
+      case SectionKind.subCat:
+        return DiscoverFilters(
+          subCategoryId: widget.subCategorySlug,
+          distanceKm: 100,
+        );
+    }
+  }
+
+  /// Merges locked filters with user picks. User picks override locked
+  /// values for the same field.
+  DiscoverFilters _mergedFilters(String? cityId) {
+    final locked = _lockedFilters(cityId);
+    final extras = _extraFilters;
+    if (extras == null) return locked;
+    return DiscoverFilters(
+      subCategoryId: extras.subCategoryId ?? locked.subCategoryId,
+      leafType: extras.leafType ?? locked.leafType,
+      contentType: extras.contentType ?? locked.contentType,
+      timeWindow: extras.timeWindow ?? locked.timeWindow,
+      dateFrom: extras.dateFrom ?? locked.dateFrom,
+      dateTo: extras.dateTo ?? locked.dateTo,
+      durationBuckets:
+          extras.durationBuckets.isNotEmpty ? extras.durationBuckets : locked.durationBuckets,
+      seasons: extras.seasons.isNotEmpty ? extras.seasons : locked.seasons,
+      months: extras.months.isNotEmpty ? extras.months : locked.months,
+      budgetBuckets:
+          extras.budgetBuckets.isNotEmpty ? extras.budgetBuckets : locked.budgetBuckets,
+      difficulties: extras.difficulties.isNotEmpty ? extras.difficulties : locked.difficulties,
+      groupSizes: extras.groupSizes.isNotEmpty ? extras.groupSizes : locked.groupSizes,
+      destinationCityId: extras.destinationCityId ?? locked.destinationCityId,
+      destinationLat: extras.destinationLat ?? locked.destinationLat,
+      destinationLng: extras.destinationLng ?? locked.destinationLng,
+      destinationLabel: extras.destinationLabel ?? locked.destinationLabel,
+      startingCityId: extras.startingCityId ?? locked.startingCityId,
+      distanceKm: extras.distanceKm ?? locked.distanceKm,
+      userLat: extras.userLat ?? locked.userLat,
+      userLng: extras.userLng ?? locked.userLng,
+      sort: extras.sort ?? locked.sort,
+      query: extras.query ?? locked.query,
+    );
+  }
+
+  AsyncValue<List<FeedContentItem>> _watchDefault(SectionRailParams params) {
+    switch (widget.kind) {
       case SectionKind.hotNearYou:
         return ref.watch(hotNearYouProvider(params));
       case SectionKind.tripsFromCity:
@@ -90,12 +161,12 @@ class SectionGridScreen extends ConsumerWidget {
       case SectionKind.weekendGetaways:
         return ref.watch(weekendGetawaysProvider(params));
       case SectionKind.subCat:
-        return ref.watch(hotNearYouProvider(params));
+        return ref.watch(_subCatVerticalProvider(widget.subCategorySlug ?? ''));
     }
   }
 
-  void _invalidate(WidgetRef ref, SectionRailParams params) {
-    switch (kind) {
+  void _invalidateDefault(SectionRailParams params) {
+    switch (widget.kind) {
       case SectionKind.hotNearYou:
         ref.invalidate(hotNearYouProvider(params));
       case SectionKind.tripsFromCity:
@@ -109,37 +180,26 @@ class SectionGridScreen extends ConsumerWidget {
       case SectionKind.weekendGetaways:
         ref.invalidate(weekendGetawaysProvider(params));
       case SectionKind.subCat:
-        ref.invalidate(hotNearYouProvider(params));
+        ref.invalidate(_subCatVerticalProvider(widget.subCategorySlug ?? ''));
     }
   }
 
-  void _openFilters(BuildContext context, String? cityId) {
-    final params = <String, String>{};
-    if (kind == SectionKind.subCat && subCategorySlug != null) {
-      params['subCat'] = subCategorySlug!;
-    }
-    if (kind == SectionKind.thisWeekend) params['time'] = 'this_weekend';
-    if (kind == SectionKind.dayTrips) params['duration'] = 'day_trip';
-    if (kind == SectionKind.weekendGetaways) params['duration'] = 'weekend';
-    if (kind == SectionKind.upcomingEvents) {
-      params['type'] = 'event';
-      params['time'] = 'this_month';
-    }
-    if (kind == SectionKind.tripsFromCity && cityId != null) {
-      params['from'] = cityId;
-    }
-    final query = params.entries.map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}').join('&');
-    context.push('/discover/results${query.isEmpty ? '' : '?$query'}');
+  Future<void> _openFilters(String? cityId) async {
+    final hydrated = _extraFilters ?? _lockedFilters(cityId);
+    final result = await DiscoverFilterSheet.show(context, hydrated);
+    if (result == null) return;
+    setState(() => _extraFilters = result);
+  }
+
+  void _clearFilters() {
+    setState(() => _extraFilters = null);
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final cityState = ref.watch(userCityProvider);
     final params = SectionRailParams(cityId: cityState.cityId);
-
-    final async = kind == SectionKind.subCat && subCategorySlug != null
-        ? ref.watch(_subCatVerticalProvider(subCategorySlug!))
-        : _watch(ref, params);
+    final hasExtras = _extraFilters != null && !_extraFilters!.isEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -159,49 +219,53 @@ class SectionGridScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.slidersHorizontal(PhosphorIconsStyle.regular)),
-            color: AppColors.ink,
-            tooltip: 'Filters',
-            onPressed: () => _openFilters(context, cityState.cityId),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: Icon(PhosphorIcons.slidersHorizontal(PhosphorIconsStyle.regular)),
+                color: AppColors.ink,
+                tooltip: 'Filters',
+                onPressed: () => _openFilters(cityState.cityId),
+              ),
+              if (hasExtras)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.coral,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.coral,
-          onRefresh: () async {
-            if (kind == SectionKind.subCat && subCategorySlug != null) {
-              ref.invalidate(_subCatVerticalProvider(subCategorySlug!));
-            } else {
-              _invalidate(ref, params);
-            }
-          },
-          child: async.when(
-            loading: () => const _Skeleton(),
-            error: (_, _) => const _ErrorState(),
-            data: (items) {
-              if (items.isEmpty) {
-                return _Empty(cityName: cityState.cityName);
-              }
-              return GridView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 18,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.65,
-                ),
-                itemCount: items.length,
-                itemBuilder: (context, i) => ContentCard(
-                  item: items[i],
-                  variant: ContentCardVariant.grid,
-                  onTap: () => openFeedItem(context, items[i]),
-                ),
-              );
-            },
-          ),
+        child: Column(
+          children: [
+            if (hasExtras) _ActiveFilterBar(
+              count: _extraFilters!.activeCount,
+              onClear: _clearFilters,
+            ),
+            Expanded(
+              child: hasExtras
+                  ? _FilteredBody(
+                      filters: _mergedFilters(cityState.cityId),
+                      cityName: cityState.cityName,
+                    )
+                  : _DefaultBody(
+                      async: _watchDefault(params),
+                      cityName: cityState.cityName,
+                      onRefresh: () async => _invalidateDefault(params),
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -221,6 +285,129 @@ final _subCatVerticalProvider = FutureProvider.autoDispose
       .map((i) => FeedContentItem.fromJson(i as Map<String, dynamic>))
       .toList();
 });
+
+class _ActiveFilterBar extends StatelessWidget {
+  final int count;
+  final VoidCallback onClear;
+  const _ActiveFilterBar({required this.count, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      color: AppColors.surface,
+      child: Row(
+        children: [
+          Icon(
+            PhosphorIcons.funnelSimple(PhosphorIconsStyle.fill),
+            size: 14,
+            color: AppColors.coral,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$count filter${count == 1 ? '' : 's'} applied',
+            style: AppTypography.caption.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: onClear,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: AppColors.coral,
+            ),
+            child: Text(
+              'Clear',
+              style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DefaultBody extends StatelessWidget {
+  final AsyncValue<List<FeedContentItem>> async;
+  final String? cityName;
+  final Future<void> Function() onRefresh;
+
+  const _DefaultBody({
+    required this.async,
+    required this.cityName,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: AppColors.coral,
+      onRefresh: onRefresh,
+      child: async.when(
+        loading: () => const _Skeleton(),
+        error: (_, _) => const _ErrorState(),
+        data: (items) {
+          if (items.isEmpty) return _Empty(cityName: cityName);
+          return _Grid(items: items);
+        },
+      ),
+    );
+  }
+}
+
+class _FilteredBody extends ConsumerWidget {
+  final DiscoverFilters filters;
+  final String? cityName;
+
+  const _FilteredBody({required this.filters, required this.cityName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(discoverResultsProvider(filters));
+    return RefreshIndicator(
+      color: AppColors.coral,
+      onRefresh: () =>
+          ref.read(discoverResultsProvider(filters).notifier).refresh(),
+      child: async.when(
+        loading: () => const _Skeleton(),
+        error: (_, _) => const _ErrorState(),
+        data: (state) {
+          if (state.items.isEmpty) return _Empty(cityName: cityName);
+          return _Grid(items: state.items);
+        },
+      ),
+    );
+  }
+}
+
+class _Grid extends StatelessWidget {
+  final List<FeedContentItem> items;
+  const _Grid({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 18,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, i) => ContentCard(
+        item: items[i],
+        variant: ContentCardVariant.grid,
+        onTap: () => openFeedItem(context, items[i]),
+      ),
+    );
+  }
+}
 
 class _Skeleton extends StatelessWidget {
   const _Skeleton();

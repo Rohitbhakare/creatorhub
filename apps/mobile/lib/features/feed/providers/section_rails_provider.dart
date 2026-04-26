@@ -63,6 +63,14 @@ final thisWeekendProvider = FutureProvider.autoDispose
   (ref, params) => _fetchRail(ref, '/api/v1/feed/this-weekend', params),
 );
 
+/// Events + scheduled experiences this weekend — same window as
+/// [thisWeekendProvider] but narrowed to time-bound types only. Feeds the
+/// date-block EventCard rail.
+final happeningThisWeekendProvider = FutureProvider.autoDispose
+    .family<List<FeedContentItem>, SectionRailParams>(
+  (ref, params) => _fetchRail(ref, '/api/v1/feed/happening-this-weekend', params),
+);
+
 /// Events in next 30 days, ordered by start_at.
 final upcomingEventsProvider = FutureProvider.autoDispose
     .family<List<FeedContentItem>, SectionRailParams>(

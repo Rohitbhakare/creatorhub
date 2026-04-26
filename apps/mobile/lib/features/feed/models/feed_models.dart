@@ -85,6 +85,21 @@ class FeedContentItem {
   /// e.g. 'travel.trekking', 'stories.photo_essays'. Null for uncategorised.
   final String? subCategoryId;
 
+  /// First upcoming occurrence (events) or scheduled date (experiences).
+  /// Null for non-time-bound types (post, itinerary).
+  final DateTime? startAt;
+
+  /// Confirmed bookings + RSVPs for the upcoming occurrence. Null for
+  /// non-event types.
+  final int? goingCount;
+
+  /// Capacity of the upcoming occurrence. Null = uncapped or non-event type.
+  final int? capacity;
+
+  /// True for free events / free experiences (rendered as "MEETUP" eyebrow);
+  /// false for paid events ("EVENT") and any non-event type.
+  final bool isCreatorMeetup;
+
   const FeedContentItem({
     required this.id,
     required this.type,
@@ -101,6 +116,10 @@ class FeedContentItem {
     this.creator,
     this.tags = const FeedTags(),
     this.subCategoryId,
+    this.startAt,
+    this.goingCount,
+    this.capacity,
+    this.isCreatorMeetup = false,
   });
 
   factory FeedContentItem.fromJson(Map<String, dynamic> json) => FeedContentItem(
@@ -123,6 +142,12 @@ class FeedContentItem {
             : null,
         tags: FeedTags.fromJson(json['tags'] as Map<String, dynamic>?),
         subCategoryId: json['sub_category_id'] as String?,
+        startAt: json['start_at'] != null
+            ? DateTime.tryParse(json['start_at'] as String)
+            : null,
+        goingCount: (json['going_count'] as num?)?.toInt(),
+        capacity: (json['capacity'] as num?)?.toInt(),
+        isCreatorMeetup: (json['is_creator_meetup'] ?? false) as bool,
       );
 }
 

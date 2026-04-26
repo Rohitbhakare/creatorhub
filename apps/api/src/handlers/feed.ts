@@ -12,6 +12,7 @@ import {
   getHotNearYou,
   getTripsFromCity,
   getThisWeekend,
+  getHappeningThisWeekend,
   getUpcomingEvents,
   getDayTrips,
   getWeekendGetaways,
@@ -64,6 +65,11 @@ export async function handleTripsFromCity(c: Context): Promise<Response> {
 
 export async function handleThisWeekend(c: Context): Promise<Response> {
   const items = await getThisWeekend(readNearLocation(c))
+  return c.json({ success: true, data: items })
+}
+
+export async function handleHappeningThisWeekend(c: Context): Promise<Response> {
+  const items = await getHappeningThisWeekend(readNearLocation(c))
   return c.json({ success: true, data: items })
 }
 

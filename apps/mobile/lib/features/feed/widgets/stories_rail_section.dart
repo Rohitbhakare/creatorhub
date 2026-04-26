@@ -5,7 +5,7 @@ import '../../../shared/components/skeleton.dart';
 import '../providers/posts_feed_provider.dart';
 import '../providers/user_city_provider.dart';
 import '../utils/feed_navigation.dart';
-import 'content_card.dart';
+import 'post_rail_card.dart';
 import 'section_header.dart';
 
 /// Posts-only rail near user. Reuses [ContentCard] rail variant — no new card design.
@@ -42,10 +42,8 @@ class StoriesRailSection extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => ContentCard(
+                itemBuilder: (context, i) => PostRailCard(
                   item: items[i],
-                  variant: ContentCardVariant.rail,
-                  railWidth: 170,
                   onTap: () => openFeedItem(context, items[i]),
                 ),
               ),
