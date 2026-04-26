@@ -84,7 +84,9 @@ class _MarkdownToolbarState extends State<MarkdownToolbar> {
     final sel = _selection();
     final t = _c.text;
     final start = sel.start;
-    final lineStart = t.lastIndexOf('\n', start - 1) + 1;
+    // String.lastIndexOf requires a non-negative start; cursor at 0 means
+    // the line starts at 0, so short-circuit before calling lastIndexOf.
+    final lineStart = start == 0 ? 0 : t.lastIndexOf('\n', start - 1) + 1;
     final lineSlice = t.substring(lineStart);
     if (lineSlice.startsWith(prefix)) return;
     final needsLeadingNewline = lineStart > 0 &&

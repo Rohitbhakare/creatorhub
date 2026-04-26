@@ -31,6 +31,17 @@ class FcmService {
         return;
       }
 
+      // iOS Simulator never receives an APNS token (Apple platform limitation).
+      // Skip FCM token fetch silently instead of letting it throw inside
+      // getToken() and produce a noisy error log on every cold start.
+      if (Platform.isIOS) {
+        final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint('[FCM] APNS token unavailable (simulator) — skipping');
+          return;
+        }
+      }
+
       // 2. Get token
       final token = await FirebaseMessaging.instance.getToken();
       if (token == null) {

@@ -286,6 +286,10 @@ class AuthService {
     }
 
     _refreshLock = Completer<void>();
+    // Ensure the completer's future has a listener even when no concurrent
+    // caller is awaiting it — otherwise completeError() leaks as an
+    // unhandled async exception.
+    _refreshLock!.future.ignore();
 
     try {
       final refreshToken = await _storage.getRefreshToken();
