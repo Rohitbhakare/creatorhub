@@ -710,3 +710,92 @@ compromised.
   `Admin Content`, `Admin KYC`, `Admin Bookings`, `Admin Payouts`,
   `Admin Editorial`, `Admin Analytics`, `Admin Audit`,
   `Admin Dashboard` in [openapi.yaml](openapi.yaml).
+
+## 12. Travel-Only Launch Posture (v1.3, 2026-04-26)
+
+### 12.1 Posture summary
+
+The launch surface is narrowed to **a single vertical: Travel**, with **4
+active sub-categories**: Road Trips, Biking, Trekking, Food Trails. Stories
+is removed as a launch vertical (reframed as post leaf types). Other 8
+travel sub-categories remain seeded and are exposed only on Discover.
+
+### 12.2 Home feed architecture (FEED-FR-040 → FEED-FR-045)
+
+The home feed is now **scope chips × filter chips × body**:
+
+```
+[Near you] [Following]   |   [All] [Posts] [🚗] [🏍️] [🥾] [🍜]
+```
+
+- **All** body = 9 editorial sections (QuickIntent, StoriesRail, HotNearYou,
+  TripsFromCity, ThisWeekend, 4 sub-cat rails, UpcomingEvents,
+  BrowseByInterest, NewVoices).
+- **Posts** body = inline Instagram-style vertical post feed (single column,
+  cursor-pagination, parent-driven scroll controller).
+- **sub-cat** body = 2-col filtered grid in place.
+- Compound: `Posts` + sub-cat = posts of that sub-cat only.
+
+Each rail's "See all" pushes to a focused `SectionGridScreen`
+(`/feed/section/*`) with the rail's filter pre-locked — NOT to Discover.
+Each section screen has a Filters icon that opens the Discover filter sheet
+pre-populated → on Apply pushes to `/discover/results`. Discover is the
+explicit refinement destination, not a default destination.
+
+### 12.3 Discover redesign (DISC-FR-040 → DISC-FR-043)
+
+`getCategoryBrowse()` is rewritten to accept a 13-filter set covering
+taxonomy (sub-cat, leaf, content type), time (window, custom range,
+duration, season, month), facets (budget, difficulty, group size), and
+place (destination city + Google Places fallback, starting city, distance).
+
+Destination search adds a Places fallback when fewer than 3 city matches,
+and a new `POST /api/v1/discover/destinations/resolve` endpoint upserts
+Place Details into `place_cache`. Migration 026 seeds ~50
+Maharashtra/Konkan destinations (Diveagar, Tarkarli, Velneshwar, etc.) so
+spatial joins work without forcing every query through Places lookup.
+
+### 12.4 Posts feed contract (FEED-FR-042)
+
+`GET /api/v1/feed/posts?scope=near|following&city_id=&sub_category_id=&cursor=&limit=10`
+
+- `scope=near`: `ST_DWithin(content.point, user_point, 100 km)`
+- `scope=following`: requires auth; INNER JOIN `creator_followers`
+- Optional `sub_category_id` AND filter
+- Cursor format: base64url of `{published_at, id}`
+- Order: `published_at DESC`
+
+Mobile uses Riverpod 3 `AsyncNotifierProvider.autoDispose.family` with the
+constructor-arg pattern (`PostsFeedNotifier(this.params)`) — `FamilyAsyncNotifier`
+is no longer the supported base class in Riverpod 3.
+
+### 12.5 Onboarding (ONB-FR-008 R)
+
+Single 4-tile sub-category picker (Road Trips, Biking, Trekking, Food
+Trails), min 2 selections. Auth path posts to `PUT /api/v1/users/me/travel-sub-categories`
+which writes to the new `users.travel_sub_categories TEXT[]` column
+(migration 025). Guest path writes to local `guestPrefsProvider`.
+
+### 12.6 Migrations
+
+| File | Change |
+|---|---|
+| `024_split_biking_subcategory.sql` | Insert `travel.biking` row; narrow `travel.road_trips.leaf_types`; backfill content rows by leaf_type |
+| `025_user_travel_subcategories.sql` | `users.travel_sub_categories TEXT[] DEFAULT '{}'` + GIN index |
+| `026_seed_travel_destinations.sql` | ~50 Maharashtra/Konkan/Western Ghats destinations as `cities` rows with PostGIS points |
+
+### 12.7 Endpoint additions
+
+7 new feed endpoints + 2 discover endpoints + 1 user endpoint — see
+`openapi.yaml` for full schemas. v1.2 `getForYouSection` and
+`getEditorsPicks` are removed (dead in travel-only world).
+
+### 12.8 Code-deletion record
+
+Mobile widgets/providers retired alongside the rewrite:
+`for_you_provider`, `editors_picks_provider`, `discover_new_provider`,
+`editors_picks_section`, `discover_new_section`, `discover_section`,
+`feed_content_card`, `segmented_tabs`, `hero_card`, `vertical_section`,
+`near_you_section`. The old `home_feed_screen_test.dart` was retired
+(structurally incompatible) and is a follow-up rewrite candidate.
+

@@ -150,7 +150,10 @@ Read `.claude/instructions/precommit.md` for the full step-by-step checklist.
 
 ## Current Sprint
 
-**Phase:** M0 Complete — Starting M1 (Private Alpha)
-**Done:** E0.1 Repo, E0.2 Schema, E0.3 Auth, E0.4 Design System, E0.5 Onboarding
-**Next:** E1.1 Content Framework → E1.2 Posts → E1.3 Itineraries
-**Tracking:** `docs/epics/TRACKING.md`
+**Phase:** Travel-Only Launch (v1.3) shipped — pre-public-MVP polish
+**Done:** All M0–M3 epics + Travel-Only Launch redesign (FEED/REDESIGN-001):
+new home feed (chip rail + 9 sections), Posts feed, 13-filter Discover,
+4-sub-cat onboarding, migrations 024–026.
+**Next:** Operator deploy of migrations 024–026 → manual smoke test → SRS v1.3
+gate → external creds (Razorpay, WhatsApp, SendGrid, Google Places) → App Store.
+**Tracking:** `docs/epics/TRACKING.md` · SRS delta: `docs/00_SRS/v1.3/srs-v1.3-delta.md`

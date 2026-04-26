@@ -831,6 +831,357 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse-DiscoverCreators"
 
+  # ── Feed v1.3 — travel-only home feed sections ──────────────
+  /api/v1/feed/hot-near-you:
+    get:
+      operationId: getHotNearYou
+      tags: [Feed]
+      summary: Trending content within 100 km of the user (7-day window)
+      description: |
+        Returns up to 10 mixed-type items (posts/itineraries/experiences/events)
+        ranked by `(views_7d + bookings_7d * 5)`. Used by the home rail and
+        `/feed/section/hot-near-you`. SRS: FEED-FR-041.
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - name: city_id
+          in: query
+          schema: {type: string}
+        - name: lat
+          in: query
+          schema: {type: number, format: float}
+        - name: lng
+          in: query
+          schema: {type: number, format: float}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 50, default: 10}
+      responses:
+        "200":
+          description: Hot near you
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/trips-from-city:
+    get:
+      operationId: getTripsFromCity
+      tags: [Feed]
+      summary: Itineraries and experiences starting from a given city
+      description: |
+        Filters `content.starting_city_id = city_id`. SRS: FEED-FR-041.
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - name: city_id
+          in: query
+          required: true
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 50, default: 10}
+      responses:
+        "200":
+          description: Trips from city
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/this-weekend:
+    get:
+      operationId: getThisWeekend
+      tags: [Feed]
+      summary: Events and experiences this weekend within 90 km
+      description: |
+        Returns rows with `event_occurrences.start_at` or `scheduled_dates.start_date`
+        between upcoming Saturday 00:00 and Sunday 23:59, scoped to ≤ 90 km of user.
+        SRS: FEED-FR-041.
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - name: city_id
+          in: query
+          schema: {type: string}
+        - name: lat
+          in: query
+          schema: {type: number, format: float}
+        - name: lng
+          in: query
+          schema: {type: number, format: float}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 10}
+      responses:
+        "200":
+          description: This weekend
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/upcoming-events:
+    get:
+      operationId: getUpcomingEvents
+      tags: [Feed]
+      summary: Events in the next 30 days, ordered by start_at
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - {name: city_id, in: query, schema: {type: string}}
+        - {name: lat, in: query, schema: {type: number, format: float}}
+        - {name: lng, in: query, schema: {type: number, format: float}}
+        - {name: limit, in: query, schema: {type: integer, default: 10}}
+      responses:
+        "200":
+          description: Upcoming events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/day-trips:
+    get:
+      operationId: getDayTrips
+      tags: [Feed]
+      summary: Itineraries with duration ≤ 8 hours (return same day)
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - {name: city_id, in: query, schema: {type: string}}
+        - {name: lat, in: query, schema: {type: number, format: float}}
+        - {name: lng, in: query, schema: {type: number, format: float}}
+        - {name: limit, in: query, schema: {type: integer, default: 10}}
+      responses:
+        "200":
+          description: Day trips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/weekend-getaways:
+    get:
+      operationId: getWeekendGetaways
+      tags: [Feed]
+      summary: 2-day itineraries (one overnight)
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - {name: city_id, in: query, schema: {type: string}}
+        - {name: lat, in: query, schema: {type: number, format: float}}
+        - {name: lng, in: query, schema: {type: number, format: float}}
+        - {name: limit, in: query, schema: {type: integer, default: 10}}
+      responses:
+        "200":
+          description: Weekend getaways
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse-FeedItems"
+
+  /api/v1/feed/posts:
+    get:
+      operationId: getPostsFeed
+      tags: [Feed]
+      summary: Cursor-paginated posts feed (Instagram-style)
+      description: |
+        Returns post-typed content only (`content.type='post'`), ordered by
+        `published_at DESC`. `scope=near` filters to ST_DWithin(point, user_point, 100 km).
+        `scope=following` requires auth and joins `creator_followers`.
+        Optional `sub_category_id` AND filter. SRS: FEED-FR-042, FEED-FR-044.
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema: {type: string, enum: [near, following]}
+        - name: city_id
+          in: query
+          schema: {type: string}
+        - name: sub_category_id
+          in: query
+          schema: {type: string}
+        - name: cursor
+          in: query
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 50, default: 10}
+      responses:
+        "200":
+          description: Posts feed page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FeedContentItem"
+                      next_cursor:
+                        type: string
+                        nullable: true
+
+  # ── Discover v1.3 — refined-search results ──────────────────
+  /api/v1/discover/results:
+    get:
+      operationId: getDiscoverResults
+      tags: [Discover]
+      summary: Paginated, multi-filter discovery results
+      description: |
+        Replaces the v1.2 `getCategoryBrowse` filter set with the 13-filter set
+        from DISC-FR-041. All params optional; cursor-paginated.
+      security: [{}, {bearerAuth: []}]
+      parameters:
+        - {name: subCategoryId, in: query, schema: {type: string}}
+        - {name: leafType, in: query, schema: {type: string}}
+        - {name: contentType, in: query, schema: {type: string, enum: [post, itinerary, scheduled_experience, event]}}
+        - {name: timeWindow, in: query, schema: {type: string, enum: [today, this_weekend, next_7d, this_month, custom]}}
+        - {name: dateFrom, in: query, schema: {type: string, format: date}}
+        - {name: dateTo, in: query, schema: {type: string, format: date}}
+        - name: durationBuckets
+          in: query
+          schema:
+            type: array
+            items: {type: string, enum: [day_trip, weekend, short, long]}
+          style: form
+          explode: true
+        - name: seasons
+          in: query
+          schema:
+            type: array
+            items: {type: string, enum: [monsoon, winter, summer, spring, autumn]}
+          style: form
+          explode: true
+        - name: months
+          in: query
+          schema:
+            type: array
+            items: {type: integer, minimum: 1, maximum: 12}
+          style: form
+          explode: true
+        - name: budgetBuckets
+          in: query
+          schema:
+            type: array
+            items: {type: string, enum: [free, lt2k, '2to5k', '5to15k', gt15k]}
+          style: form
+          explode: true
+        - name: difficulties
+          in: query
+          schema:
+            type: array
+            items: {type: string, enum: [easy, moderate, hard, expert]}
+          style: form
+          explode: true
+        - name: groupSizes
+          in: query
+          schema:
+            type: array
+            items: {type: string, enum: [solo, pair, small, large]}
+          style: form
+          explode: true
+        - {name: destinationCityId, in: query, schema: {type: string}}
+        - {name: destinationLat, in: query, schema: {type: number, format: float}}
+        - {name: destinationLng, in: query, schema: {type: number, format: float}}
+        - {name: startingCityId, in: query, schema: {type: string}}
+        - {name: distanceKm, in: query, schema: {type: integer, enum: [25, 50, 100, 250]}}
+        - {name: userLat, in: query, schema: {type: number, format: float}}
+        - {name: userLng, in: query, schema: {type: number, format: float}}
+        - {name: sort, in: query, schema: {type: string, enum: [recent, trending, price_asc, price_desc]}}
+        - {name: q, in: query, schema: {type: string}, description: free-text search}
+        - {name: cursor, in: query, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}
+      responses:
+        "200":
+          description: Discover results page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FeedContentItem"
+                      next_cursor: {type: string, nullable: true}
+                      total_count: {type: integer, nullable: true}
+
+  /api/v1/discover/destinations/resolve:
+    post:
+      operationId: resolveDestination
+      tags: [Discover]
+      summary: Resolve a Google Place ID into a destination with lat/lng
+      description: |
+        Calls Places Details API, upserts into `place_cache`, returns synthetic
+        destination identifiers. Client uses lat/lng to filter via
+        `destinationLat`/`destinationLng` 25 km radius. SRS: DISC-FR-042.
+      security: [bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [place_id]
+              properties:
+                place_id: {type: string}
+      responses:
+        "200":
+          description: Destination resolved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      destination_id: {type: string}
+                      name: {type: string}
+                      lat: {type: number, format: float}
+                      lng: {type: number, format: float}
+                      formatted_address: {type: string}
+
+  # ── Users v1.3 — travel sub-categories ──────────────────────
+  /api/v1/users/me/travel-sub-categories:
+    put:
+      operationId: setTravelSubCategories
+      tags: [Users]
+      summary: Persist the user's selected travel sub-categories
+      description: |
+        Writes to `users.travel_sub_categories TEXT[]` (migration 025). Used
+        by onboarding ONB-FR-008 (R) and Edit Profile. SRS: IAM-FR-040.
+      security: [bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [travel_sub_categories]
+              properties:
+                travel_sub_categories:
+                  type: array
+                  items: {type: string}
+                  minItems: 0
+                  description: Array of sub-category slugs (e.g. travel.road_trips)
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+
   # ── Content (shared) ────────────────────────────────────────
   /api/v1/content:
     post:
