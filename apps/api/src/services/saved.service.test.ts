@@ -215,19 +215,29 @@ describe('deleteList', () => {
 // ── getListItems ──────────────────────────────────────────────────────
 
 describe('getListItems', () => {
-  const mockItem = {
-    list_id: LIST_ID,
+  const mockItemRow = {
     content_id: CONTENT_ID,
     added_at: '2025-01-01T00:00:00Z',
-    content: [{ id: CONTENT_ID, title: 'Test', content_type: 'post', cover_image_url: null, price_paisa: 0, status: 'published', user_id: USER_ID, users: [] }],
+  }
+  const mockContentRow = {
+    id: CONTENT_ID,
+    title: 'Test',
+    content_type: 'post',
+    cover_image_url: null,
+    price_paisa: 0,
+    status: 'published',
+    user_id: USER_ID,
+    users: [],
   }
 
   it('returns list items for the owner', async () => {
     const fromMock = vi.mocked(supabase.from)
-    // 1. list ownership
+    // 1. list ownership (saved_lists)
     fromMock.mockReturnValueOnce(mockChain({ id: LIST_ID, user_id: USER_ID, name: 'My List' }) as never)
-    // 2. items
-    fromMock.mockReturnValueOnce(mockChain([mockItem]) as never)
+    // 2. saved_list_items rows
+    fromMock.mockReturnValueOnce(mockChain([mockItemRow]) as never)
+    // 3. content rows for those IDs
+    fromMock.mockReturnValueOnce(mockChain([mockContentRow]) as never)
 
     const result = await getListItems(USER_ID, LIST_ID, 'recently_added', null, null, 20)
     expect(result.list_name).toBe('My List')
@@ -254,11 +264,13 @@ describe('getListItems', () => {
     const fromMock = vi.mocked(supabase.from)
     fromMock.mockReturnValueOnce(mockChain({ id: LIST_ID, user_id: USER_ID, name: 'My List' }) as never)
     const items = [
-      { ...mockItem, added_at: '2025-01-03' },
-      { ...mockItem, added_at: '2025-01-02' },
-      { ...mockItem, added_at: '2025-01-01' },
+      { ...mockItemRow, added_at: '2025-01-03' },
+      { ...mockItemRow, added_at: '2025-01-02' },
+      { ...mockItemRow, added_at: '2025-01-01' },
     ]
     fromMock.mockReturnValueOnce(mockChain(items) as never)
+    // content rows for the page (only first 2 — service trims itemRows to limit before content fetch)
+    fromMock.mockReturnValueOnce(mockChain([mockContentRow]) as never)
 
     const result = await getListItems(USER_ID, LIST_ID, 'recently_added', null, null, 2)
     expect(result.items).toHaveLength(2)

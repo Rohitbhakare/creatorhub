@@ -153,14 +153,20 @@ describe('getNearYouSection', () => {
     expect(result.label).toBe('Popular across India')
   })
 
-  it('throws db-error when rpc fails', async () => {
+  it('falls back to popular-across-India when rpc fails AND fallback content query is empty', async () => {
     vi.mocked(supabase.from)
       .mockReturnValueOnce(mockChain({ data: { current_city_id: 'in.mh.pune' }, error: null }) as never)
       .mockReturnValueOnce(mockChain({ data: CITY, error: null }) as never)
+      // city-match fallback content query (rpc failed) — empty
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
+      // popular-across-India content query
+      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
 
     vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: null, error: { message: 'DB fail' } } as never)
 
-    await expect(getNearYouSection('user-1')).rejects.toMatchObject({ status: 500 })
+    const result = await getNearYouSection('user-1')
+    expect(result.fallback_level).toBe(3)
+    expect(result.label).toBe('Popular across India')
   })
 })
 
@@ -311,10 +317,17 @@ describe('getForYouSection', () => {
     const verticalOnly = { ...verticalRow, id: 'v1', like_count: 10 }
 
     vi.mocked(supabase.from)
+      // 1. follows query → user follows u1
+      .mockReturnValueOnce(mockChain({ data: [{ following_id: 'u1' }], error: null }) as never)
+      // 2. followed-content query (Promise.all leg 1)
       .mockReturnValueOnce(mockChain({ data: [followedOnly], error: null }) as never)
+      // 3. user_active_verticals query (Promise.all leg 2)
       .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
+      // 4. vertical-content query
       .mockReturnValueOnce(mockChain({ data: [verticalOnly], error: null }) as never)
+      // 5. enrichItems → users
       .mockReturnValueOnce(mockChain({ data: [CREATOR, { ...CREATOR, id: 'u2', display_name: 'Arjun' }], error: null }) as never)
+      // 6. enrichItems → cities (both rows have starting_city_id)
       .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getForYouSection('user-1')
@@ -328,10 +341,17 @@ describe('getForYouSection', () => {
     const verticalSame = { ...verticalRow, id: 'dup', like_count: 10 }
 
     vi.mocked(supabase.from)
+      // 1. follows
+      .mockReturnValueOnce(mockChain({ data: [{ following_id: 'u1' }], error: null }) as never)
+      // 2. followed-content
       .mockReturnValueOnce(mockChain({ data: [followedSame], error: null }) as never)
+      // 3. user_active_verticals
       .mockReturnValueOnce(mockChain({ data: [{ vertical: 'travel' }], error: null }) as never)
+      // 4. vertical-content (same id, lower weight → deduped out)
       .mockReturnValueOnce(mockChain({ data: [verticalSame], error: null }) as never)
+      // 5. enrichItems → users
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
+      // 6. enrichItems → cities
       .mockReturnValueOnce(mockChain({ data: CITY_LOOKUP, error: null }) as never)
 
     const items = await getForYouSection('user-1')
@@ -355,7 +375,6 @@ describe('getForYouSection', () => {
   it('throws db-error when follows query fails', async () => {
     vi.mocked(supabase.from)
       .mockReturnValueOnce(mockChain({ data: null, error: { message: 'fail' } }) as never)
-      .mockReturnValueOnce(mockChain({ data: [], error: null }) as never)
 
     await expect(getForYouSection('user-1')).rejects.toMatchObject({ status: 500 })
   })
@@ -383,7 +402,11 @@ describe('getFollowingSection', () => {
 
   it('attaches creator info to followed content', async () => {
     vi.mocked(supabase.from)
+      // 1. follows query
+      .mockReturnValueOnce(mockChain({ data: [{ following_id: 'u1' }], error: null }) as never)
+      // 2. content query
       .mockReturnValueOnce(mockChain({ data: [followedRow], error: null }) as never)
+      // 3. enrichItems → users (starting_city_id is null so cities is skipped)
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
 
     const items = await getFollowingSection('user-1')
@@ -413,7 +436,11 @@ describe('getHeroForTab', () => {
 
   it('returns first item from following tab', async () => {
     vi.mocked(supabase.from)
+      // 1. follows query
+      .mockReturnValueOnce(mockChain({ data: [{ following_id: 'u1' }], error: null }) as never)
+      // 2. content query
       .mockReturnValueOnce(mockChain({ data: [row], error: null }) as never)
+      // 3. enrichItems → users
       .mockReturnValueOnce(mockChain({ data: [CREATOR], error: null }) as never)
 
     const hero = await getHeroForTab('user-1', 'following')

@@ -38,28 +38,19 @@ Widget _wrap() {
 }
 
 void main() {
-  group('VerticalPickerScreen — A4 (E0.4c T5)', () {
-    testWidgets('renders step eyebrow, display h2 and 8 categories',
+  group('VerticalPickerScreen — Travel-only launch (v1.3)', () {
+    testWidgets('renders step eyebrow, display h2 and 4 travel sub-categories',
         (tester) async {
       await _setPhoneSize(tester);
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
       expect(find.text('STEP 3 OF 5'), findsOneWidget);
-      expect(find.text('What pulls you in?'), findsOneWidget);
-      expect(find.textContaining('Pick at least 3'), findsOneWidget);
+      expect(find.text("Pick the trips you'd like to see"), findsOneWidget);
+      expect(find.textContaining('Choose at least 2'), findsOneWidget);
 
-      // Must match API VERTICALS whitelist (packages/shared/src/constants).
-      for (final name in [
-        'Travel',
-        'Stories',
-        'Food',
-        'Fitness',
-        'Education',
-        'Photography',
-        'Music',
-        'Wellness',
-      ]) {
+      // 4 active travel sub-categories per SRS v1.3 ONB-FR-008 (R).
+      for (final name in ['Road Trips', 'Biking', 'Trekking', 'Food Trails']) {
         expect(find.text(name), findsOneWidget, reason: 'category $name');
       }
     });
@@ -69,15 +60,15 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('0 of 8 selected'), findsOneWidget);
+      expect(find.textContaining('0 of 4 selected'), findsOneWidget);
 
-      await tester.tap(find.text('Travel'));
+      await tester.tap(find.text('Road Trips'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('1 of 8 selected'), findsOneWidget);
+      expect(find.textContaining('1 of 4 selected'), findsOneWidget);
 
-      await tester.tap(find.text('Food'));
+      await tester.tap(find.text('Trekking'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('2 of 8 selected'), findsOneWidget);
+      expect(find.textContaining('2 of 4 selected'), findsOneWidget);
     });
   });
 }

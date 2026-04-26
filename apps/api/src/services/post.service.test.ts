@@ -124,15 +124,17 @@ describe('getPostDetail', () => {
     } as never)
 
     // supabase.from('users') for follower_count
-    vi.mocked(supabase.from).mockReturnValueOnce(
-      mockChain({ follower_count: 42 }) as never,
-    )
+    vi.mocked(supabase.from)
+      .mockReturnValueOnce(mockChain({ follower_count: 42 }) as never)
+      // supabase.from('content') for post_count (head:true count query)
+      .mockReturnValueOnce(mockChain(null, null, 7) as never)
 
     const result = await getPostDetail(CONTENT_ID, USER_ID)
 
     expect(result.is_liked).toBe(false)
     expect(result.is_saved).toBe(false)
     expect(result.creator.follower_count).toBe(42)
+    expect(result.creator.post_count).toBe(7)
   })
 })
 
