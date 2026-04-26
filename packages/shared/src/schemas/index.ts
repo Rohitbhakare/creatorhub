@@ -62,6 +62,15 @@ export const setVerticalsSchema = z.object({
     .max(8),
 })
 
+// Travel-only launch — onboarding picks sub-categories instead of verticals.
+// Active set: road_trips, biking, trekking, food_trails. Min 2 required.
+export const setTravelSubCategoriesSchema = z.object({
+  travel_sub_categories: z
+    .array(z.string().min(1).max(40))
+    .min(2, 'Pick at least 2 trip types')
+    .max(4),
+})
+
 // ─── Cities ──────────────────────────────────────────────────
 export const searchCitiesSchema = z.object({
   q: z.string().min(1),
@@ -316,6 +325,89 @@ export const listItemsQuerySchema = z.object({
   limit: limitSchema,
 })
 
+// ─── Posts feed (home Posts chip + Stories rail) ────────────
+export const postsFeedQuerySchema = z.object({
+  scope: z.enum(['near', 'following']).default('near'),
+  city_id: z.string().optional(),
+  sub_category_id: z.string().optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  cursor: cursorSchema,
+  limit: limitSchema,
+})
+
+// ─── Discover filters ──────────────────────────────────────
+// 13-field filter set used by the rewritten /discover/category-browse
+// and /discover/results screens. Coerce booleans/numbers so query strings
+// from GoRouter deep-links round-trip cleanly.
+export const DURATION_BUCKETS = ['day_trip', 'weekend', 'short', 'long'] as const
+export const BUDGET_BUCKETS = ['free', 'lt2k', '2to5k', '5to15k', 'gt15k'] as const
+export const TIME_WINDOWS = ['today', 'this_weekend', 'next_7d', 'this_month', 'custom'] as const
+export const DISCOVER_SORTS = ['recent', 'trending', 'price_asc', 'price_desc'] as const
+
+const csv = z.preprocess((v) => {
+  if (typeof v === 'string') return v.split(',').filter(Boolean)
+  return v
+}, z.array(z.string()).optional())
+
+export const discoverFiltersQuerySchema = z.object({
+  // taxonomy
+  vertical: z.enum(VERTICALS_CONST).optional(),
+  sub_category_id: z.string().optional(),
+  leaf_type: z.string().optional(),
+  type: z.enum(CONTENT_TYPES).optional(),
+  // time
+  time_window: z.enum(TIME_WINDOWS).optional(),
+  date_from: z.string().datetime({ offset: true }).optional(),
+  date_to: z.string().datetime({ offset: true }).optional(),
+  // duration / budget / facets (CSV)
+  duration_buckets: csv.transform((v) =>
+    v?.filter((s): s is (typeof DURATION_BUCKETS)[number] =>
+      (DURATION_BUCKETS as readonly string[]).includes(s),
+    ),
+  ),
+  budget_buckets: csv.transform((v) =>
+    v?.filter((s): s is (typeof BUDGET_BUCKETS)[number] =>
+      (BUDGET_BUCKETS as readonly string[]).includes(s),
+    ),
+  ),
+  seasons: csv.transform((v) =>
+    v?.filter((s): s is (typeof SEASONS)[number] => (SEASONS as readonly string[]).includes(s)),
+  ),
+  months: z.preprocess(
+    (v) => (typeof v === 'string' ? v.split(',').map((s) => parseInt(s, 10)) : v),
+    z.array(z.number().int().min(1).max(12)).optional(),
+  ),
+  difficulties: csv.transform((v) =>
+    v?.filter((s): s is (typeof DIFFICULTY_LEVELS)[number] =>
+      (DIFFICULTY_LEVELS as readonly string[]).includes(s),
+    ),
+  ),
+  group_sizes: csv.transform((v) =>
+    v?.filter((s): s is (typeof GROUP_SIZES)[number] =>
+      (GROUP_SIZES as readonly string[]).includes(s),
+    ),
+  ),
+  // place
+  destination_city_id: z.string().optional(),
+  destination_lat: z.coerce.number().min(-90).max(90).optional(),
+  destination_lng: z.coerce.number().min(-180).max(180).optional(),
+  starting_city_id: z.string().optional(),
+  distance_km: z.coerce.number().int().refine((n) => [25, 50, 100, 250].includes(n)).optional(),
+  user_lat: z.coerce.number().min(-90).max(90).optional(),
+  user_lng: z.coerce.number().min(-180).max(180).optional(),
+  // free-text & sort & pagination
+  q: z.string().min(1).max(200).optional(),
+  sort: z.enum(DISCOVER_SORTS).optional(),
+  cursor: cursorSchema,
+  limit: limitSchema,
+})
+
+// ─── Discover: destination resolve (Google Places fallback) ─
+export const resolveDestinationSchema = z.object({
+  place_id: z.string().min(1),
+})
+
 // Export types inferred from schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
@@ -338,6 +430,11 @@ export type CreateItineraryDraftInput = z.infer<typeof createItineraryDraftSchem
 export type ReorderSpotsInput = z.infer<typeof reorderSpotsSchema>
 export type UpdateEventInput = z.infer<typeof updateEventSchema>
 export type EventListQueryInput = z.infer<typeof eventListQuerySchema>
+
+export type SetTravelSubCategoriesInput = z.infer<typeof setTravelSubCategoriesSchema>
+export type PostsFeedQueryInput = z.infer<typeof postsFeedQuerySchema>
+export type DiscoverFiltersQueryInput = z.infer<typeof discoverFiltersQuerySchema>
+export type ResolveDestinationInput = z.infer<typeof resolveDestinationSchema>
 
 export type AddCommentInput = z.infer<typeof addCommentSchema>
 export type EditCommentInput = z.infer<typeof editCommentSchema>

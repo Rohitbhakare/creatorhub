@@ -1,7 +1,11 @@
 import { Hono } from 'hono'
 import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js'
 import { validateBody } from '../middleware/validate.js'
-import { updateUserSchema, changeUsernameSchema } from '@creatorhub/shared'
+import {
+  updateUserSchema,
+  changeUsernameSchema,
+  setTravelSubCategoriesSchema,
+} from '@creatorhub/shared'
 import {
   handleGetMe,
   handleUpdateProfile,
@@ -9,6 +13,7 @@ import {
   handleGetCompletion,
   handleGetPublicProfile,
   handleSetDnd,
+  handleSetTravelSubCategories,
 } from '../handlers/users.js'
 import { handleUpdateUserCity } from '../handlers/feed.js'
 
@@ -22,6 +27,14 @@ usersRoutes.get('/me/completion', authenticate, handleGetCompletion)
 
 // ── City update (DISC-FR-026) ──────────────────────────────────
 usersRoutes.put('/me/city', authenticate, handleUpdateUserCity)
+
+// ── Travel sub-categories (FEED-redesign 2026-04) ──────────────
+usersRoutes.put(
+  '/me/travel-sub-categories',
+  authenticate,
+  validateBody(setTravelSubCategoriesSchema),
+  handleSetTravelSubCategories,
+)
 
 // ── DND toggle ──────────────────────────────────────────────────
 usersRoutes.put('/me/dnd', authenticate, handleSetDnd)

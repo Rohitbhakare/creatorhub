@@ -10,8 +10,11 @@ import {
   getSearchSuggestions,
   logSearchQuery,
   getSubCategories,
+  searchDiscover,
+  resolveDestination,
 } from '../services/discover.service.js'
 import { getCategoryBrowse } from '../services/feed.service.js'
+import { discoverFiltersQuerySchema, resolveDestinationSchema } from '@creatorhub/shared'
 
 const discoverRoutes = new Hono()
 
@@ -147,6 +150,34 @@ discoverRoutes.post(
   authenticate,
   validateBody(searchLogSchema),
   handleLogSearch,
+)
+
+// ── Travel-redesign: 13-filter results + Places destination resolve ──
+
+async function handleDiscoverResults(c: Context): Promise<Response> {
+  const filters = c.get('validatedQuery') as z.infer<typeof discoverFiltersQuerySchema>
+  const result = await searchDiscover(filters)
+  return c.json({ success: true, data: result })
+}
+
+async function handleResolveDestination(c: Context): Promise<Response> {
+  const { place_id } = c.get('validatedBody') as z.infer<typeof resolveDestinationSchema>
+  const result = await resolveDestination(place_id)
+  return c.json({ success: true, data: result })
+}
+
+discoverRoutes.get(
+  '/results',
+  optionalAuthenticate,
+  validateQuery(discoverFiltersQuerySchema),
+  handleDiscoverResults,
+)
+
+discoverRoutes.post(
+  '/destinations/resolve',
+  optionalAuthenticate,
+  validateBody(resolveDestinationSchema),
+  handleResolveDestination,
 )
 
 export default discoverRoutes

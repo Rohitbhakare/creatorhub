@@ -85,6 +85,29 @@ export async function updateProfile(
   return updated
 }
 
+// ─── Set travel sub-categories (FEED-redesign 2026-04) ─────────
+// Stores user's chosen Phase-1 travel sub-cats (road_trips, biking,
+// trekking, food_trails). Backed by users.travel_sub_categories TEXT[]
+// from migration 025. Used by personalized feed ranking + analytics.
+
+export async function setTravelSubCategories(
+  userId: string,
+  subCategories: string[],
+): Promise<{ travel_sub_categories: string[] }> {
+  const { data, error } = await supabase
+    .from('users')
+    .update({ travel_sub_categories: subCategories })
+    .eq('id', userId)
+    .select('travel_sub_categories')
+    .single()
+
+  if (error || !data) {
+    throw new AppError('db-error', 500, 'Failed to update travel sub-categories')
+  }
+
+  return { travel_sub_categories: (data.travel_sub_categories ?? []) as string[] }
+}
+
 // ─── Update Username ───────────────────────────────────────────
 
 export async function updateUsername(userId: string, username: string) {

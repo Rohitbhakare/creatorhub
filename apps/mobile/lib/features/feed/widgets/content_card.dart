@@ -28,6 +28,7 @@ enum ContentCardVariant { grid, rail }
 /// Display names for known sub-category IDs (travel + stories verticals).
 const _kSubCatNames = <String, String>{
   'travel.road_trips': 'Road Trips',
+  'travel.biking': 'Biking',
   'travel.trekking': 'Trekking',
   'travel.adventure': 'Adventure',
   'travel.heritage': 'Heritage & Culture',
@@ -133,23 +134,25 @@ class _ContentCardState extends ConsumerState<ContentCard> {
         mainAxisSize: MainAxisSize.max,
         children: [
           _cover(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Sub-category pill — grid variant only, when id is known
-                if (widget.variant == ContentCardVariant.grid)
-                  _SubCategoryBadge(subCategoryId: widget.item.subCategoryId),
-                _title(),
-                const SizedBox(height: 6),
-                _creatorRow(),
-                if (metaItems.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  _MetaRow(items: metaItems),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Sub-category pill — grid variant only, when id is known
+                  if (widget.variant == ContentCardVariant.grid)
+                    _SubCategoryBadge(subCategoryId: widget.item.subCategoryId),
+                  _title(),
+                  const SizedBox(height: 6),
+                  _creatorRow(),
+                  if (metaItems.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    _MetaRow(items: metaItems),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],

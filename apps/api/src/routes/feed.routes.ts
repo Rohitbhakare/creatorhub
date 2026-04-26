@@ -7,8 +7,14 @@ import {
   handleForYouSection,
   handleFollowingSection,
   handleHeroSection,
-  handleUpdateUserCity,
   handleEditorsPicks,
+  handleHotNearYou,
+  handleTripsFromCity,
+  handleThisWeekend,
+  handleUpcomingEvents,
+  handleDayTrips,
+  handleWeekendGetaways,
+  handlePostsFeed,
 } from '../handlers/feed.js'
 
 const feedRoutes = new Hono()
@@ -22,5 +28,14 @@ feedRoutes.get('/hero', optionalAuthenticate, handleHeroSection)
 feedRoutes.get('/vertical/:vertical', optionalAuthenticate, handleVerticalSection)
 feedRoutes.get('/discover', optionalAuthenticate, handleDiscoverSection)
 feedRoutes.get('/editors-picks', optionalAuthenticate, handleEditorsPicks)
+
+// Travel-only home feed sections (FEED-redesign 2026-04)
+feedRoutes.get('/hot-near-you', optionalAuthenticate, handleHotNearYou)
+feedRoutes.get('/trips-from-city', optionalAuthenticate, handleTripsFromCity)
+feedRoutes.get('/this-weekend', optionalAuthenticate, handleThisWeekend)
+feedRoutes.get('/upcoming-events', optionalAuthenticate, handleUpcomingEvents)
+feedRoutes.get('/day-trips', optionalAuthenticate, handleDayTrips)
+feedRoutes.get('/weekend-getaways', optionalAuthenticate, handleWeekendGetaways)
+feedRoutes.get('/posts', optionalAuthenticate, handlePostsFeed)
 
 export default feedRoutes

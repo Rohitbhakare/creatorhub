@@ -1,36 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 
-// Nav chip ids
-const kFeedNavForYou = 'for_you';
-const kFeedNavFollowing = 'following';
+// Nav chip ids (audience scope)
 const kFeedNavNearYou = 'near_you';
+const kFeedNavFollowing = 'following';
 
-// Category chip ids
-const kFeedCatTravel = 'travel';
-const kFeedCatStories = 'stories';
+// Sub-cat chip ids (filter)
+const kFeedSubCatAll = 'all';
+const kFeedSubCatPosts = 'posts';
+const kFeedSubCatRoadTrips = 'travel.road_trips';
+const kFeedSubCatBiking = 'travel.biking';
+const kFeedSubCatTrekking = 'travel.trekking';
+const kFeedSubCatFoodTrails = 'travel.food_trails';
 
-/// Horizontally scrollable chip rail combining navigation + category filters.
+class FeedChipSelection {
+  final String navId;
+  final String subCatId;
+
+  const FeedChipSelection({required this.navId, required this.subCatId});
+
+  FeedChipSelection copyWith({String? navId, String? subCatId}) =>
+      FeedChipSelection(
+        navId: navId ?? this.navId,
+        subCatId: subCatId ?? this.subCatId,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is FeedChipSelection &&
+      other.navId == navId &&
+      other.subCatId == subCatId;
+
+  @override
+  int get hashCode => Object.hash(navId, subCatId);
+}
+
+/// Horizontal chip rail: 2 nav chips + separator + 6 sub-cat chips.
 ///
-/// Nav chips (For you / Following / Near you) switch the feed view.
-/// Category chips (Travel / Stories) trigger a scroll-jump to the relevant
-/// section — only functional when [selectedNavId] == [kFeedNavForYou].
+/// Travel-only launch model:
+/// - Nav (audience): Near you / Following — single-select, default Near you.
+/// - Sub-cat (filter): All / Posts / 4 active sub-cats — single-select, default All.
+/// - All + Posts + sub-cat are compounding-aware on the screen side
+///   (e.g. Posts + Trekking → trekking-typed posts only).
 class FeedChipRail extends StatelessWidget {
-  final String selectedNavId;
-  final void Function(String navId) onNavSelect;
-  final void Function(String vertical) onCategoryJump;
+  final FeedChipSelection selection;
+  final ValueChanged<FeedChipSelection> onSelectionChange;
 
   const FeedChipRail({
     super.key,
-    required this.selectedNavId,
-    required this.onNavSelect,
-    required this.onCategoryJump,
+    required this.selection,
+    required this.onSelectionChange,
   });
 
-  bool get _categoryActive => selectedNavId == kFeedNavForYou;
+  void _selectNav(String id) {
+    if (selection.navId == id) return;
+    HapticFeedback.selectionClick();
+    onSelectionChange(selection.copyWith(navId: id));
+  }
+
+  void _selectSubCat(String id) {
+    if (selection.subCatId == id) return;
+    HapticFeedback.selectionClick();
+    onSelectionChange(selection.copyWith(subCatId: id));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,36 +76,17 @@ class FeedChipRail extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         children: [
           _NavChip(
-            label: 'For you',
-            id: kFeedNavForYou,
-            selected: selectedNavId == kFeedNavForYou,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onNavSelect(kFeedNavForYou);
-            },
+            label: 'Near you',
+            selected: selection.navId == kFeedNavNearYou,
+            onTap: () => _selectNav(kFeedNavNearYou),
           ),
           const SizedBox(width: 8),
           _NavChip(
             label: 'Following',
-            id: kFeedNavFollowing,
-            selected: selectedNavId == kFeedNavFollowing,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onNavSelect(kFeedNavFollowing);
-            },
-          ),
-          const SizedBox(width: 8),
-          _NavChip(
-            label: 'Near you',
-            id: kFeedNavNearYou,
-            selected: selectedNavId == kFeedNavNearYou,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onNavSelect(kFeedNavNearYou);
-            },
+            selected: selection.navId == kFeedNavFollowing,
+            onTap: () => _selectNav(kFeedNavFollowing),
           ),
           const SizedBox(width: 12),
-          // Thin vertical separator
           Center(
             child: Container(
               width: 1,
@@ -80,29 +95,44 @@ class FeedChipRail extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Category chips — dimmed when not in For-you tab
-          Opacity(
-            opacity: _categoryActive ? 1.0 : 0.4,
-            child: _CategoryChip(
-              label: 'Travel',
-              icon: PhosphorIcons.mountains(PhosphorIconsStyle.regular),
-              onTap: () {
-                HapticFeedback.selectionClick();
-                onCategoryJump(kFeedCatTravel);
-              },
-            ),
+          _SubCatChip(
+            label: 'All',
+            selected: selection.subCatId == kFeedSubCatAll,
+            onTap: () => _selectSubCat(kFeedSubCatAll),
           ),
           const SizedBox(width: 8),
-          Opacity(
-            opacity: _categoryActive ? 1.0 : 0.4,
-            child: _CategoryChip(
-              label: 'Stories',
-              icon: PhosphorIcons.bookOpen(PhosphorIconsStyle.regular),
-              onTap: () {
-                HapticFeedback.selectionClick();
-                onCategoryJump(kFeedCatStories);
-              },
-            ),
+          _SubCatChip(
+            label: 'Posts',
+            selected: selection.subCatId == kFeedSubCatPosts,
+            onTap: () => _selectSubCat(kFeedSubCatPosts),
+          ),
+          const SizedBox(width: 8),
+          _SubCatChip(
+            emoji: '🚗',
+            label: 'Road Trips',
+            selected: selection.subCatId == kFeedSubCatRoadTrips,
+            onTap: () => _selectSubCat(kFeedSubCatRoadTrips),
+          ),
+          const SizedBox(width: 8),
+          _SubCatChip(
+            emoji: '🏍️',
+            label: 'Biking',
+            selected: selection.subCatId == kFeedSubCatBiking,
+            onTap: () => _selectSubCat(kFeedSubCatBiking),
+          ),
+          const SizedBox(width: 8),
+          _SubCatChip(
+            emoji: '🥾',
+            label: 'Trekking',
+            selected: selection.subCatId == kFeedSubCatTrekking,
+            onTap: () => _selectSubCat(kFeedSubCatTrekking),
+          ),
+          const SizedBox(width: 8),
+          _SubCatChip(
+            emoji: '🍜',
+            label: 'Food Trails',
+            selected: selection.subCatId == kFeedSubCatFoodTrails,
+            onTap: () => _selectSubCat(kFeedSubCatFoodTrails),
           ),
           const SizedBox(width: 16),
         ],
@@ -113,13 +143,11 @@ class FeedChipRail extends StatelessWidget {
 
 class _NavChip extends StatefulWidget {
   final String label;
-  final String id;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavChip({
     required this.label,
-    required this.id,
     required this.selected,
     required this.onTap,
   });
@@ -128,7 +156,8 @@ class _NavChip extends StatefulWidget {
   State<_NavChip> createState() => _NavChipState();
 }
 
-class _NavChipState extends State<_NavChip> with SingleTickerProviderStateMixin {
+class _NavChipState extends State<_NavChip>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
 
@@ -183,22 +212,24 @@ class _NavChipState extends State<_NavChip> with SingleTickerProviderStateMixin 
   }
 }
 
-class _CategoryChip extends StatefulWidget {
+class _SubCatChip extends StatefulWidget {
   final String label;
-  final IconData icon;
+  final String? emoji;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _CategoryChip({
+  const _SubCatChip({
     required this.label,
-    required this.icon,
+    this.emoji,
+    required this.selected,
     required this.onTap,
   });
 
   @override
-  State<_CategoryChip> createState() => _CategoryChipState();
+  State<_SubCatChip> createState() => _SubCatChipState();
 }
 
-class _CategoryChipState extends State<_CategoryChip>
+class _SubCatChipState extends State<_SubCatChip>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
@@ -229,27 +260,33 @@ class _CategoryChipState extends State<_CategoryChip>
 
   @override
   Widget build(BuildContext context) {
+    final selected = widget.selected;
     return ScaleTransition(
       scale: _scale,
       child: GestureDetector(
         onTap: _onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.surfaceAlt,
+            color: selected ? AppColors.ink : AppColors.surfaceAlt,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.hairline, width: 0.5),
+            border: selected
+                ? null
+                : Border.all(color: AppColors.hairline, width: 0.5),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(widget.icon, size: 12, color: AppColors.inkSoft),
-              const SizedBox(width: 5),
+              if (widget.emoji != null) ...[
+                Text(widget.emoji!, style: const TextStyle(fontSize: 13)),
+                const SizedBox(width: 5),
+              ],
               Text(
                 widget.label,
                 style: AppTypography.label.copyWith(
-                  color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w500,
+                  color: selected ? AppColors.surface : AppColors.inkSoft,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   fontSize: 13,
                 ),
               ),

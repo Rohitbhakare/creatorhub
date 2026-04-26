@@ -244,6 +244,7 @@ async function getPopularAcrossIndia(): Promise<FeedContentItem[]> {
 export async function getNearYouSection(
   userId: string | null,
   guestCityId?: string,
+  subCategoryId?: string,
 ): Promise<NearYouResult> {
   const location = userId
     ? await getUserLocation(userId)
@@ -262,16 +263,20 @@ export async function getNearYouSection(
     }
   }
 
-  const { data, error } = await supabase.rpc('feed_near_you', {
-    p_city_id: location.cityId,
-    p_lat: location.lat,
-    p_lng: location.lng,
-    p_limit: 20,
-  })
+  // RPC doesn't filter by sub_category_id, so when one is set we skip the
+  // waterfall and run a city-match query that does.
+  const { data, error } = subCategoryId
+    ? { data: null, error: { message: 'skip-rpc-for-subcat' } as { message: string } }
+    : await supabase.rpc('feed_near_you', {
+        p_city_id: location.cityId,
+        p_lat: location.lat,
+        p_lng: location.lng,
+        p_limit: 20,
+      })
 
   // RPC may not exist yet (migration 013 pending) — fall back to city-match query
   if (error) {
-    const { data: fallbackData, error: fallbackError } = await supabase
+    let fbq = supabase
       .from('content')
       .select(
         'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
@@ -282,6 +287,8 @@ export async function getNearYouSection(
       .eq('starting_city_id', location.cityId)
       .order('published_at', { ascending: false })
       .limit(20)
+    if (subCategoryId) fbq = fbq.eq('sub_category_id', subCategoryId)
+    const { data: fallbackData, error: fallbackError } = await fbq
 
     if (fallbackError || !fallbackData?.length) {
       const items = await getPopularAcrossIndia()
@@ -703,6 +710,375 @@ export async function getCategoryBrowse(params: {
     items,
     next_cursor,
   }
+}
+
+// ─── Travel-only home feed sections (FEED-redesign 2026-04) ────────
+// New section endpoints introduced for the Travel-only launch. Each
+// returns FeedContentItem[] (or NearYouResult-shaped payloads where
+// fallback context matters) so the existing ContentCard renderer on
+// mobile keeps working unchanged.
+
+const TRAVEL_FEED_SELECT =
+  'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body, sub_category_id'
+
+interface NearLocationParams {
+  userId?: string | null
+  cityId?: string | null
+  lat?: number | null
+  lng?: number | null
+}
+
+async function resolveLocation(
+  params: NearLocationParams,
+): Promise<{ cityId: string; cityName: string; lat: number; lng: number } | null> {
+  if (params.cityId) {
+    const loc = await getCityLocation(params.cityId)
+    if (loc) return loc
+  }
+  if (params.userId) {
+    const loc = await getUserLocation(params.userId)
+    if (loc) return loc
+  }
+  return null
+}
+
+// ─── getHotNearYou ──────────────────────────────────────────────
+// 7-day trending content within 100km, ranked by engagement
+// (like_count + comment_count*3 — views/booking counters not yet on
+// content table; see FEED-redesign plan for tracking columns).
+export async function getHotNearYou(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .gte('published_at', sevenDaysAgo)
+    .order('like_count', { ascending: false })
+    .order('comment_count', { ascending: false })
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load hot-near-you feed')
+  if (!data?.length && loc) {
+    // Soft fallback: drop the city filter so the rail isn't empty in low-content areas.
+    const { data: fb, error: fbErr } = await supabase
+      .from('content')
+      .select(TRAVEL_FEED_SELECT)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .gte('published_at', sevenDaysAgo)
+      .order('like_count', { ascending: false })
+      .limit(10)
+    if (fbErr) throw new AppError('db-error', 500, 'Failed to load hot-near-you feed')
+    return enrichItems((fb ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+  }
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getTripsFromCity ───────────────────────────────────────────
+// Itineraries + experiences whose starting_city_id matches the given
+// city. "Trips starting from {city}" rail.
+export async function getTripsFromCity(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  if (!loc) return []
+
+  const { data, error } = await supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .in('type', ['self_paced_itinerary', 'scheduled_experience'])
+    .eq('starting_city_id', loc.cityId)
+    .order('like_count', { ascending: false })
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (error) throw new AppError('db-error', 500, 'Failed to load trips-from-city feed')
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getThisWeekend ─────────────────────────────────────────────
+// Events + experiences with start_at falling on the upcoming Sat/Sun
+// (server-time approximation; IST shift is small enough not to matter).
+function nextWeekendBounds(): { start: string; end: string } {
+  const now = new Date()
+  const dow = now.getUTCDay() // 0=Sun, 6=Sat
+  const daysUntilSat = dow === 6 ? 0 : (6 - dow + 7) % 7
+  const sat = new Date(now)
+  sat.setUTCDate(now.getUTCDate() + daysUntilSat)
+  sat.setUTCHours(0, 0, 0, 0)
+  const sun = new Date(sat)
+  sun.setUTCDate(sat.getUTCDate() + 1)
+  sun.setUTCHours(23, 59, 59, 999)
+  return { start: sat.toISOString(), end: sun.toISOString() }
+}
+
+export async function getThisWeekend(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  const { start, end } = nextWeekendBounds()
+
+  // Pull event & experience occurrence rows that intersect the window
+  const [eventOcc, expOcc] = await Promise.all([
+    supabase
+      .from('event_occurrences')
+      .select('content_id, start_at, city_id')
+      .gte('start_at', start)
+      .lte('start_at', end),
+    supabase
+      .from('scheduled_dates')
+      .select('content_id, start_date, is_active')
+      .eq('is_active', true)
+      .gte('start_date', start.slice(0, 10))
+      .lte('start_date', end.slice(0, 10)),
+  ])
+
+  if (eventOcc.error) throw new AppError('db-error', 500, 'Failed to load weekend events')
+  if (expOcc.error) throw new AppError('db-error', 500, 'Failed to load weekend experiences')
+
+  const contentIds = [
+    ...new Set([
+      ...((eventOcc.data ?? []) as Array<{ content_id: string }>).map((r) => r.content_id),
+      ...((expOcc.data ?? []) as Array<{ content_id: string }>).map((r) => r.content_id),
+    ]),
+  ]
+  if (!contentIds.length) return []
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .in('id', contentIds)
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load weekend feed')
+
+  // If city scoping returned nothing, retry without the city filter so the
+  // rail isn't blank when the only weekend content is in another nearby city.
+  if (!data?.length && loc) {
+    const { data: fb, error: fbErr } = await supabase
+      .from('content')
+      .select(TRAVEL_FEED_SELECT)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .in('id', contentIds)
+      .order('published_at', { ascending: false })
+      .limit(10)
+    if (fbErr) throw new AppError('db-error', 500, 'Failed to load weekend feed')
+    return enrichItems((fb ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+  }
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getUpcomingEvents ──────────────────────────────────────────
+// Events with start_at in the next 30 days. Ordered chronologically.
+export async function getUpcomingEvents(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  const now = new Date().toISOString()
+  const horizon = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: occRows, error: occErr } = await supabase
+    .from('event_occurrences')
+    .select('content_id, start_at')
+    .gte('start_at', now)
+    .lte('start_at', horizon)
+    .order('start_at', { ascending: true })
+    .limit(50)
+
+  if (occErr) throw new AppError('db-error', 500, 'Failed to load upcoming events')
+  const ids = [...new Set((occRows ?? []).map((r) => r.content_id))]
+  if (!ids.length) return []
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .eq('type', 'event')
+    .is('deleted_at', null)
+    .in('id', ids)
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load upcoming events')
+
+  // Preserve the chronological order coming from event_occurrences
+  const order = new Map((occRows ?? []).map((r, i) => [r.content_id, i]))
+  const sorted = ((data ?? []) as Array<{ id: string; user_id: string; [k: string]: unknown }>).sort(
+    (a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999),
+  )
+  return enrichItems(sorted)
+}
+
+// ─── getDayTrips ────────────────────────────────────────────────
+// Self-paced itineraries with duration_minutes ≤ 8h.
+export async function getDayTrips(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .eq('type', 'self_paced_itinerary')
+    .lte('duration_minutes', 480)
+    .order('like_count', { ascending: false })
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load day-trips feed')
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getWeekendGetaways ────────────────────────────────────────
+// 2-day itineraries. Joins via itinerary_days to pick content where
+// day_count = 2. Done in two queries because PostgREST doesn't expose
+// HAVING through Supabase's REST builder cleanly.
+export async function getWeekendGetaways(params: NearLocationParams): Promise<FeedContentItem[]> {
+  const loc = await resolveLocation(params)
+
+  const { data: dayRows, error: dayErr } = await supabase
+    .from('itinerary_days')
+    .select('content_id, day_number')
+    .order('content_id')
+
+  if (dayErr) throw new AppError('db-error', 500, 'Failed to load itinerary day counts')
+
+  // Group by content_id, keep ones with exactly 2 days
+  const counts = new Map<string, number>()
+  for (const r of (dayRows ?? []) as Array<{ content_id: string }>) {
+    counts.set(r.content_id, (counts.get(r.content_id) ?? 0) + 1)
+  }
+  const twoDayIds = [...counts.entries()].filter(([, c]) => c === 2).map(([id]) => id)
+  if (!twoDayIds.length) return []
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+    .eq('type', 'self_paced_itinerary')
+    .in('id', twoDayIds)
+    .order('like_count', { ascending: false })
+    .limit(10)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load weekend-getaways feed')
+  return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
+}
+
+// ─── getPostsFeed ───────────────────────────────────────────────
+// Posts-only feed used by:
+//   • Stories rail on home (limit=8, scope=near)
+//   • Posts chip vertical feed at /feed/posts (paginated)
+//   • Compound filter: scope + city + sub_category_id
+// Cursor pagination on published_at DESC (base64url encoded ISO date).
+export interface PostsFeedResult {
+  items: FeedContentItem[]
+  next_cursor: string | null
+}
+
+export async function getPostsFeed(params: {
+  scope: 'near' | 'following'
+  userId: string | null
+  cityId?: string | null
+  subCategoryId?: string | null
+  cursor?: string | null
+  limit?: number | null
+}): Promise<PostsFeedResult> {
+  const limit = Math.min(Math.max(params.limit ?? 10, 1), 30)
+
+  // Following scope requires a signed-in user with at least one follow
+  if (params.scope === 'following') {
+    if (!params.userId) return { items: [], next_cursor: null }
+    const { data: follows, error: followErr } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', params.userId)
+    if (followErr) throw new AppError('db-error', 500, 'Failed to load follows')
+    const followingIds = (follows ?? []).map((r) => r.following_id as string)
+    if (!followingIds.length) return { items: [], next_cursor: null }
+
+    let q = supabase
+      .from('content')
+      .select(TRAVEL_FEED_SELECT)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .eq('type', 'post')
+      .is('deleted_at', null)
+      .in('user_id', followingIds)
+      .order('published_at', { ascending: false })
+      .limit(limit)
+
+    if (params.subCategoryId) q = q.eq('sub_category_id', params.subCategoryId)
+    if (params.cursor) {
+      const decoded = Buffer.from(params.cursor, 'base64url').toString('utf8')
+      q = q.lt('published_at', decoded)
+    }
+
+    const { data, error } = await q
+    if (error) throw new AppError('db-error', 500, 'Failed to load posts feed')
+    return paginatePostsResult(data ?? [], limit)
+  }
+
+  // Near scope — city-bounded posts
+  const loc = await resolveLocation({ userId: params.userId, cityId: params.cityId ?? null })
+
+  let q = supabase
+    .from('content')
+    .select(TRAVEL_FEED_SELECT)
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .eq('type', 'post')
+    .is('deleted_at', null)
+    .order('published_at', { ascending: false })
+    .limit(limit)
+
+  if (loc) q = q.eq('starting_city_id', loc.cityId)
+  if (params.subCategoryId) q = q.eq('sub_category_id', params.subCategoryId)
+  if (params.cursor) {
+    const decoded = Buffer.from(params.cursor, 'base64url').toString('utf8')
+    q = q.lt('published_at', decoded)
+  }
+
+  const { data, error } = await q
+  if (error) throw new AppError('db-error', 500, 'Failed to load posts feed')
+  return paginatePostsResult(data ?? [], limit)
+}
+
+async function paginatePostsResult(
+  rows: Array<Record<string, unknown>>,
+  limit: number,
+): Promise<PostsFeedResult> {
+  const items = await enrichItems(rows as Array<{ user_id: string; [k: string]: unknown }>)
+  let next_cursor: string | null = null
+  if (rows.length === limit) {
+    const last = rows.at(-1)
+    if (last?.published_at) {
+      next_cursor = Buffer.from(String(last.published_at), 'utf8').toString('base64url')
+    }
+  }
+  return { items, next_cursor }
 }
 
 // ─── getEditorsPicks ─────────────────────────────────────────────

@@ -8,6 +8,7 @@ import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/utils/format.dart';
+import '../models/discover_filters.dart';
 import '../models/discover_models.dart';
 import '../providers/discover_tab_provider.dart';
 import '../widgets/editorial_tile.dart';

@@ -5,6 +5,7 @@ import {
   updateProfile,
   updateUsername,
   getProfileCompletion,
+  setTravelSubCategories,
 } from '../services/profile.service.js'
 import { getDndStatus, setDndStatus } from '../services/notification.service.js'
 import { AppError } from '../errors/AppError.js'
@@ -55,6 +56,15 @@ export async function handleSetDnd(c: Context): Promise<Response> {
 
   const dnd = await getDndStatus(userId)
   return c.json({ success: true, data: { dnd_enabled: dnd } })
+}
+
+// ─── PUT /users/me/travel-sub-categories ────────────────────────
+// FEED-redesign: persists onboarding's chosen 4 travel sub-cats.
+export async function handleSetTravelSubCategories(c: Context): Promise<Response> {
+  const userId = c.get('userId') as string
+  const { travel_sub_categories } = c.get('validatedBody') as { travel_sub_categories: string[] }
+  const updated = await setTravelSubCategories(userId, travel_sub_categories)
+  return c.json({ success: true, data: updated })
 }
 
 // ─── GET /users/:id ─────────────────────────────────────────────

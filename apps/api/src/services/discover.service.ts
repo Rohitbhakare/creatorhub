@@ -1,10 +1,14 @@
 import { supabase } from '../lib/supabase.js'
+import { AppError } from '../errors/AppError.js'
+import { autocomplete as placesAutocomplete, getPlaceDetails } from './places.service.js'
+import type { DiscoverFiltersQueryInput } from '@creatorhub/shared'
 
 // ─── Sub-category display names ──────────────────────────────────────────────
 
 const SUBCATEGORY_LABELS: Record<string, string> = {
-  // Travel
-  road_trips:   'Road Trips & Biking',
+  // Travel — Phase 1 active four
+  road_trips:   'Road Trips',
+  biking:       'Biking',
   trekking:     'Trekking & Hiking',
   adventure:    'Adventure & Sports',
   heritage:     'Heritage & Culture',
@@ -78,6 +82,15 @@ export interface SearchSuggestionsResult {
   content: Array<{ id: string; title: string; type: string; vertical: string; creator_name: string | null }>
   cities: Array<{ id: string; name: string; state: string | null }>
   creators: Array<{ id: string; display_name: string | null; username: string | null; avatar_url: string | null }>
+  places: Array<{ place_id: string; main_text: string; secondary_text: string }>
+}
+
+export interface ResolvedDestination {
+  destination_id: string
+  name: string
+  formatted_address: string
+  lat: number
+  lng: number
 }
 
 // ─── Service functions ────────────────────────────────────────────────────────
@@ -301,7 +314,7 @@ export async function getSearchSuggestions(
   limit = 5,
 ): Promise<SearchSuggestionsResult> {
   const q = query.trim()
-  if (q.length < 2) return { content: [], cities: [], creators: [] }
+  if (q.length < 2) return { content: [], cities: [], creators: [], places: [] }
 
   const tsQuery = q
     .split(/\s+/)
@@ -352,7 +365,384 @@ export async function getSearchSuggestions(
     avatar_url: (u.avatar_url as string | null) ?? null,
   }))
 
-  return { content, cities, creators }
+  // Places fallback — when city matches are sparse, surface Google Places
+  // suggestions so the user can find destinations not in our cities table
+  // (e.g. "Diveagar" when migration 026 hasn't shipped yet, or any locality
+  // that lives behind a Place ID rather than an admin city). Failure is
+  // non-critical — search still works on cities/creators/content.
+  let places: SearchSuggestionsResult['places'] = []
+  if (cities.length < 3) {
+    try {
+      const predictions = await placesAutocomplete(q)
+      places = predictions.slice(0, 3).map((p) => ({
+        place_id: p.place_id,
+        main_text: p.main_text,
+        secondary_text: p.secondary_text,
+      }))
+    } catch (e) {
+      // Silent — Places is supplemental, not load-bearing
+      console.warn('[discover] Places fallback failed:', (e as Error).message)
+    }
+  }
+
+  return { content, cities, creators, places }
+}
+
+// ─── resolveDestination ─────────────────────────────────────────
+// Called when the user taps a Places suggestion in search. Fetches
+// place details, upserts into place_cache, and returns lat/lng so
+// the client can run a 25 km-radius destination filter.
+export async function resolveDestination(placeId: string): Promise<ResolvedDestination> {
+  const details = await getPlaceDetails(placeId)
+
+  // Upsert into place_cache so subsequent resolves are free.
+  const { error } = await supabase
+    .from('place_cache')
+    .upsert(
+      {
+        place_id: details.place_id,
+        name: details.name,
+        formatted_address: details.formatted_address,
+        lat: details.lat,
+        lng: details.lng,
+        photos: details.photo_url ? [{ url: details.photo_url }] : [],
+        types: details.types ?? [],
+        fetched_at: new Date().toISOString(),
+      },
+      { onConflict: 'place_id' },
+    )
+  if (error) {
+    // Cache miss isn't fatal — the client gets the resolved coords either way.
+    console.warn('[discover] place_cache upsert failed:', error.message)
+  }
+
+  return {
+    destination_id: details.place_id,
+    name: details.name,
+    formatted_address: details.formatted_address,
+    lat: details.lat,
+    lng: details.lng,
+  }
+}
+
+// ─── searchDiscover (13-filter set) ─────────────────────────────
+// Powers the rewritten Discover Results screen. Takes the full
+// DiscoverFilters set from /api/v1/discover/results.
+//
+// Filter strategy (PostgREST has limits — some filters compose at the
+// SQL level, others are pre-resolved to ID lists then joined in):
+//   • Time windows (event_occurrences / scheduled_dates) → pre-fetch
+//     content_ids that match, intersect via .in('id', …)
+//   • Distance (PostGIS ST_DWithin) → not exposed via PostgREST, so we
+//     fall back to filtering by city ID set when distance is requested
+//   • Other filters compose directly via .eq / .in / .gte / .lte
+
+export interface DiscoverResultsItem {
+  id: string
+  type: string
+  title: string
+  vertical: string
+  pricing_model: string
+  price_paisa: number
+  like_count: number
+  comment_count: number
+  duration_minutes: number | null
+  starting_city_id: string | null
+  cover_image_url: string | null
+  published_at: string | null
+  user_id: string
+}
+
+export interface DiscoverResultsResponse {
+  items: DiscoverResultsItem[]
+  next_cursor: string | null
+  total_count: number | null
+}
+
+const DURATION_BUCKET_MINUTES: Record<string, [number, number | null]> = {
+  day_trip: [0, 480],
+  weekend: [481, 2880],
+  short: [2881, 7200],
+  long: [7201, Number.MAX_SAFE_INTEGER],
+}
+
+const BUDGET_PAISA: Record<string, [number, number | null]> = {
+  free: [0, 0],
+  lt2k: [1, 200000],
+  '2to5k': [200001, 500000],
+  '5to15k': [500001, 1500000],
+  gt15k: [1500001, Number.MAX_SAFE_INTEGER],
+}
+
+function timeWindowBounds(
+  win: DiscoverFiltersQueryInput['time_window'],
+  dateFrom?: string,
+  dateTo?: string,
+): { start: string; end: string } | null {
+  const now = new Date()
+  if (win === 'today') {
+    const end = new Date(now)
+    end.setUTCHours(23, 59, 59, 999)
+    return { start: now.toISOString(), end: end.toISOString() }
+  }
+  if (win === 'this_weekend') {
+    const dow = now.getUTCDay()
+    const daysUntilSat = dow === 6 ? 0 : (6 - dow + 7) % 7
+    const sat = new Date(now)
+    sat.setUTCDate(now.getUTCDate() + daysUntilSat)
+    sat.setUTCHours(0, 0, 0, 0)
+    const sun = new Date(sat)
+    sun.setUTCDate(sat.getUTCDate() + 1)
+    sun.setUTCHours(23, 59, 59, 999)
+    return { start: sat.toISOString(), end: sun.toISOString() }
+  }
+  if (win === 'next_7d') {
+    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    return { start: now.toISOString(), end: end.toISOString() }
+  }
+  if (win === 'this_month') {
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999))
+    return { start: now.toISOString(), end: end.toISOString() }
+  }
+  if (win === 'custom' && dateFrom && dateTo) {
+    return { start: dateFrom, end: dateTo }
+  }
+  return null
+}
+
+async function contentIdsInTimeWindow(
+  bounds: { start: string; end: string },
+): Promise<string[]> {
+  const [evt, exp] = await Promise.all([
+    supabase
+      .from('event_occurrences')
+      .select('content_id')
+      .gte('start_at', bounds.start)
+      .lte('start_at', bounds.end),
+    supabase
+      .from('scheduled_dates')
+      .select('content_id')
+      .eq('is_active', true)
+      .gte('start_date', bounds.start.slice(0, 10))
+      .lte('start_date', bounds.end.slice(0, 10)),
+  ])
+  if (evt.error || exp.error) {
+    throw new AppError('db-error', 500, 'Failed to load time-windowed content')
+  }
+  return [
+    ...new Set([
+      ...((evt.data ?? []) as Array<{ content_id: string }>).map((r) => r.content_id),
+      ...((exp.data ?? []) as Array<{ content_id: string }>).map((r) => r.content_id),
+    ]),
+  ]
+}
+
+async function citiesWithinDistance(
+  lat: number,
+  lng: number,
+  km: number,
+): Promise<string[]> {
+  // Bounding-box pre-filter then ST_Distance check. Approximation: 1° lat ≈ 111km.
+  const dLat = km / 111
+  const dLng = km / (111 * Math.cos((lat * Math.PI) / 180))
+  const { data, error } = await supabase
+    .from('cities')
+    .select('id, lat, lng')
+    .gte('lat', lat - dLat)
+    .lte('lat', lat + dLat)
+    .gte('lng', lng - dLng)
+    .lte('lng', lng + dLng)
+  if (error) return []
+
+  return (data ?? [])
+    .filter((c: { id: string; lat: number; lng: number }) => {
+      const haversine =
+        Math.sin(((c.lat - lat) * Math.PI) / 360) ** 2 +
+        Math.cos((lat * Math.PI) / 180) *
+          Math.cos((c.lat * Math.PI) / 180) *
+          Math.sin(((c.lng - lng) * Math.PI) / 360) ** 2
+      const dKm = 2 * 6371 * Math.asin(Math.sqrt(haversine))
+      return dKm <= km
+    })
+    .map((c: { id: string }) => c.id)
+}
+
+export async function searchDiscover(
+  filters: DiscoverFiltersQueryInput,
+): Promise<DiscoverResultsResponse> {
+  const limit = filters.limit ?? 20
+
+  // ── Phase 1: pre-resolve ID-based filters ──────────────────
+  let restrictIds: string[] | null = null
+  const intersect = (ids: string[]) => {
+    restrictIds = restrictIds === null ? ids : restrictIds.filter((id) => ids.includes(id))
+  }
+
+  // Time window → content_ids in event_occurrences/scheduled_dates
+  const bounds = timeWindowBounds(
+    filters.time_window,
+    filters.date_from,
+    filters.date_to,
+  )
+  if (bounds) {
+    const ids = await contentIdsInTimeWindow(bounds)
+    if (!ids.length) return { items: [], next_cursor: null, total_count: 0 }
+    intersect(ids)
+  }
+
+  // Months → contents whose event_occurrences fall in those calendar months.
+  // Done client-side because PostgREST doesn't expose EXTRACT cleanly.
+  if (filters.months?.length) {
+    const { data: occ } = await supabase
+      .from('event_occurrences')
+      .select('content_id, start_at')
+    const monthSet = new Set(filters.months)
+    const ids = (occ ?? [])
+      .filter((r: { start_at: string }) => monthSet.has(new Date(r.start_at).getUTCMonth() + 1))
+      .map((r: { content_id: string }) => r.content_id)
+    if (!ids.length) return { items: [], next_cursor: null, total_count: 0 }
+    intersect(ids)
+  }
+
+  // ── Phase 2: build the main content query ─────────────────
+  let q = supabase
+    .from('content')
+    .select(
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, user_id',
+      { count: 'exact' },
+    )
+    .eq('status', 'published')
+    .eq('visibility', 'public')
+    .is('deleted_at', null)
+
+  if (filters.vertical) q = q.eq('vertical', filters.vertical)
+  if (filters.sub_category_id) q = q.eq('sub_category_id', filters.sub_category_id)
+  if (filters.leaf_type) q = q.eq('leaf_type', filters.leaf_type)
+  if (filters.type) q = q.eq('type', filters.type)
+  if (filters.starting_city_id) q = q.eq('starting_city_id', filters.starting_city_id)
+
+  // Destination — match starting_city OR destination_city_ids[] OR proximity
+  if (filters.destination_city_id) {
+    q = q.or(
+      `starting_city_id.eq.${filters.destination_city_id},destination_city_ids.cs.{${filters.destination_city_id}}`,
+    )
+  } else if (
+    typeof filters.destination_lat === 'number' &&
+    typeof filters.destination_lng === 'number'
+  ) {
+    const cityIds = await citiesWithinDistance(
+      filters.destination_lat,
+      filters.destination_lng,
+      25,
+    )
+    if (!cityIds.length) return { items: [], next_cursor: null, total_count: 0 }
+    q = q.in('starting_city_id', cityIds)
+  }
+
+  // Distance from user — bounded city set
+  if (
+    filters.distance_km &&
+    typeof filters.user_lat === 'number' &&
+    typeof filters.user_lng === 'number'
+  ) {
+    const cityIds = await citiesWithinDistance(
+      filters.user_lat,
+      filters.user_lng,
+      filters.distance_km,
+    )
+    if (!cityIds.length) return { items: [], next_cursor: null, total_count: 0 }
+    q = q.in('starting_city_id', cityIds)
+  }
+
+  // Duration buckets — OR of ranges
+  if (filters.duration_buckets?.length) {
+    const ranges = filters.duration_buckets
+      .map((b) => DURATION_BUCKET_MINUTES[b])
+      .filter((r): r is [number, number | null] => Array.isArray(r))
+    if (ranges.length) {
+      const orParts = ranges.map(([min, max]) =>
+        max != null
+          ? `and(duration_minutes.gte.${min},duration_minutes.lte.${max})`
+          : `duration_minutes.gte.${min}`,
+      )
+      q = q.or(orParts.join(','))
+    }
+  }
+
+  // Budget buckets — OR of price ranges
+  if (filters.budget_buckets?.length) {
+    const ranges = filters.budget_buckets
+      .map((b) => BUDGET_PAISA[b])
+      .filter((r): r is [number, number | null] => Array.isArray(r))
+    if (ranges.length) {
+      const orParts = ranges.map(([min, max]) =>
+        max != null
+          ? `and(price_paisa.gte.${min},price_paisa.lte.${max})`
+          : `price_paisa.gte.${min}`,
+      )
+      q = q.or(orParts.join(','))
+    }
+  }
+
+  // Facets stored in JSONB column `facets`
+  if (filters.seasons?.length) {
+    q = q.in('facets->>season', filters.seasons)
+  }
+  if (filters.difficulties?.length) {
+    q = q.in('facets->>difficulty', filters.difficulties)
+  }
+  if (filters.group_sizes?.length) {
+    q = q.in('facets->>group_size', filters.group_sizes)
+  }
+
+  // Free-text search over content title/body via tsvector
+  if (filters.q) {
+    const tsQuery = filters.q
+      .trim()
+      .split(/\s+/)
+      .map((w) => w + ':*')
+      .join(' & ')
+    q = q.textSearch('search_vector', tsQuery, { type: 'plain' })
+  }
+
+  // Restrict to pre-resolved id set (time window / months)
+  if (restrictIds !== null) {
+    if (!(restrictIds as string[]).length) return { items: [], next_cursor: null, total_count: 0 }
+    q = q.in('id', restrictIds as string[])
+  }
+
+  // Sorting — default: newest first
+  const sort = filters.sort ?? 'recent'
+  if (sort === 'recent') q = q.order('published_at', { ascending: false })
+  else if (sort === 'trending') q = q.order('like_count', { ascending: false }).order('comment_count', { ascending: false })
+  else if (sort === 'price_asc') q = q.order('price_paisa', { ascending: true })
+  else if (sort === 'price_desc') q = q.order('price_paisa', { ascending: false })
+
+  q = q.limit(limit)
+
+  // Cursor pagination on published_at (only for sort=recent for now)
+  if (filters.cursor && sort === 'recent') {
+    try {
+      const decoded = Buffer.from(filters.cursor, 'base64url').toString('utf8')
+      q = q.lt('published_at', decoded)
+    } catch {
+      // ignore malformed cursor
+    }
+  }
+
+  const { data, error, count } = await q
+  if (error) throw new AppError('db-error', 500, 'Discover search failed')
+
+  const rows = (data ?? []) as DiscoverResultsItem[]
+  let next_cursor: string | null = null
+  if (rows.length === limit && sort === 'recent') {
+    const last = rows.at(-1)
+    if (last?.published_at) {
+      next_cursor = Buffer.from(last.published_at, 'utf8').toString('base64url')
+    }
+  }
+
+  return { items: rows, next_cursor, total_count: count ?? null }
 }
 
 /**

@@ -29,3 +29,28 @@ Date: 25 apr
 
 ------------------------------------
 
+things missing 
+    1. if user 
+
+
+    Tribo – Where Creators Build Experiences
+    trivy
+    clanvo
+    pathora
+    rivora
+    pathbound
+    spotly - .com available for 17000
+    bestspot - 
+    Seenear -
+    curoclan
+    pinandplan
+    pinit
+    -- ledby
+    --byhuman
+-------------
+have to show emotion as fear of AI to creators
+
+
+---
+For study -
+ [ ] https://www.travelcreators.com/ this is an app from africa and good for case study.

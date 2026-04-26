@@ -15,6 +15,10 @@ import '../features/onboarding/screens/vertical_picker_screen.dart';
 import '../features/onboarding/screens/suggested_creators_screen.dart';
 import '../features/onboarding/screens/celebration_screen.dart';
 import '../features/feed/screens/home_feed_screen.dart';
+import '../features/feed/screens/posts_feed_screen.dart';
+import '../features/feed/screens/section_grid_screen.dart';
+import '../features/discover/models/discover_filters.dart';
+import '../features/discover/screens/discover_results_screen.dart';
 import '../features/discover/screens/discover_tab_screen.dart';
 import '../features/discover/screens/category_browse_screen.dart';
 import '../features/feed/screens/vertical_section_full_screen.dart';
@@ -406,7 +410,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Feed — full vertical section ("See all")
+      // Feed — full vertical section ("See all" — legacy)
       GoRoute(
         path: '/feed/vertical/:vertical',
         builder: (context, state) {
@@ -417,6 +421,67 @@ final routerProvider = Provider<GoRouter>((ref) {
             title: title,
           );
         },
+      ),
+
+      // Section grids — focused "See all" destinations from home rails.
+      // Each route locks the rail's filter; smooth back via context.push.
+      GoRoute(
+        path: '/feed/section/hot-near-you',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.hotNearYou),
+      ),
+      GoRoute(
+        path: '/feed/section/trips-from-city',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.tripsFromCity),
+      ),
+      GoRoute(
+        path: '/feed/section/this-weekend',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.thisWeekend),
+      ),
+      GoRoute(
+        path: '/feed/section/upcoming-events',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.upcomingEvents),
+      ),
+      GoRoute(
+        path: '/feed/section/day-trips',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.dayTrips),
+      ),
+      GoRoute(
+        path: '/feed/section/weekend-getaways',
+        builder: (_, _) =>
+            const SectionGridScreen(kind: SectionKind.weekendGetaways),
+      ),
+      GoRoute(
+        path: '/feed/section/sub-cat/:slug',
+        builder: (_, state) => SectionGridScreen(
+          kind: SectionKind.subCat,
+          subCategorySlug: state.pathParameters['slug'],
+        ),
+      ),
+
+      // Posts feed (Instagram-style vertical scroll).
+      GoRoute(
+        path: '/feed/posts',
+        builder: (_, state) {
+          final qp = state.uri.queryParameters;
+          return PostsFeedScreen(
+            scope: qp['scope'] ?? 'near',
+            cityId: qp['city_id'],
+            subCategoryId: qp['sub_category_id'],
+          );
+        },
+      ),
+
+      // Discover refined-search destination.
+      GoRoute(
+        path: '/discover/results',
+        builder: (_, state) => DiscoverResultsScreen(
+          initialFilters: DiscoverFilters.fromQuery(state.uri.queryParameters),
+        ),
       ),
 
       // Legacy root redirect

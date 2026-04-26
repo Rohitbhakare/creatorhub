@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CreatorHub — Home Feed Redesign (Travel-Only Launch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Design system tokens — exact from .claude/instructions/ui-ux.md */
+  :root {
+    --surface: #FAF7F4;
+    --sunken: #F2EEE8;
+    --border: #E5E0D7;
+    --line: #C9C3B6;
+    --softInk: #9C9689;
+    --muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --success: #1D9E75;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, sans-serif;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: var(--body);
+    background: #DDD6CB;
+    color: var(--ink);
+    padding: 32px 16px 60px;
+    min-height: 100vh;
+  }
+  h1.page-title {
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+    line-height: 1.18;
+    color: var(--ink);
+  }
+  p.page-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 36px;
+  }
+  .frames {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .frame { width: 380px; flex-shrink: 0; }
+  .frame-label {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .frame-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 380px;
+    height: 820px;
+    background: var(--surface);
+    border-radius: 36px;
+    border: 8px solid #1F1E1B;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(31,30,27,0.22);
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 24px;
+    background: #1F1E1B;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  /* Top bar */
+  .topbar {
+    padding: 38px 16px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .city-chip {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--body);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .city-pin { color: var(--coral); font-size: 16px; }   /* Coral context #3 */
+  .city-caret { color: var(--softInk); font-weight: 400; font-size: 13px; }
+  .header-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--sunken);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--ink);
+    position: relative;
+  }
+  .notif-dot {
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    width: 8px;
+    height: 8px;
+    background: var(--coral);                            /* Coral context #7 */
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+  }
+
+  /* Chip rail */
+  .chip-rail {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .chip-rail::-webkit-scrollbar { display: none; }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--sunken);
+    color: var(--ink);
+    flex-shrink: 0;
+    line-height: 1.27;
+  }
+  .chip.active {
+    background: var(--ink);
+    color: var(--surface);
+    border-color: var(--ink);
+  }
+  .chip-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--line);
+    flex-shrink: 0;
+    margin: 0 4px;
+  }
+
+  /* Body */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px;
+    background: var(--surface);
+  }
+  .body::-webkit-scrollbar { display: none; }
+  .section-head {
+    padding: 22px 16px 12px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+  }
+  .see-all {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .section-sub {
+    padding: 0 16px 4px;
+    font-size: 12px;
+    color: var(--softInk);
+    margin-top: -6px;
+  }
+
+  /* Intent strip — flat, no gradients */
+  .intent-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .intent-tile {
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 14px;
+    height: 116px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .intent-tile .icon-block {
+    width: 36px;
+    height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .intent-tile .label {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .intent-tile .sub {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  /* Horizontal rail — 2 cards visible per viewport, 3rd peeks to signal scroll */
+  .h-rail {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px 4px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 16px;
+  }
+  .h-rail::-webkit-scrollbar { display: none; }
+  .h-rail .card {
+    flex: 0 0 158px;        /* (348 - 12 gap) / 2 ≈ 168 minus peek = ~158 leaves ~16px peek of next */
+    scroll-snap-align: start;
+  }
+  /* 2-col grid kept for filtered/destination views */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 16px;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .card-cover {
+    height: 130px;
+    background: var(--sunken);
+    position: relative;
+    overflow: hidden;
+  }
+  .h-rail .card-cover { height: 110px; }
+  .card-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px;
+    opacity: 0.35;
+  }
+  .card-pill {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--ink);
+    color: var(--surface);
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .card-bookmark {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: var(--surface);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--ink);
+    z-index: 1;
+  }
+  .card-bookmark.saved { color: var(--coral); }     /* Coral context #2 */
+  .card-body { padding: 10px 10px 12px; }
+  .card-title {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 6px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 35px;
+  }
+  .card-creator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .card-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .card-creator-name {
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .card-meta {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--softInk);
+    line-height: 1.4;
+  }
+  .price-free {
+    color: var(--success);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .price {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Interest tile grid (Browse by interest) */
+  .interest-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .interest-tile {
+    height: 116px;
+    border-radius: var(--r-md);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .interest-tile .icon-circle {
+    width: 36px;
+    height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .interest-tile .ttl {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Creator chips (New voices) */
+  .creator-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 0 16px;
+  }
+  .creator-chip {
+    text-align: center;
+  }
+  .creator-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    margin: 0 auto 6px;
+  }
+  .creator-name {
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .creator-handle {
+    font-family: var(--body);
+    font-size: 10px;
+    color: var(--softInk);
+    margin-top: 2px;
+  }
+
+  /* Following mode card (single column) */
+  .following-card {
+    background: var(--surface);
+    margin: 12px 16px 0;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .follow-head {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .follow-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+  }
+  .follow-name {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .follow-action {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--softInk);
+    margin-top: 1px;
+  }
+  .follow-time {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--softInk);
+    margin-left: auto;
+  }
+  .follow-cover {
+    height: 200px;
+    background: var(--sunken);
+    position: relative;
+  }
+  .follow-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px;
+    opacity: 0.35;
+  }
+  .follow-body { padding: 12px; }
+  .follow-title {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .follow-meta {
+    font-family: var(--body);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .follow-actions {
+    display: flex;
+    gap: 18px;
+    padding: 8px 12px 12px;
+    font-family: var(--body);
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    padding-top: 12px;
+  }
+  .follow-actions .saved { color: var(--coral); }    /* Coral context #2 */
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 56px 24px 28px;
+  }
+  .empty-icon {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 18px;
+    border-radius: var(--r-lg);
+    background: var(--sunken);
+    border: 1px dashed var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: var(--softInk);
+  }
+  .empty-title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+    line-height: 1.25;
+  }
+  .empty-body {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .cta-primary {
+    background: var(--coral);                          /* Coral context #1 */
+    color: #FFFFFF;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.27;
+  }
+
+  /* Onboarding */
+  .onboard {
+    padding: 56px 20px 20px;
+    background: var(--surface);
+    flex: 1;
+  }
+  .onboard .step {
+    font-family: var(--body);
+    font-size: 12px;
+    color: var(--softInk);
+    margin-bottom: 8px;
+    margin-top: 8px;
+  }
+  .onboard h2 {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.21;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .onboard p {
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .onboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .onboard-tile {
+    aspect-ratio: 1;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--sunken);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .onboard-tile.selected {
+    border: 2px solid var(--ink);
+    background: var(--surface);
+  }
+  .onboard-tile .em {
+    font-size: 38px;
+    line-height: 1;
+  }
+  .onboard-tile .nm {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .onboard-cta-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 20px;
+    right: 20px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding-bottom: 12px;
+    padding-top: 8px;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .nav-item .icon { font-size: 20px; }
+  .nav-item.active {
+    color: var(--coral);                              /* Coral context #4 */
+  }
+  .nav-fab {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 300;
+    transform: translateY(-14px);
+    border: 4px solid var(--surface);
+    box-shadow: 0 4px 12px rgba(31,30,27,0.18);
+  }
+
+  /* Post detail screen */
+  .post-detail-head {
+    padding: 38px 16px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .post-detail-head .back {
+    font-size: 22px;
+    color: var(--ink);
+    font-weight: 300;
+    width: 32px;
+  }
+  .post-creator-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+  .post-creator-row .av {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+  }
+  .post-creator-row .nm {
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .post-creator-row .hd {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--softInk);
+    margin-top: 2px;
+  }
+  .follow-btn {
+    background: var(--ink);
+    color: var(--surface);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .post-hero {
+    width: 100%;
+    aspect-ratio: 4/5;
+    background: var(--sunken);
+    position: relative;
+  }
+  .post-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%);
+    background-size: 24px 24px;
+    background-position: 0 0, 0 12px;
+    opacity: 0.35;
+  }
+  .post-pagedots {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+  }
+  .post-pagedots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(44,40,35,0.4);
+  }
+  .post-pagedots span.active {
+    background: var(--ink);
+  }
+  .post-actions {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 16px;
+    font-size: 22px;
+    color: var(--ink);
+    background: var(--surface);
+  }
+  .post-actions .save-active { color: var(--coral); } /* Coral context #2 */
+  .post-actions .spacer { flex: 1; }
+  .post-stats {
+    padding: 0 16px 4px;
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .post-headline {
+    padding: 6px 16px 4px;
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .post-body {
+    padding: 8px 16px 4px;
+    font-family: var(--display);     /* Fraunces for post body — DD-013 */
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .post-meta-row {
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .post-tag {
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .post-comment {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .post-comment .av {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+  }
+  .post-comment .input {
+    flex: 1;
+    background: var(--sunken);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: var(--body);
+    font-size: 12px;
+    color: var(--softInk);
+  }
+
+  /* Post rail card — multi-image dot indicator overlay */
+  .post-rail .post-cover { background: var(--sunken); }
+  .post-rail-dots {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 3px;
+    z-index: 1;
+  }
+  .post-rail-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(250,247,244,0.55);
+  }
+  .post-rail-dots span.active {
+    background: var(--surface);
+  }
+
+  /* Posts feed (Instagram-style vertical scroll) */
+  .posts-feed-card {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .posts-feed-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 10px;
+  }
+  .posts-feed-head .av {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+  }
+  .posts-feed-head .nm {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .posts-feed-head .hd {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--softInk);
+    margin-top: 1px;
+  }
+  .posts-feed-head .meta { flex: 1; }
+  .posts-feed-hero {
+    width: 100%;
+    aspect-ratio: 4/5;
+    background: var(--sunken);
+    position: relative;
+    overflow: hidden;
+  }
+  .posts-feed-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%);
+    background-size: 22px 22px;
+    background-position: 0 0, 0 11px;
+    opacity: 0.35;
+  }
+  .posts-feed-actions {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px 4px;
+    gap: 14px;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .posts-feed-actions .save-active { color: var(--coral); }
+  .posts-feed-actions .spacer { flex: 1; }
+  .posts-feed-actions .read-time {
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--softInk);
+  }
+  .posts-feed-title {
+    padding: 4px 16px 2px;
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .posts-feed-body {
+    padding: 6px 16px 4px;
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.65;
+    color: var(--ink);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+  .posts-feed-show {
+    padding: 0 16px 8px;
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .posts-feed-tags {
+    padding: 0 16px 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Reel card — vertical media variant for rails */
+  .h-rail .card.reel {
+    flex: 0 0 130px;
+  }
+  .h-rail .card.reel .card-cover {
+    height: 200px;        /* 9:16 portrait aspect */
+    aspect-ratio: 9/16;
+  }
+  .reel-play {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(44,40,35,0.85);
+    color: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    z-index: 1;
+  }
+  .reel-views {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    color: var(--surface);
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    z-index: 1;
+  }
+
+  /* Notes panel */
+  .notes {
+    max-width: 880px;
+    margin: 50px auto 0;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    padding: 28px 32px;
+    border: 1px solid var(--border);
+  }
+  .notes h3 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  .notes h4 {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 16px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .notes ul {
+    font-family: var(--body);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+    padding-left: 18px;
+  }
+  .notes li { margin-bottom: 4px; }
+  .notes code {
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    background: var(--sunken);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .legend-coral {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--coral);
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">CreatorHub — Home Feed Redesign</h1>
+<p class="page-sub">Travel-only launch · 4 active sub-categories · 8 frame states (incl. Posts feed + Post detail) · monochrome + coral (8 contexts only)</p>
+
+<div class="frames">
+
+  <!-- ─────────────── A: DEFAULT ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">A · Default — Near you + All</div>
+    <div class="frame-sub">All sections in 2-col grid · no horizontal rails</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="city-chip"><span class="city-pin">📍</span> Pune <span class="city-caret">›</span></div>
+        <div class="header-icon">🔍</div>
+        <div class="header-icon">🔔<span class="notif-dot"></span></div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip active">Near you</div>
+        <div class="chip">Following</div>
+        <div class="chip-sep"></div>
+        <div class="chip active">All</div>
+        <div class="chip">Posts</div>
+        <div class="chip">🚗 Road Trips</div>
+        <div class="chip">🏍️ Biking</div>
+        <div class="chip">🥾 Trekking</div>
+        <div class="chip">🍜 Food Trails</div>
+      </div>
+      <div class="body">
+
+        <div class="section-head"><div class="section-title">Plan your next trip</div></div>
+        <div class="intent-grid">
+          <div class="intent-tile">
+            <div class="icon-block">🏖️</div>
+            <div><div class="label">This weekend</div><div class="sub">Sat–Sun · within 90km</div></div>
+          </div>
+          <div class="intent-tile">
+            <div class="icon-block">🚗</div>
+            <div><div class="label">Day trips</div><div class="sub">Same day · under 8 hours</div></div>
+          </div>
+          <div class="intent-tile">
+            <div class="icon-block">🏔️</div>
+            <div><div class="label">Weekend getaway</div><div class="sub">2-day itineraries</div></div>
+          </div>
+          <div class="intent-tile">
+            <div class="icon-block">🎟️</div>
+            <div><div class="label">Upcoming events</div><div class="sub">Next 30 days</div></div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Stories from Pune</div><div class="see-all">See all ›</div></div>
+        <div class="h-rail">
+          <div class="card post-rail">
+            <div class="card-cover post-cover">
+              <div class="card-pill">Post</div>
+              <div class="card-bookmark">🔖</div>
+              <div class="post-rail-dots"><span class="active"></span><span></span><span></span></div>
+            </div>
+            <div class="card-body">
+              <div class="card-title">Hidden waterfall I found near Mulshi</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Maya K.</span></div>
+              <div class="card-meta">📍 Mulshi · 4 min read</div>
+            </div>
+          </div>
+          <div class="card post-rail">
+            <div class="card-cover post-cover">
+              <div class="card-pill">Post</div>
+              <div class="card-bookmark saved">★</div>
+              <div class="post-rail-dots"><span class="active"></span><span></span></div>
+            </div>
+            <div class="card-body">
+              <div class="card-title">Why I bike to Lonavla every weekend</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Rahul T.</span></div>
+              <div class="card-meta">📍 Lonavla · 3 min read</div>
+            </div>
+          </div>
+          <div class="card post-rail">
+            <div class="card-cover post-cover">
+              <div class="card-pill">Post</div>
+              <div class="card-bookmark">🔖</div>
+            </div>
+            <div class="card-body">
+              <div class="card-title">5 misal places that locals swear by</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Foodies</span></div>
+              <div class="card-meta">📍 Pune · 6 min read</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Hot near you</div><div class="see-all">See all ›</div></div>
+        <div class="h-rail">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Tamhini Ghat monsoon ride</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Ankita W.</span></div>
+              <div class="card-meta">2 days · <span class="price">₹4,200</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark saved">★</div></div>
+            <div class="card-body">
+              <div class="card-title">Sinhagad sunset trek</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Riders Pune</span></div>
+              <div class="card-meta">Sat 4 pm · <span class="price">₹600</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Event</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Misal pav crawl</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Foodies</span></div>
+              <div class="card-meta">Sat 7 am · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Post</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Hidden waterfall I found near Mulshi</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Maya K.</span></div>
+              <div class="card-meta">📍 Pune · 4 min read</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Trips from Pune</div><div class="see-all">See all ›</div></div>
+        <div class="h-rail">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Pune to Goa coastal route</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Rahul T.</span></div>
+              <div class="card-meta">3 days · <span class="price">₹8,500</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Lonavla photo walk</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Sara D.</span></div>
+              <div class="card-meta">Sun 6 am · <span class="price">₹1,200</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Mulshi dam loop</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Riders</span></div>
+              <div class="card-meta">1 day · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Kamshet paragliding</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">FlyHigh</span></div>
+              <div class="card-meta">Sat 8 am · <span class="price">₹3,500</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">This weekend in Pune</div><div class="see-all">See all ›</div></div>
+        <div class="h-rail">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Event</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Sunday breakfast ride</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Riders</span></div>
+              <div class="card-meta">Sun 6 am · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Saturday wine tour</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Sula Tours</span></div>
+              <div class="card-meta">Sat 11 am · <span class="price">₹2,400</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Event</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Open mic at HighSpirits</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">PuneStage</span></div>
+              <div class="card-meta">Fri 8 pm · <span class="price">₹300</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Trekking near you</div><div class="see-all">See all ›</div></div>
+        <div class="h-rail">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Rajmachi monsoon trek</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Trail Co.</span></div>
+              <div class="card-meta">2 days · moderate</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Harishchandragad summit</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Peak Pune</span></div>
+              <div class="card-meta">Sat · <span class="price">₹2,100</span> · hard</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Andharban forest trail</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Maya K.</span></div>
+              <div class="card-meta">1 day · easy</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">Browse by interest</div></div>
+        <div class="interest-grid">
+          <div class="interest-tile">
+            <div class="icon-circle">🚗</div>
+            <div class="ttl">Road Trips</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🏍️</div>
+            <div class="ttl">Biking</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🥾</div>
+            <div class="ttl">Trekking</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🍜</div>
+            <div class="ttl">Food Trails</div>
+          </div>
+        </div>
+
+        <div class="section-head"><div class="section-title">New voices in Pune</div><div class="see-all">See all ›</div></div>
+        <div class="creator-grid">
+          <div class="creator-chip"><div class="creator-avatar"></div><div class="creator-name">Ankita</div><div class="creator-handle">@wanders</div></div>
+          <div class="creator-chip"><div class="creator-avatar"></div><div class="creator-name">Rahul T.</div><div class="creator-handle">@rt_rides</div></div>
+          <div class="creator-chip"><div class="creator-avatar"></div><div class="creator-name">Maya K.</div><div class="creator-handle">@mayatreks</div></div>
+          <div class="creator-chip"><div class="creator-avatar"></div><div class="creator-name">Sara D.</div><div class="creator-handle">@saralens</div></div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── B: SUB-CAT FILTERED ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">B · Sub-cat selected — Trekking</div>
+    <div class="frame-sub">Filter-in-place · single 2-col grid</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="city-chip"><span class="city-pin">📍</span> Pune <span class="city-caret">›</span></div>
+        <div class="header-icon">🔍</div>
+        <div class="header-icon">🔔</div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip active">Near you</div>
+        <div class="chip">Following</div>
+        <div class="chip-sep"></div>
+        <div class="chip">All</div>
+        <div class="chip">Road Trips</div>
+        <div class="chip">Biking</div>
+        <div class="chip active">Trekking</div>
+        <div class="chip">Food Trails</div>
+      </div>
+      <div class="body">
+        <div class="section-head">
+          <div class="section-title">Trekking near Pune</div>
+          <div class="see-all" style="color:var(--softInk);font-weight:400">42 results</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Rajmachi monsoon trek</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Trail Co.</span></div>
+              <div class="card-meta">2 days · moderate · 8 km</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark saved">★</div></div>
+            <div class="card-body">
+              <div class="card-title">Harishchandragad summit</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Peak Pune</span></div>
+              <div class="card-meta">Sat · <span class="price">₹2,100</span> · hard</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Andharban forest trail</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Maya K.</span></div>
+              <div class="card-meta">1 day · easy · 5 km</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Event</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Sunday hikers meet</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Hikes</span></div>
+              <div class="card-meta">Sun 5 am · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Kalavantin Durg</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Vertical Co.</span></div>
+              <div class="card-meta">Sat · <span class="price">₹1,800</span> · expert</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Bhimashankar trail</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Forest Folk</span></div>
+              <div class="card-meta">1 day · moderate · 14 km</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── C: FOLLOWING ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">C · Following mode</div>
+    <div class="frame-sub">Chronological · single column · sub-cat filters apply</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="city-chip"><span class="city-pin">📍</span> Pune <span class="city-caret">›</span></div>
+        <div class="header-icon">🔍</div>
+        <div class="header-icon">🔔</div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip">Near you</div>
+        <div class="chip active">Following</div>
+        <div class="chip-sep"></div>
+        <div class="chip active">All</div>
+        <div class="chip">Road Trips</div>
+        <div class="chip">Biking</div>
+        <div class="chip">Trekking</div>
+        <div class="chip">Food Trails</div>
+      </div>
+      <div class="body">
+        <div class="section-head"><div class="section-title">From creators you follow</div></div>
+        <div class="following-card">
+          <div class="follow-head">
+            <div class="follow-avatar"></div>
+            <div>
+              <div class="follow-name">Ankita Wanders</div>
+              <div class="follow-action">Posted an itinerary</div>
+            </div>
+            <div class="follow-time">2h</div>
+          </div>
+          <div class="follow-cover"></div>
+          <div class="follow-body">
+            <div class="follow-title">Tamhini Ghat monsoon weekend</div>
+            <div class="follow-meta">2 days · <span class="price">₹4,200</span> · moderate</div>
+          </div>
+          <div class="follow-actions">
+            <span>♡ 124</span><span>💬 8</span><span class="saved">★ Saved</span>
+          </div>
+        </div>
+        <div class="following-card">
+          <div class="follow-head">
+            <div class="follow-avatar"></div>
+            <div>
+              <div class="follow-name">Pune Riders</div>
+              <div class="follow-action">Created an event</div>
+            </div>
+            <div class="follow-time">5h</div>
+          </div>
+          <div class="follow-cover"></div>
+          <div class="follow-body">
+            <div class="follow-title">Sunday breakfast ride to Lavasa</div>
+            <div class="follow-meta">Sun 6 am · <span class="price-free">FREE</span> · 18 going</div>
+          </div>
+          <div class="follow-actions">
+            <span>♡ 47</span><span>💬 12</span><span>RSVP</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── D: EMPTY (no city) ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">D · No city set</div>
+    <div class="frame-sub">Soft prompt · falls back to interest tiles</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="city-chip" style="color:var(--coral)"><span class="city-pin">📍</span> Set your city <span style="color:var(--coral)">›</span></div>
+        <div class="header-icon">🔍</div>
+        <div class="header-icon">🔔</div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip active">Near you</div>
+        <div class="chip">Following</div>
+        <div class="chip-sep"></div>
+        <div class="chip active">All</div>
+        <div class="chip">Road Trips</div>
+        <div class="chip">Biking</div>
+        <div class="chip">Trekking</div>
+      </div>
+      <div class="body">
+        <div class="empty-state">
+          <div class="empty-icon">📍</div>
+          <div class="empty-title">Tell us where you are</div>
+          <div class="empty-body">We'll surface trips, events and<br/>creators near you</div>
+          <button class="cta-primary">Pick your city</button>
+        </div>
+        <div class="section-head"><div class="section-title">Or browse by interest</div></div>
+        <div class="interest-grid">
+          <div class="interest-tile">
+            <div class="icon-circle">🚗</div>
+            <div class="ttl">Road Trips</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🏍️</div>
+            <div class="ttl">Biking</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🥾</div>
+            <div class="ttl">Trekking</div>
+          </div>
+          <div class="interest-tile">
+            <div class="icon-circle">🍜</div>
+            <div class="ttl">Food Trails</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── E: ONBOARDING ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">E · Onboarding — pick interests</div>
+    <div class="frame-sub">4 active sub-cats · min 2 · saves to <code>users.travel_sub_categories</code></div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="onboard">
+        <div class="step">Step 3 of 4</div>
+        <h2>What kind of trips<br/>are you into?</h2>
+        <p>Pick at least 2 — we'll personalise your feed</p>
+        <div class="onboard-grid">
+          <div class="onboard-tile selected">
+            <div class="em">🚗</div>
+            <div class="nm">Road Trips</div>
+          </div>
+          <div class="onboard-tile">
+            <div class="em">🏍️</div>
+            <div class="nm">Biking</div>
+          </div>
+          <div class="onboard-tile selected">
+            <div class="em">🥾</div>
+            <div class="nm">Trekking</div>
+          </div>
+          <div class="onboard-tile">
+            <div class="em">🍜</div>
+            <div class="nm">Food Trails</div>
+          </div>
+        </div>
+      </div>
+      <div class="onboard-cta-bar">
+        <button class="cta-primary" style="width:100%;padding:14px">Continue · 2 selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── F: INTENT DESTINATION ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">F · Intent tile destination</div>
+    <div class="frame-sub"><code>/feed/intent/day-trips</code> · secondary filters</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div style="font-size:22px;color:var(--ink);margin-right:4px;font-weight:300">‹</div>
+        <div style="flex:1;font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink)">Day trips from Pune</div>
+        <div class="header-icon">🔍</div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip active">All</div>
+        <div class="chip">Under 4h</div>
+        <div class="chip">4–8h</div>
+        <div class="chip">Popular</div>
+        <div class="chip">Free</div>
+      </div>
+      <div class="body">
+        <div class="section-head" style="padding-bottom:6px">
+          <div style="font-family:var(--body);font-size:12px;color:var(--softInk)">28 day trips · sorted by distance</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Lonavla one-day</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Ankita W.</span></div>
+              <div class="card-meta">6 hours · 65 km · <span class="price">₹1,200</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Lavasa lakeside</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Sara D.</span></div>
+              <div class="card-meta">5 hours · 50 km · <span class="price">₹1,800</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Bhandardara hop</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Maya K.</span></div>
+              <div class="card-meta">7 hours · 100 km · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Kamshet paragliding</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">FlyHigh</span></div>
+              <div class="card-meta">4 hours · 45 km · <span class="price">₹3,500</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Itinerary</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Mulshi dam loop</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Pune Riders</span></div>
+              <div class="card-meta">5 hours · 55 km · <span class="price-free">FREE</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-cover"><div class="card-pill">Experience</div><div class="card-bookmark">🔖</div></div>
+            <div class="card-body">
+              <div class="card-title">Sinhagad sunrise</div>
+              <div class="card-creator"><div class="card-avatar"></div><span class="card-creator-name">Trail Co.</span></div>
+              <div class="card-meta">4 hours · 25 km · <span class="price">₹600</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── G: POSTS CHIP SELECTED — Instagram-style vertical feed ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">G · Posts chip selected</div>
+    <div class="frame-sub">Vertical Instagram-style feed · 3-line truncation + Show all</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="city-chip"><span class="city-pin">📍</span> Pune <span class="city-caret">›</span></div>
+        <div class="header-icon">🔍</div>
+        <div class="header-icon">🔔<span class="notif-dot"></span></div>
+      </div>
+      <div class="chip-rail">
+        <div class="chip active">Near you</div>
+        <div class="chip">Following</div>
+        <div class="chip-sep"></div>
+        <div class="chip">All</div>
+        <div class="chip active">Posts</div>
+        <div class="chip">🚗 Road Trips</div>
+        <div class="chip">🏍️ Biking</div>
+        <div class="chip">🥾 Trekking</div>
+        <div class="chip">🍜 Food Trails</div>
+      </div>
+      <div class="body" style="padding-top:4px;">
+
+        <div class="posts-feed-card">
+          <div class="posts-feed-head">
+            <div class="av"></div>
+            <div class="meta">
+              <div class="nm">Maya K.</div>
+              <div class="hd">@mayatreks · 2h ago</div>
+            </div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="posts-feed-hero">
+            <div class="post-pagedots"><span class="active"></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="posts-feed-actions">
+            <span>♡</span><span>💬</span><span>🔖</span>
+            <span class="spacer"></span>
+            <span class="read-time">4 min read</span>
+          </div>
+          <div class="posts-feed-title">Hidden waterfall I found near Mulshi</div>
+          <div class="posts-feed-body">
+            Took the back road from Tamhini and stopped where the GPS gave up. Walked 20 minutes through ferns until I heard the water. The waterfall isn't on any tourist map — locals call it Devkund-jhari. Best time is right after the first rain, before tour groups…
+          </div>
+          <div class="posts-feed-show">Show all ›</div>
+          <div class="posts-feed-tags">
+            <span class="post-tag">#monsoon</span>
+            <span class="post-tag">#mulshi</span>
+            <span class="post-tag">#trekking</span>
+          </div>
+        </div>
+
+        <div class="posts-feed-card">
+          <div class="posts-feed-head">
+            <div class="av"></div>
+            <div class="meta">
+              <div class="nm">Rahul T.</div>
+              <div class="hd">@rt_rides · 5h ago</div>
+            </div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="posts-feed-hero">
+            <div class="post-pagedots"><span class="active"></span><span></span></div>
+          </div>
+          <div class="posts-feed-actions">
+            <span>♡</span><span>💬</span><span class="save-active">★</span>
+            <span class="spacer"></span>
+            <span class="read-time">3 min read</span>
+          </div>
+          <div class="posts-feed-title">Why I bike to Lonavla every weekend</div>
+          <div class="posts-feed-body">
+            Started this routine three months ago. Leave Pune at 5 am, breakfast at Kunal's by 7, back home by noon — beats any treadmill. Here's the route I…
+          </div>
+          <div class="posts-feed-show">Show all ›</div>
+          <div class="posts-feed-tags">
+            <span class="post-tag">#biking</span>
+            <span class="post-tag">#lonavla</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="icon">⌂</div>Home</div>
+        <div class="nav-item"><div class="icon">🔍</div>Discover</div>
+        <div class="nav-fab">+</div>
+        <div class="nav-item"><div class="icon">🔖</div>Saved</div>
+        <div class="nav-item"><div class="icon">○</div>You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── H: POST DETAIL — Show all expanded ─────────────── -->
+  <div class="frame">
+    <div class="frame-label">H · Post detail</div>
+    <div class="frame-sub">Opened from "Show all" · full body text · comments</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="post-detail-head">
+        <div class="back">‹</div>
+        <div class="post-creator-row">
+          <div class="av"></div>
+          <div>
+            <div class="nm">Maya K.</div>
+            <div class="hd">@mayatreks · 2h ago</div>
+          </div>
+        </div>
+        <button class="follow-btn">Follow</button>
+      </div>
+      <div class="body" style="padding-top:0;">
+        <div class="post-hero">
+          <div class="post-pagedots"><span class="active"></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="post-actions">
+          <span>♡</span><span>💬</span><span>🔖</span>
+          <span class="spacer"></span>
+          <span class="read-time" style="font-family:var(--body);font-size:11px;color:var(--softInk);">4 min read</span>
+        </div>
+        <div class="post-stats">124 likes · 8 comments</div>
+        <div class="post-headline">Hidden waterfall I found near Mulshi</div>
+        <div class="post-body">
+          Took the back road from Tamhini and stopped where the GPS gave up. Walked 20 minutes through ferns until I heard the water.<br/><br/>
+          The waterfall isn't on any tourist map — locals call it Devkund-jhari. Best time is right after the first rain, before tour groups discover it. Park at the small temple, ask the priest for directions; he speaks enough Hindi.<br/><br/>
+          Bring grippy shoes. The last 100m is slick basalt and one slip means a cold swim.
+        </div>
+        <div class="post-meta-row">
+          <span class="post-tag">📍 Mulshi</span>
+          <span class="post-tag">#monsoon</span>
+          <span class="post-tag">#mulshi</span>
+          <span class="post-tag">#trekking</span>
+          <span class="post-tag">+2 more</span>
+        </div>
+        <div class="post-comment">
+          <div class="av"></div>
+          <div class="input">Add a comment…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notes">
+  <h3>Design system compliance</h3>
+
+  <h4>Layout — when to rail vs. grid</h4>
+  <ul>
+    <li><strong>Horizontal rails on Home (default view)</strong> — Hot near you, Trips from {city}, This weekend, sub-cat rails. Cards sized so <strong>2 are fully visible</strong> with a sliver of the 3rd peeking (signals scrollability). Scroll-snap aligned to card start.</li>
+    <li><strong>2-col grids on filtered/destination views</strong> — frame B (sub-cat chip selected) and frame F (intent destination "Day trips from Pune"). When the user has expressed intent, surface the full inventory.</li>
+    <li>Section sequence on default Home: Intent strip → Hot near you → Trips from {city} → This weekend → Sub-cat rails → Browse by interest → New voices.</li>
+    <li>Following mode is the only single-column layout (chronological feed, social-style).</li>
+  </ul>
+
+  <h4>Coral usage — exactly 8 contexts (DD-013)</h4>
+  <ul>
+    <li><span class="legend-coral"></span><strong>Primary CTA</strong> — "Pick your city", "Continue" (one per screen)</li>
+    <li><span class="legend-coral"></span><strong>Active save/bookmark</strong> — filled star on saved cards (frames A, B, C)</li>
+    <li><span class="legend-coral"></span><strong>Location pin</strong> — top bar city pin in every frame</li>
+    <li><span class="legend-coral"></span><strong>Active bottom tab</strong> — Home icon</li>
+    <li><span class="legend-coral"></span><strong>Unread notification badge</strong> — dot on bell icon (frame A)</li>
+    <li>Selected chips, selected onboarding tiles, intent tiles, card pills — all use <code>ink</code>, not coral.</li>
+  </ul>
+
+  <h4>Tokens — no hardcoded colors</h4>
+  <ul>
+    <li>Background: <code>surface</code> #FAF7F4 · Chips/intent tiles: <code>sunken</code> #F2EEE8 · Borders: <code>border</code> #E5E0D7</li>
+    <li>Headings: <code>ink</code> #2C2823 · Secondary: <code>muted</code> #6B6660 · Tertiary: <code>softInk</code> #9C9689</li>
+    <li>Free badge uses semantic <code>success</code> #1D9E75</li>
+  </ul>
+
+  <h4>Typography</h4>
+  <ul>
+    <li>Display (Fraunces 700, 34px): page heroes, onboarding question</li>
+    <li>H2 (Fraunces 600, 22px): every section title</li>
+    <li>H4 (Inter 600, 16px): card title (Fraunces here for editorial feel — DD-aligned)</li>
+    <li>Body Small (Inter 400, 13px): meta, helper text</li>
+    <li>Label (Inter 600, 11px): card pill (UPPERCASE)</li>
+  </ul>
+
+  <h4>Other rules followed</h4>
+  <ul>
+    <li>No gradients anywhere — image placeholders use <code>sunken</code> with subtle border-pattern shimmer (matches skeleton style).</li>
+    <li>One primary CTA per screen (only "Pick your city" or "Continue" — never two coral buttons).</li>
+    <li>Bottom tab bar: 5 tabs, raised center FAB on Studio, labels always visible.</li>
+    <li>Empty state: icon + title + description + CTA — never a blank screen.</li>
+    <li>Card pills are <code>ink</code> filled, not vertical-color-coded (DD-013).</li>
+    <li>Price formatting: <code>₹4,200</code> with comma · <code>FREE</code> uppercase in success green.</li>
+    <li>Tap targets ≥ 44dp: chips, header icons, FAB all comply.</li>
+  </ul>
+</div>
+
+</body>
+</html>

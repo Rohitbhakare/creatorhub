@@ -6,37 +6,32 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
-import '../../../shared/components/skeleton.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../providers/near_you_provider.dart';
-import '../providers/vertical_section_provider.dart';
-import '../providers/sub_categories_provider.dart';
-import '../providers/discover_provider.dart';
-import '../providers/discover_new_provider.dart';
-import '../providers/editors_picks_provider.dart';
-import '../providers/for_you_provider.dart';
 import '../providers/following_provider.dart';
-import '../providers/hero_provider.dart';
+import '../providers/posts_feed_provider.dart';
+import '../providers/section_rails_provider.dart';
+import '../providers/sub_categories_provider.dart';
 import '../providers/user_city_provider.dart';
+import '../providers/vertical_section_provider.dart';
 import '../utils/feed_navigation.dart';
 import '../models/feed_models.dart';
-import '../widgets/near_you_section.dart';
-import '../widgets/vertical_section.dart';
-import '../widgets/discover_section.dart';
-import '../widgets/discover_new_section.dart';
-import '../widgets/editors_picks_section.dart';
+import '../widgets/browse_by_interest_grid.dart';
 import '../widgets/content_card.dart';
-import '../widgets/hero_card.dart';
 import '../widgets/feed_chip_rail.dart';
+import '../widgets/horizontal_rail_section.dart';
+import '../widgets/quick_intent_strip.dart';
+import '../widgets/stories_rail_section.dart';
+import '../widgets/sub_cat_filtered_grid.dart';
 import 'location_picker_screen.dart';
 
 const _kGuestLocationPromptedKey = 'guest.location_prompted';
 
-/// Home feed — chip rail navigation + editorial section layout (DD-007, DISC-FR-021).
+/// Home feed — Travel-only launch.
 ///
-/// Nav chips: For you / Following / Near you.
-/// Category chips: Travel / Stories — tap jumps to that section in the For-you view.
-/// Hero card anchors every view; section headers use monospace eyebrow + Fraunces title.
+/// Chip rail: [Near you][Following] | [All][Posts][🚗][🏍️][🥾][🍜]
+/// All sub-cat = 9-section editorial body.
+/// Posts sub-cat = inline Instagram-style vertical posts feed.
+/// Specific sub-cat = 2-col filtered grid.
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
 
@@ -45,12 +40,11 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
-  String _navId = kFeedNavForYou;
+  FeedChipSelection _selection = const FeedChipSelection(
+    navId: kFeedNavNearYou,
+    subCatId: kFeedSubCatAll,
+  );
   final _scrollController = ScrollController();
-
-  // Section keys for scroll-jump (category chips)
-  final _travelKey = GlobalKey();
-  final _storiesKey = GlobalKey();
 
   @override
   void initState() {
@@ -76,51 +70,34 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   }
 
   Future<void> _refresh() async {
-    ref.invalidate(heroProvider(_navId));
-    ref.invalidate(forYouProvider);
-    ref.invalidate(followingProvider);
-    ref.invalidate(nearYouProvider);
-    ref.invalidate(verticalSectionProvider);
+    final cityId = ref.read(userCityProvider).cityId;
+    final params = SectionRailParams(cityId: cityId);
+    ref.invalidate(hotNearYouProvider(params));
+    ref.invalidate(tripsFromCityProvider(params));
+    ref.invalidate(thisWeekendProvider(params));
+    ref.invalidate(upcomingEventsProvider(params));
+    ref.invalidate(dayTripsProvider(params));
+    ref.invalidate(weekendGetawaysProvider(params));
+    ref.invalidate(storiesRailProvider(cityId));
     ref.invalidate(subCategoriesProvider);
-    ref.invalidate(discoverProvider);
-    ref.invalidate(discoverNewProvider);
-    ref.invalidate(editorPicksProvider);
+    ref.invalidate(followingProvider);
   }
 
-  void _handleNavSelect(String navId) {
-    setState(() => _navId = navId);
-    // Scroll back to top when switching nav
+  void _onSelectionChange(FeedChipSelection next) {
+    setState(() => _selection = next);
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
       );
     }
   }
 
-  void _handleCategoryJump(String vertical) {
-    // Switch to For-you if not already there
-    if (_navId != kFeedNavForYou) {
-      setState(() => _navId = kFeedNavForYou);
-    }
-    // Scroll to the section after the frame is laid out
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = vertical == kFeedCatTravel ? _travelKey : _storiesKey;
-      final ctx = key.currentContext;
-      if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-          alignment: 0.0,
-        );
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final body = _bodyForSelection(_selection);
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -130,7 +107,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           child: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // ── Sticky top bar ────────────────────────────────────
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _FeedTopBarDelegate(
@@ -139,104 +115,20 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   onBellTap: () => context.push('/notifications/preferences'),
                 ),
               ),
-
-              // ── Chip rail (sticky just below top bar) ─────────────
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _ChipRailDelegate(
-                  selectedNavId: _navId,
-                  onNavSelect: _handleNavSelect,
-                  onCategoryJump: _handleCategoryJump,
+                  selection: _selection,
+                  onChange: _onSelectionChange,
                 ),
               ),
-
-              // ── Body ──────────────────────────────────────────────
-              ..._bodyFor(_navId),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              ...body,
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           ),
         ),
       ),
     );
-  }
-
-  List<Widget> _bodyFor(String navId) {
-    switch (navId) {
-      case kFeedNavFollowing:
-        return [
-          SliverToBoxAdapter(child: _Hero(tab: navId)),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          const SliverToBoxAdapter(child: _FollowingBody()),
-        ];
-
-      case kFeedNavNearYou:
-        return [
-          SliverToBoxAdapter(child: _Hero(tab: navId)),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          const SliverToBoxAdapter(child: NearYouSection()),
-          SliverToBoxAdapter(
-            child: _SectionBlock(
-              eyebrow: 'TRAVEL',
-              title: 'Trips worth your weekend',
-              onSeeAll: () => context.push('/feed/vertical/travel', extra: {'title': 'Trips worth your weekend'}),
-              child: VerticalSection(vertical: 'travel', eyebrow: '', sectionTitle: ''),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: _SectionBlock(
-              eyebrow: 'STORIES',
-              title: 'From the people who go',
-              onSeeAll: () => context.push('/feed/vertical/stories', extra: {'title': 'From the people who go'}),
-              child: VerticalSection(vertical: 'stories', eyebrow: '', sectionTitle: ''),
-            ),
-          ),
-          const SliverToBoxAdapter(child: DiscoverSection()),
-          const SliverToBoxAdapter(child: DiscoverNewSection()),
-        ];
-
-      case kFeedNavForYou:
-      default:
-        return [
-          // Hero — editorial pull
-          SliverToBoxAdapter(child: _Hero(tab: navId)),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // For-you ranked grid
-          const SliverToBoxAdapter(child: _ForYouVerticalFeed()),
-
-          // Editor's picks — hidden when empty (DISC-FR-039)
-          const SliverToBoxAdapter(child: EditorPicksSection()),
-
-          // Travel section (scroll-jump target)
-          SliverToBoxAdapter(
-            key: _travelKey,
-            child: _SectionBlock(
-              eyebrow: 'TRAVEL',
-              title: 'Trips worth your weekend',
-              onSeeAll: () => context.push('/feed/vertical/travel', extra: {'title': 'Trips worth your weekend'}),
-              child: VerticalSection(vertical: 'travel', eyebrow: '', sectionTitle: ''),
-            ),
-          ),
-
-          // Stories section (scroll-jump target)
-          SliverToBoxAdapter(
-            key: _storiesKey,
-            child: _SectionBlock(
-              eyebrow: 'STORIES',
-              title: 'From the people who go',
-              onSeeAll: () => context.push('/feed/vertical/stories', extra: {'title': 'From the people who go'}),
-              child: VerticalSection(vertical: 'stories', eyebrow: '', sectionTitle: ''),
-            ),
-          ),
-
-          // Serendipity
-          const SliverToBoxAdapter(child: DiscoverSection()),
-
-          // Discover something new — outside usual verticals
-          const SliverToBoxAdapter(child: DiscoverNewSection()),
-        ];
-    }
   }
 
   void _openLocationPicker({bool showSkip = false}) {
@@ -247,74 +139,154 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       builder: (_) => LocationPickerScreen(showSkip: showSkip),
     );
   }
-}
 
-// ── Section block — eyebrow + Fraunces title + "See all" + content ──────────────
+  // ── Body composition ────────────────────────────────────────────────────────
 
-class _SectionBlock extends StatelessWidget {
-  final String eyebrow;
-  final String title;
-  final Widget child;
-  final VoidCallback? onSeeAll;
-
-  const _SectionBlock({
-    required this.eyebrow,
-    required this.title,
-    required this.child,
-    this.onSeeAll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      eyebrow,
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.inkMuted,
-                        fontSize: 10,
-                        letterSpacing: 0.8,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      title,
-                      style: AppTypography.h2.copyWith(fontSize: 21),
-                    ),
-                  ],
-                ),
-              ),
-              if (onSeeAll != null)
-                GestureDetector(
-                  onTap: onSeeAll,
-                  child: Row(
-                    children: [
-                      Text(
-                        'See all',
-                        style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
-                      ),
-                      const SizedBox(width: 2),
-                      const Icon(Icons.chevron_right, size: 14, color: AppColors.inkSoft),
-                    ],
-                  ),
-                ),
-            ],
+  List<Widget> _bodyForSelection(FeedChipSelection sel) {
+    // Posts chip: vertical Instagram-style feed inline as a SliverList.
+    if (sel.subCatId == kFeedSubCatPosts) {
+      final cityId = ref.watch(userCityProvider).cityId;
+      return [
+        SliverToBoxAdapter(
+          child: _InlinePostsFeed(
+            scope: sel.navId,
+            cityId: cityId,
+            scrollController: _scrollController,
           ),
         ),
-        child,
-      ],
-    );
+      ];
+    }
+
+    // Specific sub-cat chip: single 2-col grid filtered to that sub-cat.
+    if (sel.subCatId != kFeedSubCatAll) {
+      return [
+        SliverToBoxAdapter(
+          child: SubCatFilteredGrid(
+            subCategoryId: sel.subCatId,
+            scope: sel.navId,
+          ),
+        ),
+      ];
+    }
+
+    // Following + All: chronological grid of followed creators' content.
+    if (sel.navId == kFeedNavFollowing) {
+      return const [SliverToBoxAdapter(child: _FollowingBody())];
+    }
+
+    // Near you + All: 9-section editorial layout.
+    final cityId = ref.watch(userCityProvider).cityId;
+    final cityName = ref.watch(userCityProvider).cityName;
+    final railParams = SectionRailParams(cityId: cityId);
+    final cityLabel = cityName ?? 'you';
+
+    return [
+      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+      const SliverToBoxAdapter(child: QuickIntentStrip()),
+
+      const SliverToBoxAdapter(child: StoriesRailSection()),
+
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(hotNearYouProvider(railParams)),
+          eyebrow: 'TRENDING',
+          title: "What's hot near $cityLabel",
+          onSeeAll: () => context.push('/feed/section/hot-near-you'),
+        ),
+      ),
+
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(tripsFromCityProvider(railParams)),
+          eyebrow: 'TRIPS',
+          title: 'Trips starting from $cityLabel',
+          onSeeAll: () => context.push('/feed/section/trips-from-city'),
+        ),
+      ),
+
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(thisWeekendProvider(railParams)),
+          eyebrow: 'WEEKEND',
+          title: 'This weekend in $cityLabel',
+          onSeeAll: () => context.push('/feed/section/this-weekend'),
+        ),
+      ),
+
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(verticalSectionProvider(
+            const VerticalSectionParams('travel',
+                subCategoryId: kFeedSubCatRoadTrips),
+          )),
+          eyebrow: 'ROAD TRIPS',
+          title: 'Road Trips near $cityLabel',
+          onSeeAll: () =>
+              context.push('/feed/section/sub-cat/$kFeedSubCatRoadTrips'),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(verticalSectionProvider(
+            const VerticalSectionParams('travel',
+                subCategoryId: kFeedSubCatBiking),
+          )),
+          eyebrow: 'BIKING',
+          title: 'Biking near $cityLabel',
+          onSeeAll: () =>
+              context.push('/feed/section/sub-cat/$kFeedSubCatBiking'),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(verticalSectionProvider(
+            const VerticalSectionParams('travel',
+                subCategoryId: kFeedSubCatTrekking),
+          )),
+          eyebrow: 'TREKKING',
+          title: 'Trekking near $cityLabel',
+          onSeeAll: () =>
+              context.push('/feed/section/sub-cat/$kFeedSubCatTrekking'),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(verticalSectionProvider(
+            const VerticalSectionParams('travel',
+                subCategoryId: kFeedSubCatFoodTrails),
+          )),
+          eyebrow: 'FOOD TRAILS',
+          title: 'Food Trails near $cityLabel',
+          onSeeAll: () =>
+              context.push('/feed/section/sub-cat/$kFeedSubCatFoodTrails'),
+        ),
+      ),
+
+      SliverToBoxAdapter(
+        child: HorizontalRailSection(
+          async: ref.watch(upcomingEventsProvider(railParams)),
+          eyebrow: 'EVENTS',
+          title: 'Upcoming events',
+          onSeeAll: () => context.push('/feed/section/upcoming-events'),
+        ),
+      ),
+
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          child: Text(
+            'Browse by interest',
+            style: AppTypography.h2.copyWith(fontSize: 21),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: BrowseByInterestGrid(
+          onSelectSubCat: (slug) =>
+              _onSelectionChange(_selection.copyWith(subCatId: slug)),
+        ),
+      ),
+    ];
   }
 }
 
@@ -437,15 +409,10 @@ class _IconBtn extends StatelessWidget {
 // ── Chip rail delegate (sticky below top bar) ─────────────────────────────────
 
 class _ChipRailDelegate extends SliverPersistentHeaderDelegate {
-  final String selectedNavId;
-  final void Function(String) onNavSelect;
-  final void Function(String) onCategoryJump;
+  final FeedChipSelection selection;
+  final ValueChanged<FeedChipSelection> onChange;
 
-  const _ChipRailDelegate({
-    required this.selectedNavId,
-    required this.onNavSelect,
-    required this.onCategoryJump,
-  });
+  const _ChipRailDelegate({required this.selection, required this.onChange});
 
   @override
   double get minExtent => 52;
@@ -460,93 +427,18 @@ class _ChipRailDelegate extends SliverPersistentHeaderDelegate {
         border: Border(bottom: BorderSide(color: AppColors.hairline, width: 0.5)),
       ),
       child: FeedChipRail(
-        selectedNavId: selectedNavId,
-        onNavSelect: onNavSelect,
-        onCategoryJump: onCategoryJump,
+        selection: selection,
+        onSelectionChange: onChange,
       ),
     );
   }
 
   @override
   bool shouldRebuild(covariant _ChipRailDelegate old) =>
-      old.selectedNavId != selectedNavId;
+      old.selection != selection;
 }
 
-// ── Hero card (tab-aware eyebrow) ─────────────────────────────────────────────
-
-class _Hero extends ConsumerWidget {
-  final String tab;
-  const _Hero({required this.tab});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(heroProvider(tab));
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: async.when(
-        loading: () => const _HeroSkeleton(),
-        error: (_, _) => const SizedBox.shrink(),
-        data: (item) {
-          if (item == null) return const SizedBox.shrink();
-          return HeroCard(
-            item: item,
-            eyebrow: _eyebrowFor(tab),
-            onTap: () => openFeedItem(context, item),
-          );
-        },
-      ),
-    );
-  }
-
-  static String _eyebrowFor(String tab) {
-    switch (tab) {
-      case kFeedNavFollowing: return 'From your follows';
-      case kFeedNavNearYou:   return 'Near you · this weekend';
-      default:                return 'Featured for you';
-    }
-  }
-}
-
-class _HeroSkeleton extends StatelessWidget {
-  const _HeroSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-        child: SkeletonRect(height: 220),
-      ),
-    );
-  }
-}
-
-// ── For-you 2-col grid ────────────────────────────────────────────────────────
-
-class _ForYouVerticalFeed extends ConsumerWidget {
-  const _ForYouVerticalFeed();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(forYouProvider);
-    return async.when(
-      loading: () => const _FeedGridSkeleton(),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
-        // Skip index 0 — rendered as hero
-        final body = items.length > 1
-            ? items.sublist(1, items.length.clamp(1, 7))
-            : const <FeedContentItem>[];
-        if (body.isEmpty) return const SizedBox.shrink();
-        return _FeedGrid(items: body);
-      },
-    );
-  }
-}
-
-// ── Following grid or empty state ─────────────────────────────────────────────
+// ── Following body (chronological grid) ───────────────────────────────────────
 
 class _FollowingBody extends ConsumerWidget {
   const _FollowingBody();
@@ -555,10 +447,15 @@ class _FollowingBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(followingProvider);
     return async.when(
-      loading: () => const _FeedGridSkeleton(),
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 80),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.coral),
+        ),
+      ),
       error: (_, _) => const _EmptyState(
         icon: PhosphorIconsRegular.warning,
-        title: 'Couldn\u2019t load your follows',
+        title: "Couldn't load your follows",
         subtitle: 'Pull down to retry.',
       ),
       data: (items) {
@@ -570,81 +467,143 @@ class _FollowingBody extends ConsumerWidget {
                 'Follow creators to see their latest posts, trips, and experiences in one place.',
           );
         }
-        return _FeedGrid(items: items);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: GridView.builder(
+            shrinkWrap: true,
+            primary: false,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 18,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.65,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, i) => ContentCard(
+              item: items[i],
+              variant: ContentCardVariant.grid,
+              onTap: () => openFeedItem(context, items[i]),
+            ),
+          ),
+        );
       },
     );
   }
 }
 
-// ── Shared 2-col grid ─────────────────────────────────────────────────────────
+// ── Inline posts feed (used when Posts chip is active) ───────────────────────
 
-class _FeedGrid extends StatelessWidget {
-  final List<FeedContentItem> items;
-  const _FeedGrid({required this.items});
+class _InlinePostsFeed extends ConsumerStatefulWidget {
+  final String scope;
+  final String? cityId;
+  final ScrollController scrollController;
+
+  const _InlinePostsFeed({
+    required this.scope,
+    required this.cityId,
+    required this.scrollController,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-      child: GridView.builder(
-        shrinkWrap: true,
-        primary: false,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 18,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.65,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, i) => ContentCard(
-          item: items[i],
-          variant: ContentCardVariant.grid,
-          onTap: () => openFeedItem(context, items[i]),
-        ),
-      ),
-    );
-  }
+  ConsumerState<_InlinePostsFeed> createState() => _InlinePostsFeedState();
 }
 
-class _FeedGridSkeleton extends StatelessWidget {
-  const _FeedGridSkeleton();
+class _InlinePostsFeedState extends ConsumerState<_InlinePostsFeed> {
+  late final PostsFeedParams _params = PostsFeedParams(
+    scope: widget.scope,
+    cityId: widget.cityId,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final c = widget.scrollController;
+    if (!c.hasClients) return;
+    if (c.position.pixels >= c.position.maxScrollExtent - 600) {
+      ref.read(postsFeedProvider(_params).notifier).loadMore();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-      child: GridView.builder(
-        shrinkWrap: true,
-        primary: false,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 18,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.65,
+    final async = ref.watch(postsFeedProvider(_params));
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 80),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.coral),
         ),
-        itemCount: 4,
-        itemBuilder: (_, _) => const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+      ),
+      error: (_, _) => const _EmptyState(
+        icon: PhosphorIconsRegular.warning,
+        title: "Couldn't load posts",
+        subtitle: 'Pull down to retry.',
+      ),
+      data: (state) {
+        if (state.items.isEmpty) {
+          return const _EmptyState(
+            icon: PhosphorIconsRegular.article,
+            title: 'No posts yet',
+            subtitle: 'Pull down to refresh.',
+          );
+        }
+        return Column(
           children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: SkeletonRect(borderRadius: 12),
-            ),
-            SizedBox(height: 8),
-            SkeletonLine(height: 13),
-            SizedBox(height: 6),
-            SkeletonLine(width: 100, height: 11),
+            for (final it in state.items) ...[
+              _PostRow(item: it),
+              Divider(color: AppColors.hairline, height: 24),
+            ],
+            if (state.isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.coral,
+                    ),
+                  ),
+                ),
+              ),
           ],
+        );
+      },
+    );
+  }
+}
+
+class _PostRow extends StatelessWidget {
+  final FeedContentItem item;
+  const _PostRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/posts/${item.id}'),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        child: ContentCard(
+          item: item,
+          variant: ContentCardVariant.grid,
+          onTap: () => openFeedItem(context, item),
         ),
       ),
     );
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   final IconData icon;
@@ -660,7 +619,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+      padding: const EdgeInsets.fromLTRB(32, 64, 32, 32),
       child: Column(
         children: [
           Container(
@@ -682,7 +641,8 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: AppTypography.body.copyWith(color: AppColors.inkMuted, height: 1.5),
+            style: AppTypography.body
+                .copyWith(color: AppColors.inkMuted, height: 1.5),
             textAlign: TextAlign.center,
           ),
         ],
@@ -690,4 +650,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
