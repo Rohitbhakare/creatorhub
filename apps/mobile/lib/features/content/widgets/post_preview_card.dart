@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
+import '../../../shared/markdown/post_markdown_style.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
@@ -97,16 +99,21 @@ class PostPreviewCard extends ConsumerWidget {
                     ),
                   )
                 else
-                  Text(
-                    body,
-                    style: GoogleFonts.fraunces(
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      height: 1.45,
-                      color: AppColors.inkSoft,
+                  // Render the body as markdown so headings, lists, bold,
+                  // links etc. match how the post will appear in the feed.
+                  // Cap the visual height so the preview card stays compact.
+                  ClipRect(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 110),
+                      child: MarkdownBody(
+                        data: body,
+                        styleSheet: postMarkdownStyleSheet(context),
+                        sizedImageBuilder: postMarkdownImageBuilder,
+                        selectable: false,
+                        shrinkWrap: true,
+                        fitContent: true,
+                      ),
                     ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
                   ),
               ],
             ),

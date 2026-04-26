@@ -353,14 +353,22 @@ class _BodyField extends StatelessWidget {
       child: TextField(
         controller: controller,
         focusNode: focusNode,
-        maxLines: 12,
-        minLines: 8,
+        maxLines: null,
+        minLines: 16,
         keyboardType: TextInputType.multiline,
         textInputAction: TextInputAction.newline,
         style: typ.AppTypography.body,
         decoration: const InputDecoration(
           hintText: 'Tell your story... (markdown supported)',
+          // Override the global inputDecorationTheme borders — without these
+          // the theme paints a focused/enabled outline INSIDE the parent
+          // Container's border, producing a visible double border.
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           isDense: true,
           contentPadding: EdgeInsets.zero,
         ),
@@ -379,7 +387,7 @@ class _PreviewSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 200),
+      constraints: const BoxConstraints(minHeight: 380),
       decoration: BoxDecoration(
         color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(Layout.inputRadius),
