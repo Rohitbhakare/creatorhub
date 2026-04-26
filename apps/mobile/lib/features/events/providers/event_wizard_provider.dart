@@ -87,6 +87,9 @@ class EventWizardState {
   // Optional fields (CRT-FR-013)
   final String? dressCode;
   final String? ageRestriction; // 'none' | '18+' | '21+'
+  /// Cancellation policy used for paid events.
+  /// Values: 'flexible' (default) | 'moderate' | 'strict'.
+  final String cancellationPolicy;
 
   const EventWizardState({
     this.startAt,
@@ -102,6 +105,7 @@ class EventWizardState {
     this.whatToBring = const [],
     this.dressCode,
     this.ageRestriction,
+    this.cancellationPolicy = 'flexible',
   });
 
   EventWizardState copyWith({
@@ -120,6 +124,7 @@ class EventWizardState {
     String? dressCode,
     bool setAgeRestriction = false,
     String? ageRestriction,
+    String? cancellationPolicy,
   }) {
     return EventWizardState(
       startAt: startAt ?? this.startAt,
@@ -135,6 +140,7 @@ class EventWizardState {
       whatToBring: whatToBring ?? this.whatToBring,
       dressCode: setDressCode ? dressCode : this.dressCode,
       ageRestriction: setAgeRestriction ? ageRestriction : this.ageRestriction,
+      cancellationPolicy: cancellationPolicy ?? this.cancellationPolicy,
     );
   }
 
@@ -155,6 +161,7 @@ class EventWizardState {
         'dress_code': dressCode!.trim(),
       if (ageRestriction != null && ageRestriction != 'none')
         'age_restriction': ageRestriction,
+      'cancellation_policy': cancellationPolicy,
     };
   }
 }
@@ -217,6 +224,9 @@ class EventWizardNotifier extends Notifier<EventWizardState> {
 
   void setCapacity(int value) =>
       state = state.copyWith(capacity: value.clamp(1, 10000));
+
+  void setCancellationPolicy(String policy) =>
+      state = state.copyWith(cancellationPolicy: policy);
 
   void setWhatToBring(List<String> items) =>
       state = state.copyWith(whatToBring: List.unmodifiable(items));

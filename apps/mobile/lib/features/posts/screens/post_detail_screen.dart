@@ -1,24 +1,29 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../shared/markdown/post_markdown_style.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/layout.dart';
-import '../../../shared/components/avatar.dart';
-import '../../../shared/components/button.dart';
 import '../../../shared/components/empty_state.dart';
+import '../../../shared/components/host_card.dart';
+import '../../../shared/components/share_action_sheet.dart';
 import '../../../shared/components/skeleton.dart';
 import '../../../shared/services/analytics_service.dart';
-import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 import '../../saved/widgets/save_to_list_sheet.dart';
 import '../../social/providers/follow_provider.dart';
-import '../../social/utils/share_utils.dart' show shareNative;
+import '../../social/utils/share_utils.dart' show canonicalUrl;
 import '../../social/widgets/engagement_bar.dart';
 import '../providers/post_detail_provider.dart';
 
@@ -117,22 +122,44 @@ class _PostDetailContent extends ConsumerWidget {
                       Text(post.title, style: typ.AppTypography.h2),
                       const SizedBox(height: Spacing.lg),
 
-                      // Creator header
-                      _CreatorHeader(
+                      // Creator host card
+                      _PostHostCard(
                         creatorId: post.creatorId,
                         avatarUrl: post.creatorAvatarUrl,
                         displayName: post.creatorName,
                         username: post.creatorUsername,
-                        followerCount: post.creatorFollowerCount,
                         postCount: post.creatorPostCount,
                         joinedAt: post.creatorJoinedAt,
                       ),
 
                       const Divider(height: Spacing.xl * 2, thickness: 0.5, color: AppColors.hairline),
 
-                      // Body text
+                      // Body — rendered as markdown (plain text is a valid superset)
                       if (post.body.isNotEmpty)
-                        Text(post.body, style: typ.AppTypography.postBody),
+                        MarkdownBody(
+                          data: post.body,
+                          styleSheet: postMarkdownStyleSheet(context),
+                          sizedImageBuilder: postMarkdownImageBuilder,
+                          selectable: true,
+                          onTapLink: (text, href, title) async {
+                            if (href == null || href.isEmpty) return;
+                            unawaited(HapticFeedback.selectionClick());
+                            final uri = Uri.tryParse(href);
+                            if (uri == null) {
+                              debugPrint('Invalid markdown link: $href');
+                              return;
+                            }
+                            try {
+                              final ok = await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                              if (!ok) debugPrint('Could not launch $href');
+                            } catch (e) {
+                              debugPrint('Launch failed for $href: $e');
+                            }
+                          },
+                        ),
                       const SizedBox(height: Spacing.xl),
 
                       // Additional images carousel (2nd image onward)
@@ -141,7 +168,7 @@ class _PostDetailContent extends ConsumerWidget {
                         const SizedBox(height: Spacing.xl),
                       ],
 
-                      // Tags
+                      // Tags — surface bg + hairline border, no coral
                       if (post.tags.isNotEmpty) ...[
                         Wrap(
                           spacing: Spacing.sm,
@@ -153,8 +180,10 @@ class _PostDetailContent extends ConsumerWidget {
                                 vertical: Spacing.xs,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceAlt,
-                                borderRadius: BorderRadius.circular(Layout.chipRadius),
+                                color: AppColors.surface,
+                                border: Border.all(color: AppColors.hairline),
+                                borderRadius:
+                                    BorderRadius.circular(Layout.chipRadius),
                               ),
                               child: Text(
                                 '#$tag',
@@ -307,12 +336,13 @@ class _HeroCarouselState extends ConsumerState<_HeroCarousel> {
                   if (_isSharing) return;
                   _isSharing = true;
                   HapticFeedback.lightImpact();
-                  await shareNative(
-                    title: widget.postTitle,
+                  await showShareActionSheet(
+                    context: context,
+                    ref: ref,
                     contentId: widget.postId,
                     contentType: 'post',
-                    ref: ref,
-                    context: context,
+                    contentTitle: widget.postTitle,
+                    shareUrl: canonicalUrl('post', widget.postId),
                   );
                   _isSharing = false;
                 },
@@ -320,8 +350,21 @@ class _HeroCarouselState extends ConsumerState<_HeroCarousel> {
               const SizedBox(width: 8),
               _OverlayIconBtn(
                 icon: PhosphorIconsFill.bookmarkSimple,
-                tintColor: AppColors.coral,
-                onTap: () => showSaveToListSheet(context, ref, widget.postId),
+                tintColor: widget.isSaved ? AppColors.coral : null,
+                onTap: () async {
+                  HapticFeedback.lightImpact();
+                  final isAuth = ref.read(authProvider).isAuthenticated;
+                  if (!isAuth) {
+                    await showSoftAuthSheet(
+                      context,
+                      ref,
+                      trigger: SoftAuthTrigger.save,
+                    );
+                    return;
+                  }
+                  if (!context.mounted) return;
+                  showSaveToListSheet(context, ref, widget.postId);
+                },
               ),
             ],
           ),
@@ -463,38 +506,33 @@ class _PostMetaRow extends StatelessWidget {
   }
 }
 
-// ── Creator header with stats ─────────────────────────────────────────────────
+// ── Creator host card ────────────────────────────────────────────────────────
 
-class _CreatorHeader extends ConsumerWidget {
+class _PostHostCard extends ConsumerWidget {
   final String? creatorId;
   final String? avatarUrl;
   final String displayName;
   final String? username;
-  final int followerCount;
   final int postCount;
   final DateTime? joinedAt;
 
-  const _CreatorHeader({
+  const _PostHostCard({
     this.creatorId,
     this.avatarUrl,
     required this.displayName,
     this.username,
-    this.followerCount = 0,
     this.postCount = 0,
     this.joinedAt,
   });
 
-  String _buildSubtitle() {
-    final parts = <String>[];
-    if (postCount > 0) parts.add('${formatCount(postCount)} posts');
-    if (followerCount > 0) parts.add('${formatCount(followerCount)} followers');
-    if (joinedAt != null) {
-      final months = DateTime.now().difference(joinedAt!).inDays ~/ 30;
-      if (months > 0) {
-        parts.add('Writing for ${months < 12 ? '$months months' : '${months ~/ 12}y'}');
-      }
-    }
-    return parts.join(' · ');
+  String _tenureLabel() {
+    if (joinedAt == null) return 'New on CreatorHub';
+    final days = DateTime.now().difference(joinedAt!).inDays;
+    if (days < 30) return 'Joined this month';
+    final months = days ~/ 30;
+    if (months < 12) return 'Writing for $months ${months == 1 ? 'month' : 'months'}';
+    final years = months ~/ 12;
+    return 'Writing for $years ${years == 1 ? 'year' : 'years'}';
   }
 
   @override
@@ -502,70 +540,49 @@ class _CreatorHeader extends ConsumerWidget {
     final followKey = creatorId != null
         ? (targetUserId: creatorId!, isFollowing: false, followerCount: 0)
         : null;
-    final followState = followKey != null ? ref.watch(followProvider(followKey)) : null;
+    final followState =
+        followKey != null ? ref.watch(followProvider(followKey)) : null;
     final isFollowing = followState?.isFollowing ?? false;
-    final subtitle = _buildSubtitle();
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: creatorId == null
-              ? null
-              : () {
-                  HapticFeedback.selectionClick();
-                  context.push('/profile/$creatorId');
-                },
-          behavior: HitTestBehavior.opaque,
-          child: AppAvatar(imageUrl: avatarUrl, name: displayName, size: 48),
-        ),
-        const SizedBox(width: Spacing.md),
-        Expanded(
-          child: GestureDetector(
-            onTap: creatorId == null
-                ? null
-                : () {
-                    HapticFeedback.selectionClick();
-                    context.push('/profile/$creatorId');
-                  },
-            behavior: HitTestBehavior.opaque,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  style: typ.AppTypography.body.copyWith(fontWeight: FontWeight.w700),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: typ.AppTypography.caption.copyWith(color: AppColors.inkMuted),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        if (creatorId != null) ...[
-          const SizedBox(width: Spacing.md),
-          AppButton(
-            label: isFollowing ? 'Following' : 'Follow',
-            onPressed: () {
+    return HostCard(
+      creatorId: creatorId ?? '',
+      displayName: displayName,
+      avatarUrl: avatarUrl,
+      username: username,
+      tenureLabel: _tenureLabel(),
+      contentCount: postCount,
+      isFollowing: isFollowing,
+      onFollowTap: creatorId == null
+          ? null
+          : () async {
               HapticFeedback.lightImpact();
-              if (followKey != null) handleFollowTap(context, ref, followKey);
+              final isAuth = ref.read(authProvider).isAuthenticated;
+              if (!isAuth) {
+                await showSoftAuthSheet(
+                  context,
+                  ref,
+                  trigger: SoftAuthTrigger.follow,
+                );
+                return;
+              }
+              if (!context.mounted) return;
+              if (followKey != null) {
+                handleFollowTap(context, ref, followKey);
+              }
             },
-            variant: isFollowing
-                ? AppButtonVariant.secondary
-                : AppButtonVariant.coralOutline,
-            size: AppButtonSize.small,
-          ),
-        ],
-      ],
+      onMessageTap: creatorId == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              // Messaging is M2 — fall back to profile for now.
+              context.push('/profile/$creatorId');
+            },
+      onTap: creatorId == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              context.push('/profile/$creatorId');
+            },
     );
   }
 }

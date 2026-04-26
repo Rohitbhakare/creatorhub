@@ -288,7 +288,7 @@ class _SavedItemCard extends StatelessWidget {
         _navigateToContent(context);
       },
       child: Container(
-        height: 100,
+        height: 120,
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(Layout.cardRadius),
@@ -299,8 +299,8 @@ class _SavedItemCard extends StatelessWidget {
           children: [
             // Thumbnail
             SizedBox(
-              width: 100,
-              height: 100,
+              width: 120,
+              height: 120,
               child: item.coverImageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: item.coverImageUrl!,

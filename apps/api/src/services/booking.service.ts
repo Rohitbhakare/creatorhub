@@ -15,6 +15,9 @@ import { env } from '../env.js'
 import { calculateBookingAmounts } from '../utils/money.js'
 import { getActiveRazorpayAccountId } from './linked-account.service.js'
 import { schedulePayoutOnBookingCompleted } from './payout.service.js'
+import { consumeIntent } from './booking-intent.service.js'
+import { sendBookingConfirmation } from './whatsapp.service.js'
+import { sendBookingConfirmationEmail } from './email.service.js'
 
 // Placeholder hold window — recomputed on booking completion (T8).
 const INITIAL_HOLD_DAYS = 30
@@ -105,7 +108,14 @@ export async function createBooking(
   userId: string,
   contentId: string,
   scheduledDateId: string,
+  intentId?: string,
 ): Promise<{ booking: BookingDetails; razorpayOrderId: string; keyId: string }> {
+  // Consume hold first if caller provided one — serializes parallel buyers
+  // before we touch scheduled_dates. Throws AppError('gone', 410) on expiry.
+  if (intentId) {
+    await consumeIntent(intentId, userId)
+  }
+
   // 1. Verify content is published and paid
   const { data: content, error: contentError } = await supabase
     .from('content')
@@ -307,6 +317,8 @@ export async function confirmPayment(
   // Idempotency: already confirmed is fine
   if ((booking as Row).status === 'confirmed') return
 
+  const bookingId = (booking as Row).id as string
+
   // Transition to confirmed
   const { error: updateError } = await supabase
     .from('bookings')
@@ -315,11 +327,24 @@ export async function confirmPayment(
       razorpay_payment_id: razorpayPaymentId,
       razorpay_signature: razorpaySignature,
     })
-    .eq('id', (booking as Row).id as string)
+    .eq('id', bookingId)
     .eq('status', 'pending_payment')
 
   if (updateError) {
     throw new AppError('db-error', 500, 'Failed to confirm booking')
+  }
+
+  // Fire-and-forget post-confirmation notifications. These never throw —
+  // both helpers swallow errors and log internally.
+  const { data: confirmed } = await supabase
+    .from('bookings')
+    .select('id, user_id')
+    .eq('id', bookingId)
+    .maybeSingle()
+  if (confirmed) {
+    const buyerId = (confirmed as Row).user_id as string
+    void sendBookingConfirmation(buyerId, bookingId)
+    void sendBookingConfirmationEmail(buyerId, bookingId)
   }
 }
 

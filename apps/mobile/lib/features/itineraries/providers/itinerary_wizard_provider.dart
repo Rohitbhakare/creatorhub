@@ -33,6 +33,10 @@ class SpotState {
   final double lat;
   final double lng;
   final String? thumbnailUrl;
+  /// Creator-uploaded cover override (DD-032). When non-null, takes
+  /// precedence over [thumbnailUrl] (the Google Places photo) when the
+  /// spot is rendered.
+  final String? coverUrl;
   final String? creatorNote;
   final int? durationMinutes;
   final StopType stopType;
@@ -45,11 +49,16 @@ class SpotState {
     required this.lat,
     required this.lng,
     this.thumbnailUrl,
+    this.coverUrl,
     this.creatorNote,
     this.durationMinutes,
     this.stopType = StopType.regular,
     this.isFreePreview = false,
   });
+
+  /// Resolved display URL for the spot thumbnail.
+  /// Prefers the creator-uploaded [coverUrl] over the Places [thumbnailUrl].
+  String? get displayImageUrl => coverUrl ?? thumbnailUrl;
 
   SpotState copyWith({
     String? id,
@@ -58,6 +67,7 @@ class SpotState {
     double? lat,
     double? lng,
     String? thumbnailUrl,
+    Object? coverUrl = _sentinel,
     String? creatorNote,
     int? durationMinutes,
     StopType? stopType,
@@ -70,6 +80,8 @@ class SpotState {
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      coverUrl:
+          identical(coverUrl, _sentinel) ? this.coverUrl : coverUrl as String?,
       creatorNote: creatorNote ?? this.creatorNote,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       stopType: stopType ?? this.stopType,
@@ -85,6 +97,9 @@ class SpotState {
       'lat': lat,
       'lng': lng,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      // cover_url is sent regardless of null-ness so that resetting an
+      // override clears the column on the server (PUT /spots/:spotId).
+      'cover_url': coverUrl,
       if (creatorNote != null) 'creator_note': creatorNote,
       if (durationMinutes != null) 'duration_minutes': durationMinutes,
       'stop_type': stopType.value,
@@ -100,6 +115,7 @@ class SpotState {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       thumbnailUrl: json['thumbnail_url'] as String?,
+      coverUrl: json['cover_url'] as String?,
       creatorNote: json['creator_note'] as String?,
       durationMinutes: json['duration_minutes'] as int?,
       stopType: StopType.fromString(json['stop_type'] as String? ?? 'regular'),
@@ -107,6 +123,10 @@ class SpotState {
     );
   }
 }
+
+/// Sentinel used by [SpotState.copyWith] to distinguish "field omitted"
+/// from "field explicitly set to null" (needed for clearing [coverUrl]).
+const Object _sentinel = Object();
 
 // ── Day State ─────────────────────────────────────────────────
 

@@ -1,7 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart'
+    show PhosphorIconsFill, PhosphorIconsRegular;
 
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart' as typ;
@@ -9,14 +15,18 @@ import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/components/button.dart';
 import '../../../shared/components/input.dart';
+import '../../../shared/utils/firebase_storage.dart';
+import '../../../shared/utils/toast.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/itinerary_wizard_provider.dart';
 import 'spot_picker_sheet.dart';
 
 /// Bottom sheet for configuring a spot after selection from Places API.
 ///
-/// Lets the user add creator note, duration, and stop type.
+/// Lets the user upload a custom cover photo, add creator note,
+/// duration, and stop type.
 /// Returns a [SpotState] when the user confirms.
-class SpotEditorSheet extends StatefulWidget {
+class SpotEditorSheet extends ConsumerStatefulWidget {
   final PlaceResult place;
 
   const SpotEditorSheet({
@@ -25,16 +35,21 @@ class SpotEditorSheet extends StatefulWidget {
   });
 
   @override
-  State<SpotEditorSheet> createState() => _SpotEditorSheetState();
+  ConsumerState<SpotEditorSheet> createState() => _SpotEditorSheetState();
 }
 
-class _SpotEditorSheetState extends State<SpotEditorSheet> {
+class _SpotEditorSheetState extends ConsumerState<SpotEditorSheet> {
   final _noteController = TextEditingController();
   final _customDurationController = TextEditingController();
 
   StopType _stopType = StopType.regular;
   int? _durationMinutes;
   bool _showCustomDuration = false;
+
+  /// Creator-uploaded cover override. When non-null, takes precedence
+  /// over the Google Places photo for this spot's thumbnail.
+  String? _coverUrl;
+  bool _uploadingCover = false;
 
   static const _durationOptions = [
     (label: '15 min', minutes: 15),
@@ -75,6 +90,51 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
     });
   }
 
+  /// Open the system image picker, upload to Firebase Storage at
+  /// `itinerary_spots/{userId}/{tempId}/{microsTimestamp}.{ext}`, and
+  /// set [_coverUrl] to the returned download URL.
+  Future<void> _onPickCover() async {
+    unawaited(HapticFeedback.lightImpact());
+
+    final XFile? picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1080,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() => _uploadingCover = true);
+
+    try {
+      final auth = ref.read(authProvider);
+      final userId = auth.user?['id'] as String? ?? 'anonymous';
+
+      // The spot doesn't have a server id yet (created on Add Spot).
+      // Use a fresh micros timestamp as the temp folder; the full path
+      // is unique per upload regardless.
+      final stamp = DateTime.now().microsecondsSinceEpoch;
+      final ext = picked.path.split('.').last.toLowerCase();
+      final path = 'itinerary_spots/$userId/$stamp/$stamp.$ext';
+
+      final url = await uploadFile(File(picked.path), path);
+      if (!mounted) return;
+      setState(() {
+        _coverUrl = url;
+        _uploadingCover = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _uploadingCover = false);
+      showAppToast(context, 'Cover upload failed. Try again.');
+    }
+  }
+
+  void _onResetCover() {
+    HapticFeedback.lightImpact();
+    setState(() => _coverUrl = null);
+  }
+
   void _onAddSpot() {
     HapticFeedback.lightImpact();
 
@@ -93,6 +153,7 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
       lat: widget.place.lat ?? 0,
       lng: widget.place.lng ?? 0,
       thumbnailUrl: widget.place.photoUrl,
+      coverUrl: _coverUrl,
       creatorNote: _noteController.text.trim().isEmpty
           ? null
           : _noteController.text.trim(),
@@ -102,6 +163,10 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
 
     Navigator.of(context).pop(spot);
   }
+
+  /// Resolve the URL shown in the cover preview, in priority order:
+  /// 1. creator-uploaded override → 2. Places photo → 3. null (placeholder).
+  String? get _previewUrl => _coverUrl ?? widget.place.photoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +292,20 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
               ),
               const SizedBox(height: Spacing.xl),
 
+              // Cover photo (DD-032). Sits ABOVE the stop-type chips so
+              // creators see the visual override first.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
+                child: _CoverPhotoSection(
+                  previewUrl: _previewUrl,
+                  hasOverride: _coverUrl != null,
+                  isUploading: _uploadingCover,
+                  onPick: _onPickCover,
+                  onReset: _onResetCover,
+                ),
+              ),
+              const SizedBox(height: Spacing.xl),
+
               // Creator note
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
@@ -344,6 +423,143 @@ class _SpotEditorSheetState extends State<SpotEditorSheet> {
   }
 }
 
+/// Cover photo picker section.
+///
+/// Shows a 16:9 tap target with the resolved preview URL. When a creator
+/// override is set, also shows a "Reset to default" text button.
+class _CoverPhotoSection extends StatelessWidget {
+  final String? previewUrl;
+  final bool hasOverride;
+  final bool isUploading;
+  final VoidCallback onPick;
+  final VoidCallback onReset;
+
+  const _CoverPhotoSection({
+    required this.previewUrl,
+    required this.hasOverride,
+    required this.isUploading,
+    required this.onPick,
+    required this.onReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Cover photo',
+          style: typ.AppTypography.label.copyWith(color: AppColors.inkSoft),
+        ),
+        const SizedBox(height: Spacing.sm),
+        GestureDetector(
+          onTap: isUploading ? null : onPick,
+          behavior: HitTestBehavior.opaque,
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (previewUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: previewUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) => Container(
+                        color: AppColors.shimmerBase,
+                      ),
+                      errorWidget: (_, _, _) => _CoverPlaceholder(),
+                    )
+                  else
+                    _CoverPlaceholder(),
+                  // Tap overlay with camera icon
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    alignment: Alignment.center,
+                    child: isUploading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.surface,
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: Spacing.md,
+                              vertical: Spacing.sm,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface.withValues(alpha: 0.92),
+                              borderRadius: BorderRadius.circular(
+                                Layout.chipRadius,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  PhosphorIconsRegular.camera,
+                                  size: 16,
+                                  color: AppColors.ink,
+                                ),
+                                const SizedBox(width: Spacing.xs),
+                                Text(
+                                  hasOverride
+                                      ? 'Change cover'
+                                      : 'Upload cover',
+                                  style: typ.AppTypography.bodySmall.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (hasOverride) ...[
+          const SizedBox(height: Spacing.sm),
+          GestureDetector(
+            onTap: onReset,
+            behavior: HitTestBehavior.opaque,
+            child: Text(
+              'Reset to default',
+              style: typ.AppTypography.bodySmall.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CoverPlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surfaceAlt,
+      child: const Center(
+        child: Icon(
+          PhosphorIconsFill.image,
+          size: 32,
+          color: AppColors.inkMuted,
+        ),
+      ),
+    );
+  }
+}
+
 /// Duration chip.
 class _DurationChip extends StatelessWidget {
   final String label;
@@ -387,7 +603,12 @@ class _DurationChip extends StatelessWidget {
   }
 }
 
-/// Stop type chip with icon.
+/// Stop type chip — monochrome (DD-024).
+///
+/// Per the 5-coral rule, only `StopType.overnight` carries the coral
+/// accent (signaling an overnight stay, which is one of the 5 critical
+/// signals). Every other stop type renders monochrome (ink + surface);
+/// the icon shape carries the differentiation.
 class _StopTypeChip extends StatelessWidget {
   final StopType type;
   final bool isSelected;
@@ -401,7 +622,34 @@ class _StopTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _stopTypeChipColor(type);
+    final isOvernight = type == StopType.overnight;
+
+    // Compute color tokens. Overnight = coral accent. Others = monochrome.
+    final Color bg;
+    final Color fg;
+    final Color borderColor;
+
+    if (isOvernight) {
+      if (isSelected) {
+        bg = AppColors.coral;
+        fg = AppColors.surface;
+        borderColor = AppColors.coral;
+      } else {
+        bg = AppColors.coral.withValues(alpha: 0.12);
+        fg = AppColors.coral;
+        borderColor = AppColors.coral;
+      }
+    } else {
+      if (isSelected) {
+        bg = AppColors.ink;
+        fg = AppColors.surface;
+        borderColor = AppColors.ink;
+      } else {
+        bg = AppColors.surface;
+        fg = AppColors.ink;
+        borderColor = AppColors.hairline;
+      }
+    }
 
     return GestureDetector(
       onTap: onTap,
@@ -413,11 +661,9 @@ class _StopTypeChip extends StatelessWidget {
           vertical: Spacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceAlt,
+          color: bg,
           borderRadius: BorderRadius.circular(Layout.chipRadius),
-          border: Border.all(
-            color: isSelected ? color : AppColors.hairline,
-          ),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -425,14 +671,14 @@ class _StopTypeChip extends StatelessWidget {
             Icon(
               _stopTypeChipIcon(type),
               size: 16,
-              color: isSelected ? color : AppColors.inkSoft,
+              color: fg,
             ),
             const SizedBox(width: Spacing.xs),
             Text(
               type.label,
               style: typ.AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isSelected ? color : AppColors.ink,
+                color: fg,
               ),
             ),
           ],
@@ -459,22 +705,14 @@ class _PlaceholderIcon extends StatelessWidget {
   }
 }
 
-Color _stopTypeChipColor(StopType type) {
-  return switch (type) {
-    StopType.regular => AppColors.info,
-    StopType.overnight => AppColors.coral,
-    StopType.meal => AppColors.warning,
-    StopType.viewpoint => AppColors.success,
-    StopType.activity => const Color(0xFF7B61FF),
-  };
-}
-
+/// Phosphor icon shapes per stop type — these are the differentiating
+/// signal now that the chip background is monochrome.
 IconData _stopTypeChipIcon(StopType type) {
   return switch (type) {
-    StopType.regular => PhosphorIconsFill.mapPin,
-    StopType.overnight => PhosphorIconsFill.bed,
+    StopType.regular => PhosphorIconsFill.circle,
+    StopType.overnight => PhosphorIconsFill.moon,
     StopType.meal => PhosphorIconsFill.forkKnife,
-    StopType.viewpoint => PhosphorIconsFill.binoculars,
-    StopType.activity => PhosphorIconsFill.mountains,
+    StopType.viewpoint => PhosphorIconsFill.mountains,
+    StopType.activity => PhosphorIconsFill.lightning,
   };
 }

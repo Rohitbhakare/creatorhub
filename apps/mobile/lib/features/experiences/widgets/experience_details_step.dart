@@ -50,7 +50,10 @@ class _ExperienceDetailsStepState
         _publicAreaController.text = mp.publicAreaName;
         if (mp.privateExactName != null) {
           _privateNameController.text = mp.privateExactName!;
-          setState(() => _hasPrivateMeetingPoint = true);
+          setState(() {
+            _hasPrivateMeetingPoint = true;
+            _revealHours = mp.revealHoursBefore;
+          });
         }
       }
     });
@@ -74,6 +77,7 @@ class _ExperienceDetailsStepState
                     ? _privateNameController.text.trim()
                     : null
                 : null,
+            revealHoursBefore: _revealHours,
           ),
         );
   }
@@ -253,6 +257,7 @@ class _ExperienceDetailsStepState
                     onTap: () {
                       HapticFeedback.selectionClick();
                       setState(() => _revealHours = hours);
+                      _saveMeetingPoint();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

@@ -42,6 +42,7 @@ import '../features/reviews/screens/review_detail_screen.dart';
 import '../features/booking/screens/my_bookings_screen.dart';
 import '../features/booking/screens/booking_detail_screen.dart';
 import '../features/booking/screens/booking_confirmation_screen.dart';
+import '../features/booking/screens/booking_flow_screen.dart';
 import '../features/legal/screens/legal_screen.dart';
 import '../features/settings/screens/privacy_settings_screen.dart';
 import 'main_shell.dart';
@@ -379,6 +380,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/bookings/:id/confirmed',
         builder: (context, state) => BookingConfirmationScreen(
           bookingId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/bookings/:id/confirmation',
+        builder: (context, state) => BookingConfirmationScreen(
+          bookingId: state.pathParameters['id']!,
+        ),
+      ),
+
+      // Booking flow shell — typed multi-step (date → travellers → review)
+      // for experiences, paid events, and paid self-paced itineraries.
+      GoRoute(
+        path: '/book/:contentId',
+        builder: (context, state) => BookingFlowScreen(
+          contentId: state.pathParameters['contentId']!,
         ),
       ),
 

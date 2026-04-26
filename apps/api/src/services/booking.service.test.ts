@@ -370,6 +370,8 @@ describe('confirmPayment', () => {
       .mockReturnValueOnce(mockChain({ id: BOOKING_ID, status: 'pending_payment' }) as never)
       // update booking to confirmed
       .mockReturnValueOnce(mockChain(null, null) as never)
+      // refetch confirmed booking for fire-and-forget WhatsApp/email
+      .mockReturnValueOnce(mockChain({ id: BOOKING_ID, user_id: USER_ID }) as never)
 
     await expect(
       confirmPayment(RAZORPAY_ORDER_ID, RAZORPAY_PAYMENT_ID, sig)

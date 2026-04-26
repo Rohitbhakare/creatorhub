@@ -13,6 +13,7 @@ import crypto from 'node:crypto'
 import { env } from '../env.js'
 import { AppError } from '../errors/AppError.js'
 import { releasePendingPayouts } from '../services/payout.service.js'
+import { sweepExpiredIntents } from '../services/booking-intent.service.js'
 
 export function assertCronAuth(c: Context): void {
   const expected = env.INTERNAL_CRON_KEY
@@ -35,5 +36,13 @@ export function assertCronAuth(c: Context): void {
 export async function handleReleasePayoutsCron(c: Context): Promise<Response> {
   assertCronAuth(c)
   const result = await releasePendingPayouts()
+  return c.json({ success: true, data: result })
+}
+
+export async function handleSweepBookingIntentsCron(
+  c: Context,
+): Promise<Response> {
+  assertCronAuth(c)
+  const result = await sweepExpiredIntents()
   return c.json({ success: true, data: result })
 }

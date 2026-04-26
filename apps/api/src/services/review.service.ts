@@ -320,6 +320,66 @@ export async function listContentReviews(
   return { items, nextCursor, averageRating }
 }
 
+// ─── getReviewsSummary ───────────────────────────────────────────
+
+export interface ReviewsSummary {
+  average: number
+  count: number
+  breakdown: { 1: number; 2: number; 3: number; 4: number; 5: number }
+  recent: Review[]
+}
+
+/**
+ * Aggregate stats + 3 most-recent revealed reviews for a content piece.
+ * Powers the Airbnb-style review summary block on detail screens.
+ * Always anonymises maskText=false because all rows here are revealed.
+ */
+export async function getReviewsSummary(contentId: string): Promise<ReviewsSummary> {
+  const { data: ratingRows, error: ratingError } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('content_id', contentId)
+    .eq('is_revealed', true)
+
+  if (ratingError) {
+    throw new AppError('db-error', 500, 'Failed to load reviews summary')
+  }
+
+  const ratings = (ratingRows ?? []).map((r) => r.rating as number)
+  const count = ratings.length
+  const average =
+    count > 0
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10
+      : 0
+
+  const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as ReviewsSummary['breakdown']
+  for (const r of ratings) {
+    const bucket = Math.max(1, Math.min(5, Math.round(r))) as 1 | 2 | 3 | 4 | 5
+    breakdown[bucket] += 1
+  }
+
+  const { data: recentRows, error: recentError } = await supabase
+    .from('reviews')
+    .select(`
+      *,
+      reviewer:users!reviews_reviewer_id_fkey(id, display_name, avatar_url, username)
+    `)
+    .eq('content_id', contentId)
+    .eq('is_revealed', true)
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  if (recentError) {
+    throw new AppError('db-error', 500, 'Failed to load recent reviews')
+  }
+
+  const recent = ((recentRows ?? []) as Record<string, unknown>[]).map((row) =>
+    mapRow(row, undefined, false),
+  )
+
+  return { average, count, breakdown, recent }
+}
+
 // ─── revealDueReviews ────────────────────────────────────────────
 
 /**

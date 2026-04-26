@@ -86,7 +86,7 @@ describe('getTopAlert', () => {
     expect(result.id).toBe('quiet')
     expect(result.alertType).toBe('quiet_state')
     expect(result.priority).toBe(0)
-    expect(result.title).toBe('Start your first piece')
+    expect(result.title).toBe('Ready to publish?')
     expect(result.ctaTarget).toBe('/content/create')
   })
 

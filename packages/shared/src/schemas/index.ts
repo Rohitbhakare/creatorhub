@@ -210,6 +210,9 @@ export const addSpotSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   thumbnail_url: z.string().url().optional(),
+  // Creator-uploaded cover override (DD-032). When present, the client
+  // renders this in place of the Places photo.
+  cover_url: z.string().url().optional(),
   creator_note: z.string().max(500).optional(),
   duration_minutes: z.number().int().min(0).optional(),
   stop_type: z.enum(['regular', 'overnight', 'meal', 'viewpoint', 'activity']).default('regular'),
@@ -219,6 +222,8 @@ export const updateSpotSchema = z
   .object({
     name: z.string().min(1).max(200).optional(),
     category: z.string().max(50).optional(),
+    // Pass null to clear an existing override and fall back to the Places photo.
+    cover_url: z.string().url().nullable().optional(),
     creator_note: z.string().max(500).optional(),
     duration_minutes: z.number().int().min(0).optional(),
     stop_type: z.enum(['regular', 'overnight', 'meal', 'viewpoint', 'activity']).optional(),
@@ -494,12 +499,18 @@ export {
   submitReviewSchema,
   submitCreatorResponseSchema,
   reviewListQuerySchema,
+  reviewsSummarySchema,
 } from './review.schemas.js'
 export type {
   SubmitReviewInput,
   SubmitCreatorResponseInput,
   ReviewListQueryInput,
+  ReviewsSummary,
 } from './review.schemas.js'
+
+// ─── Booking Intents (BOOK-FR-007) ──────────────────────────
+export { createBookingIntentSchema } from './booking.schemas.js'
+export type { CreateBookingIntentInput } from './booking.schemas.js'
 
 // ─── Payouts ────────────────────────────────────────────────
 export { PAYOUT_STATUSES, listPayoutsQuerySchema } from './payout.js'

@@ -33,7 +33,7 @@ class ExploreByCityChips extends ConsumerWidget {
               title: 'Where creators are building something',
             ),
             SizedBox(
-              height: 44,
+              height: 36,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.none,
@@ -53,7 +53,7 @@ class ExploreByCityChips extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
           ],
         );
       },
@@ -73,10 +73,10 @@ class _CityChip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.hairline, width: 0.5),
         ),
         child: Row(
@@ -84,24 +84,24 @@ class _CityChip extends StatelessWidget {
           children: [
             Icon(
               PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
-              size: 14,
+              size: 12,
               color: AppColors.coral,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
               city.name,
               style: AppTypography.body.copyWith(
                 color: AppColors.ink,
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
               '${city.contentCount}',
               style: AppTypography.caption.copyWith(
                 color: AppColors.inkMuted,
-                fontSize: 12,
+                fontSize: 10,
               ),
             ),
           ],
@@ -124,7 +124,7 @@ class _Skeleton extends StatelessWidget {
           title: 'Where creators are building something',
         ),
         SizedBox(
-          height: 44,
+          height: 36,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -132,13 +132,13 @@ class _Skeleton extends StatelessWidget {
             itemCount: 4,
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (_, _) => const SkeletonRect(
-              width: 110,
-              height: 36,
-              borderRadius: 22,
+              width: 90,
+              height: 28,
+              borderRadius: 18,
             ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
       ],
     );
   }

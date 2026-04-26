@@ -16,7 +16,7 @@ import '../../../shared/components/input.dart';
 import '../../../shared/components/skeleton.dart';
 import '../providers/saved_provider.dart';
 
-/// Wishlists tab — Airbnb-style 2-column grid with mosaic covers.
+/// Saved tab — Airbnb-style 2-column grid with mosaic covers.
 class SavedListsScreen extends ConsumerStatefulWidget {
   const SavedListsScreen({super.key});
 
@@ -150,7 +150,7 @@ class _Header extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Wishlists',
+              'Saved',
               style: GoogleFonts.fraunces(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
@@ -186,7 +186,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ── Wishlist Card ──────────────────────────────────────────────────
+// ── Saved List Card ──────────────────────────────────────────────────
 
 class _ListCard extends StatelessWidget {
   final SavedList list;
@@ -411,7 +411,7 @@ class _NewListRow extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             Text(
-              'Create new wishlist',
+              'Create new list',
               style: typ.AppTypography.body.copyWith(
                 fontWeight: FontWeight.w500,
                 color: AppColors.ink,
@@ -477,7 +477,7 @@ class _CreateListSheetState extends State<_CreateListSheet> {
             ),
           ),
           const SizedBox(height: Spacing.xl),
-          Text('New wishlist', style: typ.AppTypography.h4),
+          Text('New list', style: typ.AppTypography.h4),
           const SizedBox(height: Spacing.lg),
           AppInput(
             controller: _controller,
@@ -513,7 +513,7 @@ class _SavedListsEmpty extends StatelessWidget {
       padding: const EdgeInsets.only(top: 60),
       child: EmptyState(
         icon: PhosphorIconsFill.bookmarkSimple,
-        title: 'No wishlists yet',
+        title: 'Nothing saved yet',
         description:
             'Save places, itineraries and experiences to custom lists.',
         ctaLabel: 'Create a list',

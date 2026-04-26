@@ -628,6 +628,7 @@ export async function addSpot(
     p_duration_minutes: spotData.duration_minutes ?? null,
     p_stop_type: spotData.stop_type ?? 'regular',
     p_is_free_preview: isDayOne,
+    p_cover_url: spotData.cover_url ?? null,
   })
 
   if (error || !spot) {

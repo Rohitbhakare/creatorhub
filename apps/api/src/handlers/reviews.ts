@@ -4,6 +4,7 @@ import {
   submitCreatorResponse,
   getReview,
   listContentReviews,
+  getReviewsSummary,
   revealDueReviews,
 } from '../services/review.service.js'
 import { AppError } from '../errors/AppError.js'
@@ -88,6 +89,17 @@ export async function handleListContentReviews(c: Context): Promise<Response> {
       average_rating: averageRating,
     },
   })
+}
+
+/**
+ * GET /api/v1/content/:contentId/reviews-summary
+ * Aggregate stats + 3 most-recent revealed reviews for the detail screen.
+ * Public endpoint — no auth required, no per-user variance in output.
+ */
+export async function handleReviewsSummary(c: Context): Promise<Response> {
+  const contentId = c.req.param('contentId')!
+  const summary = await getReviewsSummary(contentId)
+  return c.json({ success: true, data: summary })
 }
 
 /**

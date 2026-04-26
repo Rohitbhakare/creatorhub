@@ -15,6 +15,7 @@ class MeetingPointInfo {
   final double? privateLat;
   final double? privateLng;
   final bool isRevealed;
+  final int revealHoursBefore;
 
   const MeetingPointInfo({
     required this.publicAreaName,
@@ -24,6 +25,7 @@ class MeetingPointInfo {
     this.privateLat,
     this.privateLng,
     this.isRevealed = false,
+    this.revealHoursBefore = 24,
   });
 
   factory MeetingPointInfo.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class MeetingPointInfo {
       privateLat: (json['private_lat'] as num?)?.toDouble(),
       privateLng: (json['private_lng'] as num?)?.toDouble(),
       isRevealed: json['is_revealed'] as bool? ?? false,
+      revealHoursBefore: (json['reveal_hours_before'] as num?)?.toInt() ?? 24,
     );
   }
 }
@@ -811,6 +814,7 @@ class CreateExperienceNotifier extends Notifier<CreateExperienceState> {
         if (mp.privateExactName != null) 'private_exact_name': mp.privateExactName,
         if (mp.privateLat != null) 'private_lat': mp.privateLat,
         if (mp.privateLng != null) 'private_lng': mp.privateLng,
+        'reveal_hours_before': mp.revealHoursBefore,
       });
       setMeetingPoint(mp);
       state = state.copyWith(isSaving: false);

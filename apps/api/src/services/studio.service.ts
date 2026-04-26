@@ -39,9 +39,135 @@ const QUIET_STATE_ALERT: StudioAlert = {
   id: 'quiet',
   alertType: 'quiet_state',
   priority: 0,
+  title: 'Ready to publish?',
+  body: 'Your audience is waiting — drop a quick post or itinerary.',
+  ctaTarget: '/content/create',
+}
+
+const FIRST_PUBLISH_ALERT: StudioAlert = {
+  id: 'first-publish',
+  alertType: 'first_publish_nudge',
+  priority: 10,
   title: 'Start your first piece',
   body: 'Post a short write-up or put together your first itinerary.',
   ctaTarget: '/content/create',
+}
+
+// ─── computeTopAlert (priority engine) ───────────────────────────
+//
+// Evaluates alert rules in priority order and returns the highest-priority
+// hit. Used as a fallback when the studio_alerts table has no live row.
+//
+// Priority (high → low):
+//   100 KYC rejected / payout method broken
+//    90 Upcoming trip in ≤7 days needing prep
+//    80 New bookings (last 24h)
+//    70 Pending payout arriving in next 7 days
+//    10 First-publish nudge (no published content)
+//     0 Quiet state — ready to publish
+
+type Row = Record<string, unknown>
+
+export async function computeTopAlert(userId: string): Promise<StudioAlert | null> {
+  // 100 — KYC issues
+  const { data: kycRow } = await supabase
+    .from('users')
+    .select('kyc_status')
+    .eq('id', userId)
+    .maybeSingle()
+  const kycStatus = (kycRow as Row | null)?.kyc_status as string | undefined
+  if (kycStatus === 'rejected') {
+    return {
+      id: 'kyc-rejected',
+      alertType: 'kyc_rejected',
+      priority: 100,
+      title: 'KYC needs attention',
+      body: 'Your verification was rejected — fix it to keep publishing paid content.',
+      ctaTarget: '/studio/kyc',
+    }
+  }
+
+  // 90 — Upcoming trip ≤7 days
+  const sevenDaysOut = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const nowIso = new Date().toISOString()
+  const { data: upcomingDates } = await supabase
+    .from('scheduled_dates')
+    .select('id, start_date, content_id')
+    .gte('start_date', nowIso)
+    .lte('start_date', sevenDaysOut)
+    .in(
+      'content_id',
+      (
+        await supabase
+          .from('content')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'published')
+      ).data?.map((r) => r.id as string) ?? [],
+    )
+    .order('start_date', { ascending: true })
+    .limit(1)
+  const upcoming = upcomingDates?.[0] as Row | undefined
+  if (upcoming) {
+    return {
+      id: `upcoming-${upcoming.id as string}`,
+      alertType: 'upcoming_trip',
+      priority: 90,
+      title: 'A trip is coming up',
+      body: 'Confirm your meeting point and message your travellers.',
+      ctaTarget: `/studio/dates/${upcoming.id as string}`,
+    }
+  }
+
+  // 80 — New bookings in the last 24h
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count: newBookings } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('creator_id', userId)
+    .eq('status', 'confirmed')
+    .gte('created_at', dayAgo)
+  if ((newBookings ?? 0) > 0) {
+    return {
+      id: 'new-bookings-24h',
+      alertType: 'new_bookings',
+      priority: 80,
+      title: `${newBookings} new ${newBookings === 1 ? 'booking' : 'bookings'} today`,
+      body: 'Check who\u2019s coming and start the warm-up chat.',
+      ctaTarget: '/studio/bookings',
+    }
+  }
+
+  // 70 — Pending payout in next 7 days
+  const { data: pendingPayouts } = await supabase
+    .from('payouts')
+    .select('id, scheduled_at, amount_paisa')
+    .eq('creator_id', userId)
+    .eq('status', 'pending')
+    .gte('scheduled_at', nowIso)
+    .lte('scheduled_at', sevenDaysOut)
+    .order('scheduled_at', { ascending: true })
+    .limit(1)
+  const payout = pendingPayouts?.[0] as Row | undefined
+  if (payout) {
+    return {
+      id: `payout-${payout.id as string}`,
+      alertType: 'pending_payout',
+      priority: 70,
+      title: 'Payout on its way',
+      body: 'A payout is scheduled to land in your account within a week.',
+      ctaTarget: '/studio/earnings',
+    }
+  }
+
+  // 10 — First-publish nudge
+  const counts = await getContentCounts(userId)
+  if (counts.published === 0) {
+    return FIRST_PUBLISH_ALERT
+  }
+
+  // 0 — quiet state
+  return QUIET_STATE_ALERT
 }
 
 // ─── getTopAlert ─────────────────────────────────────────────────
@@ -59,7 +185,14 @@ export async function getTopAlert(userId: string): Promise<StudioAlert> {
 
   if (error) throw new AppError('db-error', 500, 'Failed to fetch studio alert')
 
-  if (!data) return QUIET_STATE_ALERT
+  if (!data) {
+    try {
+      const computed = await computeTopAlert(userId)
+      return computed ?? QUIET_STATE_ALERT
+    } catch {
+      return QUIET_STATE_ALERT
+    }
+  }
 
   const payload = (data.payload ?? {}) as { title?: string; body?: string; cta_target?: string }
 

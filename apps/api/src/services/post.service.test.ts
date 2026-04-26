@@ -204,8 +204,8 @@ describe('publishPost', () => {
     })
   })
 
-  it('throws 400 when body exceeds 1000 characters', async () => {
-    const longBody = { ...draftPost, body: 'x'.repeat(1001) }
+  it('throws 400 when body exceeds 10000 characters', async () => {
+    const longBody = { ...draftPost, body: 'x'.repeat(10001) }
     vi.mocked(supabase.from).mockReturnValueOnce(mockChain(longBody) as never)
 
     await expect(publishPost(CONTENT_ID, USER_ID, true)).rejects.toMatchObject({

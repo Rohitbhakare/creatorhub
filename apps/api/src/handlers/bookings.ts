@@ -21,9 +21,17 @@ import { AppError } from '../errors/AppError.js'
 export async function handleCreateBooking(c: Context): Promise<Response> {
   const userId = c.get('userId') as string
 
-  let body: { content_id?: unknown; scheduled_date_id?: unknown }
+  let body: {
+    content_id?: unknown
+    scheduled_date_id?: unknown
+    intent_id?: unknown
+  }
   try {
-    body = await c.req.json() as { content_id?: unknown; scheduled_date_id?: unknown }
+    body = await c.req.json() as {
+      content_id?: unknown
+      scheduled_date_id?: unknown
+      intent_id?: unknown
+    }
   } catch {
     throw new AppError('validation-failed', 400, 'Invalid JSON body')
   }
@@ -40,10 +48,16 @@ export async function handleCreateBooking(c: Context): Promise<Response> {
     ])
   }
 
+  const intentId =
+    typeof body.intent_id === 'string' && body.intent_id.trim()
+      ? body.intent_id
+      : undefined
+
   const { booking, razorpayOrderId, keyId } = await createBooking(
     userId,
     body.content_id,
     body.scheduled_date_id,
+    intentId,
   )
 
   c.header('Location', `/api/v1/bookings/${booking.id}`)

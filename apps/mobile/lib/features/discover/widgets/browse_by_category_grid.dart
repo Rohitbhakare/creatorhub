@@ -1,93 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../shared/theme/colors.dart';
-import '../../../shared/theme/typography.dart';
+import '../../../shared/components/category_tile.dart';
 import '../../feed/widgets/section_header.dart';
 
+/// One canonical entry per travel sub-category. Same emoji/tint set as
+/// onboarding's vertical picker so the two surfaces match. Active sub-cats
+/// route to the locked-filter section screen; inactive ones render dimmed
+/// with a SOON pill.
 class _CatTile {
   final String label;
-  final IconData icon;
-  final String? routeSlug; // null => not yet active
-  final int? approxCount;
+  final String emoji;
+  final Color tint;
+  final String? routeSlug;
 
   const _CatTile({
     required this.label,
-    required this.icon,
+    required this.emoji,
+    required this.tint,
     this.routeSlug,
-    this.approxCount,
   });
 
   bool get active => routeSlug != null;
 }
 
-// Phosphor icon picks per DD-013 monochrome rule. Counts are placeholders
-// until the per-sub-cat live count endpoint lands; founder OK'd showing
-// rough numbers for the four active sub-cats.
-final List<_CatTile> _kTiles = [
+const List<_CatTile> _kTiles = [
   _CatTile(
     label: 'Road Trips',
-    icon: PhosphorIcons.car(PhosphorIconsStyle.regular),
+    emoji: '🚗',
+    tint: Color(0xFFFFF3E0),
     routeSlug: 'travel.road_trips',
-    approxCount: 247,
   ),
   _CatTile(
     label: 'Biking',
-    icon: PhosphorIcons.motorcycle(PhosphorIconsStyle.regular),
+    emoji: '🏍️',
+    tint: Color(0xFFFFEBEE),
     routeSlug: 'travel.biking',
-    approxCount: 89,
   ),
   _CatTile(
     label: 'Trekking',
-    icon: PhosphorIcons.mountains(PhosphorIconsStyle.regular),
+    emoji: '🥾',
+    tint: Color(0xFFE8F5E9),
     routeSlug: 'travel.trekking',
-    approxCount: 156,
   ),
   _CatTile(
     label: 'Food Trails',
-    icon: PhosphorIcons.forkKnife(PhosphorIconsStyle.regular),
+    emoji: '🍜',
+    tint: Color(0xFFFCE4EC),
     routeSlug: 'travel.food_trails',
-    approxCount: 78,
   ),
-  _CatTile(
-    label: 'Adventure',
-    icon: PhosphorIcons.compass(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Heritage',
-    icon: PhosphorIcons.bank(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Wildlife',
-    icon: PhosphorIcons.bird(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Photo Walks',
-    icon: PhosphorIcons.camera(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Wellness',
-    icon: PhosphorIcons.leaf(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Family',
-    icon: PhosphorIcons.users(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Luxury',
-    icon: PhosphorIcons.sparkle(PhosphorIconsStyle.regular),
-  ),
-  _CatTile(
-    label: 'Offbeat',
-    icon: PhosphorIcons.mapPin(PhosphorIconsStyle.regular),
-  ),
+  _CatTile(label: 'Adventure', emoji: '🏔️', tint: Color(0xFFE3F2FD)),
+  _CatTile(label: 'Heritage', emoji: '🏛️', tint: Color(0xFFFFF8E1)),
+  _CatTile(label: 'Wildlife', emoji: '🦌', tint: Color(0xFFEFEBE9)),
+  _CatTile(label: 'Photo Walks', emoji: '📷', tint: Color(0xFFEDE7F6)),
+  _CatTile(label: 'Wellness', emoji: '🧘', tint: Color(0xFFE0F2F1)),
+  _CatTile(label: 'Family', emoji: '👨‍👩‍👧', tint: Color(0xFFFFF0F0)),
+  _CatTile(label: 'Luxury', emoji: '✨', tint: Color(0xFFF3E5F5)),
+  _CatTile(label: 'Offbeat', emoji: '🧭', tint: Color(0xFFE8EAF6)),
 ];
 
-/// 2-column grid of all 12 travel sub-categories. Active sub-cats route
-/// to the existing locked-filter section screen; inactive sub-cats render
-/// dimmed with a SOON pill so the roadmap is visible without faking data.
+/// 4-col grid of all 12 travel sub-categories. Card visuals come from the
+/// shared `CategoryTile` widget so this matches the onboarding picker.
 class BrowseByCategoryGrid extends StatelessWidget {
   const BrowseByCategoryGrid({super.key});
 
@@ -104,16 +78,19 @@ class BrowseByCategoryGrid extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: GridView.count(
-            crossAxisCount: 2,
+            crossAxisCount: 4,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 1.55,
+            childAspectRatio: 0.92,
             children: [
               for (final tile in _kTiles)
-                _CategoryTile(
-                  tile: tile,
+                CategoryTile(
+                  emoji: tile.emoji,
+                  label: tile.label,
+                  tint: tile.tint,
+                  soon: !tile.active,
                   onTap: tile.active
                       ? () {
                           HapticFeedback.selectionClick();
@@ -124,94 +101,8 @@ class BrowseByCategoryGrid extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
       ],
-    );
-  }
-}
-
-class _CategoryTile extends StatelessWidget {
-  final _CatTile tile;
-  final VoidCallback? onTap;
-
-  const _CategoryTile({required this.tile, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final dimmed = tile.routeSlug == null;
-    final body = Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.hairline, width: 0.5),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(tile.icon, size: 24, color: AppColors.ink),
-              const SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    tile.label,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  if (tile.approxCount != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      '${tile.approxCount} trips',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.inkMuted,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          if (dimmed)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.hairline, width: 0.5),
-                ),
-                child: Text(
-                  'SOON',
-                  style: AppTypography.label.copyWith(
-                    color: AppColors.inkSoft,
-                    fontSize: 9,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-
-    final wrapped = dimmed ? Opacity(opacity: 0.55, child: body) : body;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: wrapped,
     );
   }
 }

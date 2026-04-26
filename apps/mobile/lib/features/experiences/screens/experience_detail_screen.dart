@@ -2,18 +2,30 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/button.dart';
+import '../../../shared/components/host_card.dart';
+import '../../../shared/components/review_summary_block.dart';
+import '../../../shared/components/reveal_countdown_badge.dart';
+import '../../../shared/components/share_action_sheet.dart';
 import '../../../shared/components/skeleton.dart';
+import '../../../shared/components/static_map_placeholder.dart';
+import '../../../shared/components/sticky_booking_bar.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/format.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
 import '../../itineraries/providers/itinerary_wizard_provider.dart'
     show StopType;
+import '../../reviews/providers/reviews_summary_provider.dart';
+import '../../saved/widgets/save_to_list_sheet.dart';
 import '../../social/providers/follow_provider.dart';
+import '../../social/utils/share_utils.dart' show canonicalUrl;
 import '../providers/experience_provider.dart';
 
 /// Public-facing detail page for a scheduled experience.
@@ -129,7 +141,7 @@ class _ExperienceDetailScreenState
               ),
             ),
 
-            // ── Creator Row ────────────────────────────────────
+            // ── Creator Host Card ──────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -138,7 +150,7 @@ class _ExperienceDetailScreenState
                   Layout.screenPaddingH,
                   0,
                 ),
-                child: _CreatorRow(creator: detail.creator),
+                child: _ExperienceHostCard(creator: detail.creator),
               ),
             ),
 
@@ -237,14 +249,7 @@ class _ExperienceDetailScreenState
                     Layout.screenPaddingH,
                     0,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Meeting Point', style: typ.AppTypography.h4),
-                      const SizedBox(height: Spacing.md),
-                      _MeetingPointCard(info: detail.meetingPoint!),
-                    ],
-                  ),
+                  child: _MeetingPointSection(info: detail.meetingPoint!),
                 ),
               ),
 
@@ -323,14 +328,27 @@ class _ExperienceDetailScreenState
                 ),
               ),
 
+            // ── Reviews Summary ────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Layout.screenPaddingH,
+                  Spacing.xxl,
+                  Layout.screenPaddingH,
+                  0,
+                ),
+                child: _ReviewsSection(contentId: detail.id),
+              ),
+            ),
+
             // ── Bottom spacer for sticky bar ───────────────────
             const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
+              child: SizedBox(height: 120),
             ),
           ],
         ),
 
-        // ── Back + Share overlay ───────────────────────────────
+        // ── Back + Share + Save overlay ────────────────────────
         Positioned(
           top: MediaQuery.of(context).padding.top + Spacing.sm,
           left: Layout.screenPaddingH,
@@ -345,25 +363,75 @@ class _ExperienceDetailScreenState
                   Navigator.of(context).pop();
                 },
               ),
-              _CircleIconButton(
-                icon: PhosphorIconsFill.shareNetwork,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  // TODO: share experience (E2.x Social)
-                },
+              Row(
+                children: [
+                  _CircleIconButton(
+                    icon: PhosphorIconsFill.shareNetwork,
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      await showShareActionSheet(
+                        context: context,
+                        ref: ref,
+                        contentId: detail.id,
+                        contentType: 'experience',
+                        contentTitle: detail.title,
+                        shareUrl: canonicalUrl('experience', detail.id),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  _CircleIconButton(
+                    icon: PhosphorIconsFill.bookmarkSimple,
+                    tintColor: detail.isSaved ? AppColors.coral : null,
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      final isAuth =
+                          ref.read(authProvider).isAuthenticated;
+                      if (!isAuth) {
+                        await showSoftAuthSheet(
+                          context,
+                          ref,
+                          trigger: SoftAuthTrigger.save,
+                        );
+                        return;
+                      }
+                      if (!context.mounted) return;
+                      showSaveToListSheet(context, ref, detail.id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
         ),
 
-        // ── Sticky Book Now bar ────────────────────────────────
+        // ── Sticky Booking bar ─────────────────────────────────
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: _BookNowBar(
-            detail: detail,
-            selectedDate: selectedDate,
+          child: StickyBookingBar(
+            contentType: StickyBookingContentType.experience,
+            priceLabel: detail.isFree
+                ? 'Free'
+                : '₹${((detail.pricePaisa ?? 0) / 100).toStringAsFixed(0)}',
+            subLabel: detail.isFree ? null : 'per person',
+            disabled: dates.isEmpty ||
+                (selectedDate?.isSoldOut ?? true) ||
+                !(selectedDate?.isActive ?? false),
+            onTap: () async {
+              final isAuth = ref.read(authProvider).isAuthenticated;
+              if (!isAuth) {
+                final signedIn = await showSoftAuthSheet(
+                  context,
+                  ref,
+                  trigger: SoftAuthTrigger.book,
+                );
+                if (!signedIn || !context.mounted) return;
+              }
+              if (!context.mounted) return;
+              context.push('/book/${detail.id}');
+            },
           ),
         ),
       ],
@@ -401,12 +469,12 @@ class _PriceBadge extends StatelessWidget {
   }
 }
 
-// ── Creator Row ────────────────────────────────────────────────────
+// ── Experience Host Card ───────────────────────────────────────────
 
-class _CreatorRow extends ConsumerWidget {
+class _ExperienceHostCard extends ConsumerWidget {
   final ExperienceCreator creator;
 
-  const _CreatorRow({required this.creator});
+  const _ExperienceHostCard({required this.creator});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -417,81 +485,37 @@ class _CreatorRow extends ConsumerWidget {
     );
     final followState = ref.watch(followProvider(followKey));
 
-    return Row(
-      children: [
-        // Avatar
-        ClipOval(
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: creator.avatarUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: creator.avatarUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (_, _) => _AvatarPlaceholder(),
-                    errorWidget: (_, _, _) => _AvatarPlaceholder(),
-                  )
-                : _AvatarPlaceholder(),
-          ),
-        ),
-        const SizedBox(width: Spacing.md),
-
-        // Name + username
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    creator.displayName,
-                    style: typ.AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  if (creator.isVerified) ...[
-                    const SizedBox(width: Spacing.xs),
-                    const Icon(
-                      PhosphorIconsFill.sealCheck,
-                      size: 16,
-                      color: AppColors.success,
-                    ),
-                  ],
-                ],
-              ),
-              if (creator.username != null)
-                Text(
-                  '@${creator.username}',
-                  style: typ.AppTypography.caption,
-                ),
-            ],
-          ),
-        ),
-
-        // Follow button
-        AppButton(
-          label: followState.isFollowing ? 'Following' : 'Follow',
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            handleFollowTap(context, ref, followKey);
-          },
-          variant: followState.isFollowing
-              ? AppButtonVariant.secondary
-              : AppButtonVariant.primary,
-          size: AppButtonSize.small,
-        ),
-      ],
-    );
-  }
-}
-
-class _AvatarPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surfaceAlt,
-      child: const Center(
-        child: Icon(PhosphorIconsFill.user, size: 20, color: AppColors.inkMuted),
-      ),
+    return HostCard(
+      creatorId: creator.id,
+      displayName: creator.displayName,
+      avatarUrl: creator.avatarUrl,
+      username: creator.username,
+      verified: creator.isVerified,
+      tenureLabel: 'Hosting on CreatorHub',
+      contentCount: 0,
+      isFollowing: followState.isFollowing,
+      onFollowTap: () async {
+        HapticFeedback.lightImpact();
+        final isAuth = ref.read(authProvider).isAuthenticated;
+        if (!isAuth) {
+          await showSoftAuthSheet(
+            context,
+            ref,
+            trigger: SoftAuthTrigger.follow,
+          );
+          return;
+        }
+        if (!context.mounted) return;
+        handleFollowTap(context, ref, followKey);
+      },
+      onMessageTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/profile/${creator.id}');
+      },
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/profile/${creator.id}');
+      },
     );
   }
 }
@@ -615,105 +639,142 @@ class _DateChip extends StatelessWidget {
   }
 }
 
-// ── Meeting Point Card ─────────────────────────────────────────────
+// ── Meeting Point Section ──────────────────────────────────────────
 
-class _MeetingPointCard extends StatelessWidget {
+class _MeetingPointSection extends StatelessWidget {
   final MeetingPointInfo info;
 
-  const _MeetingPointCard({required this.info});
+  const _MeetingPointSection({required this.info});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(Layout.cardRadius),
-        border: Border.all(color: AppColors.hairline),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Map-pin placeholder
-          Container(
-            width: double.infinity,
-            height: 100,
-            color: AppColors.surfaceAlt,
-            child: Center(
+    final lat = info.lat;
+    final lng = info.lng;
+    final pins = (lat != null && lng != null)
+        ? [MapPin(lat: lat, lng: lng, label: info.publicAreaName)]
+        : <MapPin>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Meeting Point', style: typ.AppTypography.h4),
+        const SizedBox(height: Spacing.md),
+        StaticMapPlaceholder(pins: pins),
+        const SizedBox(height: Spacing.sm),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: RevealCountdownBadge(
+            revealHoursBefore: info.revealHoursBefore,
+          ),
+        ),
+        const SizedBox(height: Spacing.md),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Coral pin — DD-013 rule #1 (location).
+            const Icon(
+              PhosphorIconsFill.mapPin,
+              size: 18,
+              color: AppColors.coral,
+            ),
+            const SizedBox(width: Spacing.sm),
+            Expanded(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    PhosphorIconsFill.mapPin,
-                    size: 28,
-                    color: AppColors.coral.withValues(alpha: 0.5),
+                  Text(
+                    info.publicAreaName,
+                    style: typ.AppTypography.body
+                        .copyWith(fontWeight: FontWeight.w600),
                   ),
-                  if (info.lat != null && info.lng != null && info.isRevealed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: Spacing.xs),
-                      child: Text(
-                        '${info.lat!.toStringAsFixed(4)}, '
-                        '${info.lng!.toStringAsFixed(4)}',
-                        style: typ.AppTypography.caption
-                            .copyWith(color: AppColors.inkMuted),
-                      ),
+                  if (info.isRevealed && info.privateExactName != null) ...[
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      info.privateExactName!,
+                      style: typ.AppTypography.bodySmall
+                          .copyWith(color: AppColors.inkSoft),
                     ),
+                  ],
                 ],
               ),
             ),
-          ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
-          // Location details
-          Padding(
-            padding: const EdgeInsets.all(Layout.cardPadding),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  PhosphorIconsFill.mapPin,
-                  size: 18,
-                  color: AppColors.coral,
-                ),
-                const SizedBox(width: Spacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.publicAreaName,
-                        style: typ.AppTypography.body
-                            .copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: Spacing.xs),
-                      if (info.isRevealed && info.privateExactName != null) ...[
-                        Text(
-                          info.privateExactName!,
-                          style: typ.AppTypography.bodySmall
-                              .copyWith(color: AppColors.inkSoft),
-                        ),
-                      ] else ...[
-                        Row(
-                          children: [
-                            const Icon(
-                              PhosphorIconsFill.lock,
-                              size: 13,
-                              color: AppColors.inkMuted,
-                            ),
-                            const SizedBox(width: Spacing.xs),
-                            Text(
-                              'Exact location shared 24h before',
-                              style: typ.AppTypography.caption
-                                  .copyWith(color: AppColors.inkMuted),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
+// ── Reviews Section ─────────────────────────────────────────────────
+
+class _ReviewsSection extends ConsumerWidget {
+  final String contentId;
+
+  const _ReviewsSection({required this.contentId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(reviewsSummaryProvider(contentId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Reviews', style: typ.AppTypography.h4),
+        const SizedBox(height: Spacing.md),
+        summaryAsync.when(
+          loading: () => const _ReviewsSkeleton(),
+          error: (_, _) => Text(
+            'Reviews unavailable right now',
+            style: typ.AppTypography.bodySmall
+                .copyWith(color: AppColors.inkSoft),
           ),
+          data: (summary) {
+            if (summary.count == 0) {
+              return Text(
+                'Be the first to review',
+                style: typ.AppTypography.body
+                    .copyWith(color: AppColors.inkSoft),
+              );
+            }
+            return ReviewSummaryBlock(
+              average: summary.average,
+              count: summary.count,
+              breakdown: summary.breakdown,
+              recent: summary.recent
+                  .map((r) => RecentReview(
+                        reviewerName: r.reviewerName,
+                        reviewerAvatarUrl: r.reviewerAvatarUrl,
+                        rating: r.rating.toDouble(),
+                        body: r.body,
+                        createdAt: r.createdAt,
+                      ))
+                  .toList(),
+              onSeeAllTap: () =>
+                  context.push('/content/$contentId/reviews'),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _ReviewsSkeleton extends StatelessWidget {
+  const _ReviewsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SkeletonLoader(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkeletonLine(width: 120, height: 28),
+          SizedBox(height: Spacing.md),
+          SkeletonLine(height: 8),
+          SizedBox(height: Spacing.xs),
+          SkeletonLine(height: 8),
+          SizedBox(height: Spacing.xs),
+          SkeletonLine(height: 8),
         ],
       ),
     );
@@ -835,13 +896,21 @@ class _SpotRow extends StatelessWidget {
     required this.isLast,
   });
 
+  /// Monochrome ink for everything except overnight stays which use coral
+  /// per DD-013 rule #5 (critical signals).
   Color _colorForType(String type) {
+    return type == 'overnight' ? AppColors.coral : AppColors.ink;
+  }
+
+  /// Phosphor fill icon per stop type — shape carries the meaning
+  /// instead of color (matches spot_editor_sheet).
+  IconData _iconForType(String type) {
     return switch (type) {
-      'overnight' => AppColors.coral,
-      'meal' => AppColors.warning,
-      'viewpoint' => AppColors.success,
-      'activity' => const Color(0xFF7B61FF),
-      _ => AppColors.info,
+      'overnight' => PhosphorIconsFill.bed,
+      'meal' => PhosphorIconsFill.forkKnife,
+      'viewpoint' => PhosphorIconsFill.binoculars,
+      'activity' => PhosphorIconsFill.mountains,
+      _ => PhosphorIconsFill.mapPin,
     };
   }
 
@@ -858,6 +927,7 @@ class _SpotRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spotColor = _colorForType(spot.stopType);
+    final spotIcon = _iconForType(spot.stopType);
 
     return Column(
       children: [
@@ -866,22 +936,17 @@ class _SpotRow extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Index badge
+              // Index badge — surface with hairline + shape-coded icon
               Container(
-                width: 26,
-                height: 26,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
-                  color: spotColor.withValues(alpha: 0.15),
+                  color: AppColors.surface,
+                  border: Border.all(color: AppColors.hairline),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: typ.AppTypography.label.copyWith(
-                      color: spotColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: Icon(spotIcon, size: 14, color: spotColor),
                 ),
               ),
               const SizedBox(width: Spacing.md),
@@ -931,14 +996,7 @@ class _SpotRow extends StatelessWidget {
                     const SizedBox(height: Spacing.xs),
                     Row(
                       children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: spotColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                        Icon(spotIcon, size: 12, color: spotColor),
                         const SizedBox(width: Spacing.xs),
                         Text(
                           _labelForType(spot.stopType),
@@ -1008,73 +1066,6 @@ class _TagChip extends StatelessWidget {
   }
 }
 
-// ── Book Now Bar ───────────────────────────────────────────────────
-
-class _BookNowBar extends StatelessWidget {
-  final ExperienceDetail detail;
-  final ScheduledDate? selectedDate;
-
-  const _BookNowBar({required this.detail, this.selectedDate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        Layout.screenPaddingH,
-        Spacing.md,
-        Layout.screenPaddingH,
-        MediaQuery.of(context).padding.bottom + Spacing.md,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.bg,
-        border: Border(top: BorderSide(color: AppColors.hairline, width: 1)),
-      ),
-      child: Row(
-        children: [
-          // Price
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  formatPrice(detail.pricePaisa ?? 0),
-                  style: typ.AppTypography.h3.copyWith(
-                    color: detail.isFree ? AppColors.success : AppColors.ink,
-                  ),
-                ),
-                if (!detail.isFree)
-                  Text(
-                    'per person',
-                    style: typ.AppTypography.caption,
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: Spacing.lg),
-
-          // Book Now button
-          Expanded(
-            flex: 2,
-            child: AppButton(
-              label: 'Book Now',
-              onPressed: selectedDate != null && !selectedDate!.isSoldOut
-                  ? () {
-                      HapticFeedback.lightImpact();
-                      // TODO: navigate to booking flow (E2.2 Booking)
-                    }
-                  : null,
-              variant: AppButtonVariant.primary,
-              size: AppButtonSize.large,
-              fullWidth: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Cover Placeholder ──────────────────────────────────────────────
 
 class _CoverPlaceholder extends StatelessWidget {
@@ -1100,8 +1091,13 @@ class _CoverPlaceholder extends StatelessWidget {
 class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final Color? tintColor;
 
-  const _CircleIconButton({required this.icon, required this.onTap});
+  const _CircleIconButton({
+    required this.icon,
+    required this.onTap,
+    this.tintColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1121,7 +1117,7 @@ class _CircleIconButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.ink),
+        child: Icon(icon, size: 20, color: tintColor ?? AppColors.ink),
       ),
     );
   }

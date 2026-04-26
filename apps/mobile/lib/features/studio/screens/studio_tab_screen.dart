@@ -15,9 +15,10 @@ import '../../../shared/theme/typography.dart';
 import '../../../shared/utils/format.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/widgets/soft_auth_sheet.dart';
-import '../../kyc/providers/kyc_provider.dart';
-import '../providers/earnings_provider.dart';
 import '../providers/studio_provider.dart';
+import '../widgets/content_filter_pills.dart';
+import '../widgets/earnings_info_card.dart';
+import '../widgets/new_creator_hero.dart';
 import '../widgets/studio_content_widgets.dart';
 
 class StudioTabScreen extends ConsumerWidget {
@@ -43,6 +44,10 @@ class StudioTabScreen extends ConsumerWidget {
       );
     }
 
+    final statsAsync = ref.watch(studioStatsProvider);
+    final isNewCreator =
+        statsAsync.asData?.value.contentCount == 0;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -56,12 +61,19 @@ class StudioTabScreen extends ConsumerWidget {
               const SliverToBoxAdapter(child: SizedBox(height: Spacing.sm)),
               const SliverToBoxAdapter(child: _AlertHeroCard()),
               const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
-              const SliverToBoxAdapter(child: _StatsGrid()),
-              const SliverToBoxAdapter(child: SizedBox(height: Spacing.xl)),
-              const SliverToBoxAdapter(child: _ContentSection()),
-              const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
-              const SliverToBoxAdapter(child: _EarningsInfoCard()),
-              const SliverToBoxAdapter(child: SizedBox(height: Spacing.xxxl)),
+              if (isNewCreator) ...[
+                const SliverToBoxAdapter(child: NewCreatorHero()),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.xxxl)),
+              ] else ...[
+                const SliverToBoxAdapter(child: _ThisWeekHeader()),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.sm)),
+                const SliverToBoxAdapter(child: _StatsGrid()),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.xl)),
+                const SliverToBoxAdapter(child: _ContentSection()),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
+                const SliverToBoxAdapter(child: EarningsInfoCard()),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.xxxl)),
+              ],
             ],
           ),
         ),
@@ -106,6 +118,37 @@ class _StudioTopBar extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── This Week Header ─────────────────────────────────────────────────
+
+class _ThisWeekHeader extends StatelessWidget {
+  const _ThisWeekHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'This week',
+            style: AppTypography.label.copyWith(
+              color: AppColors.ink,
+              letterSpacing: 0.6,
+            ),
+          ),
+          Text(
+            'Last 7 days',
+            style: AppTypography.caption.copyWith(color: AppColors.inkSoft),
           ),
         ],
       ),
@@ -431,6 +474,15 @@ class _ContentSectionState extends ConsumerState<_ContentSection> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Pills only show Published/Drafts/Archived — switch the default
+    // filter from 'all' to 'published' so a segment is selected on load.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(studioContentProvider.notifier);
+      if (ref.read(studioContentProvider).statusFilter == 'all') {
+        notifier.setStatusFilter('published');
+      }
+    });
   }
 
   @override
@@ -512,12 +564,20 @@ class _ContentSectionState extends ConsumerState<_ContentSection> {
         ),
         const SizedBox(height: Spacing.md),
 
-        // Filter chips with counts
-        StudioFilterChips(
-          currentFilter: contentState.statusFilter,
-          onChanged: (filter) {
-            HapticFeedback.lightImpact();
-            ref.read(studioContentProvider.notifier).setStatusFilter(filter);
+        // Filter pills (Published · Drafts · Archived) — monochrome
+        Consumer(
+          builder: (context, ref, _) {
+            final countsAsync = ref.watch(studioContentCountsProvider);
+            final counts = countsAsync.asData?.value ?? const ContentCounts();
+            return ContentFilterPills(
+              current: contentState.statusFilter == 'all'
+                  ? 'published'
+                  : contentState.statusFilter,
+              counts: counts,
+              onSelect: (filter) {
+                ref.read(studioContentProvider.notifier).setStatusFilter(filter);
+              },
+            );
           },
         ),
         const SizedBox(height: Spacing.lg),
@@ -599,170 +659,6 @@ class _ContentCardList extends StatelessWidget {
   }
 }
 
-
-// ── Earnings Entry Card ──────────────────────────────────────────────
-
-// ── STUD-FR-004: Earnings Card ────────────────────────────────────────
-
-class _EarningsInfoCard extends ConsumerWidget {
-  const _EarningsInfoCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final earnings = ref.watch(earningsProvider);
-    final kycAsync = ref.watch(kycStatusProvider);
-
-    final totals = earnings.totals;
-    final pendingPaisa = totals.pendingPaisa + totals.processingPaisa;
-    final hasPending = pendingPaisa > 0;
-
-    // Next payout: earliest scheduledAt among pending/scheduled items
-    final nextPayoutItem = earnings.items
-        .where((i) =>
-            i.status == PayoutStatus.pending ||
-            i.status == PayoutStatus.scheduled)
-        .fold<PayoutSummary?>(
-          null,
-          (acc, i) => acc == null || i.scheduledAt.isBefore(acc.scheduledAt)
-              ? i
-              : acc,
-        );
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push('/studio/earnings');
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.mlg),
-        child: Container(
-          padding: const EdgeInsets.all(Spacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.hairline),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // KYC badge (STUD-FR-004)
-              kycAsync.when(
-                loading: () => const SkeletonRect(height: 28, width: 130),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (kyc) => _KycBadge(status: kyc.status),
-              ),
-              const SizedBox(height: Spacing.md),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Pending Payout',
-                          style: AppTypography.caption
-                              .copyWith(color: AppColors.inkSoft),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          hasPending ? formatPrice(pendingPaisa) : '—',
-                          style: AppTypography.h4,
-                        ),
-                        if (nextPayoutItem != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Transfer · ${_fmtDate(nextPayoutItem.scheduledAt)}',
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.inkSoft),
-                          ),
-                        ] else if (!hasPending) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Appears after your first booking completes',
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.inkFaint),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    PhosphorIcons.caretRight(),
-                    size: 16,
-                    color: AppColors.inkSoft,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _fmtDate(DateTime dt) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${dt.day} ${months[dt.month - 1]}';
-  }
-}
-
-class _KycBadge extends StatelessWidget {
-  const _KycBadge({required this.status});
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final isVerified = status == 'verified';
-    final isPending = status == 'pending';
-
-    final bgColor = isVerified
-        ? const Color(0xFFECFDF5)
-        : isPending
-            ? const Color(0xFFFFF8ED)
-            : AppColors.coral.withValues(alpha: 0.08);
-    final fgColor = isVerified
-        ? const Color(0xFF16A34A)
-        : isPending
-            ? const Color(0xFFD97706)
-            : AppColors.coral;
-    final icon = isVerified
-        ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
-        : PhosphorIcons.warning(PhosphorIconsStyle.fill);
-    final label = isVerified
-        ? 'KYC Verified'
-        : isPending
-            ? 'KYC Under Review'
-            : 'KYC Required';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: fgColor),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: fgColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Examples Sheet ─────────────────────────────────────────────────────────
 

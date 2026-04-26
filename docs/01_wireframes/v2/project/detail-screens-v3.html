@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CreatorHub — Detail Screens v3 (DD-016 → DD-028)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --sunken: #F2EEE8;
+    --border: #E5E0D7;
+    --soft-ink: #9C9689;
+    --muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-deep: #C44627;
+    --coral-tint: #FBE6E0;
+    --success: #2E7D5B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #1a1a1a;
+    color: var(--ink);
+    padding: 32px 24px 80px;
+  }
+  .header {
+    color: #fff;
+    margin-bottom: 32px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: #9C9689;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 720px;
+  }
+  .header .meta {
+    color: #6B6660;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .stage {
+    display: flex;
+    gap: 32px;
+    overflow-x: auto;
+    padding-bottom: 32px;
+    max-width: 100%;
+  }
+  .frame-col {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .label {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .sublabel {
+    color: #9C9689;
+    font-size: 11px;
+    margin-bottom: 20px;
+    max-width: 390px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--surface);
+    border-radius: 44px;
+    border: 8px solid #2a2a2a;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+    background: #2a2a2a;
+    border-radius: 0 0 18px 18px;
+    z-index: 100;
+  }
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 50px;
+  }
+  .scroll::-webkit-scrollbar { width: 0; }
+
+  /* ─── shared elements ─── */
+  .top-bar {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 50;
+    pointer-events: none;
+  }
+  .top-bar .btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.94);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    font-size: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .top-bar .right { display: flex; gap: 10px; }
+  .hero {
+    width: 100%;
+    height: 380px;
+    background: linear-gradient(135deg, #B89A7A 0%, #6B5947 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero.short { height: 220px; }
+  .hero.tall { height: 440px; }
+  .hero.gradient1 { background: linear-gradient(135deg, #8B6F4E 0%, #3A2D1F 100%); }
+  .hero.gradient2 { background: linear-gradient(135deg, #4D6B7E 0%, #1F3340 100%); }
+  .hero.gradient3 { background: linear-gradient(135deg, #B89A7A 0%, #6B5947 60%, #3A2D1F 100%); }
+  .hero-dots {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+  }
+  .hero-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+  }
+  .hero-dots span.active { background: #fff; }
+
+  .body {
+    padding: 20px 20px 100px;
+  }
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 1.2;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+  h1.title.lg {
+    font-size: 28px;
+  }
+  .meta-row {
+    color: var(--soft-ink);
+    font-size: 13px;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .rating-line {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .rating-line .star { color: var(--ink); }
+  .pin-coral { color: var(--coral); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--soft-ink);
+    margin-bottom: 8px;
+  }
+
+  /* ─── host card ─── */
+  .host-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    background: var(--surface);
+    margin: 14px 0;
+  }
+  .host-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .avatar.sm { width: 32px; height: 32px; font-size: 13px; }
+  .host-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .verified {
+    color: var(--coral);
+    font-size: 12px;
+  }
+  .host-meta {
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 2px;
+  }
+  .host-tagline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .host-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-outline {
+    flex: 1;
+    padding: 9px 14px;
+    border: 1px solid var(--coral);
+    color: var(--coral);
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    background: transparent;
+  }
+  .btn-ghost {
+    flex: 1;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    background: transparent;
+  }
+
+  /* ─── date block (event) ─── */
+  .date-block {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    background: var(--surface);
+    margin: 14px 0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .date-icon {
+    color: var(--coral);
+    font-size: 28px;
+  }
+  .date-content { flex: 1; }
+  .date-day {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--soft-ink);
+  }
+  .date-main {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 2px;
+  }
+  .date-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .date-venue {
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 6px;
+  }
+
+  /* ─── available dates rail ─── */
+  .dates-rail {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    margin: 12px -20px 0;
+    padding: 0 20px 8px;
+  }
+  .date-card {
+    flex: 0 0 auto;
+    min-width: 130px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--surface);
+  }
+  .date-card.selected {
+    border-color: var(--coral);
+    background: var(--coral-tint);
+  }
+  .date-card .range {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .date-card .left {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ─── meeting point / map ─── */
+  .map-card {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+  }
+  .map-canvas {
+    height: 160px;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(225,90,65,0.06), transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(155,140,120,0.10), transparent 50%),
+      linear-gradient(135deg, #EBE5DA 0%, #DDD5C8 100%);
+    position: relative;
+  }
+  .map-canvas .pin-coral-dot {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--coral);
+    transform: translate(-50%, -100%) rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .map-canvas .pin-coral-dot::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .map-canvas .ink-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translate(-50%, -50%);
+  }
+  .map-info {
+    padding: 12px 14px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .reveal-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--soft-ink);
+  }
+  .lock-icon {
+    width: 12px;
+    height: 12px;
+    color: var(--soft-ink);
+  }
+
+  /* ─── about / tags ─── */
+  .about-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .show-more {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    text-decoration: underline;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .tag {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+
+  /* ─── day-by-day (experience) ─── */
+  .day-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .day-header {
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .day-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .day-arrow {
+    color: var(--soft-ink);
+    font-size: 16px;
+  }
+  .day-spots {
+    border-top: 1px solid var(--border);
+    padding: 8px 14px 14px;
+  }
+  .spot-row {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    align-items: center;
+  }
+  .spot-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--sunken);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .spot-icon.coral {
+    background: var(--coral-tint);
+    color: var(--coral);
+  }
+  .spot-name {
+    font-size: 13px;
+    color: var(--ink);
+    flex: 1;
+  }
+  .spot-name .note {
+    color: var(--soft-ink);
+    font-style: italic;
+    font-size: 12px;
+    display: block;
+    margin-top: 2px;
+  }
+  .spot-meta {
+    font-size: 11px;
+    color: var(--soft-ink);
+  }
+
+  /* ─── reviews ─── */
+  .reviews-summary {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .reviews-avg {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .reviews-count {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .breakdown {
+    margin-top: 14px;
+  }
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 11px;
+    color: var(--soft-ink);
+  }
+  .breakdown-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--sunken);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .breakdown-fill {
+    height: 100%;
+    background: var(--ink);
+  }
+  .review-item {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .review-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .review-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .review-stars {
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .review-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .see-all {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 14px;
+    text-decoration: underline;
+  }
+
+  /* ─── inclusions ─── */
+  .incl-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .incl-row .check { color: var(--success); font-weight: 700; }
+  .incl-row .cross { color: var(--soft-ink); }
+
+  /* ─── sticky bottom ─── */
+  .sticky-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 20px 28px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 60;
+  }
+  .price-block {
+    flex: 1;
+  }
+  .price-main {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .price-sub {
+    font-size: 11px;
+    color: var(--soft-ink);
+  }
+  .btn-primary {
+    background: var(--coral);
+    color: #fff;
+    padding: 13px 20px;
+    border-radius: 28px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+  }
+  .btn-primary.full {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ─── post body (Fraunces serif body) ─── */
+  .post-body {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .post-body p { margin-bottom: 16px; }
+  .inline-img {
+    width: calc(100% + 40px);
+    margin: 16px -20px;
+    height: 240px;
+    background: linear-gradient(135deg, #8B6F4E 0%, #3A2D1F 100%);
+  }
+
+  /* ─── engagement bar ─── */
+  .engagement-summary {
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 16px;
+  }
+  .engagement-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+  .engagement-bar .item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ─── who's going ─── */
+  .going-row {
+    display: flex;
+    margin-top: 10px;
+  }
+  .going-row .avatar.sm {
+    margin-left: -10px;
+    border: 2px solid var(--surface);
+  }
+  .going-row .avatar.sm:first-child { margin-left: 0; }
+  .going-extra {
+    margin-left: -10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    border: 2px solid var(--surface);
+  }
+
+  /* ─── itinerary day pills ─── */
+  .day-pills {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .day-pill {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .day-pill.active {
+    background: var(--ink);
+    color: var(--surface);
+    border-color: var(--ink);
+  }
+
+  /* ─── itinerary spot card ─── */
+  .itin-spot {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: var(--surface);
+  }
+  .itin-spot-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .spot-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--soft-ink);
+    letter-spacing: 1px;
+  }
+  .itin-spot .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+  }
+  .itin-spot .note {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .itin-spot .duration {
+    font-size: 11px;
+    color: var(--soft-ink);
+    margin-top: 6px;
+  }
+
+  /* ─── paywall ─── */
+  .paywall {
+    margin: 20px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .paywall-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: var(--soft-ink);
+    font-size: 12px;
+  }
+  .paywall-divider::before, .paywall-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .paywall-blur {
+    filter: blur(4px);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* ─── stats row (itinerary) ─── */
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 16px 0 8px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    text-align: center;
+    flex: 1;
+  }
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--soft-ink);
+    margin-top: 2px;
+  }
+
+  /* ─── spot editor sheet (wizard) ─── */
+  .sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 12px 20px 28px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .sheet-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .place-card {
+    background: var(--sunken);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .place-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #B89A7A 0%, #6B5947 100%);
+  }
+  .place-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .place-sub {
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 4px;
+  }
+  .input-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--soft-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .input-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    color: var(--soft-ink);
+    margin-bottom: 20px;
+    min-height: 70px;
+  }
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .chip {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chip.selected {
+    background: var(--ink);
+    color: var(--surface);
+    border-color: var(--ink);
+  }
+  .chip.coral-selected {
+    background: var(--coral-tint);
+    color: var(--coral-deep);
+    border-color: var(--coral);
+  }
+
+  /* ─── bottom nav (5 tabs) ─── */
+  .bottom-nav {
+    height: 64px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 14px;
+  }
+  .nav-item {
+    font-size: 18px;
+    color: var(--soft-ink);
+  }
+  .nav-item.active { color: var(--coral); }
+
+  /* ─── notes column ─── */
+  .notes {
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    color: #C9C4BB;
+    font-size: 11px;
+    line-height: 1.7;
+    max-width: 390px;
+  }
+  .notes strong { color: #fff; }
+  .notes ul { margin-top: 6px; padding-left: 16px; }
+  .notes li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Detail Screens v3 — Airbnb-pattern + Monochrome (DD-016 → DD-028)</h1>
+  <p>Five wireframes for review: post detail (reading-first), event detail (date-as-hero),
+  scheduled experience detail (Airbnb-pattern with sticky CTA), self-paced itinerary detail
+  (Roamy map-first), and the spot editor sheet (wizard color-leak fix). Three reader personas
+  (Aarti, Rahul, Meera) and three creator personas (Aarti G., Rohan, Priya) drove the layout
+  decisions documented in the plan file.</p>
+  <p class="meta">Open this file in any browser. Fonts load from Google Fonts CDN. Plan: <code>~/.claude/plans/zesty-skipping-rainbow.md</code></p>
+</div>
+
+<div class="stage">
+
+  <!-- ════════════════ A) POST DETAIL ════════════════ -->
+  <div class="frame-col">
+    <div class="label">A · Post Detail</div>
+    <div class="sublabel">Reading-first, Fraunces body (DD-026). Engagement bar but no booking (DD-027).</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="top-bar">
+        <div class="btn">←</div>
+        <div class="right">
+          <div class="btn">⤴</div>
+          <div class="btn">🔖</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="hero">
+          <div class="hero-dots">
+            <span class="active"></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="body">
+          <h1 class="title lg">Spiti in monsoon</h1>
+          <div class="meta-row">6 min read · Pune → Spiti · 12 Apr 2026</div>
+
+          <div class="host-card">
+            <div class="host-row">
+              <div class="avatar">AG</div>
+              <div style="flex:1">
+                <div class="host-name">Aarti Gokhale <span class="verified">✓</span></div>
+                <div class="host-meta">3.2k followers · 12 itineraries</div>
+              </div>
+              <div class="btn-outline" style="flex:0; padding: 7px 16px;">Follow</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="post-body">
+            <p>We left Manali at 4am, the kind of cold that needs you to grip
+            the wheel just to feel alive. The road from Rohtang to Gramphu is
+            still half-river, half-asphalt this time of year — and you're not
+            sure which is which until you're already through it.</p>
+            <p>By the time we hit Sissu, the light had turned the kind of pale
+            gold that makes every photographer pull over.</p>
+          </div>
+
+          <div class="inline-img"></div>
+
+          <div class="post-body">
+            <p>The dhaba on the right just past the bridge does the best trout
+            I've had on this stretch. Order it whole, with butter and lemon.</p>
+          </div>
+
+          <div class="tags">
+            <div class="tag">#spiti</div>
+            <div class="tag">#monsoon</div>
+            <div class="tag">#roadtrip</div>
+            <div class="tag">#solo</div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-title">Where this happened</div>
+          <div class="meta-row"><span class="pin-coral">📍</span> Spiti Valley, Himachal Pradesh</div>
+
+          <div class="engagement-summary">72 likes · 14 comments · 8 saves</div>
+          <div class="engagement-bar">
+            <div class="item">❤  Like</div>
+            <div class="item">💬 Comment</div>
+            <div class="item">🔖 Save</div>
+            <div class="item">⤴ Share</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ B) EVENT DETAIL ════════════════ -->
+  <div class="frame-col">
+    <div class="label">B · Event Detail</div>
+    <div class="sublabel">Date-as-hero. Single occurrence (DD-025). Venue PUBLIC. Reviews block.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="top-bar">
+        <div class="btn">←</div>
+        <div class="right">
+          <div class="btn">⤴</div>
+          <div class="btn">🔖</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="hero short gradient2"></div>
+        <div class="body">
+          <h1 class="title">Sunset photo walk · Worli Sea Face</h1>
+
+          <div class="date-block">
+            <div class="date-icon">📅</div>
+            <div class="date-content">
+              <div class="date-day">SAT · 17 May 2026</div>
+              <div class="date-main">5:30 PM → 7:30 PM</div>
+              <div class="date-sub">IST · 2 hours</div>
+              <div class="date-venue">📍 Worli Sea Face, Mumbai</div>
+            </div>
+          </div>
+
+          <div class="rating-line"><span class="star">★</span> 4.8 · 23 reviews</div>
+
+          <div class="host-card">
+            <div class="host-row">
+              <div class="avatar">PM</div>
+              <div style="flex:1">
+                <div class="host-name">Priya Menon <span class="verified">✓</span></div>
+                <div class="host-meta">Hosting since Jan 2025 · 8 events</div>
+              </div>
+            </div>
+            <div class="host-tagline">"I run Sunday photo walks across Mumbai."</div>
+            <div class="host-actions">
+              <div class="btn-outline">Follow</div>
+              <div class="btn-ghost">Message →</div>
+            </div>
+          </div>
+
+          <div class="section-title">About this event</div>
+          <div class="about-text">We meet at Worli Sea Face by 5:25pm sharp.
+          Bring a camera (phone is fine), comfortable shoes...</div>
+          <div class="show-more">Show more</div>
+
+          <div class="divider"></div>
+          <div class="section-title">Who's going (12)</div>
+          <div class="going-row">
+            <div class="avatar sm">A</div>
+            <div class="avatar sm">R</div>
+            <div class="avatar sm">M</div>
+            <div class="avatar sm">K</div>
+            <div class="avatar sm">S</div>
+            <div class="avatar sm">N</div>
+            <div class="going-extra">+6</div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-title">What to bring</div>
+          <div class="incl-row"><span class="check">✓</span> Camera or phone</div>
+          <div class="incl-row"><span class="check">✓</span> Water bottle</div>
+          <div class="incl-row"><span class="check">✓</span> Comfortable shoes</div>
+
+          <div class="divider"></div>
+          <div class="section-title">Reviews (23)</div>
+          <div class="reviews-summary">
+            <div class="reviews-avg">★ 4.8</div>
+            <div class="reviews-count">23 reviews</div>
+            <div class="breakdown">
+              <div class="breakdown-row">5 <div class="breakdown-bar"><div class="breakdown-fill" style="width:74%"></div></div> 17</div>
+              <div class="breakdown-row">4 <div class="breakdown-bar"><div class="breakdown-fill" style="width:17%"></div></div> 4</div>
+              <div class="breakdown-row">3 <div class="breakdown-bar"><div class="breakdown-fill" style="width:9%"></div></div> 2</div>
+              <div class="breakdown-row">2 <div class="breakdown-bar"><div class="breakdown-fill" style="width:0%"></div></div> 0</div>
+              <div class="breakdown-row">1 <div class="breakdown-bar"><div class="breakdown-fill" style="width:0%"></div></div> 0</div>
+            </div>
+            <div class="review-item">
+              <div class="review-header">
+                <div class="avatar sm">N</div>
+                <div>
+                  <div class="review-name">Neha · 2 weeks ago</div>
+                  <div class="review-stars">★★★★★</div>
+                </div>
+              </div>
+              <div class="review-body">Priya knows every corner of this neighbourhood. Came back with 40 great shots.</div>
+            </div>
+            <div class="see-all">See all 23 reviews →</div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-title">Cancellation policy</div>
+          <div class="about-text">Free cancellation up to 24h before start.</div>
+        </div>
+      </div>
+      <div class="sticky-bottom">
+        <div class="price-block">
+          <div class="price-main">Free</div>
+          <div class="price-sub">8 spots left</div>
+        </div>
+        <div class="btn-primary">RSVP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ C) EXPERIENCE DETAIL ════════════════ -->
+  <div class="frame-col">
+    <div class="label">C · Scheduled Experience</div>
+    <div class="sublabel">Airbnb-pattern. Sticky "Check availability" CTA. Reveal countdown on meeting point.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="top-bar">
+        <div class="btn">←</div>
+        <div class="right">
+          <div class="btn">⤴</div>
+          <div class="btn">🔖</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="hero tall gradient3"></div>
+        <div class="body">
+          <h1 class="title">Spiti in monsoon — 5 day road trip</h1>
+          <div class="rating-line"><span class="star">★</span> 4.9 · 47 reviews · Manali, HP</div>
+
+          <div class="host-card">
+            <div class="host-row">
+              <div class="avatar">AG</div>
+              <div style="flex:1">
+                <div class="host-name">Aarti Gokhale <span class="verified">✓</span></div>
+                <div class="host-meta">Hosting since 2024 · 12 trips · 142 travellers</div>
+              </div>
+            </div>
+            <div class="host-actions">
+              <div class="btn-outline">Follow</div>
+              <div class="btn-ghost">Message →</div>
+            </div>
+          </div>
+
+          <div class="section-eyebrow">Available dates</div>
+          <div class="dates-rail">
+            <div class="date-card selected">
+              <div class="range">12 May → 16 May</div>
+              <div class="left">4 spots left</div>
+            </div>
+            <div class="date-card">
+              <div class="range">25 May → 29 May</div>
+              <div class="left">8 spots left</div>
+            </div>
+            <div class="date-card">
+              <div class="range">8 Jun → 12 Jun</div>
+              <div class="left">11 spots left</div>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:18px">Where you'll meet</div>
+          <div class="map-card">
+            <div class="map-canvas">
+              <div class="pin-coral-dot" style="left: 50%; top: 60%;"></div>
+            </div>
+            <div class="map-info">
+              📍 <strong style="color:var(--ink)">Manali Volvo Stand</strong> · Manali, HP
+              <div class="reveal-badge">🔒 Exact pickup point shared 24h before start</div>
+            </div>
+          </div>
+
+          <div class="section-title">About this trip</div>
+          <div class="about-text">Five days through Spiti in the late monsoon — the
+          rivers swell, the passes open, and the sky turns colours you didn't know
+          existed. We drive in a single Innova convoy...</div>
+          <div class="show-more">Show more →</div>
+
+          <div class="divider"></div>
+          <div class="section-title">Day-by-day</div>
+          <div class="day-card">
+            <div class="day-header">
+              <div class="day-title">Day 1 · Manali → Kaza</div>
+              <div class="day-arrow">▾</div>
+            </div>
+            <div class="day-spots">
+              <div class="spot-row">
+                <div class="spot-icon">📍</div>
+                <div class="spot-name">Pickup at Manali Volvo Stand
+                  <span class="note">6am sharp · don't be late</span>
+                </div>
+              </div>
+              <div class="spot-row">
+                <div class="spot-icon">🍴</div>
+                <div class="spot-name">Lunch at Sissu dhaba
+                  <span class="note">try the trout · ~1h</span>
+                </div>
+              </div>
+              <div class="spot-row">
+                <div class="spot-icon coral">🛏</div>
+                <div class="spot-name">Overnight at Sakya Abode, Kaza
+                  <span class="note">homestay · WiFi unreliable</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="day-card">
+            <div class="day-header">
+              <div class="day-title">Day 2 · Kaza → Komik</div>
+              <div class="day-arrow">▸</div>
+            </div>
+          </div>
+          <div class="day-card">
+            <div class="day-header">
+              <div class="day-title">Day 3 · Komik → Langza</div>
+              <div class="day-arrow">▸</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-title">What's included</div>
+          <div class="incl-row"><span class="check">✓</span> Accommodation (4 nights)</div>
+          <div class="incl-row"><span class="check">✓</span> Breakfast & dinner</div>
+          <div class="incl-row"><span class="cross">✗</span> Lunches</div>
+          <div class="incl-row"><span class="cross">✗</span> Personal expenses</div>
+
+          <div class="divider"></div>
+          <div class="section-title">Cancellation policy</div>
+          <div class="about-text"><strong style="color:var(--ink)">Moderate</strong> · Full refund up to 5 days before start.</div>
+
+          <div class="divider"></div>
+          <div class="section-title">Reviews (47)</div>
+          <div class="reviews-summary">
+            <div class="reviews-avg">★ 4.9</div>
+            <div class="reviews-count">47 reviews</div>
+            <div class="breakdown">
+              <div class="breakdown-row">5 <div class="breakdown-bar"><div class="breakdown-fill" style="width:81%"></div></div> 38</div>
+              <div class="breakdown-row">4 <div class="breakdown-bar"><div class="breakdown-fill" style="width:13%"></div></div> 6</div>
+              <div class="breakdown-row">3 <div class="breakdown-bar"><div class="breakdown-fill" style="width:4%"></div></div> 2</div>
+              <div class="breakdown-row">2 <div class="breakdown-bar"><div class="breakdown-fill" style="width:2%"></div></div> 1</div>
+              <div class="breakdown-row">1 <div class="breakdown-bar"><div class="breakdown-fill" style="width:0%"></div></div> 0</div>
+            </div>
+            <div class="see-all">See all 47 reviews →</div>
+          </div>
+        </div>
+      </div>
+      <div class="sticky-bottom">
+        <div class="price-block">
+          <div class="price-main">₹12,500 / person</div>
+          <div class="price-sub">4 dates available</div>
+        </div>
+        <div class="btn-primary">Check availability →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ D) ITINERARY DETAIL ════════════════ -->
+  <div class="frame-col">
+    <div class="label">D · Self-paced Itinerary</div>
+    <div class="sublabel">Roamy map-first (DD-023). Overnight = coral pin (DD-024). Day 1 free preview, Day 2+ locked.</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="top-bar">
+        <div class="btn">←</div>
+        <div class="right">
+          <div class="btn">⤴</div>
+          <div class="btn">🔖</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <!-- Map placeholder -->
+        <div class="map-canvas" style="height: 280px; border-radius: 0;">
+          <div class="ink-dot" style="left: 25%; top: 30%;"></div>
+          <div class="ink-dot" style="left: 35%; top: 38%;"></div>
+          <div class="ink-dot" style="left: 30%; top: 50%;"></div>
+          <div class="pin-coral-dot" style="left: 45%; top: 55%;"></div>
+          <div class="ink-dot" style="left: 55%; top: 48%;"></div>
+          <div class="ink-dot" style="left: 60%; top: 38%;"></div>
+          <div class="ink-dot" style="left: 70%; top: 45%;"></div>
+          <div class="pin-coral-dot" style="left: 70%; top: 60%;"></div>
+          <div class="ink-dot" style="left: 80%; top: 55%;"></div>
+        </div>
+
+        <div class="body">
+          <h1 class="title">Spiti road trip — full route</h1>
+          <div class="rating-line"><span class="star">★</span> 4.8 · 12 reviews</div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-num">5</div>
+              <div class="stat-label">DAYS</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">12</div>
+              <div class="stat-label">SPOTS</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">940</div>
+              <div class="stat-label">KM</div>
+            </div>
+          </div>
+
+          <div class="host-card">
+            <div class="host-row">
+              <div class="avatar">AG</div>
+              <div style="flex:1">
+                <div class="host-name">Aarti Gokhale <span class="verified">✓</span></div>
+                <div class="host-meta">3.2k followers · 12 itineraries</div>
+              </div>
+            </div>
+            <div class="host-actions">
+              <div class="btn-outline">Follow</div>
+              <div class="btn-ghost">Message →</div>
+            </div>
+          </div>
+
+          <div class="section-title">About this trip</div>
+          <div class="about-text">Five days from Manali through Spiti. Every spot
+          I'd send a friend to. Every dhaba I'd stop at twice.</div>
+
+          <div class="day-pills">
+            <div class="day-pill active">Day 1</div>
+            <div class="day-pill">Day 2</div>
+            <div class="day-pill">Day 3</div>
+            <div class="day-pill">Day 4</div>
+            <div class="day-pill">Day 5</div>
+          </div>
+
+          <div class="section-eyebrow">Day 1 · Manali → Kaza · 210 km · 8h</div>
+
+          <div class="itin-spot">
+            <div class="itin-spot-head">
+              <div class="spot-num">01</div>
+              <div class="spot-icon">📍</div>
+              <div class="name">Manali Volvo Stand</div>
+            </div>
+            <div class="note">Pickup point. Get there by 5:45am — buses leave on time.</div>
+            <div class="duration">~30 min</div>
+          </div>
+
+          <div class="itin-spot">
+            <div class="itin-spot-head">
+              <div class="spot-num">02</div>
+              <div class="spot-icon">🍴</div>
+              <div class="name">Sissu dhaba</div>
+            </div>
+            <div class="note">The dhaba on the right just past the bridge. Try the trout.</div>
+            <div class="duration">~1 hour</div>
+          </div>
+
+          <div class="itin-spot">
+            <div class="itin-spot-head">
+              <div class="spot-num">03</div>
+              <div class="spot-icon coral">🛏</div>
+              <div class="name">Sakya Abode, Kaza</div>
+            </div>
+            <div class="note">Stay here. WiFi unreliable. Owner Tashi makes the best thukpa.</div>
+            <div class="duration">Overnight</div>
+          </div>
+
+          <div class="paywall-divider">🔒 Day 2 unlocks after purchase</div>
+          <div class="paywall-blur">
+            <div class="itin-spot">
+              <div class="itin-spot-head">
+                <div class="spot-num">04</div>
+                <div class="spot-icon">📍</div>
+                <div class="name">Komik village</div>
+              </div>
+              <div class="note">█████████████████████████████████████████████████</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-title">Reviews (12)</div>
+          <div class="reviews-summary">
+            <div class="reviews-avg">★ 4.8</div>
+            <div class="reviews-count">12 reviews</div>
+            <div class="see-all">See all 12 reviews →</div>
+          </div>
+        </div>
+      </div>
+      <div class="sticky-bottom">
+        <div class="price-block">
+          <div class="price-main">₹890 once</div>
+          <div class="price-sub">Lifetime access</div>
+        </div>
+        <div class="btn-primary">Unlock trip →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ E) SPOT EDITOR (WIZARD) ════════════════ -->
+  <div class="frame-col">
+    <div class="label">E · Spot Editor (Wizard)</div>
+    <div class="sublabel">Stop-type chips fixed: only overnight = coral. Others = monochrome (icon shape carries meaning).</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div style="flex:1; background: rgba(0,0,0,0.4); display: flex; align-items: flex-end; padding-top: 50px;">
+        <div class="sheet" style="height: 88%;">
+          <div class="handle"></div>
+          <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="sheet-title" style="margin:0">Configure spot</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--sunken); display: flex; align-items: center; justify-content: center; color: var(--soft-ink);">×</div>
+          </div>
+
+          <div class="place-card">
+            <div class="place-thumb"></div>
+            <div>
+              <div class="place-name">Sakya Abode</div>
+              <div class="place-sub">Kaza, Himachal Pradesh</div>
+            </div>
+          </div>
+
+          <div class="input-label">Creator note (optional)</div>
+          <div class="input-box">Stay here. WiFi unreliable. Owner Tashi makes the best thukpa.</div>
+
+          <div class="input-label">Duration</div>
+          <div class="chip-row">
+            <div class="chip">15 min</div>
+            <div class="chip">30 min</div>
+            <div class="chip">1h</div>
+            <div class="chip">2h</div>
+            <div class="chip selected">Overnight</div>
+            <div class="chip">Custom</div>
+          </div>
+
+          <div class="input-label">Stop type</div>
+          <div class="chip-row">
+            <div class="chip">📍 Regular</div>
+            <div class="chip coral-selected">🛏 Overnight</div>
+            <div class="chip">🍴 Meal</div>
+            <div class="chip">👁 Viewpoint</div>
+            <div class="chip">⛰ Activity</div>
+          </div>
+
+          <div style="margin-top: 12px; padding: 10px 12px; background: var(--coral-tint); border-radius: 10px; font-size: 12px; color: var(--coral-deep); line-height: 1.5;">
+            <strong>Why monochrome?</strong> Stop type is differentiated by icon shape, not colour.
+            Only "Overnight" carries the coral accent — it's the one decision travelers care most
+            about (where am I sleeping?). Reduces visual noise without losing scannability.
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div class="btn-primary full">Add Spot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notes">
+  <strong>What this wireframe locks in (open for change):</strong>
+  <ul>
+    <li><strong>HostCard</strong> placement: directly under the rating line on every screen — Airbnb pattern that anchors trust before the long scroll begins.</li>
+    <li><strong>Sticky bottom CTA</strong>: only on experience + itinerary + event screens. Posts have no bottom bar — engagement bar serves that role (DD-027).</li>
+    <li><strong>Reveal countdown</strong>: appears on the meeting-point card whenever <code>meeting_points.exact_location</code> is set. Copy: "Exact pickup point shared {N}h before start" — N pulled from <code>exact_shared_hours_before</code>.</li>
+    <li><strong>Coral inventory across redesigned screens</strong>: location pin (header + meeting point + spot map), primary CTA (sticky bar + soft auth), Follow button outline, active bookmark, overnight pin, active bottom tab, verified-creator tick. No leakage into text, links, dividers, or background fills.</li>
+    <li><strong>Reviews block</strong> uses ink-only bars (no green/red rating colours) to stay in palette. Average + count is the headline; breakdown bars are secondary.</li>
+    <li><strong>Static map placeholder</strong>: city-tinted radial gradient + plotted dots from spot lat/lng. Real Google Maps swap-in is a one-screen change once the GCP key is procured.</li>
+    <li><strong>Spot editor</strong>: 4 of 5 stop types use <code>surface + hairline + ink</code> chip styling. Only Overnight uses coral tint + coral border. The rationale message in the wireframe is illustrative — won't ship in the actual sheet.</li>
+  </ul>
+  <strong style="display:block;margin-top:12px">Open for your feedback:</strong>
+  <ul>
+    <li>Should the post detail's Follow button go to the very top (next to creator name) or bottom of the host card?</li>
+    <li>Date-as-hero on event detail — keep the date block at the top, or push the cover image first like experience?</li>
+    <li>"More from this creator" rail — included in the plan but not drawn here. Add to wireframe?</li>
+    <li>Soft-auth sheet variant copy: should it preview the action being gated ("Save 'Spiti in monsoon'?") or stay generic ("Save this postcard?")?</li>
+  </ul>
+</div>
+
+</body>
+</html>

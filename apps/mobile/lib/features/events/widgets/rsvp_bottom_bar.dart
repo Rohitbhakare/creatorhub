@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
 
 import '../../../shared/components/button.dart';
@@ -12,16 +13,24 @@ import '../../../shared/theme/layout.dart';
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/dio_errors.dart';
+import '../../../shared/utils/toast.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
+import '../../booking/providers/waitlist_provider.dart';
 import '../providers/event_detail_provider.dart';
 
 /// Fixed bottom bar on the event detail screen.
 ///
-/// Shows:
-/// - "RSVP" button if user hasn't RSVP'd and event has capacity
-/// - "Cancel RSVP" button if user has already RSVP'd
-/// - Disabled "Event Full" button if at capacity
-/// - Hidden if event is in the past or user is the creator
+/// Free events:
+///   - "RSVP" (or "Cancel RSVP" if already RSVP'd)
+///   - "Event Full" if at capacity
+///
+/// Paid events:
+///   - "Reserve seat" pushes /book/:eventId
+///   - "Join waitlist" if at capacity
+///   - "Cancel booking" path is on the booking detail screen, not here
+///
+/// Hidden if event is in the past or user is the creator.
 class RsvpBottomBar extends ConsumerStatefulWidget {
   final EventDetail event;
   final VoidCallback onRsvpChanged;
@@ -68,7 +77,6 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
 
   Future<void> _cancelRsvp() async {
     unawaited(HapticFeedback.lightImpact());
-    // Confirm before cancelling
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -125,6 +133,46 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
     }
   }
 
+  Future<void> _onReserveSeat() async {
+    unawaited(HapticFeedback.lightImpact());
+    final auth = ref.read(authProvider);
+    if (!auth.isAuthenticated) {
+      final signedIn = await showSoftAuthSheet(
+        context,
+        ref,
+        trigger: SoftAuthTrigger.book,
+      );
+      if (!signedIn || !mounted) return;
+    }
+    if (!mounted) return;
+    context.push('/book/${widget.event.id}');
+  }
+
+  Future<void> _onJoinWaitlist() async {
+    unawaited(HapticFeedback.lightImpact());
+    final auth = ref.read(authProvider);
+    if (!auth.isAuthenticated) {
+      final signedIn = await showSoftAuthSheet(
+        context,
+        ref,
+        trigger: SoftAuthTrigger.book,
+      );
+      if (!signedIn || !mounted) return;
+    }
+    final ok = await ref.read(waitlistActionProvider.notifier).joinWaitlist(
+      contentId: widget.event.id,
+      eventOccurrenceId: widget.event.id,
+    );
+    if (!mounted) return;
+    if (ok) {
+      showAppToast(context, "We'll notify you if a spot opens up.");
+    } else {
+      final err = ref.read(waitlistActionProvider).error ??
+          'Could not join waitlist';
+      showAppToast(context, err);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final event = widget.event;
@@ -136,6 +184,10 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
       final userId = authState.user?['id'] as String?;
       if (userId == event.creator.id) return const SizedBox.shrink();
     }
+
+    final spotsLeft = event.capacity == null
+        ? null
+        : (event.capacity! - event.spotsBooked).clamp(0, event.capacity!);
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -150,7 +202,7 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
       ),
       child: Row(
         children: [
-          // Capacity summary on the left
+          // Capacity / price summary on the left
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +216,9 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
                   ),
                 ),
                 Text(
-                  event.capacityLabel,
+                  spotsLeft != null
+                      ? '$spotsLeft spots left'
+                      : event.capacityLabel,
                   style: typ.AppTypography.caption.copyWith(
                     color: AppColors.inkSoft,
                   ),
@@ -175,43 +229,71 @@ class _RsvpBottomBarState extends ConsumerState<RsvpBottomBar> {
           const SizedBox(width: Spacing.md),
 
           // Action button
-          if (event.hasRsvpd)
-            AppButton(
-              label: 'Cancel RSVP',
-              onPressed: _isLoading ? null : _cancelRsvp,
-              variant: AppButtonVariant.secondary,
-              size: AppButtonSize.large,
-              isLoading: _isLoading,
-              leadingIcon: PhosphorIconsFill.calendarX,
-            )
-          else if (!event.hasSpots)
-            const AppButton(
-              label: 'Event Full',
-              onPressed: null,
-              variant: AppButtonVariant.primary,
-              size: AppButtonSize.large,
-            )
-          else if (!authState.isAuthenticated)
-            AppButton(
-              label: 'Sign in to RSVP',
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                // TODO: trigger soft auth wall
-              },
-              variant: AppButtonVariant.primary,
-              size: AppButtonSize.large,
-            )
-          else
-            AppButton(
-              label: 'RSVP',
-              onPressed: _isLoading ? null : _rsvp,
-              variant: AppButtonVariant.primary,
-              size: AppButtonSize.large,
-              isLoading: _isLoading,
-              leadingIcon: PhosphorIconsFill.calendarCheck,
-            ),
+          _buildActionButton(event, authState, spotsLeft),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButton(
+    EventDetail event,
+    AuthState authState,
+    int? spotsLeft,
+  ) {
+    // Free flow — RSVP / Cancel / Full
+    if (event.isFree) {
+      if (event.hasRsvpd) {
+        return AppButton(
+          label: 'Cancel RSVP',
+          onPressed: _isLoading ? null : _cancelRsvp,
+          variant: AppButtonVariant.secondary,
+          size: AppButtonSize.large,
+          isLoading: _isLoading,
+          leadingIcon: PhosphorIconsFill.calendarX,
+        );
+      }
+      if (!event.hasSpots) {
+        return const AppButton(
+          label: 'Event Full',
+          onPressed: null,
+          variant: AppButtonVariant.primary,
+          size: AppButtonSize.large,
+        );
+      }
+      if (!authState.isAuthenticated) {
+        return AppButton(
+          label: 'Sign in to RSVP',
+          onPressed: () async {
+            HapticFeedback.lightImpact();
+            await showSoftAuthSheet(context, ref, trigger: SoftAuthTrigger.book);
+          },
+          variant: AppButtonVariant.primary,
+          size: AppButtonSize.large,
+        );
+      }
+      return AppButton(
+        label: 'RSVP',
+        onPressed: _isLoading ? null : _rsvp,
+        variant: AppButtonVariant.primary,
+        size: AppButtonSize.large,
+        isLoading: _isLoading,
+        leadingIcon: PhosphorIconsFill.calendarCheck,
+      );
+    }
+
+    // Paid flow — Reserve seat or Join waitlist (DD-013 #4: booking primary CTA)
+    final soldOut = !event.hasSpots;
+    return AppButton(
+      label: soldOut ? 'Join waitlist' : 'Reserve seat',
+      onPressed: _isLoading
+          ? null
+          : (soldOut ? _onJoinWaitlist : _onReserveSeat),
+      variant: AppButtonVariant.primary,
+      size: AppButtonSize.large,
+      isLoading: _isLoading,
+      leadingIcon: soldOut
+          ? PhosphorIconsFill.bellRinging
+          : PhosphorIconsFill.ticket,
     );
   }
 }

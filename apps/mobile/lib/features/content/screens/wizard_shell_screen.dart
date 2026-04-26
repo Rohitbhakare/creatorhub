@@ -15,6 +15,7 @@ import '../../../shared/components/button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/wizard_provider.dart';
 import '../services/draft_auto_save_service.dart';
+import '../widgets/empty_close_sheet.dart';
 import '../widgets/publish_celebration.dart';
 import '../widgets/wizard_step_indicator.dart';
 import '../widgets/steps/basics_step.dart';
@@ -29,6 +30,7 @@ import '../../events/providers/event_wizard_provider.dart';
 import '../../events/widgets/event_details_step.dart';
 import '../../experiences/providers/experience_provider.dart';
 import '../../experiences/widgets/experience_details_step.dart';
+import '../../kyc/providers/kyc_provider.dart';
 import '../../studio/providers/studio_provider.dart';
 
 /// The wizard shell screen — a reusable container for multi-step
@@ -44,53 +46,61 @@ class WizardShellScreen extends ConsumerStatefulWidget {
 class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   DraftAutoSaveService? _autoSave;
   bool _creatingDraft = false;
+  /// Tracks whether the stub draft row has been created on the API.
+  /// Stays false from initState until the user types into Step 1 OR
+  /// presses Next — that's when [_ensureDraft] fires for the first time.
+  /// Used by the close handler to decide whether to DELETE on discard.
+  bool _draftCreated = false;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final wizard = ref.read(wizardProvider);
+      if (!mounted) return;
       final dio = ref.read(authServiceProvider).dio;
 
-      // Create a stub draft upfront for every content type so auto-save has
-      // a contentId and publish can hit the /:id/publish endpoint (which
-      // validates T&C, updates state, and records consent). Without this,
-      // posts/itineraries would fall through to POST /api/v1/content — whose
-      // schema only accepts {type, vertical}, not the full publish payload.
-      // Guard against re-entry if the user navigates back before POST returns.
-      if (wizard.contentId == null && !_creatingDraft) {
-        _creatingDraft = true;
-        _createDraft(dio, wizard.contentType, wizard.vertical);
-      }
-
-      // Start auto-save timer
-      _autoSave = DraftAutoSaveService(ref: ref, dio: dio);
+      // Auto-save service. The draft row is created lazily on the first
+      // dirty tick (DD-031) — see [_ensureDraft] — so opening + immediately
+      // closing the wizard no longer leaves an orphan content row.
+      _autoSave = DraftAutoSaveService(
+        ref: ref,
+        dio: dio,
+        ensureDraft: _ensureDraft,
+      );
       _autoSave!.start();
     });
   }
 
-  /// Create a stub draft and store the returned contentId.
+  /// Lazily create the stub draft if one hasn't been created yet.
   ///
   /// Endpoint per content type (each accepts `{type, vertical}`):
   ///   post                → POST /api/v1/posts
   ///   selfPacedItinerary  → POST /api/v1/itineraries
   ///   event               → POST /api/v1/events
   ///   scheduledExperience → POST /api/v1/experiences
-  Future<void> _createDraft(
-    Dio dio,
-    ContentType type,
-    String vertical,
-  ) async {
+  ///
+  /// Idempotent: safe to call from multiple sources (Next press, auto-save
+  /// tick, publish flush). Re-entry is guarded with [_creatingDraft].
+  Future<void> _ensureDraft() async {
+    final wizard = ref.read(wizardProvider);
+    if (wizard.contentId != null) return;
+    if (_creatingDraft) return;
+
+    _creatingDraft = true;
     try {
-      final response = await dio.post('/api/v1/${type.apiPath}', data: {
-        'type': type.apiType,
-        'vertical': vertical.isNotEmpty ? vertical : 'travel',
-      });
-      final data =
-          (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+      final dio = ref.read(authServiceProvider).dio;
+      final response = await dio.post('/api/v1/${wizard.contentType.apiPath}',
+          data: {
+            'type': wizard.contentType.apiType,
+            'vertical': wizard.vertical.isNotEmpty ? wizard.vertical : 'travel',
+          });
+      final data = (response.data as Map<String, dynamic>)['data']
+          as Map<String, dynamic>;
       final contentId = data['id'] as String;
+      if (!mounted) return;
       ref.read(wizardProvider.notifier).setContentId(contentId);
+      _draftCreated = true;
     } catch (_) {
       // Draft creation failed — will retry on next save attempt
     } finally {
@@ -104,15 +114,37 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     super.dispose();
   }
 
-  /// X button: exit immediately if untouched; prompt only when user has entered data.
+  /// X button: exit immediately if pristine; prompt with the empty-close
+  /// sheet if the user has typed anything OR a draft was created.
   void _onClose() {
     HapticFeedback.lightImpact();
     final wizard = ref.read(wizardProvider);
-    if (!wizard.isDirty) {
-      _discardAndExit();
-    } else {
-      _showDiscardDialog();
+    if (!wizard.isDirty && !_draftCreated) {
+      // Pristine — nothing to save, no draft on the server. Just pop.
+      if (mounted) context.pop();
+      return;
     }
+    _showEmptyCloseSheet();
+  }
+
+  /// Show the empty-close bottom sheet (DD-033).
+  ///
+  /// "Save draft" → flush pending edits and pop.
+  /// "Discard"    → DELETE the draft row if one was created and pop.
+  void _showEmptyCloseSheet() {
+    showEmptyCloseSheet(
+      context,
+      onSaveDraft: () async {
+        Navigator.of(context).pop();
+        await _ensureDraft();
+        await _autoSave?.flushNow();
+        if (mounted) context.pop();
+      },
+      onDiscard: () async {
+        Navigator.of(context).pop();
+        await _discardAndExit();
+      },
+    );
   }
 
   /// Silently delete the stub draft (if one was created) and pop.
@@ -161,7 +193,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
           ),
           TextButton(
             onPressed: () async {
-              HapticFeedback.lightImpact();
+              unawaited(HapticFeedback.lightImpact());
               Navigator.of(ctx).pop();
               if (contentId != null) {
                 try {
@@ -194,10 +226,10 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     final wizard = ref.read(wizardProvider);
 
     if (wizard.currentStep == 1) {
-      if (!wizard.isDirty) {
-        _discardAndExit();
+      if (!wizard.isDirty && !_draftCreated) {
+        if (mounted) context.pop();
       } else {
-        _showDiscardDialog();
+        _showEmptyCloseSheet();
       }
     } else {
       ref.read(wizardProvider.notifier).prevStep();
@@ -207,6 +239,12 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   void _onNext() {
     HapticFeedback.lightImpact();
     final wizard = ref.read(wizardProvider);
+
+    // First Next press lazily creates the stub draft. Fire-and-forget;
+    // the auto-save tick will retry if this pre-flight fails.
+    if (wizard.contentId == null) {
+      unawaited(_ensureDraft());
+    }
 
     // Events: save event-specific fields when leaving the Details step
     if (wizard.contentType == ContentType.event &&
@@ -263,23 +301,39 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     }
   }
 
-  /// Save experience-specific fields (cancellation policy, meeting point) to
-  /// PUT /api/v1/experiences/:id when leaving the Details step.
+  /// Save experience-specific fields (cancellation policy, meeting point) when
+  /// leaving the Details step.
+  ///
+  /// Cancellation policy goes via PUT `/experiences/:id` (content-level).
+  /// Meeting point + reveal-hours must use the dedicated
+  /// PUT `/experiences/:id/meeting-point` endpoint — the bulk PUT silently
+  /// drops `meeting_point` keys.
   Future<void> _saveExperienceDetails(Dio dio, String contentId) async {
     final expState = ref.read(createExperienceProvider);
-    final payload = <String, dynamic>{
-      'cancellation_policy': expState.cancellationPolicy,
-      if (expState.meetingPoint != null)
-        'meeting_point': {
-          'public_area_name': expState.meetingPoint!.publicAreaName,
-          if (expState.meetingPoint!.privateExactName != null)
-            'private_exact_name': expState.meetingPoint!.privateExactName,
-        },
-    };
     try {
-      await dio.put('/api/v1/experiences/$contentId', data: payload);
+      await dio.put('/api/v1/experiences/$contentId', data: {
+        'cancellation_policy': expState.cancellationPolicy,
+      });
     } catch (_) {
       // Fire and forget — non-blocking
+    }
+
+    final mp = expState.meetingPoint;
+    if (mp != null && mp.publicAreaName.isNotEmpty) {
+      try {
+        await dio.put('/api/v1/experiences/$contentId/meeting-point', data: {
+          'public_area_name': mp.publicAreaName,
+          if (mp.lat != null) 'lat': mp.lat,
+          if (mp.lng != null) 'lng': mp.lng,
+          if (mp.privateExactName != null)
+            'private_exact_name': mp.privateExactName,
+          if (mp.privateLat != null) 'private_lat': mp.privateLat,
+          if (mp.privateLng != null) 'private_lng': mp.privateLng,
+          'reveal_hours_before': mp.revealHoursBefore,
+        });
+      } catch (_) {
+        // Fire and forget
+      }
     }
   }
 
@@ -300,6 +354,35 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     unawaited(HapticFeedback.lightImpact());
     final wizard = ref.read(wizardProvider);
     if (!wizard.tncAccepted) return;
+
+    // KYC gate — paid events require a verified KYC. Surface the KYC
+    // wizard inline if status != 'verified' instead of failing with a
+    // 4xx after the publish call.
+    if (wizard.contentType == ContentType.event &&
+        wizard.pricingModel == 'paid' &&
+        wizard.pricePaisa > 0) {
+      final kycAsync = ref.read(kycStatusProvider);
+      final status = kycAsync.maybeWhen(
+        data: (info) => info.status,
+        orElse: () => null,
+      );
+      if (status != 'verified') {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Verify KYC to publish paid events.',
+              style: typ.AppTypography.bodySmall
+                  .copyWith(color: AppColors.surface),
+            ),
+            backgroundColor: AppColors.ink,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.push('/kyc');
+        return;
+      }
+    }
 
     // Flush pending edits (title/body/etc.) to the draft before publishing,
     // otherwise the server-side publish validators see the stale row and
@@ -380,75 +463,6 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
         );
       }
     }
-  }
-
-  void _showDiscardDialog() {
-    final wizard = ref.read(wizardProvider);
-    final hasDraft = wizard.contentId != null;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Layout.cardRadius),
-        ),
-        title: Text('Exit wizard?', style: typ.AppTypography.h3),
-        content: Text(
-          hasDraft
-              ? 'Your draft is saved. You can continue from here later.'
-              : 'Your unsaved changes will be lost.',
-          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              'Keep editing',
-              style: typ.AppTypography.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
-              ),
-            ),
-          ),
-          if (hasDraft)
-            TextButton(
-              onPressed: () async {
-                HapticFeedback.lightImpact();
-                Navigator.of(context).pop();
-                // Flush pending changes so the draft is current on the server
-                await _autoSave?.flushNow();
-                if (mounted) this.context.pop();
-              },
-              child: Text(
-                'Save & exit',
-                style: typ.AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.coral,
-                ),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                Navigator.of(context).pop();
-                this.context.pop();
-              },
-              child: Text(
-                'Discard',
-                style: typ.AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.danger,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -588,7 +602,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
           title: 'Add event photos',
           subtitle: 'Help attendees visualize the event.',
         ),
-      4 => const _FreeEventPricingStep(),
+      4 => const PricingStep(),
       5 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };
@@ -608,84 +622,6 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     };
   }
 
-}
-
-/// Free-only pricing step for events (M1). Paid events ship in M2 —
-/// this step locks the wizard's pricing_model to 'free' on entry.
-class _FreeEventPricingStep extends ConsumerStatefulWidget {
-  const _FreeEventPricingStep();
-
-  @override
-  ConsumerState<_FreeEventPricingStep> createState() =>
-      _FreeEventPricingStepState();
-}
-
-class _FreeEventPricingStepState extends ConsumerState<_FreeEventPricingStep> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final wizard = ref.read(wizardProvider);
-      if (wizard.pricingModel != 'free' || wizard.pricePaisa != 0) {
-        ref.read(wizardProvider.notifier).setPricing('free', 0);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Layout.screenPaddingH,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: Spacing.xl),
-          Text('Pricing', style: typ.AppTypography.h3),
-          const SizedBox(height: Spacing.sm),
-          Text(
-            'Events are free during the M1 private alpha.',
-            style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
-          ),
-          const SizedBox(height: Spacing.xl),
-          Container(
-            padding: const EdgeInsets.all(Layout.cardPadding),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(Layout.cardRadius),
-              border: Border.all(color: AppColors.hairline),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  PhosphorIconsFill.gift,
-                  size: 28,
-                  color: AppColors.coral,
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Free event', style: typ.AppTypography.h4),
-                      const SizedBox(height: Spacing.xs),
-                      Text(
-                        'Paid events open up in M2 once payouts are wired.',
-                        style: typ.AppTypography.caption,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: Spacing.xxxl),
-        ],
-      ),
-    );
-  }
 }
 
 /// Save status indicator showing saved/saving/error state.

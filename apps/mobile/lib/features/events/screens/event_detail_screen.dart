@@ -203,19 +203,51 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
             // Engagement bar (inline — above the fixed RSVP bar)
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 80), // space for RSVP bar
-                child: EngagementBar(
-                  contentId: event.id,
-                  contentType: 'event',
-                  contentTitle: event.title,
-                  initialIsLiked: event.isLiked,
-                  initialLikeCount: event.likeCount,
-                  commentCount: event.commentCount,
-                  initialIsSaved: event.isSaved,
-                ),
+              child: EngagementBar(
+                contentId: event.id,
+                contentType: 'event',
+                contentTitle: event.title,
+                initialIsLiked: event.isLiked,
+                initialLikeCount: event.likeCount,
+                commentCount: event.commentCount,
+                initialIsSaved: event.isSaved,
               ),
             ),
+
+            // Cancellation policy hint (paid events only) — keeps the
+            // buyer aware of refund rules before they tap "Reserve seat".
+            if (!event.isFree)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Layout.screenPaddingH,
+                    Spacing.md,
+                    Layout.screenPaddingH,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        PhosphorIconsFill.shieldCheck,
+                        size: 14,
+                        color: AppColors.inkSoft,
+                      ),
+                      const SizedBox(width: Spacing.xs),
+                      Expanded(
+                        child: Text(
+                          'Free cancellation up to 7 days before the event.',
+                          style: typ.AppTypography.caption.copyWith(
+                            color: AppColors.inkSoft,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Spacer so the fixed RSVP bar doesn't cover the last row.
+            const SliverToBoxAdapter(child: SizedBox(height: 96)),
           ],
         ),
 

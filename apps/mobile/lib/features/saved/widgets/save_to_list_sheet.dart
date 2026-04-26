@@ -146,7 +146,7 @@ class _SaveToListSheetState extends ConsumerState<SaveToListSheet> {
                     children: [
                       Text('Save to…', style: typ.AppTypography.h4),
                       Text(
-                        'Pick one or more of your wishlists',
+                        'Pick one or more of your lists',
                         style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
                       ),
                     ],

@@ -8,6 +8,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/components/app_header.dart';
 import '../../../shared/components/button.dart';
+import '../../../shared/components/category_tile.dart';
 import '../../../shared/components/steps.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -212,8 +213,13 @@ class _VerticalPickerScreenState extends ConsumerState<VerticalPickerScreen> {
       itemCount: _cats.length,
       itemBuilder: (_, i) {
         final c = _cats[i];
-        final selected = _selected.contains(c.slug);
-        return _Tile(cat: c, selected: selected, onTap: () => _toggle(c.slug));
+        return CategoryTile(
+          emoji: c.emoji,
+          label: c.name,
+          tint: c.tint,
+          selected: _selected.contains(c.slug),
+          onTap: () => _toggle(c.slug),
+        );
       },
     );
   }
@@ -273,71 +279,4 @@ class _Cat {
   final String emoji;
   final Color tint;
   const _Cat(this.slug, this.name, this.emoji, this.tint);
-}
-
-class _Tile extends StatelessWidget {
-  final _Cat cat;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _Tile({required this.cat, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-        decoration: BoxDecoration(
-          color: selected ? cat.tint : AppColors.surface,
-          border: Border.all(
-            color: selected ? AppColors.coral : AppColors.hairlineStrong,
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: AppColors.cardRaisedShadow,
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(cat.emoji, style: const TextStyle(fontSize: 28)),
-                Text(
-                  cat.name,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                    letterSpacing: -0.005,
-                  ),
-                ),
-              ],
-            ),
-            if (selected)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: const BoxDecoration(
-                    color: AppColors.coral,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    PhosphorIcons.check(PhosphorIconsStyle.bold),
-                    size: 12,
-                    color: AppColors.surface,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 }

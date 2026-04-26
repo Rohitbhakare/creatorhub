@@ -195,7 +195,10 @@ export async function getListItems(
   itemQuery = itemQuery.limit(limit + 1)
 
   const { data: itemRows, error: itemError } = await itemQuery
-  if (itemError) throw new AppError('db-error', 500, 'Failed to fetch list items')
+  if (itemError) {
+    console.error('[getListItems] step1 saved_list_items error:', itemError)
+    throw new AppError('db-error', 500, 'Failed to fetch list items')
+  }
 
   const hasMore = (itemRows?.length ?? 0) > limit
   const pageRows = (itemRows ?? []).slice(0, limit)
@@ -210,15 +213,18 @@ export async function getListItems(
   // Step 2: fetch content + creator for those IDs
   let contentQuery = supabase
     .from('content')
-    .select('id, title, content_type, cover_image_url, price_paisa, status, user_id, users(id, display_name, username, avatar_url)')
+    .select('id, title, content_type:type, cover_image_url, price_paisa, status, user_id, users!content_user_id_fkey(id, display_name, username, avatar_url)')
     .in('id', contentIds)
 
   if (typeFilter) {
-    contentQuery = contentQuery.eq('content_type', typeFilter)
+    contentQuery = contentQuery.eq('type', typeFilter)
   }
 
   const { data: contentRows, error: contentError } = await contentQuery
-  if (contentError) throw new AppError('db-error', 500, 'Failed to fetch list items')
+  if (contentError) {
+    console.error('[getListItems] step2 content error:', contentError)
+    throw new AppError('db-error', 500, 'Failed to fetch list items')
+  }
 
   // Index content by ID for fast lookup
   const contentMap = new Map<string, Record<string, unknown>>()

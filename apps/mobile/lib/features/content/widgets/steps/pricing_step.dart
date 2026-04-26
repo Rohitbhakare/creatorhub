@@ -10,6 +10,7 @@ import '../../../../shared/theme/spacing.dart';
 import '../../../../shared/theme/layout.dart';
 import '../../../../shared/components/input.dart';
 import '../../../../shared/utils/format.dart';
+import '../../../events/providers/event_wizard_provider.dart';
 import '../../providers/wizard_provider.dart';
 import '../inclusions_exclusions_block.dart';
 
@@ -236,6 +237,16 @@ class _PricingStepState extends ConsumerState<PricingStep> {
             ],
           ],
 
+          // ── Paid event extras: capacity + cancellation policy ─
+          if (wizard.contentType == ContentType.event && isPaid) ...[
+            const SizedBox(height: Spacing.xl),
+            const Divider(color: AppColors.hairline),
+            const SizedBox(height: Spacing.xl),
+            const _EventCapacityField(),
+            const SizedBox(height: Spacing.xl),
+            const _CancellationPolicyPicker(),
+          ],
+
           // ── Inclusions / exclusions (CRT-FR-024) ─────────────
           if (showInclusions) ...[
             const SizedBox(height: Spacing.xl),
@@ -254,6 +265,150 @@ class _PricingStepState extends ConsumerState<PricingStep> {
           const SizedBox(height: Spacing.xxxl),
         ],
       ),
+    );
+  }
+}
+
+// ── Paid event: capacity field ────────────────────────────────────
+
+class _EventCapacityField extends ConsumerStatefulWidget {
+  const _EventCapacityField();
+
+  @override
+  ConsumerState<_EventCapacityField> createState() =>
+      _EventCapacityFieldState();
+}
+
+class _EventCapacityFieldState extends ConsumerState<_EventCapacityField> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final cap = ref.read(eventWizardProvider).capacity;
+    _ctrl = TextEditingController(text: '$cap');
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Capacity', style: typ.AppTypography.h3),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          'How many people can attend this event?',
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+        ),
+        const SizedBox(height: Spacing.lg),
+        AppInput(
+          controller: _ctrl,
+          label: 'Total spots',
+          hint: 'e.g. 20',
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(5),
+          ],
+          onChanged: (value) {
+            final n = int.tryParse(value);
+            if (n == null || n < 1) return;
+            ref.read(eventWizardProvider.notifier).setCapacity(n);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ── Cancellation policy picker (paid events) ──────────────────────
+
+class _CancellationPolicyPicker extends ConsumerWidget {
+  const _CancellationPolicyPicker();
+
+  static const _options = <(String, String, String)>[
+    ('flexible', 'Flexible', '100% refund > 7d, 50% within 7d'),
+    ('moderate', 'Moderate', '100% > 14d, 50% within 14d, 0% within 2d'),
+    ('strict', 'Strict', '100% > 30d, 50% within 30d, 0% within 7d'),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(eventWizardProvider).cancellationPolicy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Cancellation policy', style: typ.AppTypography.h3),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          'Buyers see this when they book.',
+          style: typ.AppTypography.body.copyWith(color: AppColors.inkSoft),
+        ),
+        const SizedBox(height: Spacing.lg),
+        ..._options.map((opt) {
+          final (value, label, desc) = opt;
+          final isSelected = selected == value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: Spacing.sm),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                ref
+                    .read(eventWizardProvider.notifier)
+                    .setCancellationPolicy(value);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.all(Layout.cardPadding),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryTint
+                      : AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(Layout.cardRadius),
+                  border: Border.all(
+                    color: isSelected ? AppColors.coral : AppColors.hairline,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(label, style: typ.AppTypography.h4),
+                          const SizedBox(height: 2),
+                          Text(
+                            desc,
+                            style: typ.AppTypography.bodySmall
+                                .copyWith(color: AppColors.inkSoft),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      isSelected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: isSelected ? AppColors.coral : AppColors.inkMuted,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 }

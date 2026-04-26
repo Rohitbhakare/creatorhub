@@ -267,6 +267,10 @@ describe('cancelBookingByBuyer', () => {
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
+      // 6b. waitlist_entries SELECT (fire-and-forget notifyWaitlistNext)
+      .mockReturnValueOnce(
+        mockChain(null) as never,
+      )
       // 7. refunds INSERT
       .mockReturnValueOnce(
         mockChain({ id: 'refund-row-001' }) as never,
@@ -298,6 +302,10 @@ describe('cancelBookingByBuyer', () => {
         mockChain(null) as never,
       )
       // 5. scheduled_dates UPDATE
+      .mockReturnValueOnce(
+        mockChain(null) as never,
+      )
+      // 5b. waitlist_entries SELECT (fire-and-forget notifyWaitlistNext)
       .mockReturnValueOnce(
         mockChain(null) as never,
       )
@@ -352,6 +360,8 @@ describe('cancelBookingByBuyer', () => {
       // 7. bookings UPDATE
       .mockReturnValueOnce(mockChain(null) as never)
       // 8. scheduled_dates UPDATE
+      .mockReturnValueOnce(mockChain(null) as never)
+      // 8b. waitlist_entries SELECT (fire-and-forget notifyWaitlistNext)
       .mockReturnValueOnce(mockChain(null) as never)
       // 9. refunds INSERT
       .mockReturnValueOnce(mockChain({ id: 'refund-reversal' }) as never)

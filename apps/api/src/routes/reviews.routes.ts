@@ -4,6 +4,7 @@ import {
   handleSubmitCreatorResponse,
   handleGetReview,
   handleListContentReviews,
+  handleReviewsSummary,
   handleRevealDueReviews,
 } from '../handlers/reviews.js'
 import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js'
@@ -50,4 +51,9 @@ contentReviewsRoutes.get(
   optionalAuthenticate,
   validateQuery(reviewListQuerySchema),
   handleListContentReviews,
+)
+
+contentReviewsRoutes.get(
+  '/:contentId/reviews-summary',
+  handleReviewsSummary,
 )

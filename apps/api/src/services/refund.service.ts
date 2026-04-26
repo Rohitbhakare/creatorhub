@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase.js'
 import { AppError } from '../errors/AppError.js'
 import { env } from '../env.js'
 import { reversePayout, getPayoutByBookingId } from './payout.service.js'
+import { notifyWaitlistNext } from './waitlist.service.js'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -291,6 +292,12 @@ export async function cancelBookingByBuyer(
     .update({ spots_booked: Math.max(0, currentSpots - 1) })
     .eq('id', b.scheduled_date_id as string)
 
+  // 7b. A spot just opened — fire-and-forget waitlist nudge.
+  void notifyWaitlistNext({
+    kind: 'scheduled_date',
+    scheduledDateId: b.scheduled_date_id as string,
+  })
+
   // 8. Insert refund record
   const refundInsert: Record<string, unknown> = {
     booking_id: bookingId,
@@ -396,6 +403,10 @@ export async function cancelBookingByCreator(
       .from('scheduled_dates')
       .update({ spots_booked: Math.max(0, currentSpots - 1) })
       .eq('id', b.scheduled_date_id as string)
+    void notifyWaitlistNext({
+      kind: 'scheduled_date',
+      scheduledDateId: b.scheduled_date_id as string,
+    })
   }
 
   // Insert refund record
@@ -484,6 +495,10 @@ export async function cancelBookingByAdmin(
       .from('scheduled_dates')
       .update({ spots_booked: Math.max(0, currentSpots - 1) })
       .eq('id', b.scheduled_date_id as string)
+    void notifyWaitlistNext({
+      kind: 'scheduled_date',
+      scheduledDateId: b.scheduled_date_id as string,
+    })
   }
 
   // Insert refund record

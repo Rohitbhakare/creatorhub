@@ -2,16 +2,27 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart' show PhosphorIconsFill;
+import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/theme/spacing.dart';
 import '../../../shared/theme/layout.dart';
 import '../../../shared/components/button.dart';
+import '../../../shared/components/host_card.dart';
+import '../../../shared/components/review_summary_block.dart';
+import '../../../shared/components/share_action_sheet.dart';
 import '../../../shared/components/skeleton.dart';
+import '../../../shared/components/static_map_placeholder.dart';
+import '../../../shared/components/sticky_booking_bar.dart';
 import '../../../shared/utils/format.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../auth/widgets/soft_auth_sheet.dart';
+import '../../reviews/providers/reviews_summary_provider.dart';
+import '../../saved/widgets/save_to_list_sheet.dart';
 import '../../social/providers/follow_provider.dart';
+import '../../social/utils/share_utils.dart' show canonicalUrl;
 import '../../social/widgets/engagement_bar.dart';
 import '../providers/itinerary_detail_provider.dart';
 import '../providers/itinerary_wizard_provider.dart';
@@ -70,7 +81,15 @@ class _ItineraryDetailScreenState
 
     return Column(
       children: [
-        Expanded(child: _buildScrollContent(context, detail, days, selectedDay, isLocked)),
+        Expanded(
+          child: _buildScrollContent(
+            context,
+            detail,
+            days,
+            selectedDay,
+            isLocked,
+          ),
+        ),
         EngagementBar(
           contentId: widget.itineraryId,
           contentType: 'itinerary',
@@ -80,6 +99,27 @@ class _ItineraryDetailScreenState
           commentCount: detail.commentCount,
           initialIsSaved: detail.isSaved,
         ),
+        // Sticky booking bar — only for paid itineraries.
+        if (!detail.isFree)
+          StickyBookingBar(
+            contentType: StickyBookingContentType.itinerary,
+            priceLabel:
+                '₹${(detail.pricePaisa / 100).toStringAsFixed(0)}',
+            subLabel: 'one-time',
+            onTap: () async {
+              final isAuth = ref.read(authProvider).isAuthenticated;
+              if (!isAuth) {
+                final signedIn = await showSoftAuthSheet(
+                  context,
+                  ref,
+                  trigger: SoftAuthTrigger.book,
+                );
+                if (!signedIn || !context.mounted) return;
+              }
+              if (!context.mounted) return;
+              context.push('/book/${detail.id}');
+            },
+          ),
       ],
     );
   }
@@ -91,34 +131,32 @@ class _ItineraryDetailScreenState
     DayState? selectedDay,
     bool isLocked,
   ) {
+    // Flatten spots → MapPins. Overnight stays use coral pins.
+    final pins = <MapPin>[];
+    for (final day in days) {
+      for (final spot in day.spots) {
+        if (spot.lat == 0 && spot.lng == 0) continue;
+        pins.add(MapPin(
+          lat: spot.lat,
+          lng: spot.lng,
+          isOvernight: spot.stopType == StopType.overnight,
+          label: spot.name,
+        ));
+      }
+    }
+
     return CustomScrollView(
       slivers: [
         // Map placeholder
         SliverToBoxAdapter(
           child: Stack(
             children: [
-              // TODO: integrate Google Maps widget
-              Container(
+              SizedBox(
                 width: double.infinity,
                 height: 280,
-                color: AppColors.surfaceAlt,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        PhosphorIconsFill.mapTrifold,
-                        size: 48,
-                        color: AppColors.inkMuted.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: Spacing.sm),
-                      Text(
-                        'Map',
-                        style: typ.AppTypography.body
-                            .copyWith(color: AppColors.inkSoft),
-                      ),
-                    ],
-                  ),
+                child: StaticMapPlaceholder(
+                  pins: pins,
+                  aspectRatio: MediaQuery.of(context).size.width / 280,
                 ),
               ),
 
@@ -126,56 +164,57 @@ class _ItineraryDetailScreenState
               Positioned(
                 top: MediaQuery.of(context).padding.top + Spacing.sm,
                 left: Layout.screenPaddingH,
-                child: GestureDetector(
+                child: _RoundIconBtn(
+                  icon: PhosphorIconsFill.arrowLeft,
                   onTap: () {
                     HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
                   },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x1A000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      PhosphorIconsFill.arrowLeft,
-                      size: 20,
-                      color: AppColors.ink,
-                    ),
-                  ),
                 ),
               ),
 
-              // Price badge
+              // Share + Save
               Positioned(
                 top: MediaQuery.of(context).padding.top + Spacing.sm,
                 right: Layout.screenPaddingH,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Spacing.md,
-                    vertical: Spacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: detail.isFree
-                        ? AppColors.success
-                        : AppColors.coral,
-                    borderRadius: BorderRadius.circular(Layout.chipRadius),
-                  ),
-                  child: Text(
-                    formatPrice(detail.pricePaisa),
-                    style: typ.AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.surface,
+                child: Row(
+                  children: [
+                    _RoundIconBtn(
+                      icon: PhosphorIconsFill.shareNetwork,
+                      onTap: () async {
+                        HapticFeedback.lightImpact();
+                        await showShareActionSheet(
+                          context: context,
+                          ref: ref,
+                          contentId: detail.id,
+                          contentType: 'itinerary',
+                          contentTitle: detail.title,
+                          shareUrl: canonicalUrl('itinerary', detail.id),
+                        );
+                      },
                     ),
-                  ),
+                    const SizedBox(width: Spacing.sm),
+                    _RoundIconBtn(
+                      icon: PhosphorIconsFill.bookmarkSimple,
+                      tintColor:
+                          detail.isSaved ? AppColors.coral : null,
+                      onTap: () async {
+                        HapticFeedback.lightImpact();
+                        final isAuth =
+                            ref.read(authProvider).isAuthenticated;
+                        if (!isAuth) {
+                          await showSoftAuthSheet(
+                            context,
+                            ref,
+                            trigger: SoftAuthTrigger.save,
+                          );
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        showSaveToListSheet(context, ref, detail.id);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -236,7 +275,7 @@ class _ItineraryDetailScreenState
           ),
         ),
 
-        // Creator header
+        // Creator host card
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -245,7 +284,7 @@ class _ItineraryDetailScreenState
               Layout.screenPaddingH,
               0,
             ),
-            child: _CreatorHeader(creator: detail.creator),
+            child: _ItineraryHostCard(creator: detail.creator),
           ),
         ),
 
@@ -346,6 +385,19 @@ class _ItineraryDetailScreenState
             ),
           ),
 
+        // Reviews summary
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Layout.screenPaddingH,
+              Spacing.xxl,
+              Layout.screenPaddingH,
+              0,
+            ),
+            child: _ItineraryReviewsSection(contentId: detail.id),
+          ),
+        ),
+
         // Bottom padding
         const SliverToBoxAdapter(
           child: SizedBox(height: Spacing.xxxl),
@@ -379,12 +431,12 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-// ── Creator Header ────────────────────────────────────────────
+// ── Itinerary Host Card ───────────────────────────────────────
 
-class _CreatorHeader extends ConsumerWidget {
+class _ItineraryHostCard extends ConsumerWidget {
   final ItineraryCreator creator;
 
-  const _CreatorHeader({required this.creator});
+  const _ItineraryHostCard({required this.creator});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -395,86 +447,138 @@ class _CreatorHeader extends ConsumerWidget {
     );
     final followState = ref.watch(followProvider(followKey));
 
-    return Row(
-      children: [
-        // Avatar
-        ClipOval(
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: creator.avatarUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: creator.avatarUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (_, _) => Container(
-                      color: AppColors.shimmerBase,
-                    ),
-                    errorWidget: (_, _, _) => _AvatarPlaceholder(),
-                  )
-                : _AvatarPlaceholder(),
-          ),
-        ),
-        const SizedBox(width: Spacing.md),
-
-        // Name + verified
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    creator.displayName,
-                    style: typ.AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  if (creator.isVerified) ...[
-                    const SizedBox(width: Spacing.xs),
-                    const Icon(
-                      PhosphorIconsFill.sealCheck,
-                      size: 16,
-                      color: AppColors.success,
-                    ),
-                  ],
-                ],
-              ),
-              Text(
-                'Creator',
-                style: typ.AppTypography.caption,
-              ),
-            ],
-          ),
-        ),
-
-        // Follow button
-        AppButton(
-          label: followState.isFollowing ? 'Following' : 'Follow',
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            handleFollowTap(context, ref, followKey);
-          },
-          variant: followState.isFollowing
-              ? AppButtonVariant.secondary
-              : AppButtonVariant.primary,
-          size: AppButtonSize.small,
-        ),
-      ],
+    return HostCard(
+      creatorId: creator.id,
+      displayName: creator.displayName,
+      avatarUrl: creator.avatarUrl,
+      verified: creator.isVerified,
+      tenureLabel: 'Creator on CreatorHub',
+      contentCount: 0,
+      isFollowing: followState.isFollowing,
+      onFollowTap: () async {
+        HapticFeedback.lightImpact();
+        final isAuth = ref.read(authProvider).isAuthenticated;
+        if (!isAuth) {
+          await showSoftAuthSheet(
+            context,
+            ref,
+            trigger: SoftAuthTrigger.follow,
+          );
+          return;
+        }
+        if (!context.mounted) return;
+        handleFollowTap(context, ref, followKey);
+      },
+      onMessageTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/profile/${creator.id}');
+      },
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/profile/${creator.id}');
+      },
     );
   }
 }
 
-class _AvatarPlaceholder extends StatelessWidget {
+// ── Round overlay icon button ─────────────────────────────────
+
+class _RoundIconBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color? tintColor;
+
+  const _RoundIconBtn({
+    required this.icon,
+    required this.onTap,
+    this.tintColor,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surfaceAlt,
-      child: const Center(
-        child: Icon(
-          PhosphorIconsFill.user,
-          size: 20,
-          color: AppColors.inkMuted,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.9),
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
+        child: Icon(icon, size: 20, color: tintColor ?? AppColors.ink),
       ),
+    );
+  }
+}
+
+// ── Itinerary Reviews Section ─────────────────────────────────
+
+class _ItineraryReviewsSection extends ConsumerWidget {
+  final String contentId;
+
+  const _ItineraryReviewsSection({required this.contentId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(reviewsSummaryProvider(contentId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Reviews', style: typ.AppTypography.h4),
+        const SizedBox(height: Spacing.md),
+        summaryAsync.when(
+          loading: () => const SkeletonLoader(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLine(width: 120, height: 28),
+                SizedBox(height: Spacing.md),
+                SkeletonLine(height: 8),
+                SizedBox(height: Spacing.xs),
+                SkeletonLine(height: 8),
+              ],
+            ),
+          ),
+          error: (_, _) => Text(
+            'Reviews unavailable right now',
+            style: typ.AppTypography.bodySmall
+                .copyWith(color: AppColors.inkSoft),
+          ),
+          data: (summary) {
+            if (summary.count == 0) {
+              return Text(
+                'Be the first to review',
+                style: typ.AppTypography.body
+                    .copyWith(color: AppColors.inkSoft),
+              );
+            }
+            return ReviewSummaryBlock(
+              average: summary.average,
+              count: summary.count,
+              breakdown: summary.breakdown,
+              recent: summary.recent
+                  .map((r) => RecentReview(
+                        reviewerName: r.reviewerName,
+                        reviewerAvatarUrl: r.reviewerAvatarUrl,
+                        rating: r.rating.toDouble(),
+                        body: r.body,
+                        createdAt: r.createdAt,
+                      ))
+                  .toList(),
+              onSeeAllTap: () =>
+                  context.push('/content/$contentId/reviews'),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -493,6 +597,9 @@ class _ReadOnlySpotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spotColor = _spotColor(spot.stopType);
+    final spotIcon = _spotIcon(spot.stopType);
+
     return Container(
       padding: const EdgeInsets.all(Layout.cardPadding),
       decoration: BoxDecoration(
@@ -503,34 +610,30 @@ class _ReadOnlySpotCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Spot number
+          // Spot type — shape-coded icon, monochrome (overnight=coral).
           Container(
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: _spotColor(spot.stopType).withValues(alpha: 0.15),
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.hairline),
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                '${index + 1}',
-                style: typ.AppTypography.label.copyWith(
-                  color: _spotColor(spot.stopType),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: Icon(spotIcon, size: 14, color: spotColor),
             ),
           ),
           const SizedBox(width: Spacing.md),
 
-          // Thumbnail
-          if (spot.thumbnailUrl != null)
+          // Thumbnail — creator-uploaded coverUrl takes precedence over the
+          // Places photo (DD-032). `displayImageUrl` encapsulates the fallback.
+          if (spot.displayImageUrl != null)
             Padding(
               padding: const EdgeInsets.only(right: Spacing.md),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
-                  imageUrl: spot.thumbnailUrl!,
+                  imageUrl: spot.displayImageUrl!,
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
@@ -568,19 +671,12 @@ class _ReadOnlySpotCard extends StatelessWidget {
                 const SizedBox(height: Spacing.xs),
                 Row(
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _spotColor(spot.stopType),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    Icon(spotIcon, size: 12, color: spotColor),
                     const SizedBox(width: Spacing.xs),
                     Text(
                       spot.stopType.label,
                       style: typ.AppTypography.caption.copyWith(
-                        color: _spotColor(spot.stopType),
+                        color: spotColor,
                       ),
                     ),
                     if (spot.durationMinutes != null) ...[
@@ -614,13 +710,24 @@ class _ReadOnlySpotCard extends StatelessWidget {
   }
 }
 
+/// Per DD-024, only `overnight` carries the coral accent (one of the 5
+/// allowed coral contexts). All other stop types render monochrome.
 Color _spotColor(StopType stopType) {
   return switch (stopType) {
-    StopType.regular => AppColors.info,
     StopType.overnight => AppColors.coral,
-    StopType.meal => AppColors.warning,
-    StopType.viewpoint => AppColors.success,
-    StopType.activity => const Color(0xFF7B61FF),
+    _ => AppColors.ink,
+  };
+}
+
+/// Phosphor fill icon per stop type — shape carries the meaning so we
+/// can drop the colour-coded crutch (matches spot_editor_sheet).
+IconData _spotIcon(StopType stopType) {
+  return switch (stopType) {
+    StopType.regular => PhosphorIconsFill.mapPin,
+    StopType.overnight => PhosphorIconsFill.bed,
+    StopType.meal => PhosphorIconsFill.forkKnife,
+    StopType.viewpoint => PhosphorIconsFill.binoculars,
+    StopType.activity => PhosphorIconsFill.mountains,
   };
 }
 

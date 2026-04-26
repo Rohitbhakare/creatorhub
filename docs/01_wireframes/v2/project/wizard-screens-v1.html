@@ -1,0 +1,2573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CreatorHub — Publishing Wizard wireframes v1 (DD-016 / DD-024 / CRT-FR-014→025)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+/>
+<style>
+  :root {
+    /* ── Surfaces (AppColors) ──────────────────────────── */
+    --bg: #FFFFFF;              /* AppColors.bg */
+    --surface: #FFFFFF;          /* AppColors.surface */
+    --sunken: #F5F5F5;           /* AppColors.surfaceAlt */
+    --sunken-deep: #EBEBEB;      /* AppColors.surfaceSunk */
+
+    /* ── Ink hierarchy ─────────────────────────────────── */
+    --ink: #16161A;              /* AppColors.ink */
+    --soft-ink: #3A3A40;         /* AppColors.inkSoft */
+    --muted: #7A7A82;            /* AppColors.inkMuted */
+    --ink-faint: #B4B4BA;        /* AppColors.inkFaint */
+
+    /* ── Hairlines ─────────────────────────────────────── */
+    --border: #E5E5E5;           /* AppColors.hairline */
+    --hairline: #E5E5E5;         /* AppColors.hairline */
+    --hairline-strong: #D4D4D4;  /* AppColors.hairlineStrong */
+
+    /* ── Coral accent (used in 8 contexts only) ────────── */
+    --coral: #E15A41;            /* AppColors.coral */
+    --coral-deep: #B9401E;       /* AppColors.coralDeep */
+    --coral-tint: #FCEBE6;       /* AppColors.primaryTint */
+    --coral-light: #F4A899;      /* AppColors.coralLight */
+
+    /* ── Semantic (functional only) ────────────────────── */
+    --success: #1D9E75;          /* AppColors.success */
+    --warning: #BA7517;          /* AppColors.warning */
+    --danger: #C2362F;           /* AppColors.danger */
+    --info: #185FA5;             /* AppColors.info */
+
+    /* ── Spacing (4-px grid, Spacing.*) ────────────────── */
+    --s-xs: 4px;
+    --s-sm: 8px;
+    --s-md: 12px;
+    --s-lg: 16px;
+    --s-mlg: 20px;
+    --s-xl: 24px;
+    --s-xxl: 32px;
+
+    /* ── Radii (Layout.*) ──────────────────────────────── */
+    --r-card: 12px;              /* Layout.cardRadius */
+    --r-button: 12px;            /* Layout.buttonRadius */
+    --r-input: 12px;             /* Layout.inputRadius */
+    --r-sheet: 20px;             /* Layout.sheetRadius */
+    --r-chip: 20px;              /* Layout.chipRadius */
+
+    /* ── Card raised shadow (AppColors.cardRaisedShadow) ─ */
+    --shadow-card:
+      0 1px 3px rgba(16,24,40,0.10),
+      0 2px 6px rgba(16,24,40,0.08),
+      0 6px 16px rgba(16,24,40,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #EFEDE7;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  body {
+    padding: 40px 32px 80px;
+  }
+  h1.page-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 34px;
+    margin: 0 0 6px;
+  }
+  p.page-sub {
+    margin: 0 0 32px;
+    color: var(--soft-ink);
+    font-size: 14px;
+    max-width: 900px;
+    line-height: 1.6;
+  }
+  h2.section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 48px 0 4px;
+  }
+  p.section-sub {
+    margin: 0 0 20px;
+    color: var(--soft-ink);
+    font-size: 13px;
+    max-width: 880px;
+    line-height: 1.55;
+  }
+
+  .row {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding: 16px 4px 24px;
+    scroll-snap-type: x mandatory;
+  }
+  .row::-webkit-scrollbar { height: 8px; }
+  .row::-webkit-scrollbar-thumb { background: #cfcdc7; border-radius: 4px; }
+
+  /* ── Phone frame ───────────────────────────────────────── */
+  .phone {
+    flex: 0 0 360px;
+    width: 360px;
+    height: 760px;
+    background: var(--bg);
+    border-radius: 38px;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,.04),
+      0 12px 40px rgba(0,0,0,.10),
+      0 0 0 8px #1c1c1c;
+    overflow: hidden;
+    position: relative;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 110px; height: 24px;
+    background: #1c1c1c;
+    border-radius: 16px;
+    z-index: 10;
+  }
+  .status-bar {
+    height: 38px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 22px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .label {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #4a4844;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  /* ── Wizard chrome (top + step indicator + bottom nav) ── */
+  .wiz-top {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px 4px;
+    height: 44px;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    color: var(--ink);
+    font-size: 18px;
+  }
+  .save-pill {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    color: var(--success);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .save-pill.saving { color: var(--soft-ink); }
+  .save-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+  .step-indicator {
+    padding: 6px 20px 12px;
+  }
+  .step-indicator .label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+  .step-indicator .label-row .name { color: var(--ink); font-weight: 600; }
+  .step-indicator .label-row .count { color: var(--muted); }
+  .step-bar {
+    height: 3px;
+    background: var(--sunken);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .step-bar > span {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--coral);
+    border-radius: 2px;
+  }
+  .body {
+    flex: 1;
+    overflow: hidden;
+    padding: 14px 20px 8px;
+    position: relative;
+  }
+  .bottom-nav {
+    border-top: 1px solid var(--hairline);
+    padding: 12px 16px 18px;
+    display: flex;
+    gap: 12px;
+    background: var(--bg);
+  }
+  .btn {
+    flex: 1;
+    height: 48px;
+    border-radius: var(--r-button);   /* Layout.buttonRadius */
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: default;
+  }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: white;
+  }
+  .btn-primary.coral { background: var(--coral); }
+  .btn-primary.disabled { background: #c8c6c1; color: #f4f2ee; }
+
+  /* ── Components used inside wizard body ───────────────── */
+  .h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.2;
+    margin: 4px 0 6px;
+  }
+  .h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 14px 0 6px;
+  }
+  .kicker {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .sub {
+    font-size: 13px;
+    color: var(--soft-ink);
+    line-height: 1.55;
+    margin: 0 0 16px;
+  }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 14px 0 6px;
+    font-size: 12px;
+    color: var(--soft-ink);
+    font-weight: 600;
+  }
+  .field-label .counter {
+    color: var(--muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+  .input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-input);
+    padding: var(--s-md) 14px;
+    font-size: 14px;
+    color: var(--ink);
+    min-height: 44px;             /* Layout.minTapTarget */
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+  }
+  .input.muted { color: var(--muted); }
+  .input.area {
+    align-items: flex-start;
+    min-height: 88px;
+  }
+  .input.area.tall { min-height: 140px; }
+  .input.area.body {
+    min-height: 220px;
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .input.locked {
+    background: #fbf7f5;
+    border-color: #f1d6cd;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-xs);
+    padding: 6px var(--s-md);
+    border-radius: var(--r-chip);     /* Layout.chipRadius */
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .chip.muted { color: var(--soft-ink); background: var(--sunken); border: none; }
+  .chip.active {
+    background: var(--coral-tint);
+    border-color: var(--coral);
+    color: var(--coral-deep);
+    font-weight: 600;
+  }
+  .chip-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--r-card);
+    padding: var(--s-lg);
+    box-shadow: var(--shadow-card);   /* DD-013: cards separate via shadow, not tint */
+  }
+  .card.sunk {
+    background: var(--sunken);
+    box-shadow: none;
+    padding: var(--s-md) var(--s-lg);
+  }
+  .card.locked {
+    background: #fbf7f5;
+    box-shadow: none;
+    border: 1px solid #f1d6cd;
+  }
+  .row-2 { display: flex; gap: 10px; }
+  .row-2 > * { flex: 1; }
+
+  .helper { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .helper.warn { color: var(--coral-deep); }
+
+  .seg {
+    display: flex;
+    background: var(--sunken);
+    border-radius: var(--r-input);
+    padding: var(--s-xs);
+    gap: var(--s-xs);
+  }
+  .seg > div {
+    flex: 1;
+    text-align: center;
+    padding: var(--s-sm) 6px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--soft-ink);
+  }
+  .seg > div.on {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(16,24,40,.10);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: var(--s-xs);
+    padding: var(--s-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--r-input) var(--r-input) 0 0;
+  }
+  .toolbar .tool {
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    border-radius: var(--s-sm);
+    color: var(--soft-ink);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .toolbar .tool:hover { background: var(--sunken); }
+  .body-editor {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--r-input) var(--r-input);
+    padding: var(--s-lg);
+    min-height: 220px;
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .body-editor .placeholder { color: var(--muted); }
+
+  /* Stop type chips — monochrome (only overnight = coral) */
+  .stop-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--soft-ink);
+  }
+  .stop-chip.on {
+    border-color: var(--ink);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .stop-chip.overnight.on {
+    background: var(--coral-tint);
+    border-color: var(--coral);
+    color: var(--coral-deep);
+  }
+
+  /* Map placeholder area (public neighbourhood) — fuzzy area, NOT a pin */
+  .map-area {
+    position: relative;
+    height: 140px;
+    border-radius: 12px;
+    background:
+      radial-gradient(circle at 60% 50%, rgba(225,90,65,0.18) 0%, rgba(225,90,65,0) 60%),
+      linear-gradient(135deg, #e9eef0 0%, #f3f1ec 100%);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .map-area .area-blob {
+    position: absolute;
+    left: 30%; top: 25%;
+    width: 130px; height: 90px;
+    background: rgba(225,90,65,.18);
+    border: 1.5px dashed var(--coral);
+    border-radius: 60% 40% 50% 50% / 50% 60% 40% 50%;
+  }
+  .map-area .city-dots {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(rgba(0,0,0,.10) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    background-position: 0 0;
+    opacity: .55;
+  }
+  .map-area .pin {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: var(--coral);
+    box-shadow: 0 0 0 3px rgba(225,90,65,.18);
+  }
+  .map-area .label {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(255,255,255,.92);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 600;
+    transform: none;
+  }
+
+  /* Lock badge for private fields */
+  .lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--coral-deep);
+    background: var(--coral-tint);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  /* Departure date row */
+  .dep-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .dep-row:last-child { border: none; }
+  .dep-date { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .dep-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .dep-cap {
+    background: var(--sunken);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Pricing breakdown row */
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .price-row .l { color: var(--soft-ink); }
+  .price-row .v { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .price-row.total .l { font-weight: 700; color: var(--ink); }
+  .price-row.total .v { font-weight: 700; }
+  .price-row.takehome .l { font-weight: 700; color: var(--coral-deep); }
+  .price-row.takehome .v { font-weight: 700; color: var(--coral-deep); font-size: 16px; }
+
+  .check-list { padding: 0; margin: 0; list-style: none; }
+  .check-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .check-list li.miss { color: var(--coral-deep); }
+  .check-list .ic {
+    width: 18px; height: 18px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--success);
+    color: white;
+  }
+  .check-list li.miss .ic {
+    background: var(--coral);
+    color: white;
+  }
+
+  /* Preview watermark on review card */
+  .preview-card {
+    background: var(--surface);
+    border-radius: var(--r-card);
+    padding: var(--s-md);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-card::after {
+    content: 'PREVIEW';
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(0,0,0,.06);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 38px;
+    letter-spacing: 0.18em;
+    pointer-events: none;
+    transform: rotate(-12deg);
+  }
+  .preview-img {
+    height: 110px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #d8d4cd 0%, #ece7df 100%);
+    margin-bottom: 10px;
+  }
+  .preview-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Tile-style content type picker */
+  .picker-tile {
+    display: flex;
+    gap: var(--s-md);
+    padding: var(--s-lg);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);   /* DD-013 raised card */
+    margin-bottom: var(--s-md);
+  }
+  .picker-tile .ic {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--sunken);
+    display: grid; place-items: center;
+    color: var(--ink);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .picker-tile .title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .picker-tile .desc {
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .picker-tile.locked {
+    opacity: .55;
+  }
+  .picker-tile.locked .ic { color: var(--muted); }
+
+  /* Spot card (itinerary day builder) */
+  .spot-card {
+    background: var(--surface);
+    border-radius: var(--r-card);
+    padding: var(--s-md);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    gap: 10px;
+    margin-bottom: var(--s-sm);
+  }
+  .spot-card .num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 700;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .spot-card.overnight {
+    border: 1px solid var(--coral);
+    background: var(--coral-tint);
+    box-shadow: none;
+  }
+  .spot-card.overnight .num {
+    background: var(--coral);
+    color: white;
+  }
+  .spot-card .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .spot-card .place {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 1px 0 6px;
+  }
+  .spot-card .note {
+    font-size: 12px;
+    color: var(--soft-ink);
+    line-height: 1.45;
+    font-style: italic;
+  }
+  .spot-card .flags {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+  }
+
+  /* Day pill row */
+  .day-pills {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+  .day-pills::-webkit-scrollbar { display: none; }
+  .day-pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--sunken);
+    color: var(--soft-ink);
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .day-pill.on {
+    background: var(--ink);
+    color: white;
+  }
+
+  /* Notes / open questions section */
+  .notes {
+    max-width: 1100px;
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin: 56px 0 0;
+    box-shadow: 0 1px 0 rgba(0,0,0,.04);
+  }
+  .notes h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 6px;
+  }
+  .notes h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 18px 0 4px;
+  }
+  .notes p { font-size: 13px; line-height: 1.6; color: var(--soft-ink); margin: 0 0 10px; }
+  .notes ul { font-size: 13px; line-height: 1.65; color: var(--ink); padding-left: 20px; }
+  .notes ul li { margin-bottom: 4px; }
+  .notes code {
+    background: var(--sunken);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--coral-tint);
+    color: var(--coral-deep);
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .pill.warn { background: #fef0c7; color: #92400e; }
+
+  small.fineprint {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── Question banner (top of page) ─────────────────────── */
+  .qbanner {
+    max-width: 1100px;
+    background: #fff8f5;
+    border: 1px solid #f1d6cd;
+    border-left: 4px solid var(--coral);
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin: 8px 0 32px;
+  }
+  .qbanner h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 4px;
+    color: var(--coral-deep);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .qbanner h2 .badge {
+    background: var(--coral);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+  .qbanner > p {
+    margin: 0 0 14px;
+    color: var(--soft-ink);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .qbanner ol {
+    margin: 0;
+    padding-left: 22px;
+    counter-reset: q;
+    list-style: none;
+  }
+  .qbanner ol li {
+    counter-increment: q;
+    position: relative;
+    padding: 12px 0 12px 0;
+    border-bottom: 1px dashed #f1d6cd;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .qbanner ol li:last-child { border-bottom: none; }
+  .qbanner ol li::before {
+    content: 'Q' counter(q);
+    position: absolute;
+    left: -22px;
+    top: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--coral);
+    letter-spacing: 0.05em;
+  }
+  .qbanner ol li strong { color: var(--coral-deep); }
+  .qbanner .rec {
+    display: block;
+    font-size: 12px;
+    color: var(--soft-ink);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* Inline per-screen question callout */
+  .qchip {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--coral);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    z-index: 5;
+    box-shadow: 0 2px 6px rgba(225,90,65,.4);
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Publishing wizard wireframes — v1.1</h1>
+<p class="page-sub">
+  Companion to <code>detail-screens-v3.html</code>. Covers the type picker + every wizard step
+  for all 4 content types, mapped to <strong>CRT-FR-014 → CRT-FR-025</strong>. All screens
+  bind to the production design tokens from
+  <code>apps/mobile/lib/shared/theme/{colors,spacing,layout}.dart</code> — wireframe CSS
+  variables mirror the Flutter constants 1:1 so what you see is what builds.
+</p>
+
+<details style="max-width:1100px;background:var(--surface);border-radius:var(--r-card);padding:14px 18px;margin-bottom:24px;box-shadow:var(--shadow-card);">
+  <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--ink);">Design tokens used (click to expand)</summary>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px;font-size:11px;color:var(--soft-ink);line-height:1.6;">
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Surfaces</div>
+      <code>bg #FFFFFF</code><br/>
+      <code>surface #FFFFFF</code><br/>
+      <code>surfaceAlt #F5F5F5</code><br/>
+      <code>surfaceSunk #EBEBEB</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Ink</div>
+      <code>ink #16161A</code><br/>
+      <code>inkSoft #3A3A40</code><br/>
+      <code>inkMuted #7A7A82</code><br/>
+      <code>inkFaint #B4B4BA</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Coral (8 contexts only)</div>
+      <code>coral #E15A41</code><br/>
+      <code>coralDeep #B9401E</code><br/>
+      <code>primaryTint #FCEBE6</code><br/>
+      <code>hairline #E5E5E5</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Layout</div>
+      <code>cardRadius 12</code><br/>
+      <code>buttonRadius 12</code><br/>
+      <code>chipRadius 20</code><br/>
+      <code>sheetRadius 20</code><br/>
+      <code>minTapTarget 44</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Spacing (4-px grid)</div>
+      <code>xs 4 · sm 8 · md 12</code><br/>
+      <code>lg 16 · mlg 20 · xl 24</code><br/>
+      <code>xxl 32 · xxxl 48</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Type</div>
+      <code>Fraunces — display, h1, h2, post body</code><br/>
+      <code>Inter — everything else</code>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Card pattern (DD-013)</div>
+      Cards separate from page via <strong>3-layer shadow</strong>, never via background tint.
+      Sunken/locked cards drop the shadow.
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:6px;">Semantic</div>
+      <code>success #1D9E75</code><br/>
+      <code>warning #BA7517</code><br/>
+      <code>danger #C2362F</code><br/>
+      <code>info #185FA5</code>
+    </div>
+  </div>
+</details>
+
+<!-- ── Decisions log (locked + new) ──────────────────────── -->
+<div class="qbanner" style="background:#f0f7f3;border-color:#cfe5d9;border-left-color:var(--success);">
+  <h2 style="color:#205c44;"><span class="badge" style="background:var(--success);">LOCKED · 8</span> Decisions from review v1</h2>
+  <p>
+    Founder approved all 8 recommendations on review. Implementation will follow the resolutions below.
+  </p>
+  <ol style="counter-reset:q;">
+    <li><strong>Q1 · SE Days storage:</strong> Reuse <code>itinerary_days</code> with <code>parent_type='experience'</code>, no spots. <span class="rec">✓ One day-builder mental model; one pagination pattern.</span></li>
+    <li><strong>Q2 · Day-count edit after publish:</strong> Warn with diff ("Day 4 + Day 5 will be deleted"), require confirm. <span class="rec">✓ No silent data loss.</span></li>
+    <li><strong>Q3 · Cancellation policy:</strong> Three options for M1 (Flexible / Moderate / Strict). Non-refundable added in M2 with Razorpay automation. <span class="rec">✓</span></li>
+    <li><strong>Q4 · Freemium default:</strong> ON for Day 1 only on paid itineraries — predictable conversion driver. <span class="rec">✓</span></li>
+    <li><strong>Q5 · SE Review meeting-point preview:</strong> Show both public area + private (lock-badged) so creator can verify what travellers see vs hidden. <span class="rec">✓</span></li>
+    <li><strong>Q6 · Spot creator-note:</strong> Required for paid itineraries; optional for free. <span class="rec">✓</span></li>
+    <li><strong>Q7 · Post inline images:</strong> Insert at cursor position via toolbar ＋Photo, max 5 per post. <span class="rec">✓</span></li>
+    <li><strong>Q8 · PREVIEW watermark:</strong> All 4 review screens. <span class="rec">✓ Consistent affordance.</span></li>
+  </ol>
+</div>
+
+<div class="qbanner">
+  <h2><span class="badge">4 NEW</span> New decisions from review v1</h2>
+  <p>
+    Founder added 4 new requirements. Recommendations below — confirm and they become locked.
+    Tags like <span style="background:var(--coral);color:white;padding:2px 6px;border-radius:99px;font-size:10px;font-weight:700;">Q11</span>
+    on the screens point to where each lives visually.
+  </p>
+  <ol style="counter-reset:q 8;">
+    <li>
+      <strong>Q9 · Edit after publish — what's editable?</strong> Yes, allow editing post-publish.
+      Recommended scoping (keeps marketplace integrity):
+      <span class="rec">
+        <strong>Posts:</strong> everything editable freely.<br/>
+        <strong>Itineraries:</strong> all fields; price changes apply to NEW buyers only (existing get grandfather price); day-count change uses Q2 warn-and-confirm flow.<br/>
+        <strong>Events:</strong> description/photos/capacity freely; date/venue/cancellation changes notify all RSVPs via push + WhatsApp.<br/>
+        <strong>Scheduled experiences:</strong> any departure WITH bookings is locked (date can't move, capacity can only grow); description/photos/meeting-point/inclusions freely; price changes apply only to future departures with no bookings yet.<br/>
+        <strong>Locked across all:</strong> content type, vertical, sub-category (would invalidate Discover surfaces and search index).
+      </span>
+    </li>
+    <li>
+      <strong>Q10 · Duplicate / copy:</strong> Clone everything except status (→ draft), dates
+      (cleared for SE/event), reviews / bookings / engagement (all zero); title gets
+      "<code>(copy)</code>" suffix; new contentId.
+      <span class="rec">
+        Action lives in Studio content card overflow menu and on the published detail screen
+        for the owner. Useful for SE creators running same trip seasonally.
+      </span>
+    </li>
+    <li>
+      <strong>Q11 · Delete published content:</strong> Two paths based on whether bookings exist.
+      <span class="rec">
+        <strong>No bookings / RSVPs:</strong> hard delete with confirm. Removed from Discover, search, follower feeds.<br/>
+        <strong>Has bookings / RSVPs:</strong> soft delete (status → <code>archived</code>);
+        existing buyers / RSVPs keep access and download rights; content disappears from
+        Discover, search, creator profile; no new buyers possible. Confirmation copy explains
+        the difference.
+      </span>
+    </li>
+    <li>
+      <strong>Q12 · No draft until first save:</strong> Today <code>wizard_shell_screen.dart:62-65</code>
+      POSTs a stub draft on <code>initState</code> regardless of whether the user types anything.
+      Result: every wizard open creates an orphan row in <code>studio_content</code>.
+      <span class="rec">
+        Defer draft creation until first auto-save tick (when <code>isDirty=true</code>) OR explicit Next
+        button press. If the user closes without entering data, just <code>context.pop()</code> — no
+        API call, no draft, no studio-list pollution. Existing close-with-data flow keeps
+        prompting "Save & exit / Discard".
+      </span>
+    </li>
+  </ol>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">A · Content type picker</h2>
+<p class="section-sub">
+  Replaces the current 4-color tile palette in
+  <code>create_tile_config.dart</code>. Self-routing copy phrased as questions so the creator
+  picks the right type without reading help text. (CRT-FR-014)
+</p>
+
+<div class="row">
+  <!-- 1. Picker -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"></div>
+      <div class="icon-btn"></div>
+    </div>
+
+    <div class="body" style="padding-top: 6px;">
+      <div class="kicker">CREATE</div>
+      <div class="h1">What are you sharing today?</div>
+      <p class="sub">Pick the format that matches your story. You can switch later, but starting in the right place saves time.</p>
+
+      <div class="picker-tile">
+        <div class="ic">✎</div>
+        <div>
+          <div class="title">A moment, photo, or thought</div>
+          <div class="desc">Quick post — text + up to 5 photos. Free, no booking.</div>
+        </div>
+      </div>
+
+      <div class="picker-tile">
+        <div class="ic">⊞</div>
+        <div>
+          <div class="title">A trip plan others can follow</div>
+          <div class="desc">Self-paced itinerary — day-by-day route, free or paid, lifetime access.</div>
+        </div>
+      </div>
+
+      <div class="picker-tile">
+        <div class="ic">⌒</div>
+        <div>
+          <div class="title">I'm hosting a meet-up or gathering</div>
+          <div class="desc">Event — single date, RSVP-based, free during M1.</div>
+        </div>
+      </div>
+
+      <div class="picker-tile">
+        <div class="ic">▲</div>
+        <div>
+          <div class="title">I'm taking travellers somewhere</div>
+          <div class="desc">Scheduled experience — multi-date, paid, you guide the trip.</div>
+        </div>
+      </div>
+
+      <p style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">
+        Paid content (itineraries · experiences) requires KYC verification before publish. <br/>
+        <strong style="color:var(--coral-deep);">No draft is created until you save your first field</strong> — close without typing = no API call (Q12).
+      </p>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+    </div>
+    <div class="label">Type picker (CRT-FR-014)</div>
+  </div>
+</div>
+
+<p class="section-sub" style="margin-top:14px;">
+  <strong>Category picker reuses existing taxonomy.</strong> Sub-category selection on every Basics
+  step uses the existing <code>kTravelSubCategories</code> from
+  <code>apps/mobile/lib/features/content/providers/sub_categories_provider.dart</code> — 12 emoji
+  tiles in a 2-column bottom sheet (City Guides, Hidden Gems, Food Trails, Adventure, Trekking,
+  Heritage &amp; Culture, Nature &amp; Wildlife…). The
+  <code>slugRequiresDifficulty()</code> helper still controls when the Difficulty chip row
+  renders (adventure / trekking / wildlife). <strong>No new taxonomy work needed</strong> — the
+  wireframes' "Category" rows are bound to that existing data.
+</p>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">B · Post wizard — 2 steps</h2>
+<p class="section-sub">
+  Compresses today's 3 steps (Basics → Media → Review) into <strong>2 steps</strong>: a unified
+  Fraunces compose surface with inline image insertion, then Review. (CRT-FR-019, DD-026)
+</p>
+
+<div class="row">
+  <!-- 1. Compose -->
+  <div class="phone">
+    <div class="qchip">Q7</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved · 2s ago</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Compose</span><span class="count">Step 1 of 2</span></div>
+      <div class="step-bar"><span style="width:50%"></span></div>
+    </div>
+
+    <div class="body">
+      <div class="field-label">Title<span class="counter">14 / 100</span></div>
+      <div class="input">Spiti in monsoon</div>
+
+      <div class="field-label">Body<span class="counter">312 words · 2 min read</span></div>
+      <div class="toolbar">
+        <div class="tool"><b>B</b></div>
+        <div class="tool"><i>I</i></div>
+        <div class="tool">≡</div>
+        <div class="tool">"</div>
+        <div class="tool">↗</div>
+        <div class="tool" style="margin-left:auto;color:var(--coral);">＋ Photo</div>
+      </div>
+      <div class="body-editor">
+        We left Manali at 4am, the kind of cold that needs you to grip the wheel just to feel alive. The road from Rohtang to Gramphu is…
+        <span class="placeholder"> Keep writing</span>
+      </div>
+
+      <div class="field-label">Tags<span class="counter">3 / 8</span></div>
+      <div class="chip-row">
+        <span class="chip muted">#spiti ✕</span>
+        <span class="chip muted">#monsoon ✕</span>
+        <span class="chip muted">#roadtrip ✕</span>
+        <span class="chip">＋ Add</span>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Post · Compose</div>
+  </div>
+
+  <!-- 2. Review -->
+  <div class="phone">
+    <div class="qchip">Q8</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Review &amp; publish</span><span class="count">Step 2 of 2</span></div>
+      <div class="step-bar"><span style="width:100%"></span></div>
+    </div>
+
+    <div class="body">
+      <div class="kicker">PREVIEW</div>
+      <div class="preview-card">
+        <div class="preview-img"></div>
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;">Spiti in monsoon</div>
+        <div class="preview-meta">2 min read · Pune → Spiti</div>
+      </div>
+
+      <h4 class="h2" style="font-size:14px;margin-top:14px;">Ready to publish?</h4>
+      <ul class="check-list">
+        <li><span class="ic">✓</span>Title (14 chars)</li>
+        <li><span class="ic">✓</span>Body (312 words)</li>
+        <li><span class="ic">✓</span>3 tags added</li>
+      </ul>
+
+      <div class="card sunk" style="margin-top:10px;padding:10px 12px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" checked style="margin-top:2px;" />
+          <div>
+            <div style="font-size:12px;font-weight:600;">I confirm I own this content</div>
+            <small class="fineprint">
+              I made this myself or have permission from anyone shown. I accept the
+              <span style="text-decoration:underline;">Creator T&amp;Cs v1.2</span>.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary coral">Publish</div>
+    </div>
+    <div class="label">Post · Review</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">C · Event wizard — 4 steps</h2>
+<p class="section-sub">
+  Drops today's locked-free Pricing step. Venue address is <strong>public</strong> on events
+  (DD-025) — no two-section privacy model needed. (CRT-FR-019, CRT-FR-020)
+</p>
+
+<div class="row">
+  <!-- 1. Basics -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Basics</span><span class="count">Step 1 of 4</span></div>
+      <div class="step-bar"><span style="width:25%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">STEP 1 OF 4</div>
+      <div class="h1">Tell us about your event</div>
+
+      <div class="field-label">Category</div>
+      <div class="input"><span style="color:var(--ink);font-weight:600;">Photography &amp; Walks</span></div>
+
+      <div class="field-label">Title<span class="counter">25 / 100</span></div>
+      <div class="input">Sunset photo walk · Worli</div>
+
+      <div class="field-label">Short description<span class="counter">142 / 500</span></div>
+      <div class="input area">A 2-hour walk along Worli sea face capturing golden hour. Open to all skill levels. Bring any camera you have.</div>
+
+      <div class="field-label">Tags<span class="counter">2 / 5</span></div>
+      <div class="chip-row">
+        <span class="chip muted">#mumbai ✕</span>
+        <span class="chip muted">#photowalk ✕</span>
+        <span class="chip">＋ Add</span>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Event · Basics</div>
+  </div>
+
+  <!-- 2. When & Where -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">When &amp; where</span><span class="count">Step 2 of 4</span></div>
+      <div class="step-bar"><span style="width:50%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Date, time &amp; venue</div>
+      <p class="sub">Single date — for recurring events, create separate listings.</p>
+
+      <div class="field-label">Date</div>
+      <div class="input"><span>Sat, 17 May 2026</span></div>
+
+      <div class="row-2">
+        <div>
+          <div class="field-label">Start</div>
+          <div class="input">5:30 PM</div>
+        </div>
+        <div>
+          <div class="field-label">End</div>
+          <div class="input">7:30 PM</div>
+        </div>
+      </div>
+
+      <div class="field-label">Venue name</div>
+      <div class="input">Worli Sea Face</div>
+
+      <div class="field-label">Full address<span class="counter">PUBLIC</span></div>
+      <div class="input area">Worli Sea Face Promenade, near Worli Naka, Mumbai 400018</div>
+      <div class="helper">Address is shown publicly so attendees can plan their route.</div>
+
+      <div class="field-label">Capacity</div>
+      <div class="row-2">
+        <div class="input"><span>20</span> <span style="margin-left:auto;color:var(--muted);">attendees</span></div>
+        <div class="input muted">Min RSVP: 0</div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Event · When &amp; where</div>
+  </div>
+
+  <!-- 3. Details -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Details &amp; photos</span><span class="count">Step 3 of 4</span></div>
+      <div class="step-bar"><span style="width:75%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Round it out</div>
+
+      <div class="field-label">Cover photo</div>
+      <div style="height:120px;background:linear-gradient(135deg,#d8d4cd,#ece7df);border-radius:12px;display:grid;place-items:center;color:var(--muted);font-size:12px;">Tap to upload (max 1920×1080)</div>
+
+      <div class="field-label">More photos<span class="counter">2 / 6</span></div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;height:64px;background:#e6e3dc;border-radius:8px;"></div>
+        <div style="flex:1;height:64px;background:#e6e3dc;border-radius:8px;"></div>
+        <div style="flex:1;height:64px;background:var(--sunken);border-radius:8px;display:grid;place-items:center;color:var(--muted);">＋</div>
+      </div>
+
+      <div class="field-label">What to bring</div>
+      <div class="input area">· Camera or phone&#10;· Water bottle&#10;· Comfortable shoes</div>
+
+      <div class="field-label">Cancellation</div>
+      <div class="seg">
+        <div class="on">Flexible</div>
+        <div>Moderate</div>
+        <div>Strict</div>
+      </div>
+      <div class="helper">Free cancellation up to 24h before start.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Event · Details</div>
+  </div>
+
+  <!-- 4. Review -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Review &amp; publish</span><span class="count">Step 4 of 4</span></div>
+      <div class="step-bar"><span style="width:100%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">PREVIEW</div>
+      <div class="preview-card">
+        <div class="preview-img"></div>
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;">Sunset photo walk · Worli</div>
+        <div class="preview-meta">Sat 17 May · 5:30–7:30 PM · Free · 20 spots</div>
+      </div>
+
+      <h4 class="h2" style="font-size:14px;margin-top:14px;">Almost there</h4>
+      <ul class="check-list">
+        <li><span class="ic">✓</span>Title &amp; description</li>
+        <li><span class="ic">✓</span>Date, time, venue</li>
+        <li><span class="ic">✓</span>Cover photo</li>
+        <li class="miss"><span class="ic">!</span>Add 1 more photo (recommended)</li>
+      </ul>
+
+      <div class="card sunk" style="margin-top:10px;padding:10px 12px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" style="margin-top:2px;" />
+          <div>
+            <div style="font-size:12px;font-weight:600;">I'll be at this event</div>
+            <small class="fineprint">
+              I'm committed to hosting on the date listed. Cancellations within 48h impact my creator score.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary coral disabled">Publish</div>
+    </div>
+    <div class="label">Event · Review</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">D · Self-paced itinerary wizard — 5 steps</h2>
+<p class="section-sub">
+  Cover image folds into Basics. Day builder uses Google Places autocomplete (CRT-FR-016) and
+  monochrome stop chips with overnight = coral (DD-024). Freemium toggle defaults <strong>ON</strong>
+  for paid itineraries (DD-020).
+</p>
+
+<div class="row">
+  <!-- 1. Basics -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Basics</span><span class="count">Step 1 of 5</span></div>
+      <div class="step-bar"><span style="width:20%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">STEP 1 OF 5</div>
+      <div class="h1">Set the scene</div>
+
+      <div class="field-label">Cover image</div>
+      <div style="height:120px;background:linear-gradient(135deg,#d8d4cd,#ece7df);border-radius:12px;display:grid;place-items:center;color:var(--muted);font-size:12px;">Tap to upload</div>
+
+      <div class="field-label">Category</div>
+      <div class="input"><span style="font-weight:600;">Road trips</span></div>
+
+      <div class="field-label">Title<span class="counter">28 / 100</span></div>
+      <div class="input">Spiti road trip — full route</div>
+
+      <div class="field-label">Short description<span class="counter">196 / 280</span></div>
+      <div class="input area">A complete 5-day Spiti circuit from Manali, with creator notes on every stop, dhaba picks, fuel stops, and where to stay each night.</div>
+
+      <div class="field-label">Difficulty</div>
+      <div class="chip-row">
+        <span class="chip">Easy</span>
+        <span class="chip active">Moderate</span>
+        <span class="chip">Hard</span>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Itinerary · Basics</div>
+  </div>
+
+  <!-- 2. Trip overview -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Trip overview</span><span class="count">Step 2 of 5</span></div>
+      <div class="step-bar"><span style="width:40%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Shape the trip</div>
+
+      <div class="row-2">
+        <div>
+          <div class="field-label">Days</div>
+          <div class="input"><span style="font-weight:700;font-size:18px;">5</span><span style="margin-left:auto;color:var(--muted);">−   ＋</span></div>
+        </div>
+        <div>
+          <div class="field-label">Group size</div>
+          <div class="input">2–6</div>
+        </div>
+      </div>
+
+      <div class="field-label">Starting point</div>
+      <div class="input">Manali, HP <span style="margin-left:auto;color:var(--coral);">📍</span></div>
+
+      <div class="field-label">Ending point</div>
+      <div class="input">Manali, HP</div>
+
+      <div class="field-label">Best season</div>
+      <div class="chip-row">
+        <span class="chip">Year-round</span>
+        <span class="chip active">Jun–Sep</span>
+        <span class="chip">Oct–Mar</span>
+      </div>
+
+      <div class="field-label">Days preview</div>
+      <div style="display:flex;gap:6px;">
+        <div class="card sunk" style="flex:1;text-align:center;font-size:11px;color:var(--muted);padding:10px 0;">Day 1</div>
+        <div class="card sunk" style="flex:1;text-align:center;font-size:11px;color:var(--muted);padding:10px 0;">Day 2</div>
+        <div class="card sunk" style="flex:1;text-align:center;font-size:11px;color:var(--muted);padding:10px 0;">Day 3</div>
+        <div class="card sunk" style="flex:1;text-align:center;font-size:11px;color:var(--muted);padding:10px 0;">Day 4</div>
+        <div class="card sunk" style="flex:1;text-align:center;font-size:11px;color:var(--muted);padding:10px 0;">Day 5</div>
+      </div>
+      <div class="helper">5 empty day cards will be created. You'll fill them next.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Itinerary · Overview</div>
+  </div>
+
+  <!-- 3. Day builder -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Build days</span><span class="count">Step 3 of 5</span></div>
+      <div class="step-bar"><span style="width:60%"></span></div>
+    </div>
+    <div class="body">
+      <div class="day-pills">
+        <div class="day-pill on">Day 1</div>
+        <div class="day-pill">Day 2</div>
+        <div class="day-pill">Day 3</div>
+        <div class="day-pill">Day 4</div>
+        <div class="day-pill">Day 5</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;">Day 1 · Manali → Kaza</div>
+        <div style="font-size:11px;color:var(--muted);">3 spots · 210 km · 8h</div>
+      </div>
+
+      <div class="spot-card">
+        <div class="num">1</div>
+        <div style="flex:1;">
+          <div class="name">Manali Volvo Stand</div>
+          <div class="place">Manali, HP · pickup</div>
+          <div class="note">Pickup point. Get there by 5:45am — buses leave on time.</div>
+          <div class="flags">
+            <span class="stop-chip on">📍 Stop</span>
+            <span class="stop-chip" style="color:var(--success);border-color:#cfe5d9;">✓ Free preview</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-card">
+        <div class="num">2</div>
+        <div style="flex:1;">
+          <div class="name">Sissu (lunch)</div>
+          <div class="place">Lahaul · meal</div>
+          <div class="note">The dhaba on the right just past the bridge. Try the trout.</div>
+          <div class="flags">
+            <span class="stop-chip on">🍴 Meal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-card overnight">
+        <div class="num">3</div>
+        <div style="flex:1;">
+          <div class="name">Sakya Abode (overnight)</div>
+          <div class="place">Kaza, HP · stay</div>
+          <div class="note">WiFi unreliable. Charger porch is the only outlet.</div>
+          <div class="flags">
+            <span class="stop-chip overnight on">🛏 Overnight</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:10px;">
+        <span class="chip" style="border-color:var(--coral);color:var(--coral);font-weight:600;">＋ Add spot</span>
+      </div>
+
+      <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px;">Powered by Google Places</p>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Itinerary · Day builder</div>
+  </div>
+
+  <!-- 4. Pricing -->
+  <div class="phone">
+    <div class="qchip">Q3 · Q4</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Pricing</span><span class="count">Step 4 of 5</span></div>
+      <div class="step-bar"><span style="width:80%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Pricing</div>
+
+      <div class="row-2" style="margin-top:6px;">
+        <div class="card" style="text-align:center;font-size:13px;color:var(--soft-ink);">Free</div>
+        <div class="card" style="text-align:center;font-size:13px;font-weight:700;border-color:var(--coral);background:var(--coral-tint);color:var(--coral-deep);">Paid</div>
+      </div>
+
+      <div class="field-label">Price (₹)</div>
+      <div class="input"><span style="color:var(--muted);">₹</span><span style="margin-left:6px;font-weight:600;">890</span><span style="margin-left:auto;color:var(--muted);font-size:11px;">max ₹10,000</span></div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px;">Buyer pays</div>
+        <div class="price-row"><span class="l">Base price</span><span class="v">₹890</span></div>
+        <div class="price-row"><span class="l">+ GST (18%)</span><span class="v">₹160</span></div>
+        <div class="price-row total" style="border-top:1px solid var(--hairline);padding-top:8px;"><span class="l">Buyer total</span><span class="v">₹1,050</span></div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--ink);margin:14px 0 6px;">You earn</div>
+        <div class="price-row"><span class="l">− Platform fee (17%)</span><span class="v">−₹151</span></div>
+        <div class="price-row"><span class="l">− TDS (1%)</span><span class="v">−₹9</span></div>
+        <div class="price-row takehome" style="border-top:1px solid var(--hairline);padding-top:8px;"><span class="l">Take-home</span><span class="v">₹730</span></div>
+      </div>
+
+      <div class="field-label" style="margin-top:14px;">Free preview</div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">Make Day 1 free</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Recommended — readers can taste your work before buying.</div>
+        </div>
+        <div style="width:42px;height:24px;border-radius:99px;background:var(--coral);position:relative;">
+          <div style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:white;"></div>
+        </div>
+      </div>
+
+      <div class="field-label">Cancellation</div>
+      <div class="seg">
+        <div>Flexible</div>
+        <div class="on">Moderate</div>
+        <div>Strict</div>
+      </div>
+      <div class="helper">Full refund up to 5 days before start.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">Itinerary · Pricing</div>
+  </div>
+
+  <!-- 5. Review -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Review &amp; publish</span><span class="count">Step 5 of 5</span></div>
+      <div class="step-bar"><span style="width:100%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">PREVIEW</div>
+      <div class="preview-card">
+        <div class="preview-img"></div>
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;">Spiti road trip — full route</div>
+        <div class="preview-meta">5 days · 12 spots · 940 km · ₹890 once</div>
+      </div>
+
+      <h4 class="h2" style="font-size:14px;margin-top:14px;">Ready to publish?</h4>
+      <ul class="check-list">
+        <li><span class="ic">✓</span>Cover + basics</li>
+        <li><span class="ic">✓</span>5 days, 12 spots</li>
+        <li><span class="ic">✓</span>Pricing &amp; freemium</li>
+        <li><span class="ic">✓</span>KYC verified</li>
+      </ul>
+
+      <div class="card sunk" style="margin-top:10px;padding:10px 12px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" style="margin-top:2px;" />
+          <div>
+            <div style="font-size:12px;font-weight:600;">I own this content</div>
+            <small class="fineprint">
+              The route, photos, and notes are mine, or I have permission to share them. I accept the
+              <span style="text-decoration:underline;">Creator T&amp;Cs v1.2</span> and the <span style="text-decoration:underline;">paid-content policy</span>.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary coral disabled">Publish</div>
+    </div>
+    <div class="label">Itinerary · Review</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">E · Scheduled experience wizard — 7 steps</h2>
+<p class="section-sub">
+  The biggest restructure. Today's single Details step splits into <strong>Days (text)</strong>,
+  <strong>Departures</strong>, and <strong>Meeting point</strong>. Two-section meeting privacy
+  (DD-021): public neighbourhood area visible always, exact pickup revealed N hours before
+  start. (CRT-FR-016, FR-021, FR-022)
+</p>
+
+<div class="row">
+  <!-- 1. Basics -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Basics</span><span class="count">Step 1 of 7</span></div>
+      <div class="step-bar"><span style="width:14%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">STEP 1 OF 7</div>
+      <div class="h1">What are you taking travellers on?</div>
+
+      <div class="field-label">Cover image</div>
+      <div style="height:110px;background:linear-gradient(135deg,#d8d4cd,#ece7df);border-radius:12px;"></div>
+
+      <div class="field-label">Category</div>
+      <div class="input"><span style="font-weight:600;">Mountain road trips</span></div>
+
+      <div class="field-label">Title<span class="counter">35 / 100</span></div>
+      <div class="input">Spiti in monsoon — 5 day road trip</div>
+
+      <div class="field-label">Short description<span class="counter">218 / 280</span></div>
+      <div class="input area">A guided 5-day trip into Spiti during the green season. Small group, monastery stays, and the photo stops only locals know.</div>
+
+      <div class="field-label">Difficulty</div>
+      <div class="chip-row">
+        <span class="chip">Easy</span>
+        <span class="chip active">Moderate</span>
+        <span class="chip">Hard</span>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Basics</div>
+  </div>
+
+  <!-- 2. Overview -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Overview</span><span class="count">Step 2 of 7</span></div>
+      <div class="step-bar"><span style="width:28%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">The shape of your trip</div>
+
+      <div class="row-2">
+        <div>
+          <div class="field-label">Duration</div>
+          <div class="input"><span style="font-weight:700;font-size:18px;">5</span><span style="margin-left:6px;color:var(--soft-ink);">days</span></div>
+        </div>
+        <div>
+          <div class="field-label">Group size</div>
+          <div class="input">4–8</div>
+        </div>
+      </div>
+
+      <div class="field-label">Pickup city</div>
+      <div class="input">Manali, HP</div>
+
+      <div class="field-label">Drop city</div>
+      <div class="input">Manali, HP</div>
+
+      <div class="field-label">Languages</div>
+      <div class="chip-row">
+        <span class="chip active">English</span>
+        <span class="chip active">Hindi</span>
+        <span class="chip">＋ Add</span>
+      </div>
+
+      <div class="field-label">What you'll do</div>
+      <div class="input area">Drive the Manali–Kaza highway, stay at monastery homestays, photograph Komik &amp; Hikkim, share regional food.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Overview</div>
+  </div>
+
+  <!-- 3. Days as text -->
+  <div class="phone">
+    <div class="qchip">Q1 · Q2</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Day-by-day</span><span class="count">Step 3 of 7</span></div>
+      <div class="step-bar"><span style="width:42%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Walk through each day</div>
+      <p class="sub">Free-form text — what you'll do, where you'll stop, where you'll sleep. No pinned spots needed.</p>
+
+      <div class="day-pills">
+        <div class="day-pill on">Day 1</div>
+        <div class="day-pill">Day 2</div>
+        <div class="day-pill">Day 3</div>
+        <div class="day-pill">Day 4</div>
+        <div class="day-pill">Day 5</div>
+      </div>
+
+      <div class="field-label">Day 1 title<span class="counter">22 / 80</span></div>
+      <div class="input">Manali → Kaza via Atal Tunnel</div>
+
+      <div class="field-label">Description<span class="counter">189 / 1000</span></div>
+      <div class="input area tall">Early morning pickup from Manali Volvo Stand. Cross Atal Tunnel by sunrise, lunch break at Sissu, reach Kaza by evening. Settle into monastery homestay.</div>
+
+      <div class="field-label">Overnight at</div>
+      <div class="input">Sakya Abode, Kaza <span style="margin-left:auto;color:var(--coral);">📍</span></div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Days (text)</div>
+  </div>
+
+  <!-- 4. Departures -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Departures</span><span class="count">Step 4 of 7</span></div>
+      <div class="step-bar"><span style="width:57%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">When does it run?</div>
+      <p class="sub">Add every date you'll host this trip. Capacity locks per departure.</p>
+
+      <div class="card">
+        <div class="dep-row">
+          <div>
+            <div class="dep-date">12 May → 16 May 2026</div>
+            <div class="dep-meta">Mon → Fri · 5 days</div>
+          </div>
+          <div class="dep-cap">4 / 8</div>
+        </div>
+        <div class="dep-row">
+          <div>
+            <div class="dep-date">25 May → 29 May 2026</div>
+            <div class="dep-meta">Sun → Thu · 5 days</div>
+          </div>
+          <div class="dep-cap">0 / 8</div>
+        </div>
+        <div class="dep-row">
+          <div>
+            <div class="dep-date">8 Jun → 12 Jun 2026</div>
+            <div class="dep-meta">Sun → Thu · 5 days</div>
+          </div>
+          <div class="dep-cap">0 / 8</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:14px;">
+        <span class="chip" style="border-color:var(--coral);color:var(--coral);font-weight:600;">＋ Add departure</span>
+      </div>
+
+      <div class="card sunk" style="margin-top:14px;padding:10px 12px;">
+        <div style="font-size:12px;font-weight:600;">Edit dates anytime</div>
+        <small class="fineprint">After you publish, dates are managed in Studio → Dates. You can keep adding without re-opening the wizard.</small>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Departures</div>
+  </div>
+
+  <!-- 5. Meeting point -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Meeting point</span><span class="count">Step 5 of 7</span></div>
+      <div class="step-bar"><span style="width:71%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Where will you meet?</div>
+
+      <div class="kicker" style="color:var(--soft-ink);">PUBLIC · shown on listing</div>
+      <div class="map-area">
+        <div class="city-dots"></div>
+        <div class="area-blob"></div>
+        <div class="label">Manali Volvo Stand area</div>
+      </div>
+      <div class="field-label">Public meeting area</div>
+      <div class="input">Manali Volvo Stand, Manali HP</div>
+      <div class="helper">Travellers see this on the listing. We show a fuzzy area, not a pin.</div>
+
+      <div class="kicker" style="color:var(--coral-deep);margin-top:18px;">PRIVATE · shared closer to start</div>
+      <div class="field-label">Exact pickup address <span class="lock">🔒 Private</span></div>
+      <div class="input area locked">Hotel Snow Valley Resorts lobby, Old Manali Rd, Manali 175131. Bus #MH-04-AB-7382 — driver Suresh +91 98xxxxxx.</div>
+
+      <div class="field-label">Reveal exact address</div>
+      <div class="seg">
+        <div>12h before</div>
+        <div class="on">24h before</div>
+        <div>48h before</div>
+      </div>
+      <div class="helper">Sent to travellers via WhatsApp + push notification at the chosen time.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Meeting point</div>
+  </div>
+
+  <!-- 6. Pricing -->
+  <div class="phone">
+    <div class="qchip">Q3</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Pricing</span><span class="count">Step 6 of 7</span></div>
+      <div class="step-bar"><span style="width:85%"></span></div>
+    </div>
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Price &amp; terms</div>
+
+      <div class="field-label">Per person (₹)</div>
+      <div class="input"><span style="color:var(--muted);">₹</span><span style="margin-left:6px;font-weight:600;">12,500</span></div>
+
+      <div class="card" style="margin-top:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px;">You earn per booking</div>
+        <div class="price-row"><span class="l">Base</span><span class="v">₹12,500</span></div>
+        <div class="price-row"><span class="l">− Platform fee (17%)</span><span class="v">−₹2,125</span></div>
+        <div class="price-row"><span class="l">− TDS (1%)</span><span class="v">−₹125</span></div>
+        <div class="price-row takehome" style="border-top:1px solid var(--hairline);padding-top:8px;"><span class="l">Take-home</span><span class="v">₹10,250</span></div>
+      </div>
+
+      <div class="field-label" style="margin-top:14px;">What's included</div>
+      <div class="chip-row">
+        <span class="chip muted">Accommodation ✕</span>
+        <span class="chip muted">Breakfast &amp; dinner ✕</span>
+        <span class="chip muted">Transport ✕</span>
+        <span class="chip">＋ Add</span>
+      </div>
+
+      <div class="field-label">What's not included</div>
+      <div class="chip-row">
+        <span class="chip muted">Lunches ✕</span>
+        <span class="chip muted">Personal expenses ✕</span>
+        <span class="chip">＋ Add</span>
+      </div>
+
+      <div class="field-label">Cancellation policy</div>
+      <div class="seg">
+        <div>Flexible</div>
+        <div class="on">Moderate</div>
+        <div>Strict</div>
+      </div>
+      <div class="helper">Full refund up to 5 days before start. Platform-defined — readers see the same terms across all listings.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">SE · Pricing</div>
+  </div>
+
+  <!-- 7. Review -->
+  <div class="phone">
+    <div class="qchip">Q5 · Q8</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Review &amp; publish</span><span class="count">Step 7 of 7</span></div>
+      <div class="step-bar"><span style="width:100%"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker">PREVIEW</div>
+      <div class="preview-card">
+        <div class="preview-img"></div>
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:15px;">Spiti in monsoon — 5 day road trip</div>
+        <div class="preview-meta">From ₹12,500 · 3 dates · Manali pickup</div>
+      </div>
+
+      <h4 class="h2" style="font-size:14px;margin-top:14px;">Almost ready</h4>
+      <ul class="check-list">
+        <li><span class="ic">✓</span>Basics &amp; overview</li>
+        <li><span class="ic">✓</span>5 days described</li>
+        <li><span class="ic">✓</span>3 departures</li>
+        <li><span class="ic">✓</span>Meeting point + reveal 24h</li>
+        <li><span class="ic">✓</span>Pricing + cancellation</li>
+        <li class="miss"><span class="ic">!</span>Add 2 more cover photos (recommended)</li>
+      </ul>
+
+      <div class="card sunk" style="margin-top:10px;padding:10px 12px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" style="margin-top:2px;" />
+          <div>
+            <div style="font-size:12px;font-weight:600;">I'll host every published date</div>
+            <small class="fineprint">
+              I commit to running each departure I publish. I own the content shown and accept the
+              <span style="text-decoration:underline;">Creator T&amp;Cs v1.2</span>,
+              <span style="text-decoration:underline;">paid-content policy</span>, and
+              <span style="text-decoration:underline;">cancellation terms</span>.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary coral disabled">Publish</div>
+    </div>
+    <div class="label">SE · Review</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">F · Spot editor sheet (itinerary day builder)</h2>
+<p class="section-sub">
+  Bottom sheet that opens when a creator taps "+ Add spot". Three views: location search,
+  details, stop type. The 5-color stop palette is reduced to <strong>monochrome icons</strong>
+  with overnight as the only coral exception (DD-024).
+</p>
+
+<div class="row">
+  <!-- a. Place search -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.35);"></div>
+    <div style="background:var(--bg);border-radius:24px 24px 0 0;padding:16px 20px 24px;height:520px;overflow:hidden;">
+      <div style="width:36px;height:4px;background:#d8d6d0;border-radius:99px;margin:0 auto 14px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="h2" style="margin:0;font-size:16px;">Add a spot</div>
+        <div class="icon-btn">×</div>
+      </div>
+
+      <div class="field-label">Search Google</div>
+      <div class="input"><span style="color:var(--muted);">🔍</span><span style="margin-left:8px;color:var(--ink);">manali volvo</span></div>
+
+      <div style="margin-top:8px;">
+        <div class="card" style="display:flex;gap:10px;padding:10px 12px;margin-bottom:6px;border-color:var(--coral);">
+          <div style="font-size:18px;">📍</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;">Manali Volvo Stand</div>
+            <div style="font-size:11px;color:var(--muted);">The Mall, Manali, HP 175131</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:10px;padding:10px 12px;margin-bottom:6px;">
+          <div style="font-size:18px;">📍</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;">Manali HRTC Volvo Bus Booking</div>
+            <div style="font-size:11px;color:var(--muted);">NH-3, Manali, HP</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:10px;padding:10px 12px;margin-bottom:6px;">
+          <div style="font-size:18px;">📍</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;">Volvo Stand Old Manali</div>
+            <div style="font-size:11px;color:var(--muted);">Old Manali Rd, Manali</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px;">Powered by Google Places</p>
+    </div>
+    <div class="label">Spot editor · Search</div>
+  </div>
+
+  <!-- b. Details -->
+  <div class="phone">
+    <div class="qchip">Q6</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.35);"></div>
+    <div style="background:var(--bg);border-radius:24px 24px 0 0;padding:16px 20px 24px;height:580px;overflow:hidden;">
+      <div style="width:36px;height:4px;background:#d8d6d0;border-radius:99px;margin:0 auto 14px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="h2" style="margin:0;font-size:16px;">Spot details</div>
+        <div class="icon-btn">×</div>
+      </div>
+
+      <div class="card" style="display:flex;gap:10px;padding:10px 12px;background:var(--sunken);border-color:transparent;">
+        <div style="font-size:16px;">📍</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;">Manali Volvo Stand</div>
+          <div style="font-size:11px;color:var(--muted);">The Mall, Manali, HP</div>
+        </div>
+      </div>
+
+      <div class="field-label">Stop type</div>
+      <div class="chip-row">
+        <span class="stop-chip on">📍 Stop</span>
+        <span class="stop-chip">🍴 Meal</span>
+        <span class="stop-chip">👁 Viewpoint</span>
+        <span class="stop-chip">⛰ Activity</span>
+      </div>
+
+      <div class="card" style="display:flex;align-items:center;gap:12px;margin-top:12px;border-color:var(--coral);background:#fff8f5;">
+        <div style="font-size:18px;color:var(--coral);">🛏</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">Sleep here tonight</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Marks this as the overnight stay for the day.</div>
+        </div>
+        <div style="width:42px;height:24px;border-radius:99px;background:var(--sunken);position:relative;">
+          <div style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:white;"></div>
+        </div>
+      </div>
+
+      <div class="field-label">Time at this spot</div>
+      <div class="input">~30 min</div>
+
+      <div class="field-label">Your note <span style="color:var(--coral);font-weight:700;">★</span><span class="counter">42 / 400</span></div>
+      <div class="input area" style="font-family:'Fraunces',serif;font-style:italic;font-size:14px;line-height:1.55;">Pickup point. Get there by 5:45am — buses leave on time.</div>
+      <div class="helper">This is the most-read part of your itinerary. Be specific.</div>
+
+      <div class="card sunk" style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;">
+        <input type="checkbox" checked />
+        <div style="flex:1;font-size:12px;font-weight:600;">Free preview</div>
+        <small class="fineprint" style="text-align:right;">Visible to non-buyers</small>
+      </div>
+    </div>
+    <div class="label">Spot editor · Details</div>
+  </div>
+
+  <!-- c. Stop type list (overnight on) -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.35);"></div>
+    <div style="background:var(--bg);border-radius:24px 24px 0 0;padding:16px 20px 24px;height:540px;overflow:hidden;">
+      <div style="width:36px;height:4px;background:#d8d6d0;border-radius:99px;margin:0 auto 14px;"></div>
+      <div class="h2" style="margin:0 0 8px;font-size:16px;">Stop type — visual reference</div>
+      <p class="sub" style="font-size:12px;">Differentiation by icon shape. Only overnight uses coral.</p>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
+          <span class="stop-chip on">📍 Stop</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto;">Generic / pickup / drop</span>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
+          <span class="stop-chip on">🍴 Meal</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto;">Restaurant / dhaba / cafe</span>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
+          <span class="stop-chip on">👁 Viewpoint</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto;">Photo stop / vista</span>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
+          <span class="stop-chip on">⛰ Activity</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto;">Trek / monastery / shop</span>
+        </div>
+        <div class="card overnight" style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--coral);background:#fff8f5;">
+          <span class="stop-chip overnight on">🛏 Overnight</span>
+          <span style="font-size:11px;color:var(--coral-deep);margin-left:auto;font-weight:600;">Where you sleep · coral</span>
+        </div>
+      </div>
+
+      <p class="helper" style="margin-top:14px;">Today's wizard renders Meal=amber, Viewpoint=green, Activity=violet — those colors disappear in the redesign.</p>
+    </div>
+    <div class="label">Spot editor · Type ref</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">G · Studio actions: edit · duplicate · delete <span class="pill" style="background:#fef0c7;color:#92400e;">Q9 · Q10 · Q11</span></h2>
+<p class="section-sub">
+  New surfaces for managing published content. Action sheet lives behind the overflow menu on
+  every Studio content card and on the detail screen when viewed by the owner.
+</p>
+
+<div class="row">
+  <!-- 1. Studio card with overflow -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="padding:14px 18px 0;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'Fraunces',serif;font-weight:600;font-size:22px;">Studio</div>
+      <div style="display:flex;gap:6px;">
+        <span class="chip active">Published</span>
+        <span class="chip">Drafts</span>
+      </div>
+    </div>
+
+    <div style="padding:14px 18px;flex:1;overflow:hidden;">
+      <!-- Content card 1 -->
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px;">
+        <div style="height:90px;background:linear-gradient(135deg,#d8d4cd,#ece7df);"></div>
+        <div style="padding:12px;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;padding-right:24px;">
+              <div style="font-family:'Fraunces',serif;font-weight:600;font-size:14px;">Spiti road trip — full route</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Itinerary · ₹890 · ★ 4.8 · 12 reviews</div>
+              <div style="font-size:11px;color:var(--success);margin-top:4px;font-weight:600;">● Published 12 Apr</div>
+            </div>
+            <div style="position:absolute;top:8px;right:8px;font-size:20px;color:var(--ink);font-weight:700;letter-spacing:0;line-height:1;">⋯</div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--soft-ink);">
+            <span>👁 1.2k views</span>
+            <span>💰 12 sales</span>
+            <span>💬 8 reviews</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content card 2 with menu open (bg dim) -->
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:10px;border-color:var(--coral);box-shadow:0 4px 18px rgba(0,0,0,.08);position:relative;z-index:2;">
+        <div style="height:90px;background:linear-gradient(135deg,#d8d4cd,#ece7df);"></div>
+        <div style="padding:12px;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;padding-right:24px;">
+              <div style="font-family:'Fraunces',serif;font-weight:600;font-size:14px;">Sunset photo walk · Worli</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Event · Free · 17 May 2026</div>
+              <div style="font-size:11px;color:var(--success);margin-top:4px;font-weight:600;">● Published · 8 RSVPs</div>
+            </div>
+            <div style="position:absolute;top:8px;right:8px;font-size:20px;color:var(--coral);font-weight:700;letter-spacing:0;line-height:1;">⋯</div>
+          </div>
+        </div>
+
+        <!-- Floating menu -->
+        <div style="position:absolute;top:8px;right:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;width:160px;z-index:3;">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--ink);">
+            <span style="font-size:14px;">✎</span> Edit
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--ink);">
+            <span style="font-size:14px;">⎘</span> Duplicate
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--ink);">
+            <span style="font-size:14px;">↗</span> Share
+          </div>
+          <div style="height:1px;background:var(--hairline);margin:4px 0;"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--danger);">
+            <span style="font-size:14px;">🗑</span> Delete
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav" style="padding:10px 16px 14px;border-top:1px solid var(--hairline);">
+      <div style="flex:1;text-align:center;font-size:11px;color:var(--muted);">Home</div>
+      <div style="flex:1;text-align:center;font-size:11px;color:var(--muted);">Discover</div>
+      <div style="flex:1;text-align:center;font-size:11px;color:var(--coral);font-weight:700;">Studio</div>
+      <div style="flex:1;text-align:center;font-size:11px;color:var(--muted);">You</div>
+    </div>
+    <div class="label">Studio · overflow menu (Q9·Q10·Q11)</div>
+  </div>
+
+  <!-- 2. Edit mode wizard top -->
+  <div class="phone">
+    <div class="qchip">Q9</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+
+    <!-- Yellow edit-mode banner -->
+    <div style="background:#fef9eb;border-bottom:1px solid #f3e2a7;padding:10px 16px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;">✎</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:#7a5b00;">Editing live content</div>
+        <div style="font-size:10px;color:#a07a1c;">Changes save instantly. RSVPs notified on date / venue change.</div>
+      </div>
+    </div>
+
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"><span class="dot"></span>Saved</div>
+      <div class="icon-btn">🗑</div>
+    </div>
+
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">When &amp; where</span><span class="count">Step 2 of 4</span></div>
+      <div class="step-bar"><span style="width:50%"></span></div>
+    </div>
+
+    <div class="body">
+      <div class="h1" style="font-size:20px;">Edit details</div>
+
+      <div class="field-label">Date <span class="pill warn" style="margin:0;">8 RSVPs will be notified</span></div>
+      <div class="input">Sat, 17 May 2026</div>
+
+      <div class="row-2">
+        <div>
+          <div class="field-label">Start</div>
+          <div class="input">5:30 PM</div>
+        </div>
+        <div>
+          <div class="field-label">End</div>
+          <div class="input">7:30 PM</div>
+        </div>
+      </div>
+
+      <div class="field-label">Venue name</div>
+      <div class="input">Worli Sea Face</div>
+
+      <div class="field-label">Capacity</div>
+      <div class="input"><span>20</span> <span style="margin-left:auto;color:var(--muted);font-size:11px;">8 RSVPs · capacity ≥ 8 only</span></div>
+      <div class="helper warn">Capacity can only grow once people have RSVP'd.</div>
+
+      <div class="field-label">Cancellation</div>
+      <div class="seg">
+        <div class="on">Flexible</div>
+        <div>Moderate</div>
+        <div>Strict</div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">← Back</div>
+      <div class="btn btn-primary coral">Save changes</div>
+    </div>
+    <div class="label">Edit mode (Q9)</div>
+  </div>
+
+  <!-- 3. Duplicate confirm -->
+  <div class="phone">
+    <div class="qchip">Q10</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.45);"></div>
+    <div style="background:var(--surface);margin:0 24px 24px;border-radius:18px;padding:24px 22px;">
+      <div style="text-align:center;font-size:32px;margin-bottom:8px;">⎘</div>
+      <div class="h2" style="text-align:center;margin:0 0 6px;font-size:18px;">Duplicate this trip?</div>
+      <p class="sub" style="text-align:center;font-size:13px;">
+        We'll create a new <strong>draft</strong> copy of "Spiti road trip — full route (copy)" with everything except dates, reviews, and bookings.
+      </p>
+
+      <div class="card sunk" style="padding:12px;margin-top:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--soft-ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">What gets copied</div>
+        <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--ink);line-height:1.7;">
+          <li>Title, description, category</li>
+          <li>All 5 days + 12 spots</li>
+          <li>Cover image &amp; gallery</li>
+          <li>Inclusions, exclusions, pricing, cancellation</li>
+        </ul>
+        <div style="font-size:11px;font-weight:700;color:var(--soft-ink);text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px;">What's reset</div>
+        <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--soft-ink);line-height:1.7;">
+          <li>Reviews, sales, view count → 0</li>
+          <li>Status → draft (not published)</li>
+        </ul>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <div class="btn btn-secondary">Cancel</div>
+        <div class="btn btn-primary coral">Create copy</div>
+      </div>
+    </div>
+    <div class="label">Duplicate (Q10)</div>
+  </div>
+
+  <!-- 4. Delete with bookings (soft delete) -->
+  <div class="phone">
+    <div class="qchip">Q11</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.45);"></div>
+    <div style="background:var(--surface);margin:0 24px 24px;border-radius:18px;padding:24px 22px;border-top:4px solid var(--danger);">
+      <div style="text-align:center;font-size:28px;margin-bottom:8px;color:var(--danger);">⚠</div>
+      <div class="h2" style="text-align:center;margin:0 0 6px;font-size:18px;">Archive this experience?</div>
+      <p class="sub" style="text-align:center;font-size:13px;">
+        "Spiti in monsoon" has <strong>4 paid bookings</strong> on the May 12 departure. Hard
+        delete isn't possible.
+      </p>
+
+      <div class="card" style="padding:12px;margin-top:8px;border-color:#f1d6cd;background:#fff8f5;">
+        <div style="font-size:11px;font-weight:700;color:var(--coral-deep);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">What happens if you archive</div>
+        <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--ink);line-height:1.7;">
+          <li>Removed from Discover, search, your profile</li>
+          <li>Existing buyers keep full access &amp; download rights</li>
+          <li>You still need to host the May 12 departure</li>
+          <li>No new buyers can find it</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:12px;font-size:12px;color:var(--soft-ink);text-align:center;">
+        Type <strong style="color:var(--ink);">DELETE</strong> below to confirm
+      </div>
+      <div class="input" style="margin-top:8px;border-color:var(--danger);">DELETE<span style="margin-left:auto;color:var(--danger);">|</span></div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <div class="btn btn-secondary">Keep live</div>
+        <div class="btn btn-primary" style="background:var(--danger);">Archive</div>
+      </div>
+    </div>
+    <div class="label">Delete with bookings (Q11)</div>
+  </div>
+
+  <!-- 5. Delete clean (hard) -->
+  <div class="phone">
+    <div class="qchip">Q11</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div style="flex:1;background:rgba(0,0,0,.45);"></div>
+    <div style="background:var(--surface);margin:0 24px 24px;border-radius:18px;padding:24px 22px;">
+      <div style="text-align:center;font-size:28px;margin-bottom:8px;">🗑</div>
+      <div class="h2" style="text-align:center;margin:0 0 6px;font-size:18px;">Delete this post?</div>
+      <p class="sub" style="text-align:center;font-size:13px;">
+        "Spiti in monsoon" has no bookings. This will permanently delete the post,
+        comments, likes, and saves. Cannot be undone.
+      </p>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <div class="btn btn-secondary">Cancel</div>
+        <div class="btn btn-primary" style="background:var(--danger);">Delete</div>
+      </div>
+    </div>
+    <div class="label">Delete clean (Q11)</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<h2 class="section-title">H · Empty-close behavior — no orphan drafts <span class="pill" style="background:#fef0c7;color:#92400e;">Q12</span></h2>
+<p class="section-sub">
+  Today the wizard creates a stub draft via POST the moment it opens
+  (<code>wizard_shell_screen.dart:62-65</code>). Empty-close still does a delete call. New
+  behavior: <strong>no API call until the user types something.</strong>
+</p>
+
+<div class="row">
+  <!-- 1. Empty-close path (today vs new) -->
+  <div class="phone">
+    <div class="qchip">Q12</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill"></div>
+      <div class="icon-btn"></div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Compose</span><span class="count">Step 1 of 2</span></div>
+      <div class="step-bar"><span style="width:50%;background:#d8d6d0;"></span></div>
+    </div>
+    <div class="body">
+      <div class="kicker" style="color:var(--muted);">EMPTY STATE</div>
+      <div class="h1">No draft yet</div>
+      <p class="sub">Start typing — your draft will be saved automatically as soon as there's something to save.</p>
+
+      <div class="field-label">Title<span class="counter">0 / 100</span></div>
+      <div class="input muted">Give your post a title</div>
+
+      <div class="field-label">Body</div>
+      <div class="input area body" style="color:var(--muted);font-style:normal;">Write your story…</div>
+
+      <div class="card sunk" style="margin-top:18px;padding:12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--soft-ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Behavior</div>
+        <div style="font-size:12px;color:var(--ink);line-height:1.6;">
+          • Tap × now → screen closes, <strong>no draft created</strong>, no API call<br/>
+          • Type anything → draft created on first auto-save tick<br/>
+          • Tap × after typing → "Save &amp; exit" or "Discard" prompt
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary disabled">Next →</div>
+    </div>
+    <div class="label">Empty wizard · close → no-op</div>
+  </div>
+
+  <!-- 2. First save event -->
+  <div class="phone">
+    <div class="qchip">Q12</div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>● ● ●</span></div>
+    <div class="wiz-top">
+      <div class="icon-btn">×</div>
+      <div class="save-pill saving">
+        <div style="width:8px;height:8px;border:1.4px solid var(--soft-ink);border-top-color:transparent;border-radius:50%;margin-right:6px;"></div>
+        Creating draft…
+      </div>
+      <div class="icon-btn">🗑</div>
+    </div>
+    <div class="step-indicator">
+      <div class="label-row"><span class="name">Compose</span><span class="count">Step 1 of 2</span></div>
+      <div class="step-bar"><span style="width:50%"></span></div>
+    </div>
+    <div class="body">
+      <div class="field-label">Title<span class="counter">7 / 100</span></div>
+      <div class="input">Spiti |</div>
+
+      <div class="field-label">Body</div>
+      <div class="input area body" style="color:var(--muted);">Write your story…</div>
+
+      <div class="card sunk" style="margin-top:18px;padding:12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--soft-ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Right now</div>
+        <div style="font-size:12px;color:var(--ink);line-height:1.6;">
+          User typed 7 chars · 5s elapsed · auto-save tick fires<br/>
+          → <code>POST /api/v1/posts</code> creates draft, contentId returned<br/>
+          → save pill switches to "Saved · just now"<br/>
+          → trash icon appears in top-right
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="btn btn-secondary">Cancel</div>
+      <div class="btn btn-primary">Next →</div>
+    </div>
+    <div class="label">First-save event</div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────────────────────── -->
+<div class="notes">
+  <h3>What this captures vs current implementation</h3>
+  <p>
+    These wireframes target the gaps surfaced in the parallel-Claude wizard chat. The list below
+    cross-references the design moves to the existing Flutter code so review is concrete.
+  </p>
+
+  <h4>Step structure changes</h4>
+  <ul>
+    <li><strong>Post:</strong> 3 → 2 steps. Today's <code>BasicsStep</code> + <code>PostMediaStep</code> collapse into a single Compose surface with Fraunces body editor + 6-icon toolbar + inline image insert.</li>
+    <li><strong>Event:</strong> 5 → 4 steps. The locked-free <code>_FreeEventPricingStep</code> in <code>wizard_shell_screen.dart</code> goes away; cancellation moves into Details.</li>
+    <li><strong>Itinerary:</strong> 6 → 5 steps. Cover image folds from <code>MediaStep</code> into <code>BasicsStep</code>.</li>
+    <li><strong>Scheduled experience:</strong> 5 → 7 steps. Today's single <code>ExperienceDetailsStep</code> (which holds dates + meeting + cancellation) splits into <strong>Days (text)</strong>, <strong>Departures</strong>, <strong>Meeting point</strong>, plus an <strong>Overview</strong> step before them. The new Days step is a brand-new screen — no equivalent exists.</li>
+  </ul>
+
+  <h4>Bug surfaced + fixed in this redesign</h4>
+  <ul>
+    <li><strong>Reveal hours data loss:</strong> <code>_revealHours</code> in <code>experience_details_step.dart:34</code> is collected on chip tap but never sent in <code>_saveExperienceDetails</code> payload (<code>wizard_shell_screen.dart:268-284</code>). The DB column <code>meeting_points.exact_shared_hours_before</code> defaults to 24, so 12h/48h selections silently die. The new Meeting point step explicitly persists it.</li>
+  </ul>
+
+  <h4>Monochrome moves</h4>
+  <ul>
+    <li><strong>Type picker:</strong> <code>create_tile_config.dart:29-60</code> hardcodes peach/sky/sage/lavender icon fills + 4 colored foregrounds. New picker uses <code>--sunken</code> backgrounds + <code>--ink</code> icons, with self-routing copy ("I'm taking travellers somewhere") instead of generic descriptors.</li>
+    <li><strong>Spot stop chips:</strong> <code>spot_editor_sheet.dart _stopTypeChipColor</code> returns 5 colors today. New chips: surface + hairline + ink icon for 4 of 5 types; only Overnight uses <code>coral-tint</code> + <code>coral</code> border.</li>
+  </ul>
+
+  <h4>Already shipped — preserved as-is</h4>
+  <ul>
+    <li><code>InclusionsExclusionsBlock</code> dual chip lists (15 max each, preset suggestions) — used unchanged on Itinerary &amp; SE Pricing.</li>
+    <li><code>PricingStep</code> take-home math (Base → +GST → Buyer pays → −Platform −TDS → coral take-home) — restyled into split "Buyer pays" / "You earn" cards but logic identical.</li>
+    <li>Auto-save service + Saved/Saving/Save-failed pill in top bar — unchanged.</li>
+    <li>Soft-auth sheet (6 triggers, including <code>publish</code>) — already complete.</li>
+  </ul>
+
+  <h4>New backend touches required</h4>
+  <ul>
+    <li><strong>Reveal hours plumbing:</strong> add <code>exact_shared_hours_before</code> to PUT <code>/api/v1/experiences/:id</code> and the wizard payload.</li>
+    <li><strong>SE day text:</strong> add <code>experience_days</code> table OR reuse <code>itinerary_days</code> minus spots. Founder to decide.</li>
+    <li><strong>T&amp;Cs consent record:</strong> CRT-FR-022 wants version + timestamp per publish, not just a boolean. Likely a <code>tnc_consents</code> table or columns on each content row.</li>
+    <li><strong>Google Places proxy:</strong> server-side autocomplete + place-details endpoint (key never touches client). Spot editor depends on it.</li>
+  </ul>
+
+  <h3>Open questions for review <span class="pill">need answer</span></h3>
+  <ol style="font-size:13px;line-height:1.7;">
+    <li><strong>SE Days storage:</strong> new <code>experience_days</code> table, or reuse <code>itinerary_days</code> with <code>parent_type='experience'</code> and no spots? Recommendation: reuse to keep the day-builder mental model consistent and avoid two pagination patterns later.</li>
+    <li><strong>Day count immutability after publish:</strong> if a creator changes day count post-publish, existing day descriptions on Day 4/5 silently drop. Block edit, warn, or allow with confirm? Today's wizard is silent.</li>
+    <li><strong>Cancellation policy strings:</strong> "Flexible / Moderate / Strict" — three options or four (add "Non-refundable")? Razorpay refund automation only supports the three at M2.</li>
+    <li><strong>Freemium default ON for itineraries:</strong> matches Substack's free-preview default, but our ARPU model assumes most chapters are paid. OK to default ON, or default OFF with a recommendation banner?</li>
+    <li><strong>SE meeting point on review screen:</strong> show the public area only, or both public + private with a lock badge (so the creator can verify what their travellers will see vs what's hidden)? Recommendation: both, clearly labeled.</li>
+    <li><strong>Spot creator-note as required vs optional:</strong> design pushes the note as the visually dominant card element with a coral star ("most-read"). Make required, or strongly suggested? Required raises the bar for paid itineraries but kills 1-tap spot adds.</li>
+    <li><strong>Multi-image post inline insert:</strong> design shows ＋Photo in toolbar. Limits today: max 5 images per post (<code>CLAUDE.md</code>). Render inline at insertion point, or as a gallery row at the end?</li>
+    <li><strong>Preview watermark:</strong> needed everywhere (4 review screens), or only on paid content where the publish-vs-draft distinction matters more? Recommendation: everywhere — consistent affordance.</li>
+  </ol>
+
+  <h4>Out of scope for this epic</h4>
+  <ul>
+    <li><strong>Real Google Maps embed</strong> — the public meeting-point map is a static-tinted area; real Maps SDK ships when GCP key is procured.</li>
+    <li><strong>SE pricing variants</strong> (early-bird, group discounts) — single per-person price for now.</li>
+    <li><strong>Video uploads</strong> — image-only across all wizards in M1.</li>
+    <li><strong>AI helper chips</strong> in basics (<code>ai_helper_chip.dart</code> exists but minimal) — keep as-is.</li>
+  </ul>
+</div>
+
+</body>
+</html>

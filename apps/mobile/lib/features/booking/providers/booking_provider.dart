@@ -157,9 +157,21 @@ class BookingFlowNotifier extends AsyncNotifier<BookingFlowState> {
 
   /// Step 1: POST /api/v1/bookings → create booking + Razorpay order.
   /// Returns [CreateBookingResult] on success; stores it in state.
+  ///
+  /// Supports three callsite shapes:
+  ///  - Experience (with date hold): {contentId, scheduledDateId}
+  ///  - Event paid (with occurrence hold): {contentId, eventOccurrenceId}
+  ///  - Self-paced itinerary: {contentId} (no date / occurrence)
+  ///
+  /// When called from the multi-step flow with an active booking-intent,
+  /// pass [intentId] so the backend can verify the hold and the traveller
+  /// count.
   Future<CreateBookingResult?> createBooking({
     required String contentId,
-    required String scheduledDateId,
+    String? scheduledDateId,
+    String? eventOccurrenceId,
+    String? intentId,
+    int travellers = 1,
   }) async {
     state = const AsyncValue.loading();
     final dio = ref.read(authServiceProvider).dio;
@@ -167,7 +179,10 @@ class BookingFlowNotifier extends AsyncNotifier<BookingFlowState> {
     try {
       final response = await dio.post('/api/v1/bookings', data: {
         'content_id': contentId,
-        'scheduled_date_id': scheduledDateId,
+        if (scheduledDateId != null) 'scheduled_date_id': scheduledDateId,
+        if (eventOccurrenceId != null) 'event_occurrence_id': eventOccurrenceId,
+        if (intentId != null) 'intent_id': intentId,
+        'travellers': travellers,
       });
       final data =
           (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;

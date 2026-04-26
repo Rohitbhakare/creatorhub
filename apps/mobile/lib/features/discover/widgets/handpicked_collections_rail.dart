@@ -111,8 +111,7 @@ class _CollectionTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AspectRatio(
-                aspectRatio: 4 / 5,
+              Expanded(
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

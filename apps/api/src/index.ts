@@ -29,6 +29,8 @@ import notificationsRoutes from './routes/notifications.routes.js'
 import kycRoutes from './routes/kyc.routes.js'
 import taxRoutes from './routes/tax.routes.js'
 import bookingsRoutes from './routes/bookings.routes.js'
+import bookingIntentsRoutes from './routes/booking-intents.routes.js'
+import waitlistRoutes from './routes/waitlist.routes.js'
 import trustRoutes from './routes/trust.routes.js'
 import reviewsRoutes, { contentReviewsRoutes } from './routes/reviews.routes.js'
 import dpdpaRoutes from './routes/dpdpa.routes.js'
@@ -116,6 +118,8 @@ app.route('/api/v1/notifications', notificationsRoutes)
 app.route('/api/v1/kyc', kycRoutes)
 app.route('/api/v1/tax', taxRoutes)
 app.route('/api/v1/bookings', bookingsRoutes)
+app.route('/api/v1/booking-intents', bookingIntentsRoutes)
+app.route('/api/v1/waitlist', waitlistRoutes)
 app.route('/api/v1', trustRoutes)
 app.route('/api/v1/reviews', reviewsRoutes)
 app.route('/api/v1/content', contentReviewsRoutes)

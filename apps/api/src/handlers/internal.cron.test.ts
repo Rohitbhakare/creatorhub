@@ -4,8 +4,16 @@ vi.mock('../env.js', () => ({
   env: { INTERNAL_CRON_KEY: 'cron_secret_test_32_chars_xxxxxx' },
 }))
 
+vi.mock('../lib/supabase.js', () => ({
+  supabase: { from: vi.fn() },
+}))
+
 vi.mock('../services/payout.service.js', () => ({
   releasePendingPayouts: vi.fn(),
+}))
+
+vi.mock('../services/booking-intent.service.js', () => ({
+  sweepExpiredIntents: vi.fn().mockResolvedValue({ expired: 0 }),
 }))
 
 import { handleReleasePayoutsCron } from './internal.cron.js'

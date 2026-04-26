@@ -7,7 +7,7 @@ export const PAYOUT_HOLD_HOURS = 48   // 48h dispute window before payout
 // ─── Content limits ──────────────────────────────────────────
 export const MAX_IMAGES_PER_POST = 5
 export const MAX_IMAGES_PER_EXPERIENCE = 10
-export const MAX_POST_TEXT_LENGTH = 1000
+export const MAX_POST_TEXT_LENGTH = 10000
 export const MAX_EXPERIENCE_DESCRIPTION_LENGTH = 2000
 export const MAX_BIO_LENGTH = 280
 

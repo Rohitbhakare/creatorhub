@@ -17,6 +17,11 @@ import '../providers/wizard_provider.dart';
 class DraftAutoSaveService {
   final WidgetRef _ref;
   final Dio _dio;
+  /// Optional callback the shell uses to lazily create the stub draft on
+  /// first save (deferred from initState — DD-031). Returns once the
+  /// wizard's `contentId` is populated, or no-ops if creation already
+  /// succeeded / failed. May be null if no deferred-creation is wanted.
+  final Future<void> Function()? _ensureDraft;
   Timer? _timer;
   bool _disposed = false;
 
@@ -25,8 +30,10 @@ class DraftAutoSaveService {
   DraftAutoSaveService({
     required WidgetRef ref,
     required Dio dio,
+    Future<void> Function()? ensureDraft,
   })  : _ref = ref,
-        _dio = dio;
+        _dio = dio,
+        _ensureDraft = ensureDraft;
 
   /// Start the auto-save timer.
   void start() {
@@ -52,14 +59,23 @@ class DraftAutoSaveService {
   Future<void> _tick() async {
     if (_disposed) return;
 
-    final wizard = _ref.read(wizardProvider);
+    var wizard = _ref.read(wizardProvider);
 
     // Skip if not dirty or already saving
     if (!wizard.isDirty || wizard.isSaving) return;
 
-    // Skip if no content ID yet (draft not yet created via API)
-    final contentId = wizard.contentId;
-    if (contentId == null) return;
+    // No content ID yet — this is the first dirty tick, so lazily create
+    // the stub draft now (deferred from initState to avoid orphan rows
+    // when the user opens the wizard and immediately closes it).
+    if (wizard.contentId == null) {
+      if (_ensureDraft == null) return;
+      await _ensureDraft();
+      if (_disposed) return;
+      wizard = _ref.read(wizardProvider);
+      if (wizard.contentId == null) return;
+    }
+
+    final contentId = wizard.contentId!;
 
     _ref.read(wizardProvider.notifier).markSaving();
 
