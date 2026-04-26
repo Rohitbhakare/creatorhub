@@ -12,9 +12,18 @@ import {
   getSubCategories,
   searchDiscover,
   resolveDestination,
+  getPopularSearches,
+  getHandpickedCollections,
+  getActiveCities,
 } from '../services/discover.service.js'
 import { getCategoryBrowse } from '../services/feed.service.js'
-import { discoverFiltersQuerySchema, resolveDestinationSchema } from '@creatorhub/shared'
+import {
+  discoverFiltersQuerySchema,
+  resolveDestinationSchema,
+  popularSearchesQuerySchema,
+  handpickedCollectionsQuerySchema,
+  discoverCitiesQuerySchema,
+} from '@creatorhub/shared'
 
 const discoverRoutes = new Hono()
 
@@ -178,6 +187,49 @@ discoverRoutes.post(
   optionalAuthenticate,
   validateBody(resolveDestinationSchema),
   handleResolveDestination,
+)
+
+// ── Discover home surface (DD-014, DD-015) ───────────────────────────
+
+async function handlePopularSearches(c: Context): Promise<Response> {
+  const { limit } = c.get('validatedQuery') as z.infer<typeof popularSearchesQuerySchema>
+  const result = await getPopularSearches(limit)
+  return c.json({ success: true, data: { queries: result } })
+}
+
+async function handleHandpickedCollections(c: Context): Promise<Response> {
+  const { city_id, limit } = c.get('validatedQuery') as z.infer<
+    typeof handpickedCollectionsQuerySchema
+  >
+  const result = await getHandpickedCollections(city_id ?? null, limit)
+  return c.json({ success: true, data: { collections: result } })
+}
+
+async function handleActiveCities(c: Context): Promise<Response> {
+  const { limit } = c.get('validatedQuery') as z.infer<typeof discoverCitiesQuerySchema>
+  const result = await getActiveCities(limit)
+  return c.json({ success: true, data: { cities: result } })
+}
+
+discoverRoutes.get(
+  '/search/popular',
+  optionalAuthenticate,
+  validateQuery(popularSearchesQuerySchema),
+  handlePopularSearches,
+)
+
+discoverRoutes.get(
+  '/collections',
+  optionalAuthenticate,
+  validateQuery(handpickedCollectionsQuerySchema),
+  handleHandpickedCollections,
+)
+
+discoverRoutes.get(
+  '/cities',
+  optionalAuthenticate,
+  validateQuery(discoverCitiesQuerySchema),
+  handleActiveCities,
 )
 
 export default discoverRoutes

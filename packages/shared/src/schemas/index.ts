@@ -408,6 +408,44 @@ export const resolveDestinationSchema = z.object({
   place_id: z.string().min(1),
 })
 
+// ─── Discover: home surface (rotating placeholder + collections + cities) ──
+
+export const popularSearchesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(20).default(10),
+})
+
+export const HANDPICKED_COLLECTION_KINDS = [
+  'popular_in_city',
+  'under_budget',
+  'short_reads',
+  'new_voices',
+] as const
+
+export const handpickedCollectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  subtitle: z.string(),
+  kind: z.enum(HANDPICKED_COLLECTION_KINDS),
+  count: z.number().int().nonnegative(),
+  cover_url: z.string().nullable(),
+})
+
+export const handpickedCollectionsQuerySchema = z.object({
+  city_id: z.string().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(8).default(4),
+})
+
+export const discoverCitySchema = z.object({
+  city_id: z.string(),
+  name: z.string(),
+  state: z.string().nullable(),
+  content_count: z.number().int().nonnegative(),
+})
+
+export const discoverCitiesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(20).default(6),
+})
+
 // Export types inferred from schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
@@ -435,6 +473,12 @@ export type SetTravelSubCategoriesInput = z.infer<typeof setTravelSubCategoriesS
 export type PostsFeedQueryInput = z.infer<typeof postsFeedQuerySchema>
 export type DiscoverFiltersQueryInput = z.infer<typeof discoverFiltersQuerySchema>
 export type ResolveDestinationInput = z.infer<typeof resolveDestinationSchema>
+export type PopularSearchesQueryInput = z.infer<typeof popularSearchesQuerySchema>
+export type HandpickedCollection = z.infer<typeof handpickedCollectionSchema>
+export type HandpickedCollectionKind = (typeof HANDPICKED_COLLECTION_KINDS)[number]
+export type HandpickedCollectionsQueryInput = z.infer<typeof handpickedCollectionsQuerySchema>
+export type DiscoverCity = z.infer<typeof discoverCitySchema>
+export type DiscoverCitiesQueryInput = z.infer<typeof discoverCitiesQuerySchema>
 
 export type AddCommentInput = z.infer<typeof addCommentSchema>
 export type EditCommentInput = z.infer<typeof editCommentSchema>

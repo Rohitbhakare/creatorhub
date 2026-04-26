@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/theme/typography.dart';
+import '../../../shared/components/initial_avatar.dart';
 import '../../../shared/components/skeleton.dart';
 import '../models/discover_models.dart';
 import '../providers/search_provider.dart';
@@ -369,7 +369,7 @@ class _CreatorSuggestionRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            _CreatorAvatar(name: name, avatarUrl: suggestion.avatarUrl),
+            InitialAvatar(name: name, avatarUrl: suggestion.avatarUrl, size: 36),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -547,51 +547,6 @@ class _RecentChip extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _CreatorAvatar extends StatelessWidget {
-  final String name;
-  final String? avatarUrl;
-  const _CreatorAvatar({required this.name, this.avatarUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
-      return ClipOval(
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: CachedNetworkImage(
-            imageUrl: avatarUrl!,
-            fit: BoxFit.cover,
-            placeholder: (_, _) => _initial(),
-            errorWidget: (_, _, _) => _initial(),
-          ),
-        ),
-      );
-    }
-    return _initial();
-  }
-
-  Widget _initial() {
-    const colors = [
-      Color(0xFFB8860B), Color(0xFF5A7247), Color(0xFF7C5CBF),
-      Color(0xFFE15A41), Color(0xFF3B7DD8), Color(0xFF2D8F6F),
-    ];
-    final color = colors[name.hashCode.abs() % colors.length];
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Text(initial,
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
     );
   }
 }

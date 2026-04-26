@@ -768,6 +768,238 @@ export async function getSubCategories(vertical: string): Promise<SubCategoryRow
   }))
 }
 
+// ─── Discover home: rotating search placeholder (DD-015) ──────────
+//
+// Pulls real recent top searches from the materialized view first, then
+// fills the remainder from the seeded defaults so cold-start traffic
+// always sees something concrete instead of the static fallback string.
+
+export async function getPopularSearches(limit: number): Promise<string[]> {
+  const out: string[] = []
+  const seen = new Set<string>()
+
+  const { data: top, error: topErr } = await supabase
+    .from('top_searches_7d')
+    .select('normalized_query, search_count')
+    .order('search_count', { ascending: false })
+    .limit(limit)
+
+  if (!topErr && top) {
+    for (const row of top) {
+      const q = (row.normalized_query as string).trim()
+      if (q && !seen.has(q)) {
+        seen.add(q)
+        out.push(q)
+        if (out.length >= limit) return out
+      }
+    }
+  }
+
+  // Fallback / fill from seed defaults
+  const { data: seeds } = await supabase
+    .from('search_placeholder_defaults')
+    .select('placeholder_text, priority')
+    .eq('is_active', true)
+    .order('priority', { ascending: false })
+    .limit(limit * 2)
+
+  for (const row of seeds ?? []) {
+    const q = (row.placeholder_text as string).trim()
+    if (q && !seen.has(q)) {
+      seen.add(q)
+      out.push(q)
+      if (out.length >= limit) break
+    }
+  }
+
+  return out
+}
+
+// ─── Discover home: handpicked collections (algorithmic, DD-014) ──
+//
+// Generates up to N collection tiles from query templates. Templates
+// returning fewer than 6 items are dropped to avoid thin "looks broken"
+// rails. Cover image is the cover of each template's top item.
+
+export interface HandpickedCollectionItem {
+  id: string
+  title: string
+  subtitle: string
+  kind: 'popular_in_city' | 'under_budget' | 'short_reads' | 'new_voices'
+  count: number
+  cover_url: string | null
+}
+
+const MIN_COLLECTION_COUNT = 6
+
+async function templatePopularInCity(
+  cityId: string | null,
+): Promise<HandpickedCollectionItem | null> {
+  if (!cityId) return null
+  const { data: cityRow } = await supabase
+    .from('cities')
+    .select('name')
+    .eq('id', cityId)
+    .single()
+  const cityName = cityRow?.name as string | undefined
+  if (!cityName) return null
+
+  const { data, error } = await supabase
+    .from('content')
+    .select('id, cover_image_url, view_count, booking_count')
+    .eq('status', 'published')
+    .eq('starting_city_id', cityId)
+    .is('deleted_at', null)
+    .order('view_count', { ascending: false })
+    .limit(12)
+  if (error || !data || data.length < MIN_COLLECTION_COUNT) return null
+
+  return {
+    id: `popular_in_${cityId}`,
+    title: `Popular in ${cityName}`,
+    subtitle: `${data.length} trips creators are loving`,
+    kind: 'popular_in_city',
+    count: data.length,
+    cover_url: (data[0]?.cover_image_url as string | null) ?? null,
+  }
+}
+
+async function templateUnderBudget(): Promise<HandpickedCollectionItem | null> {
+  const { data, error } = await supabase
+    .from('content')
+    .select('id, cover_image_url')
+    .eq('status', 'published')
+    .lte('price_paisa', 200000)
+    .gt('price_paisa', 0)
+    .is('deleted_at', null)
+    .order('published_at', { ascending: false })
+    .limit(12)
+  if (error || !data || data.length < MIN_COLLECTION_COUNT) return null
+
+  return {
+    id: 'under_budget_2k',
+    title: 'Under ₹2k',
+    subtitle: 'Trips and experiences that punch above their price',
+    kind: 'under_budget',
+    count: data.length,
+    cover_url: (data[0]?.cover_image_url as string | null) ?? null,
+  }
+}
+
+async function templateShortReads(): Promise<HandpickedCollectionItem | null> {
+  // Approximate a "5-minute read" by body length (~250 wpm).
+  // 1500 chars ≈ 250 words ≈ ~1 min; cap at ~1500 for short.
+  const { data, error } = await supabase
+    .from('content')
+    .select('id, cover_image_url, body')
+    .eq('status', 'published')
+    .eq('type', 'post')
+    .is('deleted_at', null)
+    .order('published_at', { ascending: false })
+    .limit(40)
+  if (error || !data) return null
+  const filtered = data.filter(
+    (r) => typeof r.body === 'string' && (r.body as string).length <= 1500,
+  )
+  if (filtered.length < MIN_COLLECTION_COUNT) return null
+
+  return {
+    id: 'short_reads',
+    title: 'Short reads',
+    subtitle: 'Stories you can finish on the metro',
+    kind: 'short_reads',
+    count: filtered.length,
+    cover_url: (filtered[0]?.cover_image_url as string | null) ?? null,
+  }
+}
+
+async function templateNewVoices(): Promise<HandpickedCollectionItem | null> {
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, avatar_url, follower_count')
+    .eq('is_creator', true)
+    .gte('created_at', cutoff)
+    .order('follower_count', { ascending: false })
+    .limit(12)
+  if (error || !data || data.length < MIN_COLLECTION_COUNT) return null
+
+  return {
+    id: 'new_voices',
+    title: 'Fresh creators worth following',
+    subtitle: 'New voices in the last 90 days',
+    kind: 'new_voices',
+    count: data.length,
+    cover_url: (data[0]?.avatar_url as string | null) ?? null,
+  }
+}
+
+export async function getHandpickedCollections(
+  cityId: string | null,
+  limit: number,
+): Promise<HandpickedCollectionItem[]> {
+  const candidates = await Promise.all([
+    templatePopularInCity(cityId),
+    templateUnderBudget(),
+    templateShortReads(),
+    templateNewVoices(),
+  ])
+  return candidates.filter((c): c is HandpickedCollectionItem => c !== null).slice(0, limit)
+}
+
+// ─── Discover home: active cities chip rail ────────────────────────
+
+export interface DiscoverCityRow {
+  city_id: string
+  name: string
+  state: string | null
+  content_count: number
+}
+
+export async function getActiveCities(limit: number): Promise<DiscoverCityRow[]> {
+  // Aggregate published content per starting city, join names, top N.
+  // Done in two queries because PostgREST doesn't support GROUP BY directly.
+  const { data: rows, error } = await supabase
+    .from('content')
+    .select('starting_city_id')
+    .eq('status', 'published')
+    .is('deleted_at', null)
+    .not('starting_city_id', 'is', null)
+    .limit(5000)
+  if (error || !rows) return []
+
+  const counts = new Map<string, number>()
+  for (const r of rows) {
+    const cid = r.starting_city_id as string
+    counts.set(cid, (counts.get(cid) ?? 0) + 1)
+  }
+  if (counts.size === 0) return []
+
+  const topIds = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id]) => id)
+
+  const { data: cityRows, error: cityErr } = await supabase
+    .from('cities')
+    .select('id, name, state')
+    .in('id', topIds)
+  if (cityErr || !cityRows) return []
+
+  return topIds
+    .map((id) => {
+      const c = cityRows.find((r) => r.id === id)
+      if (!c) return null
+      return {
+        city_id: id,
+        name: c.name as string,
+        state: (c.state as string | null) ?? null,
+        content_count: counts.get(id) ?? 0,
+      }
+    })
+    .filter((r): r is DiscoverCityRow => r !== null)
+}
+
 /**
  * Log a search query for analytics (authenticated users only).
  * 90-day rolling retention enforced by a Supabase cron job.

@@ -150,10 +150,14 @@ Read `.claude/instructions/precommit.md` for the full step-by-step checklist.
 
 ## Current Sprint
 
-**Phase:** Travel-Only Launch (v1.3) shipped — pre-public-MVP polish
-**Done:** All M0–M3 epics + Travel-Only Launch redesign (FEED/REDESIGN-001):
-new home feed (chip rail + 9 sections), Posts feed, 13-filter Discover,
-4-sub-cat onboarding, migrations 024–026.
-**Next:** Operator deploy of migrations 024–026 → manual smoke test → SRS v1.3
+**Phase:** Discover Monochrome Redesign (v1.4) shipped — pre-public-MVP polish
+**Done:** All M0–M3 epics + Travel-Only Launch (v1.3, FEED/REDESIGN-001) +
+Discover monochrome home (v1.4, E1.10): search-first editorial layout, 12-tile
+Browse grid (4 active + 8 SOON), algorithmic Handpicked collections rail,
+Explore-by-city chips, rotating top-search placeholder, shared `InitialAvatar`
+replacing 8-color palette violations, coral locked to 5 places (was 8).
+Migrations 024–027 written.
+**Next:** Operator deploy of migrations 024–027 → manual smoke test → SRS v1.4
 gate → external creds (Razorpay, WhatsApp, SendGrid, Google Places) → App Store.
-**Tracking:** `docs/epics/TRACKING.md` · SRS delta: `docs/00_SRS/v1.3/srs-v1.3-delta.md`
+**Tracking:** `docs/epics/TRACKING.md` · SRS deltas: `docs/00_SRS/v1.3/srs-v1.3-delta.md`,
+`docs/00_SRS/v1.4/srs-v1.4-delta.md` · Latest epic: `docs/epics/E1.10-discover-monochrome/`
