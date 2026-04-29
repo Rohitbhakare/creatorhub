@@ -2,22 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
-import { SignInForm } from './signin-form'
+import { ForgotForm } from './forgot-form'
 
 export const metadata: Metadata = {
-  title: 'Sign in',
-  description: 'Sign in to CreatorHub.',
+  title: 'Reset password',
+  description: 'Reset your CreatorHub password.',
   robots: { index: false, follow: true },
 }
 
-interface Props {
-  searchParams: Promise<{ next?: string }>
-}
-
-export default async function SignInPage({ searchParams }: Props) {
-  const { next } = await searchParams
-  const nextSafe = next && next.startsWith('/') ? next : '/feed'
-
+export default function ForgotPasswordPage() {
   return (
     <>
       <WebHeader variant="auth" />
@@ -29,19 +22,12 @@ export default async function SignInPage({ searchParams }: Props) {
           padding: '40px 20px',
         }}
       >
-        <div
-          className="ch-card"
-          style={{
-            width: '100%',
-            maxWidth: 460,
-            padding: 36,
-          }}
-        >
+        <div className="ch-card" style={{ width: '100%', maxWidth: 460, padding: 36 }}>
           <h1
             className="ch-display"
             style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 8 }}
           >
-            Welcome back
+            Reset password
           </h1>
           <p
             style={{
@@ -51,9 +37,10 @@ export default async function SignInPage({ searchParams }: Props) {
               marginBottom: 28,
             }}
           >
-            Sign in to follow creators, save chapters, and book trips.
+            Enter the email on your account. We&rsquo;ll send a link valid for one hour, single
+            use.
           </p>
-          <SignInForm next={nextSafe} />
+          <ForgotForm />
           <div
             style={{
               marginTop: 24,
@@ -64,12 +51,12 @@ export default async function SignInPage({ searchParams }: Props) {
               textAlign: 'center',
             }}
           >
-            New to CreatorHub?{' '}
+            Remembered it?{' '}
             <Link
-              href="/signup"
+              href="/signin"
               style={{ color: 'var(--primary-deep)', fontWeight: 600, textDecoration: 'none' }}
             >
-              Create an account
+              Back to sign in
             </Link>
           </div>
         </div>

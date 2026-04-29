@@ -32,7 +32,7 @@ export default async function SavedPage() {
   return (
     <>
       <WebHeader session={session} active="saved" />
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 32px 80px' }}>
+      <main id="main-content" style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 32px 80px' }}>
         <h1
           className="ch-display"
           style={{ fontSize: 'clamp(32px, 4vw, 44px)', color: 'var(--ink)', marginBottom: 24 }}

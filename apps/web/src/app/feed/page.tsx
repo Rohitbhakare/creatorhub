@@ -54,7 +54,7 @@ export default async function FeedPage({ searchParams }: Props) {
   return (
     <>
       <WebHeader session={session} active="home" streak={quests?.streakDays ?? 0} />
-      <main>
+      <main id="main-content">
         <div
           style={{
             position: 'sticky',

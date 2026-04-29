@@ -19,7 +19,7 @@ export default function CommunityGuidelinesPage() {
         </Link>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-12">
+      <main id="main-content" className="max-w-2xl mx-auto px-6 py-12">
         <h1 className="font-serif text-4xl font-bold mb-2" style={{ color: '#2C2823' }}>
           Community Guidelines
         </h1>

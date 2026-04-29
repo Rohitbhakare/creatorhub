@@ -349,6 +349,58 @@ body {
   backdrop-filter: blur(8px);
 }
 
+/* Skip-link — visible on focus only */
+.ch-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.ch-skip-link:focus,
+.ch-skip-link:focus-visible {
+  left: 12px;
+  top: 12px;
+  width: auto;
+  height: auto;
+  background: var(--ink);
+  color: var(--surface);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13.5px;
+  text-decoration: none;
+}
+
+/* High-contrast mode (WEB-A11Y-FR-110) — strip coral except locked spots
+ * 1 (primary CTAs), 4 (active nav), 5 (critical signals). Selectors using
+ * .ch-btn-primary / .ch-nav-active / .ch-pill-coral / [aria-current] keep
+ * coral; everything else falls back to ink. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme] {
+    --hairline: #6b6b73;
+    --hairline-strong: #45454b;
+    --ink-muted: #45454b;
+    --ink-faint: #6b6b73;
+  }
+  .ch-photo-overlay {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.85) 100%) !important;
+  }
+  /* Re-allow coral for the locked surfaces. */
+  .ch-btn-primary,
+  .ch-pill-coral,
+  .ch-nav-active::after,
+  [aria-current='page'],
+  [aria-current='step'] {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+}
+
 /* Reading progress bar */
 .ch-reading-progress {
   position: fixed;

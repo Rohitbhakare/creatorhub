@@ -17,7 +17,7 @@ export default async function YouPage() {
   return (
     <>
       <WebHeader session={session} active={null} />
-      <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px 80px' }}>
+      <main id="main-content" style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px 80px' }}>
         <span
           style={{
             fontFamily: 'var(--font-mono)',

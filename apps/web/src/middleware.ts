@@ -7,7 +7,6 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 const PROTECTED_PREFIXES = [
   '/feed',
-  '/discover',
   '/saved',
   '/bookings',
   '/studio',
@@ -17,6 +16,7 @@ const PROTECTED_PREFIXES = [
   '/booking',
   '/quests',
   '/notifications',
+  '/onboarding',
 ]
 
 const PUBLIC_AUTH_ROUTES = ['/signin', '/signup', '/verify-otp', '/forgot-password']

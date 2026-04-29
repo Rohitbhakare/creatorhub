@@ -68,7 +68,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
   return (
     <>
       <WebHeader session={session} active="discover" />
-      <main>
+      <main id="main-content">
         <section
           style={{
             background: 'var(--surface)',

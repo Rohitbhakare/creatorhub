@@ -56,7 +56,7 @@ export default async function BookingPage({ params }: Props) {
     return (
       <>
         <WebHeader session={session} active="bookings" />
-        <main
+        <main id="main-content"
           style={{
             minHeight: 'calc(100vh - 220px)',
             display: 'grid',
@@ -89,7 +89,7 @@ export default async function BookingPage({ params }: Props) {
   return (
     <>
       <WebHeader session={session} active="bookings" />
-      <main style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 32px 80px' }}>
+      <main id="main-content" style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 32px 80px' }}>
         <BookingWizard intent={intent} />
       </main>
     </>

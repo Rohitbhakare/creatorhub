@@ -47,7 +47,7 @@ export default async function HomePage() {
     <>
       <WebHeader session={session} active={null} />
 
-      <main>
+      <main id="main-content">
         <section style={{ padding: '40px 32px 0', maxWidth: 1240, margin: '0 auto' }}>
           <div
             style={{

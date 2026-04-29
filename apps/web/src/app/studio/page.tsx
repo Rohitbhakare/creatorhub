@@ -6,6 +6,7 @@ import { WebFooter } from '@/components/chrome/web-footer'
 import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchStudioMetrics } from '@/lib/api'
+import { fetchKycStatus } from '@/lib/kyc'
 import { formatPrice } from '@/lib/format'
 
 export const metadata: Metadata = {
@@ -17,7 +18,8 @@ export default async function StudioPage() {
   const session = await getSession()
   if (!session) redirect('/signin?next=/studio')
 
-  const metrics = await fetchStudioMetrics()
+  const [metrics, kyc] = await Promise.all([fetchStudioMetrics(), fetchKycStatus()])
+  const showKycBanner = kyc.status !== 'approved'
 
   return (
     <>
@@ -36,6 +38,50 @@ export default async function StudioPage() {
         <StudioSidebar active="overview" />
 
         <main>
+          {showKycBanner && (
+            <Link
+              href="/studio/kyc"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '14px 18px',
+                background: kyc.status === 'rejected' ? 'color-mix(in srgb, var(--danger) 8%, var(--surface))' : 'var(--primary-tint)',
+                border: `1px solid ${kyc.status === 'rejected' ? 'color-mix(in srgb, var(--danger) 30%, var(--hairline))' : 'color-mix(in srgb, var(--primary) 25%, var(--hairline))'}`,
+                borderRadius: 'var(--radius-md)',
+                marginBottom: 24,
+                textDecoration: 'none',
+                color: 'var(--ink)',
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 20 }}>
+                {kyc.status === 'rejected' ? '!' : '→'}
+              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>
+                  {kyc.status === 'pending'
+                    ? 'KYC under review · usually within 24 h'
+                    : kyc.status === 'rejected'
+                      ? 'KYC needs your attention'
+                      : 'Verify identity to publish paid content'}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 2 }}>
+                  {kyc.status === 'rejected' && kyc.rejectionReason
+                    ? kyc.rejectionReason
+                    : '~5 minutes · PAN, Aadhaar last 4, selfie, bank'}
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: kyc.status === 'rejected' ? 'var(--danger)' : 'var(--primary-deep)',
+                }}
+              >
+                {kyc.status === 'pending' ? 'View status' : kyc.status === 'rejected' ? 'Re-submit' : 'Start →'}
+              </span>
+            </Link>
+          )}
           <div style={{ marginBottom: 40 }}>
             <span
               style={{

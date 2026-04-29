@@ -9,6 +9,7 @@ import { ReadingProgress } from '@/components/reader/reading-progress'
 import { SaveButton } from '@/components/reader/save-button'
 import { BookCta } from '@/components/reader/book-cta'
 import { MarkdownBody } from '@/components/reader/markdown-body'
+import { GuestPromptBar } from '@/components/reader/guest-prompt-bar'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -113,7 +114,7 @@ export default async function ContentDetailPage({ params }: Props) {
 
       <script type="application/ld+json">{jsonLdString}</script>
 
-      <main>
+      <main id="main-content">
         <section
           className={`ch-photo ${photoClass}`}
           style={{
@@ -384,6 +385,10 @@ export default async function ContentDetailPage({ params }: Props) {
       </main>
 
       <WebFooter />
+
+      {!isAuthenticated && (
+        <GuestPromptBar contentId={content.id} creatorName={content.creator.displayName} />
+      )}
     </>
   )
 }

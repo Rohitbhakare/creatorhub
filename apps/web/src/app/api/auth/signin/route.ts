@@ -37,6 +37,9 @@ interface RegisterResult {
     avatar_url: string | null
     is_creator: boolean
     vertical: string | null
+    onboarding_complete?: boolean
+    travel_sub_categories?: string[]
+    city_id?: string | null
   }
   access_token: string
   refresh_token: string
@@ -88,7 +91,19 @@ export async function POST(req: NextRequest) {
       { access_token: result.access_token, refresh_token: result.refresh_token },
     )
 
-    log.info({ userId: result.user.id }, 'auth-signin:ok')
+    // Onboarding gate: a user is "complete" when they've picked at least 2
+    // travel sub-categories and a home city. The API returns these fields on
+    // /auth/register; older deploys that don't will fall back to true so we
+    // don't trap existing users in onboarding.
+    const subCats = result.user.travel_sub_categories ?? []
+    const onboardingComplete =
+      result.user.onboarding_complete ??
+      (subCats.length >= 2 && Boolean(result.user.city_id))
+
+    log.info(
+      { userId: result.user.id, onboardingComplete },
+      'auth-signin:ok',
+    )
     return NextResponse.json({
       user: {
         id: result.user.id,
@@ -96,6 +111,7 @@ export async function POST(req: NextRequest) {
         displayName: result.user.display_name,
         isCreator: result.user.is_creator,
       },
+      onboardingComplete,
     })
   } catch (err) {
     const e = err instanceof AppError ? err : AppError.upstream()

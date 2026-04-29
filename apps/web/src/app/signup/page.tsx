@@ -21,7 +21,7 @@ export default async function SignUpPage({ searchParams }: Props) {
   return (
     <>
       <WebHeader variant="auth" />
-      <main
+      <main id="main-content"
         style={{
           minHeight: 'calc(100vh - 220px)',
           display: 'grid',
