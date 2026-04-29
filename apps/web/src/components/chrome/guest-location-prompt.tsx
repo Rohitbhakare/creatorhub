@@ -108,11 +108,12 @@ export function GuestLocationPrompt({ cities }: GuestLocationPromptProps) {
               padding: '14px 32px',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'space-between',
               gap: 16,
               flexWrap: 'wrap',
             }}
           >
-            <div style={{ flex: '1 1 240px', minWidth: 240 }}>
+            <div style={{ flex: '0 1 480px', minWidth: 240 }}>
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
@@ -131,7 +132,16 @@ export function GuestLocationPrompt({ cities }: GuestLocationPromptProps) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, flex: '1 1 380px', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                flex: '0 0 auto',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+              }}
+            >
               {!picking ? (
                 <>
                   <button
