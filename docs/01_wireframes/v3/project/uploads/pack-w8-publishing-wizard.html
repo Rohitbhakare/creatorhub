@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>W8 &middot; Publishing Wizard &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4; --surface-alt: #F2EEE8; --paper: #FFFFFF;
+    --hairline: #E5E0D7; --line: #C9C3B6;
+    --ink-soft: #9C9689; --ink-muted: #6B6660; --ink: #2C2823;
+    --coral: #E15A41; --coral-deep: #C9472D;
+    --green: #498a5a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, textarea, select { font: inherit; color: inherit; }
+  a { color: var(--coral); text-decoration: none; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+  .screen-marker { background: var(--surface-alt); padding: 14px 32px; border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+  .screen-marker strong { color: var(--ink); }
+
+  /* Wizard top bar */
+  .wizard-top { background: var(--paper); border-bottom: 1px solid var(--hairline); padding: 14px 32px; display: flex; align-items: center; gap: 16px; }
+  .wizard-back { background: transparent; border: 0; color: var(--ink-muted); font-size: 13px; padding: 6px 10px; border-radius: 8px; }
+  .wizard-back:hover { background: var(--surface-alt); color: var(--ink); }
+  .wizard-title-row { flex: 1; }
+  .wizard-title { font-family: var(--serif); font-weight: 600; font-size: 17px; line-height: 1.2; }
+  .wizard-title-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .wizard-status { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--surface); font-size: 12px; color: var(--green); font-weight: 600; }
+  .wizard-status-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--green); }
+  .wizard-actions { display: flex; gap: 8px; }
+  .btn-secondary { background: var(--paper); border: 1px solid var(--hairline); color: var(--ink); padding: 8px 16px; border-radius: 10px; font-weight: 500; font-size: 13px; }
+  .btn-secondary:hover { background: var(--surface); }
+  .btn-primary { background: var(--coral); color: #fff; border: 0; padding: 8px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; }
+  .btn-primary:hover { background: var(--coral-deep); }
+  .btn-primary:disabled { background: var(--hairline); color: var(--ink-soft); cursor: not-allowed; }
+
+  /* Wizard shell */
+  .wizard-shell { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 90px); }
+
+  /* Left step rail */
+  .step-rail { background: var(--paper); border-right: 1px solid var(--hairline); padding: 24px 16px; }
+  .step-rail-h { font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 8px 12px 12px; }
+  .step-row { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; align-items: flex-start; }
+  .step-row:hover { background: var(--surface-alt); }
+  .step-row.active { background: var(--surface-alt); }
+  .step-num { width: 24px; height: 24px; border-radius: 999px; border: 2px solid var(--hairline); background: var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+  .step-row.active .step-num { border-color: var(--coral); color: var(--coral); }
+  .step-row.complete .step-num { background: var(--coral); border-color: var(--coral); color: #fff; }
+  .step-name { font-weight: 600; font-size: 13px; line-height: 1.3; color: var(--ink-muted); }
+  .step-row.active .step-name, .step-row.complete .step-name { color: var(--ink); }
+  .step-detail { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* Canvas */
+  .canvas { padding: 32px 48px 80px; max-width: 1400px; }
+
+  /* Step 1: Type picker */
+  .canvas-h { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -.01em; }
+  .canvas-sub { font-size: 14px; color: var(--ink-muted); margin: 0 0 32px; max-width: 600px; }
+  .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 720px; }
+  .type-card {
+    background: var(--paper); border: 2px solid var(--hairline); border-radius: 16px;
+    padding: 28px;
+    cursor: pointer;
+    transition: border-color .18s, transform .18s, box-shadow .18s;
+  }
+  .type-card:hover { border-color: var(--line); transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .type-card.selected { border-color: var(--coral); background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04)); }
+  .type-card-icon { font-size: 36px; margin-bottom: 16px; }
+  .type-card-name { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.2; margin-bottom: 6px; }
+  .type-card-desc { font-size: 13px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 12px; }
+  .type-card-meta { font-size: 11px; color: var(--ink-soft); border-top: 1px solid var(--hairline); padding-top: 12px; }
+
+  /* Step 2: Cover uploader */
+  .upload-zone {
+    border: 2px dashed var(--hairline);
+    border-radius: 20px;
+    background: var(--paper);
+    aspect-ratio: 2/1;
+    display: grid; place-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .18s, background .18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone:hover { border-color: var(--coral); background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04)); }
+  .upload-zone.uploaded { border-style: solid; padding: 0; background: linear-gradient(135deg, #6e8a76, #a4b693); }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; color: var(--coral); }
+  .upload-title { font-family: var(--serif); font-weight: 600; font-size: 22px; }
+  .upload-meta { font-size: 13px; color: var(--ink-muted); margin-top: 6px; }
+  .upload-hint { font-size: 11px; color: var(--ink-soft); margin-top: 16px; }
+  .upload-replace { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.92); color: var(--ink); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; backdrop-filter: blur(6px); }
+
+  /* Step 3: Body editor (TipTap-style) */
+  .editor-shell { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 720px; }
+  .editor-pane, .preview-pane { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+  .editor-toolbar { display: flex; align-items: center; gap: 4px; padding: 10px 14px; border-bottom: 1px solid var(--hairline); background: var(--surface); flex-wrap: wrap; }
+  .toolbar-btn { background: transparent; border: 0; padding: 6px 8px; border-radius: 6px; font-size: 13px; color: var(--ink-muted); display: flex; align-items: center; gap: 4px; min-width: 28px; height: 28px; justify-content: center; }
+  .toolbar-btn:hover { background: var(--paper); color: var(--ink); }
+  .toolbar-btn.active { background: var(--paper); color: var(--ink); border: 1px solid var(--hairline); }
+  .toolbar-divider { width: 1px; height: 16px; background: var(--hairline); margin: 0 4px; }
+
+  .editor-area { flex: 1; padding: 24px 28px; font-family: var(--serif); font-size: 17px; line-height: 1.65; overflow-y: auto; }
+  .editor-area p { margin: 0 0 20px; }
+  .editor-area h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.3; margin: 24px 0 12px; }
+  .editor-area blockquote { padding-left: 20px; border-left: 2px solid var(--coral); font-style: italic; color: var(--ink-muted); margin: 16px 0; }
+  .editor-cursor { display: inline-block; width: 2px; height: 22px; background: var(--coral); animation: blink 1s ease-in-out infinite; vertical-align: -3px; margin-left: 1px; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  .preview-head { padding: 10px 14px; border-bottom: 1px solid var(--hairline); background: var(--surface); display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; }
+  .preview-head .pulse { width: 6px; height: 6px; border-radius: 999px; background: var(--green); animation: pulse 1.4s ease-out infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(73,138,90,.6); } 100% { box-shadow: 0 0 0 8px rgba(73,138,90,0); } }
+  .preview-area { flex: 1; padding: 32px; overflow-y: auto; font-family: var(--serif); }
+  .preview-area h1 { font-weight: 600; font-style: italic; font-size: 32px; line-height: 1.15; margin: 0 0 16px; color: var(--ink); }
+  .preview-area p { margin: 0 0 18px; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .preview-area p.lede::first-letter { font-style: italic; font-weight: 600; font-size: 56px; float: left; line-height: 0.8; margin: 8px 8px -4px 0; color: var(--coral); }
+  .preview-area blockquote { padding-left: 16px; border-left: 2px solid var(--coral); font-style: italic; font-size: 18px; line-height: 1.4; color: var(--ink-muted); margin: 20px 0; }
+
+  /* Step 4: Day builder */
+  .day-builder { display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
+  .day-tabs { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 12px; }
+  .day-tabs h4 { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 8px 12px; margin: 0 0 8px; }
+  .day-tab {
+    padding: 14px 16px; border-radius: 10px; cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+    transition: background .12s, border-color .12s;
+  }
+  .day-tab:hover { background: var(--surface-alt); }
+  .day-tab.active { background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.06)); border-color: var(--coral); }
+  .day-tab-day { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; }
+  .day-tab.active .day-tab-day { color: var(--coral); }
+  .day-tab-name { font-family: var(--serif); font-weight: 600; font-size: 16px; line-height: 1.2; margin-top: 2px; }
+  .day-tab-meta { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+  .day-add { padding: 14px 16px; text-align: center; border: 1px dashed var(--hairline); border-radius: 10px; color: var(--ink-soft); cursor: pointer; font-size: 13px; font-weight: 500; }
+  .day-add:hover { border-color: var(--coral); color: var(--coral); }
+
+  .day-content { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px; }
+  .day-content-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+  .day-content-head h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; }
+  .day-content-head-meta { font-size: 12px; color: var(--ink-soft); }
+
+  /* Spot card (draggable) */
+  .spot-row { display: grid; grid-template-columns: 24px 80px 1fr 36px; gap: 14px; align-items: center; padding: 14px; background: var(--surface); border-radius: 12px; margin-bottom: 8px; cursor: grab; transition: box-shadow .12s; border: 1px solid transparent; }
+  .spot-row:hover { box-shadow: var(--shadow-1); }
+  .drag-handle { color: var(--ink-soft); cursor: grab; line-height: 0; }
+  .spot-row-thumb { width: 80px; height: 60px; border-radius: 8px; background: linear-gradient(135deg, #6e8a76, #a4b693); }
+  .spot-row-thumb.t-2 { background: linear-gradient(135deg, #4a6f8a, #7da3bd); }
+  .spot-row-thumb.t-3 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .spot-row-name { font-family: var(--serif); font-weight: 600; font-size: 16px; line-height: 1.25; }
+  .spot-row-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; display: flex; gap: 10px; }
+  .spot-row-remove { background: transparent; border: 0; color: var(--ink-soft); padding: 6px; border-radius: 6px; }
+  .spot-row-remove:hover { background: var(--paper); color: var(--coral); }
+
+  .spot-add {
+    margin-top: 12px;
+    padding: 14px 18px;
+    border: 1px dashed var(--hairline);
+    border-radius: 12px;
+    background: var(--paper);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-muted);
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    transition: border-color .12s, background .12s;
+  }
+  .spot-add:hover { border-color: var(--coral); color: var(--coral); }
+  .spot-add svg { stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* Places autocomplete */
+  .places-search { position: relative; margin-top: 12px; }
+  .places-input { width: 100%; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: 10px; font-size: 14px; background: var(--paper); }
+  .places-dropdown { margin-top: 4px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-1); }
+  .places-row { padding: 12px 14px; border-bottom: 1px solid var(--hairline); cursor: pointer; font-size: 13px; }
+  .places-row:last-child { border-bottom: 0; }
+  .places-row:hover { background: var(--surface-alt); }
+  .places-row strong { font-weight: 600; }
+  .places-row em { color: var(--ink-soft); font-style: normal; }
+  .places-attribution { padding: 8px 14px; font-size: 10px; color: var(--ink-soft); text-align: right; border-top: 1px solid var(--hairline); }
+
+  /* Form fields */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 720px; }
+  .field { margin-bottom: 16px; }
+  .field-full { grid-column: 1 / -1; }
+  .field-label { font-size: 12px; font-weight: 600; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .field-input { width: 100%; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--paper); font-size: 14px; }
+  .field-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(44,40,35,0.06); }
+  .field-textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+  .field-charcount { font-size: 11px; color: var(--ink-soft); margin-top: 4px; text-align: right; }
+  .field-title-preview { font-family: var(--serif); font-weight: 600; font-size: 28px; line-height: 1.2; padding: 16px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--paper); transition: transform .18s; }
+
+  /* Tag chip input */
+  .tags-input { padding: 8px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--paper); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .tag-chip { background: var(--surface-alt); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .tag-chip-x { background: transparent; border: 0; padding: 0; font-size: 14px; color: var(--ink-soft); cursor: pointer; }
+  .tag-input-inline { border: 0; outline: 0; flex: 1; min-width: 100px; padding: 4px; font-size: 13px; background: transparent; }
+
+  /* Wizard footer */
+  .wizard-foot { background: var(--paper); border-top: 1px solid var(--hairline); padding: 16px 32px; position: sticky; bottom: 0; display: flex; align-items: center; gap: 16px; }
+  .wizard-foot-status { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .wizard-foot-status .pulse { width: 6px; height: 6px; border-radius: 999px; background: var(--green); }
+  .wizard-foot-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  /* Validation checklist */
+  .validation { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px; max-width: 640px; }
+  .validation-h { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0 0 16px; }
+  .check-row { display: grid; grid-template-columns: 24px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hairline); font-size: 14px; align-items: center; }
+  .check-row:first-of-type { border-top: 0; }
+  .check-icon { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .check-icon.done { background: var(--coral); color: #fff; }
+  .check-icon.todo { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--hairline); }
+  .check-row strong { font-weight: 600; }
+  .check-row .meta { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span style="opacity:0.5;">Pack</span> W8 &middot; Publishing Wizard
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- Wizard top bar -->
+<div class="wizard-top">
+  <button class="wizard-back">&larr; Studio</button>
+  <div class="wizard-title-row">
+    <div class="wizard-title">Konkan in 4 Quiet Days</div>
+    <div class="wizard-title-meta">Itinerary &middot; Step 3 of 5 &middot; Last edited just now</div>
+  </div>
+  <div class="wizard-status"><div class="wizard-status-dot"></div>Saved 3 s ago</div>
+  <div class="wizard-actions">
+    <button class="btn-secondary">Save draft</button>
+    <button class="btn-secondary">Preview</button>
+    <button class="btn-primary" disabled>Publish</button>
+  </div>
+</div>
+
+<div class="screen-marker">Screen <strong>W8.1</strong> &middot; Type picker (4 cards)</div>
+
+<div class="wizard-shell">
+  <aside class="step-rail">
+    <div class="step-rail-h">Steps</div>
+    <div class="step-row active">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-name">Type</div>
+        <div class="step-detail">What are you publishing?</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-name">Cover</div>
+        <div class="step-detail">Hero image &middot; 2:1 aspect</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-name">Details</div>
+        <div class="step-detail">Title, summary, pricing</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">4</div>
+      <div>
+        <div class="step-name">Spots / days</div>
+        <div class="step-detail">Itinerary builder</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">5</div>
+      <div>
+        <div class="step-name">Review</div>
+        <div class="step-detail">Validate &amp; publish</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">What are you publishing?</h1>
+    <p class="canvas-sub">Pick the type that best fits your story. You can switch later, but some fields differ per type.</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="type-card-icon">&#128221;</div>
+        <div class="type-card-name">Post</div>
+        <div class="type-card-desc">A photo or short essay. Fast to publish, free for readers, lives on your profile feed.</div>
+        <div class="type-card-meta">~ 30 seconds &middot; up to 5 photos &middot; markdown body</div>
+      </div>
+      <div class="type-card selected">
+        <div class="type-card-icon">&#128205;</div>
+        <div class="type-card-name">Itinerary</div>
+        <div class="type-card-desc">A multi-day plan with spots, distances, and a route map. Free or paid. Self-paced for readers.</div>
+        <div class="type-card-meta">~ 10 minutes &middot; day-by-day builder &middot; map auto-generated</div>
+      </div>
+      <div class="type-card">
+        <div class="type-card-icon">&#127914;</div>
+        <div class="type-card-name">Experience</div>
+        <div class="type-card-desc">A live, scheduled event you host. Date and time bound. Bookings + escrow + payout.</div>
+        <div class="type-card-meta">Requires KYC &middot; bookings open immediately</div>
+      </div>
+      <div class="type-card">
+        <div class="type-card-icon">&#128197;</div>
+        <div class="type-card-name">Event</div>
+        <div class="type-card-desc">A group meetup or RSVP event. Free or paid. Capacity-controlled invites.</div>
+        <div class="type-card-meta">Public or invite-only &middot; RSVP cap optional</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ Step 2: Cover uploader ============ -->
+<div class="screen-marker">Screen <strong>W8.2</strong> &middot; Cover uploader (drag-drop, paste, crop)</div>
+
+<div class="wizard-shell">
+  <aside class="step-rail">
+    <div class="step-rail-h">Steps</div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Type</div><div class="step-detail">Itinerary</div></div></div>
+    <div class="step-row active"><div class="step-num">2</div><div><div class="step-name">Cover</div><div class="step-detail">Hero image &middot; 2:1 aspect</div></div></div>
+    <div class="step-row"><div class="step-num">3</div><div><div class="step-name">Details</div></div></div>
+    <div class="step-row"><div class="step-num">4</div><div><div class="step-name">Spots / days</div></div></div>
+    <div class="step-row"><div class="step-num">5</div><div><div class="step-name">Review</div></div></div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">Pick a cover image</h1>
+    <p class="canvas-sub">2:1 aspect ratio. JPG, PNG, or WebP up to 8 MB. This is the hero for the magazine reader and the thumbnail in feeds.</p>
+
+    <div class="upload-zone uploaded" style="aspect-ratio: 2/1; max-width: 720px;">
+      <button class="upload-replace">&#9881; Replace cover</button>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px; max-width: 720px;">
+      <button class="btn-secondary">&#9986; Crop &amp; reposition</button>
+      <button class="btn-secondary">&#127753; Adjust brightness</button>
+      <button class="btn-secondary">&#9744; Try another</button>
+    </div>
+
+    <div style="margin-top: 32px; padding: 20px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 12px; max-width: 720px; display: grid; grid-template-columns: 24px 1fr; gap: 12px; font-size: 13px; color: var(--ink-muted);">
+      <div style="font-size: 18px; color: var(--coral); line-height: 1;">&#9881;</div>
+      <div>
+        <strong style="color: var(--ink); display: block; margin-bottom: 4px;">Tip: pick a photo with negative space</strong>
+        We'll layer the title in the bottom-left of the hero. Photos with sky or open foreground work best.
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ Step 3: Body editor (split-pane) ============ -->
+<div class="screen-marker">Screen <strong>W8.3+W8.5</strong> &middot; Body editor (TipTap markdown + live preview)</div>
+
+<div class="wizard-shell">
+  <aside class="step-rail">
+    <div class="step-rail-h">Steps</div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Type</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Cover</div></div></div>
+    <div class="step-row active"><div class="step-num">3</div><div><div class="step-name">Details &amp; body</div><div class="step-detail">Title + markdown body</div></div></div>
+    <div class="step-row"><div class="step-num">4</div><div><div class="step-name">Spots / days</div></div></div>
+    <div class="step-row"><div class="step-num">5</div><div><div class="step-name">Review</div></div></div>
+  </aside>
+
+  <main class="canvas">
+    <div style="margin-bottom: 24px;">
+      <div class="field">
+        <label class="field-label">Title</label>
+        <div class="field-title-preview">Konkan in <em style="font-style: italic; color: var(--coral);">Four Quiet Days</em></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label">Sub-category</label>
+          <select class="field-input">
+            <option>Road Trips</option>
+            <option>Biking</option>
+            <option>Trekking</option>
+            <option>Food Trails</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Price (per person, &#8377;)</label>
+          <input class="field-input" type="number" value="6500" />
+        </div>
+        <div class="field field-full">
+          <label class="field-label">Tags &middot; up to 5</label>
+          <div class="tags-input">
+            <span class="tag-chip">monsoon <button class="tag-chip-x">&times;</button></span>
+            <span class="tag-chip">road trip <button class="tag-chip-x">&times;</button></span>
+            <span class="tag-chip">konkan <button class="tag-chip-x">&times;</button></span>
+            <span class="tag-chip">slow travel <button class="tag-chip-x">&times;</button></span>
+            <input class="tag-input-inline" placeholder="Type and press Enter" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 32px 0 8px;">Body</h2>
+    <p style="font-size: 13px; color: var(--ink-muted); margin: 0 0 16px;">Write in markdown. Preview shows reader's view in real time. Drop or paste images inline.</p>
+
+    <div class="editor-shell">
+      <div class="editor-pane">
+        <div class="editor-toolbar">
+          <button class="toolbar-btn"><strong>B</strong></button>
+          <button class="toolbar-btn"><em>I</em></button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn">H1</button>
+          <button class="toolbar-btn active">H2</button>
+          <button class="toolbar-btn">H3</button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn">&ldquo; Quote</button>
+          <button class="toolbar-btn">&middot;&middot;&middot; List</button>
+          <button class="toolbar-btn">1. List</button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn">&#128247;</button>
+          <button class="toolbar-btn">&#128279;</button>
+          <button class="toolbar-btn">&#128205;</button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn" style="margin-left: auto; color: var(--ink-soft); font-size: 11px;">&#8693; Markdown</button>
+        </div>
+        <div class="editor-area" contenteditable="true">
+          <p>We left Mumbai at 5:14 a.m. — the city's worst-kept secret is that it empties at dawn, and the Mumbai-Pune highway becomes a quiet, crooked ribbon between hills. By the time we hit Mandwa Jetty the sun was the colour of soft turmeric.</p>
+          <p>You can drive the full distance to Alibaug, but I never recommend it. Take the boat. ₹150 for an hour-long crossing of the Arabian Sea, with the Gateway of India shrinking behind you and the Konkan coast tilting up out of the haze ahead. It re-orders something.</p>
+          <h2>Day 2 — Alibaug to Diveagar</h2>
+          <p>The Konkan coast doesn't reveal itself in straight lines. From Alibaug, the road takes you up into the Sahyadris, then down again to the sea<span class="editor-cursor"></span></p>
+          <blockquote>The road south of Alibaug doesn't belong to anyone.</blockquote>
+        </div>
+      </div>
+
+      <div class="preview-pane">
+        <div class="preview-head">
+          <span>Live preview</span>
+          <div style="display: flex; align-items: center; gap: 6px;"><div class="pulse"></div>Updating…</div>
+        </div>
+        <div class="preview-area">
+          <h1>Konkan in Four Quiet Days</h1>
+          <p class="lede">We left Mumbai at 5:14 a.m. — the city's worst-kept secret is that it empties at dawn, and the Mumbai-Pune highway becomes a quiet, crooked ribbon between hills.</p>
+          <p>You can drive the full distance to Alibaug, but I never recommend it. Take the boat.</p>
+          <h2 style="font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 24px 0 12px;">Day 2 — Alibaug to Diveagar</h2>
+          <p>The Konkan coast doesn't reveal itself in straight lines.</p>
+          <blockquote>The road south of Alibaug doesn't belong to anyone.</blockquote>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ Step 4: Day builder ============ -->
+<div class="screen-marker">Screen <strong>W8.6</strong> &middot; Day builder &middot; drag-reorder spots, Places autocomplete</div>
+
+<div class="wizard-shell">
+  <aside class="step-rail">
+    <div class="step-rail-h">Steps</div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Type</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Cover</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Details &amp; body</div></div></div>
+    <div class="step-row active"><div class="step-num">4</div><div><div class="step-name">Spots / days</div><div class="step-detail">4 days &middot; 11 spots</div></div></div>
+    <div class="step-row"><div class="step-num">5</div><div><div class="step-name">Review</div></div></div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">Build the route</h1>
+    <p class="canvas-sub">Add a spot per day. Drag to reorder. Distances and the route map auto-update.</p>
+
+    <div class="day-builder">
+      <div class="day-tabs">
+        <h4>Days</h4>
+        <div class="day-tab">
+          <div class="day-tab-day">Day 1</div>
+          <div class="day-tab-name">Mumbai &rarr; Alibaug</div>
+          <div class="day-tab-meta">110 km &middot; 2 spots</div>
+        </div>
+        <div class="day-tab active">
+          <div class="day-tab-day">Day 2</div>
+          <div class="day-tab-name">Alibaug &rarr; Diveagar</div>
+          <div class="day-tab-meta">62 km &middot; 3 spots</div>
+        </div>
+        <div class="day-tab">
+          <div class="day-tab-day">Day 3</div>
+          <div class="day-tab-name">Velas &rarr; Ganpatipule</div>
+          <div class="day-tab-meta">140 km &middot; 4 spots</div>
+        </div>
+        <div class="day-tab">
+          <div class="day-tab-day">Day 4</div>
+          <div class="day-tab-name">Return via Ratnagiri</div>
+          <div class="day-tab-meta">312 km &middot; 2 spots</div>
+        </div>
+        <div class="day-add">+ Add day</div>
+      </div>
+
+      <div class="day-content">
+        <div class="day-content-head">
+          <h3>Day 2 &middot; Alibaug &rarr; Diveagar</h3>
+          <div class="day-content-head-meta">62 km &middot; 1 h 45 min &middot; Monsoon expected</div>
+        </div>
+
+        <div class="spot-row">
+          <div class="drag-handle">&#8861;</div>
+          <div class="spot-row-thumb"></div>
+          <div>
+            <div class="spot-row-name">Diveagar Beach</div>
+            <div class="spot-row-meta"><span>5 km of empty sand</span><span>&#8377; Free</span></div>
+          </div>
+          <button class="spot-row-remove">&times;</button>
+        </div>
+
+        <div class="spot-row">
+          <div class="drag-handle">&#8861;</div>
+          <div class="spot-row-thumb t-2"></div>
+          <div>
+            <div class="spot-row-name">Suvarna Ganesh Temple</div>
+            <div class="spot-row-meta"><span>Gold-leafed shrine</span><span>0.5 km from beach</span></div>
+          </div>
+          <button class="spot-row-remove">&times;</button>
+        </div>
+
+        <div class="spot-row">
+          <div class="drag-handle">&#8861;</div>
+          <div class="spot-row-thumb t-3"></div>
+          <div>
+            <div class="spot-row-name">Velas Turtle Festival</div>
+            <div class="spot-row-meta"><span>&#128034; Seasonal Feb&ndash;Apr</span><span>Overnight homestay</span></div>
+          </div>
+          <button class="spot-row-remove">&times;</button>
+        </div>
+
+        <button class="spot-add">
+          <svg width="16" height="16" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add a spot to Day 2
+        </button>
+
+        <div class="places-search">
+          <input class="places-input" placeholder="Search a place &middot; e.g. Murud-Janjira" value="harih" />
+          <div class="places-dropdown">
+            <div class="places-row"><strong>Harihareshwar</strong> <em>&middot; Maharashtra, India</em></div>
+            <div class="places-row"><strong>Harihareshwar Beach</strong> <em>&middot; Raigad, Maharashtra</em></div>
+            <div class="places-row"><strong>Harihar Fort</strong> <em>&middot; Nashik, Maharashtra</em></div>
+            <div class="places-attribution">Powered by Google Places</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ Step 5: Review ============ -->
+<div class="screen-marker">Screen <strong>W8.8+W8.10</strong> &middot; Review &amp; validate &middot; publish confirmation</div>
+
+<div class="wizard-shell">
+  <aside class="step-rail">
+    <div class="step-rail-h">Steps</div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Type</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Cover</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Details &amp; body</div></div></div>
+    <div class="step-row complete"><div class="step-num">&#10003;</div><div><div class="step-name">Spots / days</div></div></div>
+    <div class="step-row active"><div class="step-num">5</div><div><div class="step-name">Review</div><div class="step-detail">Validate &amp; publish</div></div></div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">Almost there.</h1>
+    <p class="canvas-sub">Final check. The button below stays disabled until everything required is in place.</p>
+
+    <div class="validation">
+      <div class="validation-h">Required checks</div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>Cover image</strong><div class="meta">2400×1200 JPG &middot; 2:1 &middot; under 8 MB &middot; ok</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>Title set</strong><div class="meta">"Konkan in Four Quiet Days"</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>Body length</strong><div class="meta">2,180 words &middot; estimated 12 min read</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>Sub-category &amp; tags</strong><div class="meta">Road Trips &middot; 4 tags</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>At least 3 spots</strong><div class="meta">11 spots across 4 days</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>Pricing set</strong><div class="meta">&#8377;6,500 per person</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon done">&#10003;</div>
+        <div><strong>KYC verified</strong><div class="meta">Approved 2026-04-15</div></div>
+      </div>
+    </div>
+
+    <div class="validation" style="margin-top: 16px; background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04));">
+      <div class="validation-h">Optional improvements</div>
+      <div class="check-row">
+        <div class="check-icon todo">&#43;</div>
+        <div><strong>Add difficulty rating</strong><div class="meta">Helps travelers self-select. Easy / Moderate / Hard.</div></div>
+      </div>
+      <div class="check-row">
+        <div class="check-icon todo">&#43;</div>
+        <div><strong>Add seasonal note</strong><div class="meta">Velas turtles are Feb&ndash;Apr only — flag this for off-season readers.</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; display: flex; gap: 12px; max-width: 640px;">
+      <button class="btn-secondary" style="flex: 1; padding: 14px 20px;">Save as draft</button>
+      <button class="btn-secondary" style="flex: 1; padding: 14px 20px;">Preview live</button>
+      <button class="btn-primary" style="flex: 2; padding: 14px 20px;">Publish to followers &rarr;</button>
+    </div>
+  </main>
+</div>
+
+<!-- Wizard footer (sticky save bar) -->
+<div class="wizard-foot">
+  <div class="wizard-foot-status">
+    <div class="pulse"></div>
+    Auto-saved 12 s ago
+  </div>
+  <div style="font-size: 12px; color: var(--ink-soft);">Step 3 of 5 &middot; you can revisit any step</div>
+  <div class="wizard-foot-actions">
+    <button class="btn-secondary">&larr; Back</button>
+    <button class="btn-primary">Continue &rarr;</button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.day-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

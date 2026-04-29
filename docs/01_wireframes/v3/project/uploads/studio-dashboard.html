@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Studio &middot; Dashboard &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --surface-alt: #F2EEE8;
+    --paper: #FFFFFF;
+    --hairline: #E5E0D7;
+    --line: #C9C3B6;
+    --ink-soft: #9C9689;
+    --ink-muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --green: #498a5a;
+    --red: #b8504a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  .app-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* Sidebar (same as gamification) */
+  .sidebar { background: var(--paper); border-right: 1px solid var(--hairline); padding: 24px 16px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
+  .brand { font-family: var(--serif); font-weight: 600; font-size: 22px; padding: 8px 12px 28px; }
+  .brand span { color: var(--coral); }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 12px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--ink-muted); cursor: pointer; border-left: 2px solid transparent; margin-left: -2px; transition: background .12s, color .12s; }
+  .nav-item:hover { background: var(--surface-alt); color: var(--ink); }
+  .nav-item.active { color: var(--ink); background: var(--surface-alt); border-left-color: var(--coral); font-weight: 600; }
+  .nav-item svg { stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--hairline); display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 13px; flex: 0 0 auto; }
+  .sidebar-name { font-size: 14px; font-weight: 600; }
+  .sidebar-handle { font-size: 11px; color: var(--ink-soft); }
+
+  /* KYC banner */
+  .kyc-banner {
+    padding: 14px 24px;
+    background: linear-gradient(90deg, rgba(225,90,65,.10), rgba(225,90,65,.04));
+    border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px;
+  }
+  .kyc-banner-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--coral); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .kyc-banner-text strong { color: var(--ink); font-weight: 600; }
+  .kyc-banner-text { color: var(--ink-muted); }
+  .kyc-banner-cta {
+    margin-left: auto;
+    background: var(--ink); color: var(--surface);
+    border: 0; padding: 8px 16px; border-radius: 8px;
+    font-weight: 600; font-size: 12px;
+  }
+
+  /* Main canvas */
+  .canvas { padding: 32px 48px 80px; }
+  .top-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+  .greeting h1 { font-family: var(--serif); font-weight: 600; font-size: 36px; margin: 0; line-height: 1.1; letter-spacing: -.01em; }
+  .greeting p { font-size: 14px; color: var(--ink-muted); margin: 4px 0 0; }
+  .top-row-actions { display: flex; gap: 8px; }
+  .btn-secondary { background: var(--paper); border: 1px solid var(--hairline); color: var(--ink); padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; transition: background .12s, border-color .12s; }
+  .btn-secondary:hover { background: var(--surface-alt); border-color: var(--line); }
+  .btn-primary { background: var(--coral); border: 0; color: #fff; padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: background .12s; }
+  .btn-primary:hover { background: #cc4f38; }
+
+  /* Stat tile grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-tile {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-tile-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; margin-bottom: 12px; }
+  .stat-tile-num {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -.01em;
+  }
+  .stat-tile-meta { font-size: 12px; color: var(--ink-muted); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+  .delta-up { color: var(--green); font-weight: 600; }
+  .delta-down { color: var(--red); font-weight: 600; }
+  .stat-mini-spark {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 100px; height: 36px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Big chart band */
+  .chart-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  .chart-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .chart-head-title { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; }
+  .chart-head-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .chart-tabs { display: flex; gap: 4px; padding: 3px; background: var(--surface-alt); border-radius: 8px; }
+  .chart-tab { background: transparent; border: 0; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+  .chart-tab.active { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-1); }
+
+  .chart-svg { width: 100%; height: 220px; display: block; }
+  .chart-axis-line { stroke: var(--hairline); stroke-width: 1; }
+  .chart-axis-label { fill: var(--ink-soft); font-size: 10px; font-family: var(--sans); }
+  .chart-area { fill: url(#area-grad); }
+  .chart-line { fill: none; stroke: var(--coral); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-dot { fill: var(--coral); stroke: var(--paper); stroke-width: 2; }
+  .chart-marker-line { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 4; }
+
+  .chart-legend { display: flex; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; color: var(--ink-muted); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 999px; background: var(--coral); }
+
+  /* 2-col below chart */
+  .content-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+
+  /* Content list table */
+  .table-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .table-head { padding: 20px 24px; border-bottom: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: baseline; }
+  .table-head h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0; }
+  .table-head a { color: var(--ink-muted); font-size: 12px; text-decoration: none; font-weight: 500; }
+  .table-head a:hover { color: var(--ink); }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .data-table tbody td { padding: 14px 16px; border-bottom: 1px solid var(--hairline); font-size: 13px; }
+  .data-table tbody tr:last-child td { border-bottom: 0; }
+  .data-table tbody tr:hover { background: var(--surface); }
+  .item-cell { display: flex; align-items: center; gap: 10px; }
+  .item-thumb { width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto; }
+  .item-thumb.t-1 { background: linear-gradient(135deg, #4a6f8a, #7da3bd); }
+  .item-thumb.t-2 { background: linear-gradient(135deg, #6e8a76, #a4b693); }
+  .item-thumb.t-3 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .item-thumb.t-4 { background: linear-gradient(135deg, #8a4f4f, #c08e7c); }
+  .item-thumb.t-5 { background: linear-gradient(135deg, #5e3724, #946542); }
+  .item-title { font-weight: 600; line-height: 1.3; }
+  .item-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--surface-alt); color: var(--ink-muted); }
+  .pill.published { background: rgba(73,138,90,0.12); color: var(--green); }
+  .pill.draft { background: var(--surface-alt); color: var(--ink-muted); }
+  .pill.itinerary { background: rgba(225,90,65,0.10); color: var(--coral); }
+  .pill.experience { background: rgba(73,138,90,0.10); color: var(--green); }
+  .pill.post { background: rgba(108,108,108,0.10); color: var(--ink-muted); }
+  .num-cell { font-variant-numeric: tabular-nums; }
+
+  /* Activity feed */
+  .activity-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .activity-card .table-head { border-bottom: 1px solid var(--hairline); }
+  .activity-list { padding: 12px 24px 24px; }
+  .activity-row { display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--hairline); align-items: flex-start; }
+  .activity-row:last-child { border-bottom: 0; }
+  .activity-icon { width: 32px; height: 32px; border-radius: 999px; background: var(--surface-alt); display: grid; place-items: center; font-size: 14px; flex: 0 0 auto; }
+  .activity-icon.coral { background: var(--coral); color: #fff; }
+  .activity-icon.green { background: rgba(73,138,90,0.10); color: var(--green); }
+  .activity-icon.gold { background: rgba(216,160,74,0.10); color: #a37625; }
+  .activity-text { font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .activity-text strong { font-weight: 600; }
+  .activity-text a { color: var(--coral); text-decoration: none; font-weight: 500; }
+  .activity-time { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* Quick actions strip */
+  .quick-actions {
+    margin-top: 32px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .quick-actions h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0 0 16px; }
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .quick-tile {
+    padding: 16px;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color .12s, background .12s, transform .12s;
+  }
+  .quick-tile:hover { border-color: var(--ink); background: var(--surface); transform: translateY(-2px); }
+  .quick-tile-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface-alt); display: grid; place-items: center; font-size: 16px; margin-bottom: 12px; }
+  .quick-tile-name { font-weight: 600; font-size: 13px; line-height: 1.3; margin-bottom: 2px; }
+  .quick-tile-sub { font-size: 11px; color: var(--ink-soft); }
+
+  @media (max-width: 1280px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .content-row { grid-template-columns: 1fr; }
+    .quick-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 880px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .canvas { padding: 24px; }
+    .stat-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+
+    <div class="nav-section">Discover</div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      Home
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Discover
+    </div>
+
+    <div class="nav-section">Studio</div>
+    <div class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><polyline points="14 2 14 8 20 8"/><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      Content
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+      Bookings
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17.5 6 21 7 14 2 9 9 8"/></svg>
+      Reviews
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Payouts
+    </div>
+
+    <div class="nav-section">You</div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7-6.5-4-6.5 4 2-7L2 9h7z"/></svg>
+      Quests
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">AR</div>
+      <div>
+        <div class="sidebar-name">Aanya Ravi</div>
+        <div class="sidebar-handle">@aanya &middot; Lv 22</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main canvas -->
+  <main>
+    <!-- KYC banner (in-review state) -->
+    <div class="kyc-banner">
+      <div class="kyc-banner-icon">!</div>
+      <div class="kyc-banner-text"><strong>Verification in progress</strong> &middot; Usually takes &lt; 24 hours. We'll notify you when complete.</div>
+      <button class="kyc-banner-cta">Track status</button>
+    </div>
+
+    <div class="canvas">
+
+      <div class="top-row">
+        <div class="greeting">
+          <h1>Welcome back, Aanya</h1>
+          <p>Here's what's happened in the last 30 days &middot; April 2026</p>
+        </div>
+        <div class="top-row-actions">
+          <button class="btn-secondary">Export</button>
+          <button class="btn-primary">+ New content</button>
+        </div>
+      </div>
+
+      <!-- Stat tile grid -->
+      <div class="stat-grid">
+
+        <div class="stat-tile">
+          <div class="stat-tile-label">Earnings (30d)</div>
+          <div class="stat-tile-num">&#8377;48,200</div>
+          <div class="stat-tile-meta"><span class="delta-up">&#9650; 24%</span> vs prev 30 days</div>
+          <svg class="stat-mini-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--coral)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,30 12,28 25,24 38,18 50,20 63,12 75,10 88,4 100,8" />
+          </svg>
+        </div>
+
+        <div class="stat-tile">
+          <div class="stat-tile-label">Bookings (30d)</div>
+          <div class="stat-tile-num">12</div>
+          <div class="stat-tile-meta"><span class="delta-up">&#9650; 2</span> vs prev 30 days</div>
+          <svg class="stat-mini-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,32 14,30 28,28 42,22 56,26 70,18 84,16 100,12" />
+          </svg>
+        </div>
+
+        <div class="stat-tile">
+          <div class="stat-tile-label">Saves (30d)</div>
+          <div class="stat-tile-num">312</div>
+          <div class="stat-tile-meta"><span class="delta-up">&#9650; 8.4%</span> vs prev 30 days</div>
+          <svg class="stat-mini-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,28 14,26 28,30 42,24 56,18 70,20 84,12 100,8" />
+          </svg>
+        </div>
+
+        <div class="stat-tile">
+          <div class="stat-tile-label">Followers</div>
+          <div class="stat-tile-num">1,284</div>
+          <div class="stat-tile-meta"><span class="delta-up">&#9650; 78</span> new this month</div>
+          <svg class="stat-mini-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,28 12,26 24,24 36,22 48,20 60,18 72,16 84,12 100,10" />
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- Earnings chart (full-width) -->
+      <div class="chart-card">
+        <div class="chart-head">
+          <div>
+            <h3 class="chart-head-title">Earnings &middot; Last 30 days</h3>
+            <div class="chart-head-sub">&#8377;48,200 total &middot; &#8377;1,607 daily average</div>
+          </div>
+          <div class="chart-tabs">
+            <button class="chart-tab">7d</button>
+            <button class="chart-tab active">30d</button>
+            <button class="chart-tab">90d</button>
+            <button class="chart-tab">All</button>
+          </div>
+        </div>
+
+        <svg class="chart-svg" viewBox="0 0 800 220" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="area-grad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%"  stop-color="var(--coral)" stop-opacity="0.20" />
+              <stop offset="100%" stop-color="var(--coral)" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          <!-- Y-axis grid lines -->
+          <line class="chart-axis-line" x1="40" x2="780" y1="40"  y2="40" />
+          <line class="chart-axis-line" x1="40" x2="780" y1="100" y2="100" />
+          <line class="chart-axis-line" x1="40" x2="780" y1="160" y2="160" />
+          <line class="chart-axis-line" x1="40" x2="780" y1="200" y2="200" />
+
+          <!-- Y-axis labels -->
+          <text class="chart-axis-label" x="0"  y="44">&#8377;3k</text>
+          <text class="chart-axis-label" x="0"  y="104">&#8377;2k</text>
+          <text class="chart-axis-label" x="0"  y="164">&#8377;1k</text>
+          <text class="chart-axis-label" x="0"  y="204">&#8377;0</text>
+
+          <!-- X-axis labels (dates) -->
+          <text class="chart-axis-label" x="40"  y="216">Apr 1</text>
+          <text class="chart-axis-label" x="220" y="216">Apr 8</text>
+          <text class="chart-axis-label" x="400" y="216">Apr 15</text>
+          <text class="chart-axis-label" x="580" y="216">Apr 22</text>
+          <text class="chart-axis-label" x="730" y="216">Apr 28</text>
+
+          <!-- Area + line -->
+          <path class="chart-area"
+                d="M40,180 L75,170 L110,160 L145,150 L180,158 L215,140 L250,130 L285,120 L320,100 L355,108 L390,90 L425,82 L460,70 L495,80 L530,60 L565,50 L600,55 L635,40 L670,52 L705,38 L740,30 L780,42 L780,200 L40,200 Z" />
+          <path class="chart-line"
+                d="M40,180 L75,170 L110,160 L145,150 L180,158 L215,140 L250,130 L285,120 L320,100 L355,108 L390,90 L425,82 L460,70 L495,80 L530,60 L565,50 L600,55 L635,40 L670,52 L705,38 L740,30 L780,42" />
+
+          <!-- Highlight peak day -->
+          <line class="chart-marker-line" x1="740" x2="740" y1="30" y2="200" />
+          <circle class="chart-dot" cx="740" cy="30" r="5" />
+          <text class="chart-axis-label" x="700" y="22" style="fill: var(--ink); font-weight: 600;">&#8377;3,120 peak</text>
+        </svg>
+
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-swatch"></div> Daily earnings (gross)</div>
+          <div class="legend-item" style="margin-left: auto;">Next payout: <strong style="color: var(--ink); margin-left: 4px;">&#8377;38,406</strong> on May 5</div>
+        </div>
+      </div>
+
+      <!-- 2-col: content list + activity feed -->
+      <div class="content-row">
+
+        <!-- Content list -->
+        <div class="table-card">
+          <div class="table-head">
+            <h3>Your content</h3>
+            <a href="#">View all 12 &rarr;</a>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th class="num-cell">Views</th>
+                <th class="num-cell">Saves</th>
+                <th class="num-cell">Bookings</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="item-cell">
+                    <div class="item-thumb t-2"></div>
+                    <div>
+                      <div class="item-title">Konkan in 4 Quiet Days</div>
+                      <div class="item-meta">Published Mar 12 &middot; Featured</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="pill itinerary">Itinerary</span></td>
+                <td><span class="pill published">Published</span></td>
+                <td class="num-cell">2,408</td>
+                <td class="num-cell">312</td>
+                <td class="num-cell">12</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="item-cell">
+                    <div class="item-thumb t-1"></div>
+                    <div>
+                      <div class="item-title">Goa diaries: Off the radar</div>
+                      <div class="item-meta">Published Feb 28</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="pill itinerary">Itinerary</span></td>
+                <td><span class="pill published">Published</span></td>
+                <td class="num-cell">1,184</td>
+                <td class="num-cell">98</td>
+                <td class="num-cell">4</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="item-cell">
+                    <div class="item-thumb t-3"></div>
+                    <div>
+                      <div class="item-title">Sunday biryani walk &middot; Thane</div>
+                      <div class="item-meta">Mar 22 &middot; 18 attending</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="pill experience">Experience</span></td>
+                <td><span class="pill published">Live</span></td>
+                <td class="num-cell">782</td>
+                <td class="num-cell">42</td>
+                <td class="num-cell">18</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="item-cell">
+                    <div class="item-thumb t-4"></div>
+                    <div>
+                      <div class="item-title">A monsoon morning at Bhandardara</div>
+                      <div class="item-meta">Photo essay</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="pill post">Post</span></td>
+                <td><span class="pill published">Published</span></td>
+                <td class="num-cell">3,604</td>
+                <td class="num-cell">241</td>
+                <td class="num-cell">&mdash;</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="item-cell">
+                    <div class="item-thumb t-5"></div>
+                    <div>
+                      <div class="item-title">Char Dham &middot; 7 days</div>
+                      <div class="item-meta">Last edited Apr 14</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="pill itinerary">Itinerary</span></td>
+                <td><span class="pill draft">Draft</span></td>
+                <td class="num-cell">&mdash;</td>
+                <td class="num-cell">&mdash;</td>
+                <td class="num-cell">&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Activity feed -->
+        <div class="activity-card">
+          <div class="table-head">
+            <h3>Recent activity</h3>
+            <a href="#">All &rarr;</a>
+          </div>
+          <div class="activity-list">
+            <div class="activity-row">
+              <div class="activity-icon coral">&#8377;</div>
+              <div>
+                <div class="activity-text"><strong>Pranav M.</strong> booked <a>Konkan in 4 Quiet Days</a> &middot; <strong>&#8377;6,500</strong></div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon green">&#9733;</div>
+              <div>
+                <div class="activity-text"><strong>Saanvi K.</strong> left a 5-star review on <a>Konkan in 4 Quiet Days</a></div>
+                <div class="activity-time">4 hours ago</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon">&#128214;</div>
+              <div>
+                <div class="activity-text">12 new saves on <a>A monsoon morning at Bhandardara</a></div>
+                <div class="activity-time">Yesterday</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon">&#128104;</div>
+              <div>
+                <div class="activity-text">7 new followers</div>
+                <div class="activity-time">Yesterday</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon green">&#10003;</div>
+              <div>
+                <div class="activity-text">Booking <strong>#BK-1042</strong> completed &middot; Refund window 48h</div>
+                <div class="activity-time">2 days ago</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon gold">&#127942;</div>
+              <div>
+                <div class="activity-text">Achievement: <strong>Top 3% city creators</strong></div>
+                <div class="activity-time">3 days ago</div>
+              </div>
+            </div>
+            <div class="activity-row">
+              <div class="activity-icon coral">&#8377;</div>
+              <div>
+                <div class="activity-text">Payout of <strong>&#8377;28,406</strong> settled to ICICI ****4421 (UTR <span style="font-family: var(--mono); font-size: 11px;">N219831240128</span>)</div>
+                <div class="activity-time">4 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-actions">
+        <h3>Quick actions</h3>
+        <div class="quick-grid">
+          <div class="quick-tile">
+            <div class="quick-tile-icon">&#128221;</div>
+            <div class="quick-tile-name">Publish a post</div>
+            <div class="quick-tile-sub">A photo + caption &middot; 30 sec</div>
+          </div>
+          <div class="quick-tile">
+            <div class="quick-tile-icon">&#128205;</div>
+            <div class="quick-tile-name">New itinerary</div>
+            <div class="quick-tile-sub">Day-by-day with spots &middot; ~10 min</div>
+          </div>
+          <div class="quick-tile">
+            <div class="quick-tile-icon">&#127914;</div>
+            <div class="quick-tile-name">Schedule experience</div>
+            <div class="quick-tile-sub">Live event with bookings</div>
+          </div>
+          <div class="quick-tile">
+            <div class="quick-tile-icon">&#128197;</div>
+            <div class="quick-tile-name">Create event</div>
+            <div class="quick-tile-sub">Group format &middot; RSVP</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // Chart tab toggle (visual only)
+  document.querySelectorAll('.chart-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

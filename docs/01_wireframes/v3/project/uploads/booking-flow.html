@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Booking &middot; Konkan in 4 Quiet Days &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --surface-alt: #F2EEE8;
+    --paper: #FFFFFF;
+    --hairline: #E5E0D7;
+    --line: #C9C3B6;
+    --ink-soft: #9C9689;
+    --ink-muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-deep: #C9472D;
+    --green: #498a5a;
+    --red: #b8504a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+
+  /* Top bar */
+  .topbar {
+    height: 64px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: center;
+    padding: 0 32px;
+    background: var(--paper);
+  }
+  .brand { font-family: var(--serif); font-weight: 600; font-size: 22px; }
+  .brand span { color: var(--coral); }
+  .topbar-right { margin-left: auto; display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--ink-muted); }
+  .secure-pill { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(73,138,90,0.10); color: var(--green); font-size: 11px; font-weight: 600; }
+
+  /* Wizard layout */
+  .wizard {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: 220px 1fr 360px;
+    gap: 40px;
+  }
+
+  /* Left progress rail */
+  .rail h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0 0 4px; line-height: 1.2; }
+  .rail-sub { font-size: 12px; color: var(--ink-soft); margin-bottom: 24px; }
+
+  .step-list { list-style: none; padding: 0; margin: 0; }
+  .step-row {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid var(--hairline);
+    align-items: flex-start;
+  }
+  .step-row:first-child { border-top: 0; padding-top: 0; }
+  .step-row:last-child { padding-bottom: 0; }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 999px;
+    border: 2px solid var(--hairline);
+    background: var(--paper);
+    display: grid; place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    transition: border-color .18s, background .18s, color .18s;
+  }
+  .step-row.active .step-num { border-color: var(--coral); color: var(--coral); }
+  .step-row.complete .step-num { background: var(--coral); border-color: var(--coral); color: #fff; }
+  .step-name { font-weight: 600; font-size: 13px; line-height: 1.3; color: var(--ink-muted); }
+  .step-row.active .step-name { color: var(--ink); }
+  .step-row.complete .step-name { color: var(--ink); }
+  .step-detail { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* Main form area */
+  .form {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow-1);
+  }
+  .form h1 { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 0 0 4px; line-height: 1.2; }
+  .form-sub { color: var(--ink-muted); margin-bottom: 28px; font-size: 14px; }
+
+  /* Calendar */
+  .calendar-band { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .month {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .month-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .month-head h3 { font-family: var(--serif); font-weight: 600; font-size: 16px; margin: 0; }
+  .month-head a { color: var(--ink-muted); font-size: 12px; text-decoration: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .month-head a:hover { background: var(--paper); color: var(--ink); }
+  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+  .weekdays span { text-align: center; font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; padding: 4px 0; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day {
+    aspect-ratio: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: background .12s, color .12s;
+    position: relative;
+  }
+  .day:hover { background: var(--surface-alt); }
+  .day.disabled { color: var(--ink-soft); cursor: not-allowed; opacity: 0.4; }
+  .day.disabled:hover { background: transparent; }
+  .day.sold-out { color: var(--ink-soft); text-decoration: line-through; cursor: not-allowed; }
+  .day.low { color: var(--coral); }
+  .day.low::after { content: ''; width: 4px; height: 4px; border-radius: 999px; background: var(--coral); margin-top: 2px; }
+  .day.selected { background: var(--coral); color: #fff; border-color: var(--coral); }
+  .day.selected:hover { background: var(--coral-deep); }
+  .day.today { font-weight: 700; outline: 1px solid var(--ink); outline-offset: -1px; }
+
+  .legend { display: flex; gap: 20px; font-size: 11px; color: var(--ink-soft); margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hairline); }
+  .legend-row { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 999px; }
+  .legend-dot.avail { background: var(--ink); }
+  .legend-dot.low { background: var(--coral); }
+  .legend-dot.sold { background: var(--hairline); }
+
+  /* Pax + add-ons */
+  .stepper-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .stepper-row:first-of-type { border-top: 0; }
+  .stepper-label { font-weight: 600; font-size: 14px; }
+  .stepper-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .stepper {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .stepper button {
+    width: 28px; height: 28px;
+    border-radius: 999px; border: 0;
+    background: var(--paper); color: var(--ink);
+    font-size: 14px; font-weight: 700;
+    transition: background .12s;
+  }
+  .stepper button:hover { background: var(--surface-alt); }
+  .stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .stepper-val { min-width: 24px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .addon-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid var(--hairline);
+    align-items: center;
+  }
+  .toggle {
+    width: 40px; height: 24px;
+    background: var(--hairline);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background .18s;
+    flex: 0 0 auto;
+  }
+  .toggle::after {
+    content: '';
+    width: 20px; height: 20px;
+    border-radius: 999px;
+    background: var(--paper);
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: left .18s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+  .toggle.on { background: var(--coral); }
+  .toggle.on::after { left: 18px; }
+  .addon-name { font-weight: 600; font-size: 14px; }
+  .addon-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .addon-price { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Form footer */
+  .form-foot { display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--hairline); }
+  .btn-secondary { background: var(--paper); border: 1px solid var(--hairline); color: var(--ink); padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: background .12s, border-color .12s; }
+  .btn-secondary:hover { background: var(--surface); border-color: var(--line); }
+  .btn-primary {
+    background: var(--coral);
+    border: 0; color: #fff;
+    padding: 12px 24px; border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    margin-left: auto;
+    transition: background .12s, transform .12s;
+  }
+  .btn-primary:hover { background: var(--coral-deep); }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { background: var(--hairline); color: var(--ink-soft); cursor: not-allowed; }
+
+  /* Right summary card */
+  .summary {
+    position: sticky; top: 24px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-1);
+    height: max-content;
+  }
+  .summary-hero {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .summary-thumb { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, #6e8a76, #a4b693); }
+  .summary-title { font-family: var(--serif); font-weight: 600; font-size: 16px; line-height: 1.25; }
+  .summary-creator { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .summary-meta {
+    font-size: 12px; color: var(--ink-muted);
+    padding: 12px 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    display: flex; justify-content: space-between;
+  }
+  .summary-meta strong { color: var(--ink); font-weight: 600; }
+  .summary-empty {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 13px;
+    padding: 16px 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    margin: 12px 0;
+  }
+  .summary-line {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .summary-line.total {
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hairline);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    font-family: var(--serif);
+  }
+  .summary-line strong { color: var(--ink); font-weight: 600; }
+  .summary-fineprint {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+    font-size: 11px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .summary-seats {
+    margin-top: 12px; padding: 10px 12px;
+    background: rgba(225,90,65,0.08);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--coral);
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .seat-pulse {
+    width: 8px; height: 8px;
+    background: var(--coral);
+    border-radius: 999px;
+    animation: pulse 1.4s ease-out infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(225,90,65,.6); }
+    100% { box-shadow: 0 0 0 12px rgba(225,90,65,0); }
+  }
+
+  /* Confirmation overlay (final step) */
+  .confirm-scrim {
+    position: fixed; inset: 0;
+    background: rgba(44,40,35,.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .confirm-scrim.show { display: flex; animation: fadein .22s ease-out; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .confirm-card {
+    background: var(--paper);
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 520px; max-width: 92vw;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    position: relative;
+    animation: pop .42s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes pop { 0% { transform: scale(.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .confirm-icon {
+    width: 80px; height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 999px;
+    background: linear-gradient(145deg, var(--coral), var(--coral-deep));
+    display: grid; place-items: center;
+    font-size: 36px;
+    color: #fff;
+    box-shadow: 0 12px 32px rgba(225,90,65,.4);
+  }
+  .confirm-card h3 { font-family: var(--serif); font-weight: 600; font-size: 32px; margin: 0 0 8px; line-height: 1.15; }
+  .confirm-card p { font-size: 15px; color: var(--ink-muted); margin: 0 0 24px; line-height: 1.5; }
+  .confirm-card p strong { color: var(--ink); font-weight: 600; }
+  .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .confirm-foot { font-size: 11px; color: var(--ink-soft); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline); }
+
+  .confetti {
+    position: absolute;
+    width: 8px; height: 12px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  @keyframes burst {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--cx), var(--cy)) rotate(var(--rot)); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  @media (max-width: 1080px) {
+    .wizard { grid-template-columns: 1fr; }
+    .summary { position: static; }
+    .calendar-band { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">creator<span>&middot;</span>hub</div>
+  <div class="topbar-right">
+    <span class="secure-pill">&#128274; Secure checkout</span>
+    <span>&middot;</span>
+    <span>Powered by Razorpay</span>
+  </div>
+</div>
+
+<div class="wizard">
+
+  <!-- Left progress rail -->
+  <aside class="rail">
+    <h2>Booking</h2>
+    <div class="rail-sub">Konkan in 4 Quiet Days</div>
+
+    <ol class="step-list">
+      <li class="step-row complete">
+        <div class="step-num">&#10003;</div>
+        <div>
+          <div class="step-name">Pick a date</div>
+          <div class="step-detail">Sat, May 11 &mdash; Tue, May 14</div>
+        </div>
+      </li>
+      <li class="step-row active">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-name">Travelers &amp; add-ons</div>
+          <div class="step-detail">2 adults selected</div>
+        </div>
+      </li>
+      <li class="step-row">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-name">Review &amp; details</div>
+          <div class="step-detail">Final pricing &amp; ID</div>
+        </div>
+      </li>
+      <li class="step-row">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-name">Pay</div>
+          <div class="step-detail">UPI / card / netbanking</div>
+        </div>
+      </li>
+    </ol>
+
+    <div style="margin-top: 32px; font-size: 11px; color: var(--ink-soft); padding-top: 20px; border-top: 1px solid var(--hairline); line-height: 1.6;">
+      <strong style="color: var(--ink); font-weight: 600;">Free cancellation</strong> until 48 h before start.<br/>
+      <strong style="color: var(--ink); font-weight: 600;">100% refund</strong> if creator cancels.
+    </div>
+  </aside>
+
+  <!-- Main form -->
+  <main class="form" id="form">
+
+    <!-- STEP 1 view -->
+    <div id="step-1" style="display: none;">
+      <h1>When would you like to go?</h1>
+      <div class="form-sub">Pick a 4-day window. Sold-out and low-availability dates are marked.</div>
+
+      <div class="calendar-band">
+        <div class="month">
+          <div class="month-head">
+            <h3>May 2026</h3>
+            <a>&rsaquo;</a>
+          </div>
+          <div class="weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+          <div class="days">
+            <button class="day disabled">27</button><button class="day disabled">28</button><button class="day disabled">29</button>
+            <button class="day disabled">30</button><button class="day">1</button><button class="day">2</button><button class="day">3</button>
+
+            <button class="day">4</button><button class="day">5</button><button class="day low">6</button>
+            <button class="day low">7</button><button class="day sold-out">8</button><button class="day sold-out">9</button><button class="day">10</button>
+
+            <button class="day selected">11</button><button class="day selected">12</button><button class="day selected">13</button>
+            <button class="day selected">14</button><button class="day">15</button><button class="day">16</button><button class="day">17</button>
+
+            <button class="day">18</button><button class="day">19</button><button class="day">20</button>
+            <button class="day low">21</button><button class="day">22</button><button class="day">23</button><button class="day">24</button>
+
+            <button class="day">25</button><button class="day">26</button><button class="day">27</button>
+            <button class="day">28</button><button class="day">29</button><button class="day">30</button><button class="day">31</button>
+          </div>
+        </div>
+
+        <div class="month">
+          <div class="month-head">
+            <a>&lsaquo;</a>
+            <h3>June 2026</h3>
+            <a>&rsaquo;</a>
+          </div>
+          <div class="weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+          <div class="days">
+            <button class="day disabled">&nbsp;</button><button class="day">1</button><button class="day">2</button><button class="day">3</button>
+            <button class="day">4</button><button class="day low">5</button><button class="day low">6</button>
+
+            <button class="day">7</button><button class="day">8</button><button class="day">9</button><button class="day">10</button>
+            <button class="day low">11</button><button class="day sold-out">12</button><button class="day sold-out">13</button>
+
+            <button class="day">14</button><button class="day">15</button><button class="day">16</button>
+            <button class="day">17</button><button class="day">18</button><button class="day">19</button><button class="day">20</button>
+
+            <button class="day">21</button><button class="day">22</button><button class="day">23</button>
+            <button class="day">24</button><button class="day">25</button><button class="day">26</button><button class="day">27</button>
+
+            <button class="day">28</button><button class="day">29</button><button class="day">30</button>
+            <button class="day disabled">&nbsp;</button><button class="day disabled">&nbsp;</button><button class="day disabled">&nbsp;</button><button class="day disabled">&nbsp;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-row"><span class="legend-dot avail"></span> Available</div>
+        <div class="legend-row"><span class="legend-dot low"></span> Few seats left</div>
+        <div class="legend-row"><span class="legend-dot sold"></span> Sold out</div>
+      </div>
+    </div>
+
+    <!-- STEP 2 view (default) -->
+    <div id="step-2">
+      <h1>How many travelers?</h1>
+      <div class="form-sub">2 adults selected. Add helpers, photographer, or rentals if needed.</div>
+
+      <div>
+        <div class="stepper-row">
+          <div>
+            <div class="stepper-label">Adults</div>
+            <div class="stepper-sub">Anyone &gt; 12 years</div>
+          </div>
+          <div class="stepper">
+            <button>&minus;</button>
+            <div class="stepper-val" id="adults-val">2</div>
+            <button>+</button>
+          </div>
+        </div>
+        <div class="stepper-row">
+          <div>
+            <div class="stepper-label">Kids (5&ndash;12)</div>
+            <div class="stepper-sub">50% price</div>
+          </div>
+          <div class="stepper">
+            <button disabled>&minus;</button>
+            <div class="stepper-val">0</div>
+            <button>+</button>
+          </div>
+        </div>
+        <div class="stepper-row">
+          <div>
+            <div class="stepper-label">Toddlers (under 5)</div>
+            <div class="stepper-sub">Free</div>
+          </div>
+          <div class="stepper">
+            <button disabled>&minus;</button>
+            <div class="stepper-val">0</div>
+            <button>+</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-family: var(--serif); font-size: 18px; font-weight: 600; margin: 32px 0 8px;">Add-ons</h3>
+      <div class="form-sub" style="margin-bottom: 8px;">All optional. You can edit after booking.</div>
+
+      <div>
+        <div class="addon-row">
+          <div class="toggle on" data-toggle="photo"></div>
+          <div>
+            <div class="addon-name">Photographer (Day 1 &amp; Day 4)</div>
+            <div class="addon-meta">4-hour shoot, 50+ edited photos delivered post-trip</div>
+          </div>
+          <div class="addon-price">+ &#8377;1,500</div>
+        </div>
+        <div class="addon-row">
+          <div class="toggle" data-toggle="helmet"></div>
+          <div>
+            <div class="addon-name">Helmet rental</div>
+            <div class="addon-meta">If you're renting bikes locally</div>
+          </div>
+          <div class="addon-price">+ &#8377;200</div>
+        </div>
+        <div class="addon-row">
+          <div class="toggle" data-toggle="guide"></div>
+          <div>
+            <div class="addon-name">Local guide for Day 3 (Bankot Fort)</div>
+            <div class="addon-meta">Marathi-speaking guide, 2-hour walk</div>
+          </div>
+          <div class="addon-price">+ &#8377;800</div>
+        </div>
+        <div class="addon-row">
+          <div class="toggle on" data-toggle="meals"></div>
+          <div>
+            <div class="addon-name">All meals included</div>
+            <div class="addon-meta">3 meals/day at homestays. Konkani thali + breakfast</div>
+          </div>
+          <div class="addon-price">+ &#8377;2,400</div>
+        </div>
+      </div>
+
+      <div class="form-foot">
+        <button class="btn-secondary">&larr; Back to date</button>
+        <button class="btn-primary" id="continue-cta">Continue to review &rarr;</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Right summary -->
+  <aside class="summary">
+    <div class="summary-hero">
+      <div class="summary-thumb"></div>
+      <div>
+        <div class="summary-title">Konkan in 4 Quiet Days</div>
+        <div class="summary-creator">by Aanya Ravi &middot; 4.8 &#9733;</div>
+      </div>
+    </div>
+
+    <div class="summary-meta">
+      <span>Sat, May 11 &rarr; Tue, May 14</span>
+      <span><strong>4 nights</strong></span>
+    </div>
+
+    <div class="summary-line"><span>2 &times; Adults @ &#8377;6,500</span><span><strong>&#8377;13,000</strong></span></div>
+    <div class="summary-line"><span>Photographer add-on</span><span>+ &#8377;1,500</span></div>
+    <div class="summary-line"><span>All meals</span><span>+ &#8377;2,400</span></div>
+
+    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline);">
+      <div class="summary-line"><span>Subtotal</span><span><strong id="subtotal">&#8377;16,900</strong></span></div>
+      <div class="summary-line"><span>GST (18%)</span><span>+ &#8377;3,042</span></div>
+      <div class="summary-line"><span>Platform fee (17%)</span><span>+ &#8377;2,873</span></div>
+    </div>
+
+    <div class="summary-line total">
+      <span>Total</span>
+      <span id="total">&#8377;22,815</span>
+    </div>
+
+    <div class="summary-seats">
+      <div class="seat-pulse"></div>
+      <span>Only 2 seats left for May 11&ndash;14 &middot; live</span>
+    </div>
+
+    <div class="summary-fineprint">
+      <strong style="color: var(--ink);">Free cancellation</strong> until 48 h before start. <strong style="color: var(--ink);">100% refund</strong> if creator cancels. Funds held in escrow until trip starts. <a href="#" style="color: var(--coral); text-decoration: none;">Refund policy &rarr;</a>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Confirmation modal -->
+<div class="confirm-scrim" id="confirm-modal">
+  <div class="confirm-card" id="confirm-card">
+    <div class="confirm-icon">&#127881;</div>
+    <h3>You're booked!</h3>
+    <p>
+      Booking <strong>#BK-1052</strong> &middot; <strong>&#8377;22,815</strong> paid via UPI<br/>
+      Confirmation sent to <strong>rohit@example.com</strong>
+    </p>
+    <div class="confirm-actions">
+      <button class="btn-secondary">&#128197; Add to Calendar</button>
+      <button class="btn-secondary">&#128229; Download .ics</button>
+    </div>
+    <button class="btn-primary" style="width: 100%; margin: 0;" id="close-confirm">View itinerary &rarr;</button>
+    <div class="confirm-foot">Aanya will message you 48 h before the trip with last-minute details.</div>
+  </div>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Toggle add-ons
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => {
+      t.classList.toggle('on');
+    });
+  });
+
+  // Day select
+  document.querySelectorAll('.day').forEach(d => {
+    d.addEventListener('click', () => {
+      if (d.classList.contains('disabled') || d.classList.contains('sold-out')) return;
+      // visual only
+    });
+  });
+
+  // Continue → confirmation modal with confetti
+  const continueBtn = document.getElementById('continue-cta');
+  const modal = document.getElementById('confirm-modal');
+  const confirmCard = document.getElementById('confirm-card');
+  const closeConfirm = document.getElementById('close-confirm');
+
+  continueBtn.addEventListener('click', () => {
+    modal.classList.add('show');
+    spawnConfetti(confirmCard, 80);
+  });
+
+  closeConfirm.addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('show');
+  });
+
+  // Confetti
+  const confettiColors = ['#E15A41', '#F38567', '#d8a04a', '#fff8d4', '#2C2823'];
+  function spawnConfetti(target, count) {
+    if (reduce) return;
+    count = count || 60;
+    const rect = target.getBoundingClientRect();
+    const cx = rect.width / 2;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti';
+      piece.style.left = cx + 'px';
+      piece.style.top = '40%';
+      piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+      piece.style.borderRadius = (Math.random() < 0.5) ? '0' : '999px';
+      const dx = (Math.random() - 0.5) * 600;
+      const dy = -200 - Math.random() * 400;
+      const rot = Math.random() * 720;
+      piece.style.setProperty('--cx', dx + 'px');
+      piece.style.setProperty('--cy', dy + 'px');
+      piece.style.setProperty('--rot', rot + 'deg');
+      piece.style.animation = 'burst 1.4s cubic-bezier(.22,1,.36,1) forwards';
+      piece.style.animationDelay = (Math.random() * 0.2) + 's';
+      target.appendChild(piece);
+      setTimeout(() => piece.remove(), 1700);
+    }
+  }
+</script>
+
+</body>
+</html>

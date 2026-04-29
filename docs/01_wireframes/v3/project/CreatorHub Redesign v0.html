@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CreatorHub — Redesign</title>
+<meta name="viewport" content="width=1400"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Crimson+Pro:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; font-family: 'Geist', -apple-system, sans-serif; }
+  * { box-sizing: border-box; }
+  @keyframes blink { 50% { opacity: 0; } }
+  button { font-family: inherit; }
+  /* Hide scrollbars on horiz scrolls */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 999px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="design-system.jsx"></script>
+<script type="text/babel" src="components-primitives.jsx"></script>
+<script type="text/babel" src="components-chrome.jsx"></script>
+<script type="text/babel" src="screens-onboarding.jsx"></script>
+<script type="text/babel" src="screens-home.jsx"></script>
+<script type="text/babel" src="screens-details.jsx"></script>
+<script type="text/babel" src="screens-more.jsx"></script>
+<script type="text/babel" src="screens-system.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [cfg, setCfg] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('ch_cfg')) || CH_DEFAULTS; } catch { return CH_DEFAULTS; }
+  });
+  const [tweaksOn, setTweaksOn] = React.useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem('ch_cfg', JSON.stringify(cfg));
+  }, [cfg]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const d = e.data || {};
+      if (d.type === '__activate_edit_mode') setTweaksOn(true);
+      if (d.type === '__deactivate_edit_mode') setTweaksOn(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const patch = (k, v) => {
+    setCfg(c => ({ ...c, [k]: v }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*');
+  };
+
+  const t = CH_THEMES[cfg.theme] || CH_THEMES.warm;
+  const typ = CH_TYPE_PAIRS[cfg.typePair] || CH_TYPE_PAIRS.journal;
+
+  return (
+    <>
+      <DesignCanvas>
+        {/* INTRO */}
+        <div style={{ padding: '20px 60px 0', maxWidth: 900 }}>
+          <div style={{ fontSize: 11, color: t.primary, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: typ.body }}>
+            Redesign · Apr 2026 · V1
+          </div>
+          <h1 style={{
+            margin: '8px 0 10px', fontFamily: typ.display, fontSize: 64, lineHeight: 0.95,
+            color: t.ink, fontWeight: typ.displayWeight, letterSpacing: typ.displayTrack,
+          }}>
+            CreatorHub<em style={{ fontStyle: 'italic', color: t.primary }}> — the field journal for Indian creators.</em>
+          </h1>
+          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.55, color: t.inkSoft, maxWidth: 680, fontFamily: typ.body }}>
+            One app where every journey earns XP, every itinerary is a chapter, every saved spot becomes a postcard.
+            Instagram + Substack + Eventbrite + Patreon — stitched together by storytelling and gamified just enough to build real habit.
+          </p>
+
+          <div style={{ marginTop: 22, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {['Chapter-based itineraries', 'Collectible postcards', 'XP + streaks', 'Quests from creators', 'Reader mode', 'Annotated route maps', 'Creator XP tiers', 'Leaderboards']
+              .map(p => (
+                <div key={p} style={{
+                  padding: '7px 12px', borderRadius: 999, background: t.surface,
+                  border: `1px solid ${t.hairline}`, fontSize: 12, fontWeight: 600, color: t.ink, fontFamily: typ.body,
+                }}>{p}</div>
+              ))}
+          </div>
+        </div>
+
+        {/* ONBOARDING */}
+        <DCSection title="Onboarding · The first chapter" subtitle="A narrative-driven entry — the app introduces itself as a journal you're about to start writing.">
+          <S_Welcome t={t} typ={typ}/>
+          <S_Phone t={t} typ={typ}/>
+          <S_OnbLocation t={t} typ={typ}/>
+          <S_OnbVerticals t={t} typ={typ}/>
+          <S_OnbCreators t={t} typ={typ}/>
+          <S_OnbCelebrate t={t} typ={typ}/>
+        </DCSection>
+
+        {/* HOME */}
+        <DCSection title="Discover · Home + search" subtitle="Editorial feed with a weekly quest strip, featured chapter hero, and multiple content kinds.">
+          <S_Home t={t} typ={typ}/>
+          <S_Search t={t} typ={typ}/>
+          <S_Create t={t} typ={typ}/>
+          <S_Quests t={t} typ={typ}/>
+        </DCSection>
+
+        {/* DETAILS */}
+        <DCSection title="Detail · Chapter-based storytelling" subtitle="Itineraries as chapters, stories as reader mode, experiences as bookable events — all with XP + postcard rewards.">
+          <S_Itinerary t={t} typ={typ}/>
+          <S_Story t={t} typ={typ}/>
+          <S_Experience t={t} typ={typ}/>
+          <S_SaveSheet t={t} typ={typ}/>
+        </DCSection>
+
+        {/* YOU */}
+        <DCSection title="You · Profile + passport" subtitle="Your collection, your stamps, your progression. The profile is the trophy case.">
+          <S_Profile t={t} typ={typ}/>
+          <S_Saved t={t} typ={typ}/>
+          <S_Creator t={t} typ={typ}/>
+          <S_Studio t={t} typ={typ}/>
+        </DCSection>
+
+        {/* DESIGN SYSTEM */}
+        <DCSection title="Design system · Reference" subtitle="Color, type, tags, buttons, gamification primitives, voice.">
+          <S_DesignSystem t={t} typ={typ}/>
+        </DCSection>
+
+        <div style={{ padding: '40px 60px 80px', color: t.inkMuted, fontSize: 13 }}>
+          Press the Tweaks toggle in the toolbar to switch themes, type pairings, gamification intensity, or density.
+        </div>
+      </DesignCanvas>
+
+      {/* Tweaks panel */}
+      {tweaksOn && (
+        <div style={{
+          position: 'fixed', bottom: 20, right: 20, zIndex: 1000,
+          width: 280, background: '#fff', borderRadius: 14, padding: 14,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08)',
+          fontFamily: typ.body,
+        }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: t.primary, fontWeight: 700, marginBottom: 10 }}>Tweaks</div>
+
+          <div style={{ fontSize: 10, color: '#888', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Theme</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {Object.keys(CH_THEMES).map(k => (
+              <button key={k} onClick={() => patch('theme', k)} style={{
+                flex: 1, padding: 8, borderRadius: 8,
+                background: cfg.theme === k ? CH_THEMES[k].ink : '#f4f4f4',
+                color: cfg.theme === k ? CH_THEMES[k].surface : '#333',
+                border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}>{k}</button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 10, color: '#888', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Type pair</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {Object.keys(CH_TYPE_PAIRS).map(k => (
+              <button key={k} onClick={() => patch('typePair', k)} style={{
+                flex: 1, padding: 8, borderRadius: 8,
+                background: cfg.typePair === k ? '#1C1915' : '#f4f4f4',
+                color: cfg.typePair === k ? '#fff' : '#333',
+                border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}>{CH_TYPE_PAIRS[k].name}</button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 10, color: '#888', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Gamification</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {['subtle', 'medium', 'loud'].map(k => (
+              <button key={k} onClick={() => patch('gamification', k)} style={{
+                flex: 1, padding: 8, borderRadius: 8,
+                background: cfg.gamification === k ? '#1C1915' : '#f4f4f4',
+                color: cfg.gamification === k ? '#fff' : '#333',
+                border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}>{k}</button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 10, color: '#888', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>Density</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['cozy', 'compact'].map(k => (
+              <button key={k} onClick={() => patch('density', k)} style={{
+                flex: 1, padding: 8, borderRadius: 8,
+                background: cfg.density === k ? '#1C1915' : '#f4f4f4',
+                color: cfg.density === k ? '#fff' : '#333',
+                border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}>{k}</button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

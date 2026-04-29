@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quests &middot; Streaks &middot; Leaderboard &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --surface-alt: #F2EEE8;
+    --paper: #FFFFFF;
+    --hairline: #E5E0D7;
+    --line: #C9C3B6;
+    --ink-soft: #9C9689;
+    --ink-muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-light: #F38567;
+    --coral-deep: #C9472D;
+    --gold: #d8a04a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  /* ========== Sidebar ========== */
+  .app-shell { display: grid; grid-template-columns: 240px 1fr 320px; min-height: 100vh; }
+  .sidebar {
+    background: var(--paper);
+    border-right: 1px solid var(--hairline);
+    padding: 24px 16px;
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  .brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    padding: 8px 12px 28px;
+    letter-spacing: -.01em;
+  }
+  .brand span { color: var(--coral); }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 12px 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    transition: background .12s, color .12s;
+  }
+  .nav-item:hover { background: var(--surface-alt); color: var(--ink); }
+  .nav-item.active { color: var(--ink); background: var(--surface-alt); border-left-color: var(--coral); }
+  .nav-item svg { stroke: currentColor; fill: none; stroke-width: 2; }
+  .nav-item .badge { margin-left: auto; background: var(--coral); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; }
+
+  .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--hairline); display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 999px;
+    background: linear-gradient(135deg, #d4b896, #a07c5a);
+    display: grid; place-items: center;
+    color: #fff; font-family: var(--serif); font-weight: 600; font-size: 13px;
+    flex: 0 0 auto;
+  }
+  .sidebar-name { font-size: 14px; font-weight: 600; }
+  .sidebar-handle { font-size: 11px; color: var(--ink-soft); }
+
+  /* ========== Main canvas ========== */
+  .canvas { padding: 32px 48px 80px; min-width: 0; }
+  .top-bar {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+  }
+  .page-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 36px;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  .page-sub { font-size: 14px; color: var(--ink-muted); margin-top: 4px; }
+  .top-bar-spacer { flex: 1; }
+  .top-bar-pill {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    height: 36px;
+    padding: 0 14px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+
+  /* ========== Hero band: 3 tiles ========== */
+  .hero-band {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .hero-tile {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-1);
+  }
+  .hero-tile-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    margin-bottom: 4px;
+  }
+
+  /* Quest ring tile */
+  .quest-tile { display: grid; grid-template-columns: 140px 1fr; gap: 24px; align-items: center; }
+  .ring-svg { width: 140px; height: 140px; transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--hairline); stroke-width: 14; }
+  .ring-segment { fill: none; stroke: var(--coral); stroke-width: 14; stroke-linecap: butt; transition: stroke-dashoffset .6s cubic-bezier(.22,1,.36,1); }
+  .ring-center {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    pointer-events: none;
+  }
+  .quest-tile { position: relative; }
+  .ring-wrap { position: relative; width: 140px; height: 140px; }
+  .ring-count {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .ring-count-sub { font-size: 11px; color: var(--ink-soft); text-align: center; margin-top: 2px; }
+  .quest-tile-meta h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0 0 4px;
+    line-height: 1.2;
+  }
+  .quest-tile-meta p { font-size: 13px; color: var(--ink-muted); margin: 0 0 16px; }
+  .quest-tile-cta {
+    background: var(--coral);
+    color: #fff;
+    border: 0;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .12s;
+  }
+  .quest-tile-cta:hover { background: var(--coral-deep); }
+
+  /* Streak flame tile */
+  .streak-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .flame {
+    position: relative;
+    width: 100px; height: 120px;
+    margin-top: 6px;
+  }
+  .flame-layer {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    animation: breathe 1.6s ease-in-out infinite;
+  }
+  .flame-layer:nth-child(2) { animation-delay: -0.4s; }
+  .flame-layer:nth-child(3) { animation-delay: -0.8s; }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) translateY(0); opacity: .94; }
+    50%      { transform: scale(1.04) translateY(-2px); opacity: 1; }
+  }
+  .flame-inner {
+    width: 70px; height: 90px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: radial-gradient(ellipse at 50% 70%, var(--gold), var(--coral) 50%, var(--coral-deep) 100%);
+    box-shadow: 0 0 24px var(--coral), 0 0 48px rgba(225,90,65,.4);
+    transform-origin: 50% 100%;
+  }
+  .flame-layer:nth-child(2) .flame-inner { width: 56px; height: 70px; opacity: 0.65; background: radial-gradient(ellipse at 50% 70%, #fff8d4, var(--gold) 60%, var(--coral) 100%); box-shadow: none; }
+  .flame-layer:nth-child(3) .flame-inner { width: 36px; height: 44px; opacity: 0.85; background: radial-gradient(ellipse at 50% 70%, #fff8d4, #fff8d4 30%, var(--gold) 100%); box-shadow: none; }
+  .ember {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: var(--gold);
+    border-radius: 999px;
+    animation: ember 2.4s ease-out infinite;
+    opacity: 0;
+  }
+  .ember:nth-child(4) { left: 30%; animation-delay: 0s; }
+  .ember:nth-child(5) { left: 60%; animation-delay: 0.6s; }
+  .ember:nth-child(6) { left: 50%; animation-delay: 1.2s; }
+  .ember:nth-child(7) { left: 40%; animation-delay: 1.8s; }
+  @keyframes ember {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(0.4); opacity: 0; }
+  }
+  .streak-count {
+    font-family: var(--serif);
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1;
+    margin-top: 12px;
+  }
+  .streak-count em { color: var(--coral); font-style: normal; }
+  .streak-sub { font-size: 13px; color: var(--ink-muted); margin-top: 6px; }
+  .streak-detail { font-size: 11px; color: var(--ink-soft); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--hairline); width: 100%; }
+
+  /* Level pill tile */
+  .level-tile { display: flex; flex-direction: column; }
+  .level-row { display: flex; align-items: baseline; gap: 12px; margin-top: 6px; margin-bottom: 16px; }
+  .level-num {
+    font-family: var(--serif);
+    font-size: 56px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .level-label-wrap { display: flex; flex-direction: column; }
+  .level-label {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+  .level-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .xp-track {
+    height: 8px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--coral-light), var(--coral));
+    border-radius: 999px;
+    width: 48%;
+    transition: width .8s cubic-bezier(.22,1,.36,1);
+  }
+  .xp-meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .xp-meta strong { color: var(--ink); font-weight: 600; }
+
+  /* ========== Quest list ========== */
+  .quest-list-section { margin-bottom: 48px; }
+  .section-h {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-h h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 24px;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .section-h p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .quest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .quest-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex; flex-direction: column;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .quest-card.complete { background: linear-gradient(145deg, var(--paper), rgba(225,90,65,.04)); border-color: var(--coral); }
+  .quest-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--surface-alt); display: grid; place-items: center; margin-bottom: 14px; font-size: 20px; }
+  .quest-card.complete .quest-icon { background: var(--coral); color: #fff; }
+  .quest-title { font-family: var(--serif); font-weight: 600; font-size: 16px; line-height: 1.3; margin: 0 0 4px; }
+  .quest-desc { font-size: 13px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 16px; }
+  .quest-progress { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .quest-progress-bar { flex: 1; height: 4px; background: var(--surface-alt); border-radius: 999px; overflow: hidden; }
+  .quest-progress-fill { height: 100%; background: var(--ink); transition: width .4s; }
+  .quest-card.complete .quest-progress-fill { background: var(--coral); }
+  .quest-progress-text { font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+  .quest-card-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .quest-xp { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+  .quest-xp strong { color: var(--coral); font-weight: 700; font-size: 14px; }
+  .quest-claim {
+    background: var(--ink); color: var(--surface);
+    border: 0; padding: 7px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    transition: background .12s, transform .12s;
+  }
+  .quest-claim:hover { background: #1a1814; }
+  .quest-claim:active { transform: scale(.96); }
+  .quest-claim.claimed { background: var(--surface-alt); color: var(--ink-soft); cursor: default; }
+
+  /* ========== Daily check-in ========== */
+  .checkin-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 48px;
+  }
+  .checkin-row h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0; }
+  .checkin-row p { font-size: 13px; color: var(--ink-muted); margin: 4px 0 0; }
+  .checkin-cta {
+    position: relative;
+    background: var(--coral);
+    color: #fff;
+    border: 0;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background .12s, transform .12s;
+  }
+  .checkin-cta:hover { background: var(--coral-deep); }
+  .checkin-cta.checked { background: var(--ink); }
+  .coin {
+    position: absolute;
+    width: 18px; height: 18px;
+    background: radial-gradient(circle at 35% 35%, #fff8d4, var(--gold) 60%, #a37625);
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  }
+  @keyframes coinUp {
+    0%   { transform: translate(0, 0)  scale(0.8) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--cx), -160px) scale(0.4) rotate(540deg); opacity: 0; }
+  }
+
+  /* ========== Achievements grid ========== */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+  .ach-tile {
+    aspect-ratio: 1;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    transition: transform .18s, box-shadow .18s, border-color .18s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .ach-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line); }
+  .ach-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 28px;
+    margin-bottom: 10px;
+    background: var(--surface-alt);
+  }
+  .ach-tile.unlocked .ach-icon {
+    background: linear-gradient(145deg, var(--coral-light), var(--coral));
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(225,90,65,.3);
+  }
+  .ach-tile.locked { background: var(--surface-alt); }
+  .ach-tile.locked .ach-icon { filter: grayscale(1); opacity: 0.45; }
+  .ach-tile.locked .ach-name, .ach-tile.locked .ach-progress { opacity: 0.6; }
+  .ach-name { font-family: var(--serif); font-weight: 600; font-size: 13px; line-height: 1.2; margin-bottom: 4px; }
+  .ach-progress { font-size: 10px; color: var(--ink-soft); }
+  .ach-tile.unlocked .ach-check {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px;
+    background: var(--ink); color: #fff;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ========== Leaderboard ========== */
+  .leaderboard-section { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px; margin-bottom: 48px; }
+  .leaderboard-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-alt); border-radius: 999px; width: fit-content; margin-bottom: 24px; }
+  .lb-tab {
+    background: transparent; border: 0;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    transition: background .18s, color .18s;
+  }
+  .lb-tab.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 600; }
+
+  .podium { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 16px; align-items: end; margin-bottom: 32px; }
+  .podium-col { display: flex; flex-direction: column; align-items: center; }
+  .podium-avatar {
+    width: 64px; height: 64px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #c8a677, #8a6845);
+    border: 3px solid var(--paper);
+    box-shadow: var(--shadow-1);
+    display: grid; place-items: center;
+    color: #fff; font-family: var(--serif); font-weight: 600; font-size: 22px;
+    margin-bottom: -32px; z-index: 2;
+  }
+  .podium-col:nth-child(1) .podium-avatar { background: linear-gradient(135deg, #b69b78, #7d6248); }
+  .podium-col:nth-child(2) .podium-avatar { width: 80px; height: 80px; font-size: 26px; background: linear-gradient(135deg, #d8a04a, #a37625); border-color: var(--gold); margin-bottom: -40px; }
+  .podium-col:nth-child(3) .podium-avatar { background: linear-gradient(135deg, #c0a094, #8a6e62); }
+  .podium-block {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    background: var(--surface-alt);
+    padding: 40px 12px 16px;
+    text-align: center;
+    border: 1px solid var(--hairline);
+    border-bottom: 0;
+  }
+  .podium-col:nth-child(1) .podium-block { padding-top: 40px; height: 100px; }
+  .podium-col:nth-child(2) .podium-block { padding-top: 48px; height: 130px; background: linear-gradient(180deg, rgba(216,160,74,0.10), var(--surface-alt)); border-color: var(--gold); }
+  .podium-col:nth-child(3) .podium-block { padding-top: 40px; height: 80px; }
+  .podium-rank {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .podium-col:nth-child(2) .podium-rank { color: var(--gold); font-size: 28px; }
+  .podium-name { font-size: 13px; font-weight: 600; }
+  .podium-xp { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  .lb-rows { border-top: 1px solid var(--hairline); }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 40px 36px 1fr 100px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 14px;
+  }
+  .lb-row:last-child { border-bottom: 0; }
+  .lb-row.you { background: rgba(225,90,65,.06); border-radius: 10px; padding: 12px; margin: 0 -12px; border-bottom: 0; }
+  .lb-rank { font-family: var(--serif); font-weight: 600; color: var(--ink-soft); text-align: center; }
+  .lb-row.you .lb-rank { color: var(--coral); }
+  .lb-avatar { width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #c8a677, #8a6845); display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 600; font-family: var(--serif); }
+  .lb-name { font-weight: 500; }
+  .lb-name .you-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; background: var(--coral); color: #fff; border-radius: 999px; margin-left: 6px; vertical-align: 2px; letter-spacing: .04em; }
+  .lb-xp { text-align: right; color: var(--ink-muted); font-size: 13px; }
+  .lb-xp strong { color: var(--ink); font-weight: 600; }
+
+  /* ========== Right rail (mini gamification dock) ========== */
+  .right-rail {
+    background: var(--paper);
+    border-left: 1px solid var(--hairline);
+    padding: 32px 24px;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+  }
+  .rail-section { margin-bottom: 28px; }
+  .rail-section h4 {
+    font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em;
+    margin: 0 0 12px;
+  }
+  .rail-mini-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hairline); }
+  .rail-mini-row:first-of-type { border-top: 0; }
+  .rail-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--surface-alt);
+    display: grid; place-items: center;
+    font-size: 14px;
+    flex: 0 0 auto;
+  }
+  .rail-icon.coral { background: var(--coral); color: #fff; }
+  .rail-row-text { font-size: 13px; line-height: 1.4; }
+  .rail-row-meta { font-size: 11px; color: var(--ink-soft); }
+
+  /* ========== Modal & confetti (level-up + achievement unlock) ========== */
+  .modal-scrim {
+    position: fixed; inset: 0;
+    background: rgba(44,40,35,.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .modal-scrim.show { display: flex; animation: fadein .22s ease-out; }
+  .modal-card {
+    background: var(--paper);
+    border-radius: 24px;
+    padding: 40px;
+    width: 480px; max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    position: relative;
+    animation: pop .42s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop { 0% { transform: scale(.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .modal-icon {
+    width: 96px; height: 96px;
+    margin: 0 auto 20px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, var(--coral-light), var(--coral));
+    display: grid; place-items: center;
+    font-size: 48px;
+    box-shadow: 0 12px 32px rgba(225,90,65,.4);
+  }
+  .modal-card h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    margin: 0 0 8px;
+    line-height: 1.15;
+  }
+  .modal-card p { font-size: 15px; color: var(--ink-muted); margin: 0 0 24px; line-height: 1.5; }
+  .modal-cta {
+    background: var(--ink); color: var(--surface);
+    border: 0; padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600; font-size: 14px;
+    transition: background .12s;
+  }
+  .modal-cta:hover { background: #1a1814; }
+
+  .confetti {
+    position: absolute;
+    width: 8px; height: 12px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  @keyframes burst {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--cx), var(--cy)) rotate(var(--rot)); opacity: 0; }
+  }
+
+  /* ========== XP toast ========== */
+  .xp-toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 150; }
+  .xp-toast {
+    background: var(--ink); color: var(--surface);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-2);
+    display: flex; align-items: center; gap: 10px;
+    transform: translateX(120%);
+    transition: transform .26s cubic-bezier(.22,1,.36,1);
+  }
+  .xp-toast.show { transform: translateX(0); }
+  .xp-toast .xp-amount { color: var(--coral); font-weight: 700; }
+
+  /* Reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .app-shell { grid-template-columns: 220px 1fr; }
+    .right-rail { display: none; }
+    .achievements-grid { grid-template-columns: repeat(4, 1fr); }
+    .quest-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 880px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .canvas { padding: 24px; }
+    .hero-band { grid-template-columns: 1fr; }
+    .achievements-grid { grid-template-columns: repeat(3, 1fr); }
+    .quest-grid { grid-template-columns: 1fr; }
+    .podium { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+
+    <div class="nav-section">Discover</div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      Home
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Discover
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      Saved
+    </div>
+
+    <div class="nav-section">You</div>
+    <div class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7-6.5-4-6.5 4 2-7L2 9h7z"/></svg>
+      Quests
+      <span class="badge">2</span>
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Notifications
+    </div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+      Profile
+    </div>
+
+    <div class="nav-section">Studio</div>
+    <div class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Dashboard
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">RB</div>
+      <div>
+        <div class="sidebar-name">Rohit B.</div>
+        <div class="sidebar-handle">@rohit &middot; Lv 14</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main canvas -->
+  <main class="canvas">
+    <div class="top-bar">
+      <div>
+        <h1 class="page-title">Quests &amp; streaks</h1>
+        <div class="page-sub">Travel more, learn more, level up.</div>
+      </div>
+      <div class="top-bar-spacer"></div>
+      <div class="top-bar-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Resets in 8 h 24 m
+      </div>
+    </div>
+
+    <!-- HERO BAND: Quest ring + Streak flame + Level pill -->
+    <section class="hero-band">
+
+      <!-- Quest Ring tile -->
+      <div class="hero-tile quest-tile">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42" />
+            <!-- 3 segments, 2 filled (coral) -->
+            <circle class="ring-segment" cx="50" cy="50" r="42"
+                    stroke-dasharray="263.9"
+                    stroke-dashoffset="87.9"
+                    pathLength="263.9" />
+          </svg>
+          <div class="ring-center">
+            <div>
+              <div class="ring-count">2<span style="font-size: 18px; color: var(--ink-soft);">/3</span></div>
+              <div class="ring-count-sub">Today's quests</div>
+            </div>
+          </div>
+        </div>
+        <div class="quest-tile-meta">
+          <div class="hero-tile-label">Daily quests</div>
+          <h3>Almost there</h3>
+          <p>One quest left. Read another itinerary to claim today's full quest XP.</p>
+          <button class="quest-tile-cta">View next quest &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Streak flame tile -->
+      <div class="hero-tile streak-tile">
+        <div class="hero-tile-label" style="margin-bottom: 8px;">Streak</div>
+        <div class="flame">
+          <div class="flame-layer"><div class="flame-inner"></div></div>
+          <div class="flame-layer"><div class="flame-inner"></div></div>
+          <div class="flame-layer"><div class="flame-inner"></div></div>
+          <div class="ember"></div>
+          <div class="ember"></div>
+          <div class="ember"></div>
+          <div class="ember"></div>
+        </div>
+        <div class="streak-count"><em>12</em>-day</div>
+        <div class="streak-sub">Keep it lit. Don't break the streak.</div>
+        <div class="streak-detail">Best ever: <strong style="color:var(--ink);">28 days</strong> &middot; League: <strong style="color:var(--coral);">Top 3 % in Mumbai</strong></div>
+      </div>
+
+      <!-- Level pill tile -->
+      <div class="hero-tile level-tile">
+        <div class="hero-tile-label">Your level</div>
+        <div class="level-row">
+          <div class="level-num">14</div>
+          <div class="level-label-wrap">
+            <div class="level-label">Voyager</div>
+            <div class="level-title">Konkan-bound</div>
+          </div>
+        </div>
+
+        <div class="xp-track">
+          <div class="xp-fill" id="xp-fill" style="width: 48%;"></div>
+        </div>
+        <div class="xp-meta">
+          <span><strong>240</strong> / 500 XP</span>
+          <span>260 to <strong>Lv 15 &middot; Wayfarer</strong></span>
+        </div>
+
+        <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-soft); display: flex; justify-content: space-between;">
+          <span>Earned this week: <strong style="color:var(--ink);">+135 XP</strong></span>
+          <a id="trigger-levelup" style="color: var(--coral); cursor: pointer; font-weight: 600; text-decoration: none;">Demo level-up &rarr;</a>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Today's quests list -->
+    <section class="quest-list-section">
+      <div class="section-h">
+        <div>
+          <h2>Today's three quests</h2>
+          <p style="margin-top: 4px;">Reset every day at midnight IST.</p>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-soft); font-weight: 500;">2 of 3 done &middot; 30 XP earned</div>
+      </div>
+
+      <div class="quest-grid">
+        <div class="quest-card complete">
+          <div class="quest-icon">&#9989;</div>
+          <h4 class="quest-title">Open the app</h4>
+          <p class="quest-desc">Welcome back. Just landing here counts.</p>
+          <div class="quest-progress">
+            <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:100%"></div></div>
+            <div class="quest-progress-text">1 / 1</div>
+          </div>
+          <div class="quest-card-foot">
+            <div class="quest-xp">Reward: <strong>+10 XP</strong></div>
+            <button class="quest-claim claimed">Claimed &#10003;</button>
+          </div>
+        </div>
+
+        <div class="quest-card complete">
+          <div class="quest-icon">&#128214;</div>
+          <h4 class="quest-title">Read an itinerary</h4>
+          <p class="quest-desc">Spend 2 minutes inside any creator's chapter.</p>
+          <div class="quest-progress">
+            <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:100%"></div></div>
+            <div class="quest-progress-text">1 / 1</div>
+          </div>
+          <div class="quest-card-foot">
+            <div class="quest-xp">Reward: <strong>+20 XP</strong></div>
+            <button class="quest-claim" id="claim-2">Claim</button>
+          </div>
+        </div>
+
+        <div class="quest-card">
+          <div class="quest-icon">&#128205;</div>
+          <h4 class="quest-title">Save 3 spots</h4>
+          <p class="quest-desc">Bookmark 3 spots from any reader. Build your trip.</p>
+          <div class="quest-progress">
+            <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:33%"></div></div>
+            <div class="quest-progress-text">1 / 3</div>
+          </div>
+          <div class="quest-card-foot">
+            <div class="quest-xp">Reward: <strong>+30 XP</strong></div>
+            <button class="quest-claim" disabled style="background: var(--surface-alt); color: var(--ink-soft); cursor: not-allowed;">2 to go</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Daily check-in row -->
+    <div class="checkin-row">
+      <div>
+        <h3>Daily check-in</h3>
+        <p>One tap. Five XP. Streak +1.</p>
+      </div>
+      <button class="checkin-cta" id="checkin-cta">Check in for +5 XP</button>
+    </div>
+
+    <!-- Achievements -->
+    <section class="quest-list-section">
+      <div class="section-h">
+        <div>
+          <h2>Achievements</h2>
+          <p style="margin-top: 4px;">5 of 24 unlocked.</p>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-soft); font-weight: 500;">Keep going &mdash; 19 to go</div>
+      </div>
+
+      <div class="achievements-grid">
+        <div class="ach-tile unlocked">
+          <div class="ach-icon">&#128640;</div>
+          <div class="ach-name">First steps</div>
+          <div class="ach-progress">Welcome</div>
+          <div class="ach-check">&#10003;</div>
+        </div>
+        <div class="ach-tile unlocked">
+          <div class="ach-icon">&#128293;</div>
+          <div class="ach-name">7-day streak</div>
+          <div class="ach-progress">Lit a flame</div>
+          <div class="ach-check">&#10003;</div>
+        </div>
+        <div class="ach-tile unlocked">
+          <div class="ach-icon">&#128214;</div>
+          <div class="ach-name">10 reads</div>
+          <div class="ach-progress">Started reading</div>
+          <div class="ach-check">&#10003;</div>
+        </div>
+        <div class="ach-tile unlocked">
+          <div class="ach-icon">&#127759;</div>
+          <div class="ach-name">First trip</div>
+          <div class="ach-progress">Planned a route</div>
+          <div class="ach-check">&#10003;</div>
+        </div>
+        <div class="ach-tile unlocked" id="ach-trigger">
+          <div class="ach-icon">&#11088;</div>
+          <div class="ach-name">10 saves</div>
+          <div class="ach-progress">Curator</div>
+          <div class="ach-check">&#10003;</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#128205;</div>
+          <div class="ach-name">50 spots saved</div>
+          <div class="ach-progress">23 / 50</div>
+        </div>
+
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#127944;</div>
+          <div class="ach-name">First booking</div>
+          <div class="ach-progress">Locked &middot; book a trip</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#128104;</div>
+          <div class="ach-name">Followed 10</div>
+          <div class="ach-progress">7 / 10</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#128075;</div>
+          <div class="ach-name">First comment</div>
+          <div class="ach-progress">Locked</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#128525;</div>
+          <div class="ach-name">100 likes given</div>
+          <div class="ach-progress">42 / 100</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#127744;</div>
+          <div class="ach-name">Monsoon traveler</div>
+          <div class="ach-progress">Locked &middot; June</div>
+        </div>
+        <div class="ach-tile locked">
+          <div class="ach-icon">&#128058;</div>
+          <div class="ach-name">Wildlife spotter</div>
+          <div class="ach-progress">2 / 5</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section class="leaderboard-section">
+      <div class="section-h" style="margin-bottom: 20px;">
+        <div>
+          <h2>Leaderboard</h2>
+          <p style="margin-top: 4px;">Updated daily at midnight IST.</p>
+        </div>
+      </div>
+
+      <div class="leaderboard-tabs">
+        <button class="lb-tab active">Your city</button>
+        <button class="lb-tab">National</button>
+        <button class="lb-tab">All-time</button>
+      </div>
+
+      <!-- Podium (top 3) -->
+      <div class="podium">
+        <div class="podium-col">
+          <div class="podium-avatar">SM</div>
+          <div class="podium-block">
+            <div class="podium-rank">2</div>
+            <div class="podium-name">Saanvi M.</div>
+            <div class="podium-xp">2,408 XP</div>
+          </div>
+        </div>
+        <div class="podium-col">
+          <div class="podium-avatar">AR</div>
+          <div class="podium-block">
+            <div class="podium-rank">1</div>
+            <div class="podium-name">Aanya R.</div>
+            <div class="podium-xp">3,120 XP</div>
+          </div>
+        </div>
+        <div class="podium-col">
+          <div class="podium-avatar">DM</div>
+          <div class="podium-block">
+            <div class="podium-rank">3</div>
+            <div class="podium-name">Devansh M.</div>
+            <div class="podium-xp">2,041 XP</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rank rows 4 - 50 -->
+      <div class="lb-rows">
+        <div class="lb-row">
+          <div class="lb-rank">4</div>
+          <div class="lb-avatar">PT</div>
+          <div class="lb-name">Pranav T.</div>
+          <div class="lb-xp"><strong>1,884</strong> XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">5</div>
+          <div class="lb-avatar">KK</div>
+          <div class="lb-name">Karthik K.</div>
+          <div class="lb-xp"><strong>1,712</strong> XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">6</div>
+          <div class="lb-avatar">VR</div>
+          <div class="lb-name">Vrinda R.</div>
+          <div class="lb-xp"><strong>1,604</strong> XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">7</div>
+          <div class="lb-avatar">NS</div>
+          <div class="lb-name">Nidhi S.</div>
+          <div class="lb-xp"><strong>1,521</strong> XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">8</div>
+          <div class="lb-avatar">AM</div>
+          <div class="lb-name">Aakash M.</div>
+          <div class="lb-xp"><strong>1,402</strong> XP</div>
+        </div>
+        <div class="lb-row you">
+          <div class="lb-rank">287</div>
+          <div class="lb-avatar" style="background: linear-gradient(135deg, var(--coral-light), var(--coral));">RB</div>
+          <div class="lb-name">Rohit B. <span class="you-badge">YOU</span></div>
+          <div class="lb-xp"><strong>2,140</strong> XP</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between;">
+        <span>You're <strong style="color: var(--ink);">#287</strong> in Mumbai &middot; <strong style="color: var(--coral);">+12</strong> places this week.</span>
+        <a href="#" style="color: var(--coral); text-decoration: none; font-weight: 500;">Full leaderboard &rarr;</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Right rail (mini gamification dock) -->
+  <aside class="right-rail">
+    <div class="rail-section">
+      <h4>Recent rewards</h4>
+      <div class="rail-mini-row">
+        <div class="rail-icon coral">&#43;</div>
+        <div>
+          <div class="rail-row-text"><strong>+15 XP</strong> &middot; Read Konkan in 4 Quiet Days</div>
+          <div class="rail-row-meta">2 minutes ago</div>
+        </div>
+      </div>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#128293;</div>
+        <div>
+          <div class="rail-row-text">Streak extended to 12 days</div>
+          <div class="rail-row-meta">Today, 7:14 a.m.</div>
+        </div>
+      </div>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#11088;</div>
+        <div>
+          <div class="rail-row-text">Achievement: <strong>10 saves</strong></div>
+          <div class="rail-row-meta">Yesterday</div>
+        </div>
+      </div>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#127942;</div>
+        <div>
+          <div class="rail-row-text">Climbed to <strong>#287</strong> in Mumbai</div>
+          <div class="rail-row-meta">2 days ago &middot; +12 places</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail-section">
+      <h4>Suggested for you</h4>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#128205;</div>
+        <div>
+          <div class="rail-row-text">Save 2 more spots to finish today's quest</div>
+          <div class="rail-row-meta">+30 XP</div>
+        </div>
+      </div>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#128104;</div>
+        <div>
+          <div class="rail-row-text">Follow 3 more creators &rarr; <strong>Followed 10</strong></div>
+          <div class="rail-row-meta">7 / 10 done</div>
+        </div>
+      </div>
+      <div class="rail-mini-row">
+        <div class="rail-icon">&#127744;</div>
+        <div>
+          <div class="rail-row-text">Travel in monsoon &rarr; seasonal achievement</div>
+          <div class="rail-row-meta">June &mdash; September</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Modal: Achievement unlock -->
+<div class="modal-scrim" id="ach-modal">
+  <div class="modal-card">
+    <div class="modal-icon">&#11088;</div>
+    <h3>Achievement unlocked!</h3>
+    <p>"Curator" &middot; You've saved 10 spots across 3 creators.<br/><strong style="color: var(--coral);">+50 XP</strong> earned.</p>
+    <button class="modal-cta" id="close-ach">Continue</button>
+  </div>
+</div>
+
+<!-- Modal: Level-up -->
+<div class="modal-scrim" id="level-modal">
+  <div class="modal-card">
+    <div class="modal-icon" style="background: linear-gradient(145deg, #d8a04a, var(--coral));">&#127881;</div>
+    <h3>Level 15 &middot; Wayfarer</h3>
+    <p>You've outgrown Voyager. Level up unlocked: <strong>Map editing</strong>, <strong>Custom collections</strong>, and a fresh <strong>profile badge</strong>.</p>
+    <button class="modal-cta" id="close-level">Continue</button>
+  </div>
+</div>
+
+<!-- XP Toast queue -->
+<div class="xp-toast-wrap" id="xp-toast-wrap"></div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Quest claim ---------- */
+  const claim2 = document.getElementById('claim-2');
+  if (claim2) {
+    claim2.addEventListener('click', () => {
+      claim2.textContent = 'Claimed ✓';
+      claim2.classList.add('claimed');
+      claim2.disabled = true;
+      pushXpToast(20, 'Read an itinerary');
+      // Update XP bar
+      const xp = document.getElementById('xp-fill');
+      if (xp) xp.style.width = '52%';
+    });
+  }
+
+  /* ---------- Daily check-in (coin burst) ---------- */
+  const checkinCta = document.getElementById('checkin-cta');
+  let checkedIn = false;
+  checkinCta.addEventListener('click', (e) => {
+    if (checkedIn) return;
+    checkedIn = true;
+    checkinCta.textContent = 'Checked in ✓ · See you tomorrow';
+    checkinCta.classList.add('checked');
+
+    // 5 coins springing from button
+    if (!reduce) {
+      const rect = checkinCta.getBoundingClientRect();
+      for (let i = 0; i < 5; i++) {
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        coin.style.left = (rect.width / 2 - 9) + 'px';
+        coin.style.top = '12px';
+        coin.style.setProperty('--cx', ((Math.random() - 0.5) * 100) + 'px');
+        coin.style.animation = 'coinUp 0.8s cubic-bezier(.22,1,.36,1) forwards';
+        coin.style.animationDelay = (i * 0.04) + 's';
+        checkinCta.appendChild(coin);
+        setTimeout(() => coin.remove(), 1000);
+      }
+    }
+    pushXpToast(5, 'Daily check-in');
+  });
+
+  /* ---------- Achievement modal trigger ---------- */
+  const achTrigger = document.getElementById('ach-trigger');
+  const achModal = document.getElementById('ach-modal');
+  const closeAch = document.getElementById('close-ach');
+  achTrigger.addEventListener('click', () => {
+    achModal.classList.add('show');
+    spawnConfetti(achModal.querySelector('.modal-card'));
+  });
+  closeAch.addEventListener('click', () => achModal.classList.remove('show'));
+  achModal.addEventListener('click', (e) => {
+    if (e.target === achModal) achModal.classList.remove('show');
+  });
+
+  /* ---------- Level-up modal trigger ---------- */
+  const levelTrigger = document.getElementById('trigger-levelup');
+  const levelModal = document.getElementById('level-modal');
+  const closeLevel = document.getElementById('close-level');
+  levelTrigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    levelModal.classList.add('show');
+    spawnConfetti(levelModal.querySelector('.modal-card'), 80);
+    pushXpToast(0, 'Level 15 · Wayfarer', true);
+  });
+  closeLevel.addEventListener('click', () => levelModal.classList.remove('show'));
+  levelModal.addEventListener('click', (e) => {
+    if (e.target === levelModal) levelModal.classList.remove('show');
+  });
+
+  /* ---------- Confetti ---------- */
+  const confettiColors = ['#E15A41', '#F38567', '#d8a04a', '#fff8d4', '#2C2823'];
+  function spawnConfetti(target, count) {
+    if (reduce) return;
+    count = count || 60;
+    const rect = target.getBoundingClientRect();
+    const cx = rect.width / 2;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti';
+      piece.style.left = cx + 'px';
+      piece.style.top = '40%';
+      piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+      piece.style.borderRadius = (Math.random() < 0.5) ? '0' : '999px';
+      const dx = (Math.random() - 0.5) * 600;
+      const dy = -200 - Math.random() * 400;
+      const rot = Math.random() * 720;
+      piece.style.setProperty('--cx', dx + 'px');
+      piece.style.setProperty('--cy', dy + 'px');
+      piece.style.setProperty('--rot', rot + 'deg');
+      piece.style.animation = 'burst 1.4s cubic-bezier(.22,1,.36,1) forwards';
+      piece.style.animationDelay = (Math.random() * 0.2) + 's';
+      target.appendChild(piece);
+      setTimeout(() => piece.remove(), 1700);
+    }
+  }
+
+  /* ---------- XP toast queue ---------- */
+  const toastWrap = document.getElementById('xp-toast-wrap');
+  function pushXpToast(amount, label, isLevel) {
+    const t = document.createElement('div');
+    t.className = 'xp-toast';
+    if (isLevel) {
+      const star = document.createElement('span');
+      star.textContent = '✨';
+      const txt = document.createTextNode(' ' + label);
+      t.appendChild(star);
+      t.appendChild(txt);
+    } else {
+      const amt = document.createElement('span');
+      amt.className = 'xp-amount';
+      amt.textContent = '+' + amount + ' XP';
+      const txt = document.createTextNode(' · ' + label);
+      t.appendChild(amt);
+      t.appendChild(txt);
+    }
+    toastWrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => t.remove(), 400);
+    }, 2400);
+  }
+
+  /* ---------- Leaderboard tabs ---------- */
+  document.querySelectorAll('.lb-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
