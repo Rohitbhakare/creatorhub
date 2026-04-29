@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>W9 &middot; Profile, Settings &amp; KYC &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4; --surface-alt: #F2EEE8; --paper: #FFFFFF;
+    --hairline: #E5E0D7; --line: #C9C3B6;
+    --ink-soft: #9C9689; --ink-muted: #6B6660; --ink: #2C2823;
+    --coral: #E15A41; --coral-deep: #C9472D;
+    --green: #498a5a; --red: #b8504a; --gold: #d8a04a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, textarea, select { font: inherit; color: inherit; }
+  a { color: var(--coral); text-decoration: none; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+  .screen-marker { background: var(--surface-alt); padding: 14px 32px; border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+  .screen-marker strong { color: var(--ink); }
+
+  .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--paper); border-right: 1px solid var(--hairline); padding: 24px 16px; }
+  .brand { font-family: var(--serif); font-weight: 600; font-size: 22px; padding: 8px 12px 28px; }
+  .brand span { color: var(--coral); }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 12px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--ink-muted); cursor: pointer; border-left: 2px solid transparent; margin-left: -2px; }
+  .nav-item:hover { background: var(--surface-alt); color: var(--ink); }
+  .nav-item.active { color: var(--ink); background: var(--surface-alt); border-left-color: var(--coral); font-weight: 600; }
+  .nav-item svg { stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .canvas { padding: 32px 48px 64px; max-width: 1100px; }
+  .canvas-h { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0 0 24px; }
+
+  /* Profile editor */
+  .cover-edit {
+    aspect-ratio: 4 / 1;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2c4a3a, #5b7559 40%, #87a079);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: -56px;
+  }
+  .cover-edit::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.3), transparent); }
+  .cover-edit-cta { position: absolute; bottom: 16px; right: 16px; background: rgba(255,255,255,0.92); padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--ink); backdrop-filter: blur(6px); display: flex; align-items: center; gap: 6px; }
+
+  .profile-row { display: grid; grid-template-columns: 144px 1fr; gap: 24px; align-items: flex-end; padding: 0 24px; position: relative; z-index: 1; }
+  .avatar-edit { width: 144px; height: 144px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); border: 4px solid var(--surface); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 56px; cursor: pointer; position: relative; }
+  .avatar-edit-cta { position: absolute; bottom: 8px; right: 8px; width: 32px; height: 32px; border-radius: 999px; background: var(--coral); color: #fff; display: grid; place-items: center; font-size: 14px; border: 3px solid var(--surface); }
+
+  .profile-meta { padding-bottom: 16px; }
+  .profile-name-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .profile-name-input { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; border: 0; background: transparent; outline: 0; padding: 4px 8px; border-radius: 8px; transition: background .12s; }
+  .profile-name-input:hover, .profile-name-input:focus { background: var(--surface-alt); }
+  .profile-handle { color: var(--ink-soft); font-size: 14px; }
+  .profile-bio { width: 100%; max-width: 560px; padding: 8px 8px; border: 0; background: transparent; outline: 0; border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--ink-muted); resize: none; min-height: 56px; transition: background .12s; }
+  .profile-bio:hover, .profile-bio:focus { background: var(--surface-alt); }
+
+  /* Social links */
+  .social-links { margin-top: 24px; padding: 20px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 14px; max-width: 720px; }
+  .social-links h3 { font-family: var(--serif); font-weight: 600; font-size: 15px; margin: 0 0 12px; }
+  .social-row { display: grid; grid-template-columns: 32px 100px 1fr auto; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hairline); align-items: center; font-size: 13px; }
+  .social-row:first-of-type { border-top: 0; }
+  .social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface-alt); display: grid; place-items: center; font-size: 16px; }
+  .social-platform { font-weight: 600; }
+  .social-handle { color: var(--ink-soft); font-family: var(--mono); }
+  .social-status { font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 600; background: rgba(73,138,90,0.10); color: var(--green); }
+  .social-status.disconnected { background: var(--surface-alt); color: var(--ink-muted); }
+  .social-cta { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 8px; background: transparent; border: 1px solid var(--hairline); }
+  .social-cta:hover { background: var(--surface); }
+
+  /* Save bar */
+  .save-bar { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 12px 16px 12px 24px; border-radius: 14px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-2); font-size: 14px; z-index: 80; }
+  .save-bar-text { font-weight: 500; }
+  .save-bar-actions { display: flex; gap: 8px; }
+  .save-bar-actions button { padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 0; }
+  .save-bar-actions .discard { background: rgba(255,253,247,0.10); color: var(--surface); }
+  .save-bar-actions .save { background: var(--coral); color: #fff; }
+
+  /* Settings shell */
+  .settings-shell { display: grid; grid-template-columns: 220px 1fr; gap: 32px; max-width: 1100px; }
+  .settings-nav { padding: 0; }
+  .settings-nav-item { padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--ink-muted); margin-bottom: 2px; }
+  .settings-nav-item.active { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-1); }
+  .settings-nav-item.danger { color: var(--red); }
+  .settings-content { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 32px; }
+  .settings-content h2 { font-family: var(--serif); font-weight: 600; font-size: 24px; margin: 0 0 4px; line-height: 1.2; }
+  .settings-content-sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 24px; }
+
+  .settings-section { padding: 20px 0; border-top: 1px solid var(--hairline); }
+  .settings-section:first-of-type { border-top: 0; padding-top: 0; }
+  .settings-section h3 { font-family: var(--serif); font-weight: 600; font-size: 15px; margin: 0 0 12px; }
+
+  .field { margin-bottom: 16px; }
+  .field-label { font-size: 12px; font-weight: 600; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .field-input { width: 100%; max-width: 440px; padding: 11px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--paper); font-size: 14px; }
+  .field-helper { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+
+  .toggle-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--hairline); }
+  .toggle-row:first-of-type { border-top: 0; }
+  .toggle-row-text { font-size: 14px; font-weight: 500; }
+  .toggle-row-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .toggle { width: 36px; height: 20px; background: var(--hairline); border-radius: 999px; position: relative; cursor: pointer; transition: background .18s; }
+  .toggle::after { content: ''; width: 16px; height: 16px; border-radius: 999px; background: var(--paper); position: absolute; top: 2px; left: 2px; transition: left .18s; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+  .toggle.on { background: var(--coral); }
+  .toggle.on::after { left: 18px; }
+
+  /* Notifications matrix */
+  .notif-matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .notif-matrix thead th { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .12em; padding: 12px 8px; text-align: center; border-bottom: 1px solid var(--hairline); }
+  .notif-matrix thead th:first-child { text-align: left; padding-left: 0; }
+  .notif-matrix tbody td { padding: 12px 8px; border-bottom: 1px solid var(--hairline); text-align: center; }
+  .notif-matrix tbody td:first-child { text-align: left; padding-left: 0; font-weight: 500; }
+  .notif-matrix tbody tr:last-child td { border-bottom: 0; }
+  .check-pill { width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid var(--hairline); margin: 0 auto; cursor: pointer; }
+  .check-pill.on { background: var(--coral); border-color: var(--coral); display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; }
+
+  /* Privacy & danger */
+  .danger-zone { border: 1px solid var(--red); border-radius: 14px; padding: 20px; background: rgba(184,80,74,0.04); }
+  .danger-zone h3 { color: var(--red); }
+  .btn-danger { background: var(--red); color: #fff; border: 0; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; }
+  .btn-danger:hover { background: #9a4540; }
+
+  /* KYC start */
+  .kyc-card { background: var(--paper); border: 1px solid var(--hairline); border-radius: 20px; padding: 48px; max-width: 720px; box-shadow: var(--shadow-1); }
+  .kyc-card h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -.01em; }
+  .kyc-card p { color: var(--ink-muted); font-size: 14px; line-height: 1.55; margin: 0 0 32px; max-width: 540px; }
+  .kyc-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 0 0 32px; }
+  .kyc-step { padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; text-align: center; background: var(--surface); }
+  .kyc-step-num { font-family: var(--serif); font-weight: 600; font-size: 24px; color: var(--coral); line-height: 1; margin-bottom: 6px; opacity: 0.8; }
+  .kyc-step-name { font-weight: 600; font-size: 12px; line-height: 1.3; }
+  .kyc-step-time { font-size: 10px; color: var(--ink-soft); margin-top: 4px; }
+  .why-expand { padding-top: 20px; border-top: 1px solid var(--hairline); font-size: 13px; }
+  .why-expand summary { cursor: pointer; font-weight: 500; padding: 4px 0; list-style: none; display: flex; align-items: center; gap: 6px; }
+  .why-expand summary::after { content: '\002B'; color: var(--ink-soft); margin-left: 6px; transition: transform .18s; }
+  .why-expand[open] summary::after { transform: rotate(45deg); }
+  .why-expand p { margin: 12px 0 0; color: var(--ink-muted); font-size: 13px; }
+
+  /* KYC PAN upload */
+  .kyc-shell { display: grid; grid-template-columns: 320px 1fr; gap: 32px; max-width: 1100px; }
+  .kyc-instructions h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0 0 12px; }
+  .kyc-tips { padding: 0; margin: 0; list-style: none; }
+  .kyc-tips li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--hairline); font-size: 13px; line-height: 1.5; }
+  .kyc-tips li:first-child { border-top: 0; }
+  .kyc-tips .tip-icon { color: var(--green); font-size: 16px; line-height: 1.3; }
+  .kyc-tips .tip-icon.bad { color: var(--red); }
+  .kyc-progress-rail { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--hairline); }
+  .kyc-progress-h { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; margin-bottom: 12px; }
+  .kyc-progress-rail .step-row { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 8px 0; align-items: center; }
+  .kyc-progress-rail .step-num { width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--hairline); background: var(--paper); display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--ink-soft); }
+  .kyc-progress-rail .step-row.complete .step-num { background: var(--coral); border-color: var(--coral); color: #fff; }
+  .kyc-progress-rail .step-row.active .step-num { border-color: var(--coral); color: var(--coral); }
+  .kyc-progress-rail .step-name { font-size: 13px; font-weight: 500; color: var(--ink-muted); }
+  .kyc-progress-rail .step-row.complete .step-name, .kyc-progress-rail .step-row.active .step-name { color: var(--ink); }
+
+  .kyc-upload {
+    border: 2px dashed var(--hairline);
+    border-radius: 16px;
+    background: var(--paper);
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .18s, background .18s;
+  }
+  .kyc-upload:hover { border-color: var(--coral); background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04)); }
+  .kyc-upload-icon { font-size: 56px; margin-bottom: 12px; color: var(--coral); }
+  .kyc-upload-title { font-family: var(--serif); font-weight: 600; font-size: 22px; margin-bottom: 4px; }
+  .kyc-upload-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 24px; }
+  .kyc-upload-or { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+  .kyc-upload-or::before, .kyc-upload-or::after { content: ''; flex: 1; height: 1px; background: var(--hairline); }
+  .btn-coral { background: var(--coral); color: #fff; border: 0; padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 13px; }
+  .btn-coral:hover { background: var(--coral-deep); }
+  .btn-secondary { background: var(--paper); border: 1px solid var(--hairline); color: var(--ink); padding: 11px 20px; border-radius: 10px; font-weight: 500; font-size: 13px; }
+
+  /* KYC selfie capture */
+  .selfie-shell {
+    background: var(--ink);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    color: #fffdf7;
+    max-width: 720px;
+  }
+  .selfie-camera {
+    width: 360px;
+    height: 480px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #3a3530, #2c2823);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .selfie-camera::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 35%, rgba(212,184,150,0.4) 0%, transparent 35%),
+      radial-gradient(ellipse at 50% 50%, rgba(160,124,90,0.3) 30%, transparent 60%);
+  }
+  .oval-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 240px; height: 320px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    border: 3px solid var(--coral);
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.6), inset 0 0 0 0 rgba(225,90,65,0.4); }
+    50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.6), inset 0 0 0 4px rgba(225,90,65,0.4); }
+  }
+  .selfie-status {
+    margin-top: 24px;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--coral);
+  }
+  .selfie-hint { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+  .selfie-states { margin: 24px 0 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .state-pill { font-size: 11px; padding: 5px 11px; border-radius: 999px; background: rgba(255,253,247,0.08); color: rgba(255,253,247,0.6); }
+  .state-pill.active { background: var(--coral); color: #fff; font-weight: 600; }
+  .selfie-cta { margin-top: 24px; }
+
+  /* KYC status (verified) */
+  .kyc-status-card { max-width: 480px; text-align: center; padding: 64px 48px; }
+  .kyc-status-icon { width: 96px; height: 96px; margin: 0 auto 20px; border-radius: 999px; background: linear-gradient(145deg, var(--green), #2e6f3d); color: #fff; display: grid; place-items: center; font-size: 40px; box-shadow: 0 12px 32px rgba(73,138,90,0.4); }
+  .kyc-status-card h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; margin: 0 0 8px; line-height: 1.15; }
+  .kyc-status-card p { color: var(--ink-muted); margin: 0 0 32px; line-height: 1.55; }
+  .kyc-perks { padding: 16px 20px; background: var(--surface); border-radius: 12px; font-size: 12px; color: var(--ink-muted); display: grid; gap: 6px; text-align: left; }
+  .kyc-perks strong { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 1080px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .canvas { padding: 24px; }
+    .settings-shell, .kyc-shell { grid-template-columns: 1fr; }
+    .kyc-steps { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span style="opacity:0.5;">Pack</span> W9 &middot; Profile, Settings &amp; KYC
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- ============ W9.1 — Authed profile editor ============ -->
+<div class="screen-marker">Screen <strong>W9.1</strong> &middot; Authed profile (edit cover, avatar, bio, social links)</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-section">Discover</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg> Home</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Discover</div>
+    <div class="nav-section">You</div>
+    <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg> Profile</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2"/></svg> Settings</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7-6.5-4-6.5 4 2-7L2 9h7z"/></svg> Quests</div>
+  </aside>
+
+  <main class="canvas">
+    <div class="cover-edit">
+      <div class="cover-edit-cta"><span style="font-size: 14px;">&#128247;</span> Replace cover</div>
+    </div>
+
+    <div class="profile-row">
+      <div class="avatar-edit">
+        AR
+        <div class="avatar-edit-cta">&#128247;</div>
+      </div>
+      <div class="profile-meta">
+        <div class="profile-name-row">
+          <input class="profile-name-input" value="Aanya Ravi" />
+          <span style="color: var(--coral); font-size: 24px;">&#10003;</span>
+          <span class="profile-handle">&middot; @aanya</span>
+        </div>
+        <textarea class="profile-bio">Slow road trips through coastal India. Bengaluru-based, Konkan-native. Pen and notebook before camera.</textarea>
+      </div>
+    </div>
+
+    <div class="social-links">
+      <h3>Connected accounts &amp; links</h3>
+      <div class="social-row">
+        <div class="social-icon">&#128247;</div>
+        <div>
+          <div class="social-platform">Instagram</div>
+          <div class="social-handle">@aanya.travels &middot; 12.4k followers</div>
+        </div>
+        <span class="social-status">Connected</span>
+        <button class="social-cta">Disconnect</button>
+      </div>
+      <div class="social-row">
+        <div class="social-icon">&#127909;</div>
+        <div>
+          <div class="social-platform">YouTube</div>
+          <div class="social-handle">@aanyaravi &middot; 4.2k subscribers</div>
+        </div>
+        <span class="social-status">Connected</span>
+        <button class="social-cta">Disconnect</button>
+      </div>
+      <div class="social-row">
+        <div class="social-icon">&#127760;</div>
+        <div>
+          <div class="social-platform">Personal site</div>
+          <div class="social-handle">aanyaravi.com</div>
+        </div>
+        <span class="social-status">Connected</span>
+        <button class="social-cta">Edit</button>
+      </div>
+      <div class="social-row">
+        <div class="social-icon">&#128062;</div>
+        <div>
+          <div class="social-platform">Twitter / X</div>
+          <div class="social-handle">Not connected</div>
+        </div>
+        <span class="social-status disconnected">Not linked</span>
+        <button class="social-cta">Connect</button>
+      </div>
+    </div>
+
+    <!-- Profile preview -->
+    <div style="margin-top: 32px; padding: 24px; background: var(--surface-alt); border-radius: 14px; max-width: 720px; font-size: 13px; color: var(--ink-muted);">
+      <strong style="color: var(--ink); display: block; margin-bottom: 6px;">Public preview</strong>
+      Your profile is visible at <a href="#" style="font-family: var(--mono); font-size: 12px;">creatorhub.in/road-trips/aanya</a>. Changes go live immediately. <a href="../standalone/pack-w1-marketing.html#">View public mini-site &rarr;</a>
+    </div>
+  </main>
+</div>
+
+<!-- Save bar (visible when dirty) -->
+<div class="save-bar">
+  <div class="save-bar-text">Unsaved changes &middot; bio updated</div>
+  <div class="save-bar-actions">
+    <button class="discard">Discard</button>
+    <button class="save">Save changes</button>
+  </div>
+</div>
+
+<!-- ============ W9.2-W9.4 — Settings shell ============ -->
+<div class="screen-marker">Screen <strong>W9.2 / W9.3 / W9.4</strong> &middot; Settings shell &middot; Notifications matrix</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-section">Discover</div>
+    <div class="nav-item">Home</div>
+    <div class="nav-item">Discover</div>
+    <div class="nav-section">You</div>
+    <div class="nav-item">Profile</div>
+    <div class="nav-item active">Settings</div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">Settings</h1>
+    <div class="settings-shell">
+      <nav class="settings-nav">
+        <div class="settings-nav-item">Account</div>
+        <div class="settings-nav-item active">Notifications</div>
+        <div class="settings-nav-item">Privacy</div>
+        <div class="settings-nav-item">Connected accounts</div>
+        <div class="settings-nav-item">Travel preferences</div>
+        <div class="settings-nav-item">Payment &amp; payouts</div>
+        <div class="settings-nav-item danger">Danger zone</div>
+      </nav>
+
+      <div class="settings-content">
+        <h2>Notification preferences</h2>
+        <p class="settings-content-sub">Pick how you'd like to hear from us per event. We never spam &mdash; daily digests are off by default.</p>
+
+        <table class="notif-matrix">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Email</th>
+              <th>Push</th>
+              <th>WhatsApp</th>
+              <th>In-app</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>New follower</td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Comment on your content</td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>New booking</td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Booking reminder &middot; T-24 h</td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill"></span></td>
+            </tr>
+            <tr>
+              <td>Streak break alert</td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill on">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Weekly digest</td>
+              <td><span class="check-pill on">&#10003;</span></td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill"></span></td>
+              <td><span class="check-pill"></span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="settings-section">
+          <h3>Web push</h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Enable browser notifications</div>
+              <div class="toggle-row-meta">Get notified the moment a creator drops something new</div>
+            </div>
+            <div class="toggle on" data-toggle="webpush"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Sound on level-up</div>
+              <div class="toggle-row-meta">Single 0.6-second chime when you reach a new level</div>
+            </div>
+            <div class="toggle" data-toggle="sound"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Quiet hours</h3>
+          <p style="font-size: 13px; color: var(--ink-muted); margin: 0 0 12px;">Push notifications are silent during these hours.</p>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <select class="field-input" style="width: 140px;">
+              <option>10:00 PM</option>
+            </select>
+            <span style="color: var(--ink-soft);">to</span>
+            <select class="field-input" style="width: 140px;">
+              <option>7:00 AM</option>
+            </select>
+            <span style="color: var(--ink-soft); font-size: 12px;">IST</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W9.5 — Privacy & Danger ============ -->
+<div class="screen-marker">Screen <strong>W9.5 / W9.8</strong> &middot; Privacy controls &middot; Block list &middot; Danger zone</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-section">You</div>
+    <div class="nav-item">Profile</div>
+    <div class="nav-item active">Settings</div>
+  </aside>
+
+  <main class="canvas">
+    <h1 class="canvas-h">Privacy &amp; safety</h1>
+    <div class="settings-shell">
+      <nav class="settings-nav">
+        <div class="settings-nav-item">Account</div>
+        <div class="settings-nav-item">Notifications</div>
+        <div class="settings-nav-item active">Privacy</div>
+        <div class="settings-nav-item">Connected accounts</div>
+        <div class="settings-nav-item">Travel preferences</div>
+        <div class="settings-nav-item">Payment &amp; payouts</div>
+        <div class="settings-nav-item danger">Danger zone</div>
+      </nav>
+
+      <div class="settings-content">
+
+        <div class="settings-section">
+          <h3>Profile visibility</h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Public profile</div>
+              <div class="toggle-row-meta">Discoverable in search and recommendations</div>
+            </div>
+            <div class="toggle on"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Show in city leaderboard</div>
+              <div class="toggle-row-meta">Currently #287 in Mumbai</div>
+            </div>
+            <div class="toggle on"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Comment moderation</h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Hold comments from new accounts</div>
+              <div class="toggle-row-meta">Comments from accounts &lt; 30 days old need approval</div>
+            </div>
+            <div class="toggle"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-row-text">Filter offensive language</div>
+              <div class="toggle-row-meta">Auto-hide using built-in word list</div>
+            </div>
+            <div class="toggle on"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Block list &middot; 2 accounts blocked</h3>
+          <div style="background: var(--surface); border-radius: 10px; padding: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px;">
+              <div style="width: 32px; height: 32px; border-radius: 999px; background: var(--surface-alt); display: grid; place-items: center; font-size: 11px; color: var(--ink-soft); font-weight: 700;">??</div>
+              <div style="flex: 1;"><div style="font-weight: 600;">Hidden user 1</div><div style="font-size: 11px; color: var(--ink-soft);">Blocked Mar 12, 2026</div></div>
+              <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">Unblock</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-top: 1px solid var(--hairline);">
+              <div style="width: 32px; height: 32px; border-radius: 999px; background: var(--surface-alt); display: grid; place-items: center; font-size: 11px; color: var(--ink-soft); font-weight: 700;">??</div>
+              <div style="flex: 1;"><div style="font-weight: 600;">Hidden user 2</div><div style="font-size: 11px; color: var(--ink-soft);">Blocked Apr 02, 2026</div></div>
+              <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">Unblock</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 style="color: var(--coral);">Emergency private mode</h3>
+          <div class="danger-zone" style="border-color: var(--coral); background: rgba(225,90,65,0.04);">
+            <p style="font-size: 13px; color: var(--ink-muted); margin: 0 0 12px; line-height: 1.55;">Make your entire profile private immediately. Hides from public + signed-out users until you turn it off. Existing followers retain access.</p>
+            <button class="btn-coral">Enable private mode</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="danger-zone">
+            <h3 style="margin-top: 0;">Delete account</h3>
+            <p style="font-size: 13px; color: var(--ink-muted); margin: 0 0 12px; line-height: 1.55;">14-day grace period. All data permanently removed after that. Bookings already confirmed will still complete.</p>
+            <button class="btn-danger">Delete my account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W9.9 — KYC start ============ -->
+<div class="screen-marker">Screen <strong>W9.9</strong> &middot; KYC start screen</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-section">Studio</div>
+    <div class="nav-item">Dashboard</div>
+    <div class="nav-item active">KYC verification</div>
+  </aside>
+
+  <main class="canvas" style="padding-top: 64px;">
+    <div class="kyc-card">
+      <div style="display: inline-block; font-size: 11px; font-weight: 700; color: var(--coral); text-transform: uppercase; letter-spacing: .2em; padding: 4px 12px; border-radius: 999px; background: rgba(225,90,65,0.10); margin-bottom: 16px;">Required for paid content</div>
+      <h2>Verify your identity</h2>
+      <p>Takes about 5 minutes. We need this to comply with RBI / GST regulations for creators receiving payouts. Your data is encrypted, never shared, and reviewable in settings.</p>
+
+      <div class="kyc-steps">
+        <div class="kyc-step">
+          <div class="kyc-step-num">01</div>
+          <div class="kyc-step-name">PAN card</div>
+          <div class="kyc-step-time">~ 30 sec</div>
+        </div>
+        <div class="kyc-step">
+          <div class="kyc-step-num">02</div>
+          <div class="kyc-step-name">Aadhaar OTP</div>
+          <div class="kyc-step-time">~ 1 min</div>
+        </div>
+        <div class="kyc-step">
+          <div class="kyc-step-num">03</div>
+          <div class="kyc-step-name">Selfie</div>
+          <div class="kyc-step-time">~ 30 sec</div>
+        </div>
+        <div class="kyc-step">
+          <div class="kyc-step-num">04</div>
+          <div class="kyc-step-name">Bank details</div>
+          <div class="kyc-step-time">~ 1 min</div>
+        </div>
+        <div class="kyc-step">
+          <div class="kyc-step-num">05</div>
+          <div class="kyc-step-name">Review</div>
+          <div class="kyc-step-time">~ 24 h</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn-coral" style="padding: 14px 28px; font-size: 14px;">Start verification &rarr;</button>
+        <button class="btn-secondary" style="padding: 14px 28px; font-size: 14px;">Save for later</button>
+      </div>
+
+      <details class="why-expand" style="margin-top: 24px;">
+        <summary>Why we need this</summary>
+        <p>RBI rules require KYC for creators who receive payouts via UPI / bank. GST regulations require us to collect PAN for TDS deduction (Section 194-O, 1%). Your documents are encrypted at rest, processed by our compliance partner, and never used for marketing or shared outside the verification pipeline.</p>
+      </details>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W9.10 — KYC PAN upload ============ -->
+<div class="screen-marker">Screen <strong>W9.10</strong> &middot; KYC PAN upload</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-item active">KYC verification</div>
+  </aside>
+
+  <main class="canvas" style="padding-top: 32px;">
+    <h1 class="canvas-h">Upload your PAN card</h1>
+    <p class="canvas-sub" style="margin-bottom: 24px;">Step 1 of 5. We auto-extract the PAN number using OCR. You can review before submitting.</p>
+
+    <div class="kyc-shell">
+      <div class="kyc-instructions">
+        <h3>Tips for a clean scan</h3>
+        <ul class="kyc-tips">
+          <li><span class="tip-icon">&#10003;</span> Hold the card flat, in good light</li>
+          <li><span class="tip-icon">&#10003;</span> All four corners visible</li>
+          <li><span class="tip-icon">&#10003;</span> Cover the long PAN number partially with your finger if you prefer</li>
+          <li><span class="tip-icon bad">&#10005;</span> No glare on the laminated surface</li>
+          <li><span class="tip-icon bad">&#10005;</span> Don't crop the image</li>
+        </ul>
+
+        <div class="kyc-progress-rail">
+          <div class="kyc-progress-h">Verification progress</div>
+          <div class="step-row active">
+            <div class="step-num">1</div>
+            <div class="step-name">PAN card</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-name">Aadhaar OTP</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-name">Selfie</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-name">Bank details</div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">5</div>
+            <div class="step-name">Review</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="kyc-upload">
+          <div class="kyc-upload-icon">&#128190;</div>
+          <div class="kyc-upload-title">Drop your PAN card here</div>
+          <div class="kyc-upload-sub">JPG, PNG, or PDF &middot; max 5 MB</div>
+          <button class="btn-coral">Choose file</button>
+          <div class="kyc-upload-or">or</div>
+          <button class="btn-secondary">&#128247; Use webcam to capture</button>
+        </div>
+
+        <div style="margin-top: 16px; padding: 14px 18px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 12px; font-size: 12px; color: var(--ink-muted); display: grid; grid-template-columns: 24px 1fr; gap: 10px;">
+          <div style="color: var(--coral); font-size: 16px; line-height: 1.2;">&#128274;</div>
+          <div>Your PAN is encrypted at rest and processed by our compliance partner. Only the last 4 characters are visible to our team.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W9.11 — KYC Selfie capture ============ -->
+<div class="screen-marker">Screen <strong>W9.11</strong> &middot; KYC selfie capture (oval guide + 4 positioning states)</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-item active">KYC verification</div>
+  </aside>
+
+  <main class="canvas" style="padding-top: 32px;">
+    <h1 class="canvas-h">Capture a selfie</h1>
+    <p class="canvas-sub" style="margin-bottom: 24px;">Step 3 of 5. We compare your face against the photo on your PAN. This stays private &mdash; no third-party.</p>
+
+    <div class="selfie-shell">
+      <div class="selfie-camera">
+        <div class="oval-overlay"></div>
+      </div>
+
+      <div class="selfie-status">Centered &#10003;</div>
+      <div class="selfie-hint">Hold steady. Auto-capturing in 2 seconds&hellip;</div>
+
+      <div class="selfie-states">
+        <div class="state-pill">Move closer</div>
+        <div class="state-pill">Move away</div>
+        <div class="state-pill">Move left</div>
+        <div class="state-pill active">&#10003; Centered</div>
+      </div>
+
+      <div class="selfie-cta">
+        <button class="btn-coral" style="padding: 14px 28px;">Capture now</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W9.12 — KYC verified status ============ -->
+<div class="screen-marker">Screen <strong>W9.12</strong> &middot; KYC verified status</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">creator<span>&middot;</span>hub</div>
+    <div class="nav-item active">KYC verification</div>
+  </aside>
+
+  <main class="canvas" style="padding-top: 64px; display: grid; place-items: center; min-height: calc(100vh - 64px);">
+    <div class="kyc-status-card kyc-card">
+      <div class="kyc-status-icon">&#10003;</div>
+      <h2>You're verified.</h2>
+      <p>Approved on 2026-04-15. You can now publish paid experiences and receive payouts to your bank account.</p>
+      <div class="kyc-perks">
+        <div><strong>&#10003; Publish paid content</strong> &middot; Itineraries, experiences, events</div>
+        <div><strong>&#10003; Receive payouts</strong> &middot; ICICI ****4421 &middot; UPI fallback enabled</div>
+        <div><strong>&#10003; "Verified creator" badge</strong> &middot; Visible on your mini-site</div>
+        <div><strong>&#10003; Booking escrow</strong> &middot; Funds held until trip completes + 48 h</div>
+      </div>
+      <button class="btn-coral" style="margin-top: 24px; padding: 14px 28px;">Back to Studio</button>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+  document.querySelectorAll('.check-pill').forEach(p => p.addEventListener('click', () => {
+    p.classList.toggle('on');
+    p.textContent = p.classList.contains('on') ? '✓' : '';
+  }));
+  document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.parentElement.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

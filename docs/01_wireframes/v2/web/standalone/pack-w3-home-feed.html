@@ -1,0 +1,2762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CreatorHub &middot; Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --surface-alt: #F2EEE8;
+    --paper: #FFFFFF;
+    --hairline: #E5E0D7;
+    --line: #C9C3B6;
+    --ink-soft: #9C9689;
+    --ink-muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-deep: #C9472D;
+    --gold: #d8a04a;
+    --green: #498a5a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.04), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --shadow-3: 0 8px 32px rgba(44,40,35,0.10), 0 32px 64px rgba(44,40,35,0.08);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 10px 24px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+
+  /* ============================================================
+     ELEGANT WEB APP HEADER
+     ============================================================ */
+  .appbar {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--hairline);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  .appbar-row {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: -.03em;
+    color: var(--ink);
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    line-height: 1;
+  }
+  .brand em {
+    font-style: italic;
+    color: var(--coral);
+    font-weight: 600;
+  }
+  .brand::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: var(--coral);
+    margin-right: 8px;
+    align-self: center;
+  }
+
+  /* Primary nav (refined app-style links) */
+  .app-nav {
+    display: flex;
+    gap: 2px;
+    margin-left: 12px;
+  }
+  .app-nav a {
+    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    border-radius: 8px;
+    transition: color .12s;
+    letter-spacing: -.005em;
+  }
+  .app-nav a:hover { color: var(--ink); }
+  .app-nav a.active { color: var(--ink); font-weight: 600; }
+  .app-nav a.active::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: var(--coral);
+    border-radius: 999px;
+    margin-top: 6px;
+    margin-bottom: -8px;
+    width: calc(100% - 28px);
+    margin-left: 14px;
+  }
+
+  /* Refined search */
+  .app-search {
+    flex: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    height: 42px;
+    background: var(--surface);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  .app-search:hover { background: var(--paper); border-color: var(--hairline); box-shadow: var(--shadow-1); }
+  .app-search svg { stroke: var(--ink-soft); fill: none; stroke-width: 1.8; flex: 0 0 auto; }
+  .app-search-text { flex: 1; font-size: 13.5px; color: var(--ink-soft); }
+  .app-search-kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .app-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    display: grid; place-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: background .15s;
+  }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { stroke: var(--ink); fill: none; stroke-width: 1.8; }
+  .icon-btn .badge {
+    position: absolute;
+    top: 8px; right: 6px;
+    background: var(--coral);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 999px;
+    border: 2px solid var(--paper);
+    line-height: 1.2;
+    min-width: 16px;
+    text-align: center;
+  }
+  .create-cta {
+    background: var(--ink);
+    color: var(--surface);
+    border: 0;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -.005em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 6px 0 4px;
+    transition: background .15s;
+  }
+  .create-cta:hover { background: #1a1814; }
+  .create-cta svg { stroke: currentColor; fill: none; stroke-width: 2; }
+  .avatar-btn {
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d4b896, #a07c5a);
+    display: grid; place-items: center;
+    color: #fff;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1.5px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--hairline);
+    transition: box-shadow .15s;
+  }
+  .avatar-btn:hover { box-shadow: 0 0 0 2px var(--coral); }
+
+  /* ============================================================
+     SHELL — refined two-column
+     ============================================================ */
+  .shell {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 56px;
+  }
+
+  /* ============================================================
+     STICKY CHIP RAIL — refined, less harsh
+     ============================================================ */
+  .chip-rail-wrap {
+    position: sticky;
+    top: 80px;
+    z-index: 50;
+    background: rgba(250,247,244,0.92);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    margin: 0 -40px;
+    padding: 18px 40px 14px;
+    border-bottom: 1px solid transparent;
+    transition: border-color .22s, box-shadow .22s;
+  }
+  .chip-rail-wrap.scrolled {
+    border-color: var(--hairline);
+  }
+  .chip-rail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .scope-group {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+  }
+  .scope-chip {
+    background: transparent;
+    border: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    letter-spacing: -.005em;
+    transition: background .2s, color .2s;
+  }
+  .scope-chip.active { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-1); }
+  .chip-divider { width: 1px; height: 18px; background: var(--hairline); margin: 0 8px; }
+  .chip {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    letter-spacing: -.005em;
+    transition: background .15s, border-color .15s, color .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.active { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
+  .chip.location {
+    background: rgba(225,90,65,0.08);
+    color: var(--coral);
+    border-color: rgba(225,90,65,0.25);
+    font-weight: 600;
+  }
+  .chip.location:hover { border-color: var(--coral); }
+
+  /* ============================================================
+     MAIN FEED — generous spacing, refined typography
+     ============================================================ */
+  .feed { padding: 8px 0 96px; min-width: 0; }
+
+  /* Section — more breathing room, refined heading */
+  .section { margin-bottom: 80px; }
+  .section-h {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 0;
+  }
+  .section-kicker {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--coral);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .section-h h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -.025em;
+  }
+  .section-h h2 em { font-style: italic; color: var(--coral); font-weight: 500; }
+  .section-h-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+  .section-h .more {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--ink);
+    transition: color .15s, border-color .15s;
+  }
+  .section-h .more:hover { color: var(--coral); border-bottom-color: var(--coral); }
+
+  /* ============================================================
+     CARDS
+     ============================================================ */
+
+  /* Photo gradient simulations (multi-layer landscapes) */
+  .img-konkan {
+    background:
+      radial-gradient(ellipse at 25% 75%, rgba(0,30,60,0.32) 0%, transparent 45%),
+      radial-gradient(ellipse at 80% 30%, rgba(255,200,140,0.40) 0%, transparent 55%),
+      linear-gradient(180deg, #5b89c3 0%, #87a8c8 25%, #c8b894 50%, #6e8a76 70%, #2c4a3a 100%);
+  }
+  .img-monsoon {
+    background:
+      radial-gradient(ellipse at 30% 90%, rgba(0,0,0,0.40) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 10%, rgba(220,220,220,0.6) 0%, transparent 65%),
+      linear-gradient(180deg, #8a8a8a 0%, #6b8060 30%, #4a6f55 60%, #2c4a3a 100%);
+  }
+  .img-spiti {
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(80,40,20,0.55) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 30%, rgba(255,240,200,0.45) 0%, transparent 70%),
+      linear-gradient(180deg, #7896b8 0%, #b8a78d 35%, #c8a677 60%, #8a6845 100%);
+  }
+  .img-goa {
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,40,0.5) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 60%, rgba(225,90,65,0.6) 0%, transparent 50%),
+      linear-gradient(180deg, #4a3060 0%, #c8635f 30%, #f5a266 55%, #8a4f4f 80%, #2c1820 100%);
+  }
+  .img-himalaya {
+    background:
+      radial-gradient(ellipse at 30% 80%, rgba(0,40,80,0.4) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 35%, rgba(255,255,255,0.7) 0%, transparent 50%),
+      linear-gradient(180deg, #8db4d8 0%, #c8d8e8 35%, #b8b8b8 55%, #6b7568 75%, #3a3a35 100%);
+  }
+  .img-food {
+    background:
+      radial-gradient(ellipse at 40% 60%, rgba(180,80,40,0.55) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(220,160,80,0.5) 0%, transparent 60%),
+      linear-gradient(180deg, #4a3024 0%, #8a4f24 30%, #c8784a 60%, #d8a04a 80%, #a07c5a 100%);
+  }
+  .img-coorg {
+    background:
+      radial-gradient(ellipse at 30% 90%, rgba(0,40,20,0.50) 0%, transparent 60%),
+      radial-gradient(ellipse at 60% 30%, rgba(220,200,160,0.45) 0%, transparent 60%),
+      linear-gradient(180deg, #b89a76 0%, #6e8a4a 30%, #2c4a2a 60%, #1a2818 100%);
+  }
+  .img-kashid {
+    background:
+      radial-gradient(ellipse at 40% 100%, rgba(40,30,20,0.50) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 40%, rgba(255,220,160,0.55) 0%, transparent 60%),
+      linear-gradient(180deg, #5b89c3 0%, #87a8c8 35%, #d8c4a6 60%, #b89a76 80%, #4a3a30 100%);
+  }
+  .img-bhandardara {
+    background:
+      radial-gradient(ellipse at 25% 75%, rgba(0,40,30,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 25%, rgba(255,180,140,0.40) 0%, transparent 60%),
+      linear-gradient(180deg, #4a6080 0%, #6e8a76 35%, #4a6048 60%, #2a3a30 100%);
+  }
+  .img-velas {
+    background:
+      radial-gradient(ellipse at 50% 70%, rgba(80,60,40,0.55) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 30%, rgba(255,200,140,0.50) 0%, transparent 65%),
+      linear-gradient(180deg, #4a3024 0%, #8a6845 30%, #d8c4a6 60%, #b89a76 100%);
+  }
+  .img-fishing {
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(0,30,60,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 50%, rgba(255,200,140,0.45) 0%, transparent 55%),
+      linear-gradient(180deg, #5b89c3 0%, #b8c4d0 40%, #4a6080 70%, #2c3a4a 100%);
+  }
+  .img-lonavala {
+    background:
+      radial-gradient(ellipse at 35% 85%, rgba(0,40,30,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 65% 25%, rgba(255,255,255,0.5) 0%, transparent 60%),
+      linear-gradient(180deg, #6e8aa0 0%, #4a6f55 40%, #2c4a3a 70%, #1a2820 100%);
+  }
+  .img-thane {
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(255,200,80,0.55) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 70%, rgba(180,80,40,0.55) 0%, transparent 60%),
+      linear-gradient(180deg, #6e4424 0%, #c8784a 30%, #d8a04a 60%, #8a5824 100%);
+  }
+  .img-bandra {
+    background:
+      radial-gradient(ellipse at 40% 80%, rgba(0,30,60,0.50) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 30%, rgba(225,140,90,0.55) 0%, transparent 55%),
+      linear-gradient(180deg, #6a4a60 0%, #b86850 35%, #d8a06a 60%, #6a4a4a 100%);
+  }
+  .img-matheran {
+    background:
+      radial-gradient(ellipse at 30% 80%, rgba(40,60,40,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 30%, rgba(255,210,160,0.45) 0%, transparent 60%),
+      linear-gradient(180deg, #b8a88a 0%, #6e7a4a 35%, #4a5a3a 60%, #2a3a2a 100%);
+  }
+  .img-mahabaleshwar {
+    background:
+      radial-gradient(ellipse at 30% 80%, rgba(40,80,40,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 30%, rgba(255,180,200,0.50) 0%, transparent 60%),
+      linear-gradient(180deg, #b8d4a8 0%, #6e9a5a 35%, #4a6a3a 60%, #2a4a2a 100%);
+  }
+
+  /* Card — refined, more elegant */
+  .card {
+    cursor: pointer;
+    display: block;
+    transition: transform .25s cubic-bezier(.22,1,.36,1);
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card:hover .card-photo-img { transform: scale(1.05); }
+  .card:hover .card-title { color: var(--coral); }
+  .card:hover .card-bookmark { opacity: 1; }
+
+  .card-photo {
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    position: relative;
+    background: var(--surface-alt);
+    box-shadow: 0 0 0 1px rgba(44,40,35,0.04);
+  }
+  .card-photo-img {
+    position: absolute; inset: 0;
+    transition: transform .6s cubic-bezier(.22,1,.36,1);
+  }
+  .card-photo-img::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.20) 100%);
+    pointer-events: none;
+  }
+  .card-pill {
+    position: absolute; top: 12px; left: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,253,247,0.92);
+    backdrop-filter: blur(8px);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--ink);
+  }
+  .card-pill.experience { background: rgba(225,90,65,0.92); color: #fff; }
+  .card-pill.event { background: rgba(44,40,35,0.92); color: #fffdf7; }
+  .card-bookmark {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255,253,247,0.88);
+    backdrop-filter: blur(8px);
+    display: grid; place-items: center;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity .2s, background .2s, transform .12s;
+  }
+  .card-bookmark:hover { transform: scale(1.05); }
+  .card-bookmark.saved { background: var(--coral); opacity: 1; }
+  .card-bookmark svg { stroke: var(--ink); fill: none; stroke-width: 1.8; }
+  .card-bookmark.saved svg { stroke: #fff; fill: #fff; }
+  .card-price-overlay {
+    position: absolute; bottom: 12px; left: 12px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(255,253,247,0.92);
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -.005em;
+  }
+  .card-rating-overlay {
+    position: absolute; bottom: 12px; right: 12px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(44,40,35,0.85);
+    color: #fffdf7;
+    backdrop-filter: blur(6px);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .card-rating-overlay .star { color: var(--gold); font-size: 10px; }
+
+  .card-body { padding: 0; }
+  .card-byline {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+  .avatar-xs {
+    width: 22px; height: 22px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d4b896, #a07c5a);
+    display: grid; place-items: center;
+    color: #fff;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 9px;
+    flex: 0 0 auto;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.6);
+  }
+  .card-byline strong { color: var(--ink); font-weight: 600; letter-spacing: -.005em; }
+  .card-byline .verified { color: var(--coral); font-size: 9px; }
+  .card-byline .time { color: var(--ink-soft); margin-left: auto; font-size: 11px; font-weight: 400; }
+
+  .card-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 0 0 12px;
+    transition: color .25s ease;
+    letter-spacing: -.018em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    flex-wrap: wrap;
+    letter-spacing: -.005em;
+  }
+  .card-meta-sep { color: var(--hairline); font-size: 8px; }
+  .card-meta-stat { display: flex; align-items: center; gap: 3px; }
+  .card-meta-stat svg { stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.6; }
+
+  /* Featured large card — cinematic */
+  .card-featured {
+    grid-column: span 2;
+  }
+  .card-featured .card-photo {
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    margin-bottom: 0;
+  }
+  .card-featured-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%);
+    pointer-events: none;
+  }
+  .card-featured-content {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 32px 36px;
+    color: #fffdf7;
+  }
+  .card-featured-content .card-pill {
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    position: static;
+    margin-bottom: 16px;
+    display: inline-block;
+    padding: 5px 12px;
+    font-size: 10px;
+    letter-spacing: .14em;
+  }
+  .card-featured-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 1.05;
+    margin: 0 0 16px;
+    letter-spacing: -.025em;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.3);
+    max-width: 90%;
+  }
+  .card-featured-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    opacity: 0.92;
+    flex-wrap: wrap;
+    font-weight: 400;
+  }
+  .card-featured-meta strong { color: #fffdf7; font-weight: 600; }
+
+  /* Grid layouts — generous gaps */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px 20px; }
+
+  /* Carousel rail — refined */
+  .rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 260px;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 4px 0 16px;
+    scroll-snap-type: x mandatory;
+    margin: 0 -4px;
+    scrollbar-width: thin;
+  }
+  .rail > * { scroll-snap-align: start; }
+  .rail::-webkit-scrollbar { height: 4px; }
+  .rail::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 999px; }
+  .rail::-webkit-scrollbar-track { background: transparent; }
+
+  /* Posts list (Instagram-style single column) */
+  .post-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .post-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow .18s, transform .18s;
+  }
+  .post-card:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
+  .post-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .post-head .avatar-xs { width: 36px; height: 36px; font-size: 13px; }
+  .post-head-name { font-weight: 600; font-size: 14px; }
+  .post-head-name .verified { color: var(--coral); font-size: 11px; margin-left: 2px; }
+  .post-head-meta { font-size: 11px; color: var(--ink-soft); }
+  .post-head .more {
+    margin-left: auto;
+    color: var(--ink-soft);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .post-head .more:hover { background: var(--surface); color: var(--ink); }
+  .post-photo {
+    aspect-ratio: 4 / 5;
+    position: relative;
+  }
+  .post-photo-img {
+    position: absolute; inset: 0;
+  }
+  .post-photo-counter {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+  }
+  .post-photo-dots {
+    position: absolute; bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 4px;
+  }
+  .post-photo-dots span {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.5);
+  }
+  .post-photo-dots span.active { background: #fff; }
+  .post-actions {
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .post-action {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .post-action svg { stroke: var(--ink); fill: none; stroke-width: 2; }
+  .post-action.liked { color: var(--coral); }
+  .post-action.liked svg { stroke: var(--coral); fill: var(--coral); }
+  .post-action.bookmark { margin-left: auto; }
+  .post-likes { padding: 0 16px; font-size: 13px; font-weight: 600; }
+  .post-caption {
+    padding: 6px 16px 0;
+    font-family: var(--serif);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .post-caption strong { font-weight: 600; }
+  .post-caption .more-link { color: var(--ink-soft); font-family: var(--sans); font-size: 12px; cursor: pointer; }
+  .post-comments {
+    padding: 6px 16px 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .post-comments strong { color: var(--ink-muted); font-weight: 600; }
+
+  /* ============================================================
+     RIGHT RAIL — refined, more whitespace
+     ============================================================ */
+  .rail-aside {
+    padding: 8px 0 96px;
+    position: sticky;
+    top: 152px;
+    align-self: start;
+    height: max-content;
+    max-height: calc(100vh - 168px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .rail-aside::-webkit-scrollbar { width: 0; }
+
+  .rail-block {
+    margin-bottom: 40px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .rail-block:last-child { margin-bottom: 0; }
+  .rail-block-h {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .rail-block-h h4 {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .rail-block-h a {
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 500;
+    transition: color .15s;
+  }
+  .rail-block-h a:hover { color: var(--coral); }
+
+  /* Gamification card */
+  .game-card {
+    background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04));
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .quest-mini {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+  .ring-mini { position: relative; width: 76px; height: 76px; }
+  .ring-mini svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-mini .track { fill: none; stroke: var(--hairline); stroke-width: 9; }
+  .ring-mini .seg { fill: none; stroke: var(--coral); stroke-width: 9; stroke-linecap: round; }
+  .ring-mini-center {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+  }
+  .ring-mini-center span {
+    font-size: 10px;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    display: block;
+    margin-top: -3px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .quest-mini-meta h5 { font-family: var(--serif); font-weight: 600; font-size: 15px; margin: 0 0 4px; line-height: 1.25; }
+  .quest-mini-meta p { font-size: 11px; color: var(--ink-muted); margin: 0; line-height: 1.45; }
+
+  .streak-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .streak-flame { font-size: 28px; line-height: 1; }
+  .streak-num { font-family: var(--serif); font-weight: 600; font-size: 20px; line-height: 1.1; }
+  .streak-num em { color: var(--coral); font-style: normal; }
+  .streak-sub { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  .level-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .level-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .level-num { font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1; }
+  .level-num em { color: var(--coral); font-style: normal; font-weight: 500; font-size: 12px; margin-left: 2px; text-transform: uppercase; letter-spacing: .08em; }
+  .level-xp { font-size: 11px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .level-xp strong { color: var(--ink); font-weight: 600; }
+  .xp-track {
+    height: 4px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f38567, var(--coral));
+    width: 48%;
+    border-radius: 999px;
+  }
+  .level-next { font-size: 10px; color: var(--ink-soft); }
+
+  /* Continue reading — refined */
+  .continue-row {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    align-items: center;
+    border-top: 1px solid var(--hairline);
+    cursor: pointer;
+    transition: padding-left .15s;
+  }
+  .continue-row:first-of-type { border-top: 0; padding-top: 0; }
+  .continue-row:hover { padding-left: 4px; }
+  .continue-row:hover .continue-title { color: var(--coral); }
+  .continue-thumb {
+    width: 64px; height: 64px;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    background: var(--surface-alt);
+    box-shadow: 0 0 0 1px rgba(44,40,35,0.04);
+  }
+  .continue-thumb-img { position: absolute; inset: 0; }
+  .continue-meta { min-width: 0; }
+  .continue-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 0 0 4px;
+    transition: color .2s;
+    letter-spacing: -.01em;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .continue-sub {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .continue-progress {
+    height: 2px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .continue-progress-fill {
+    height: 100%;
+    background: var(--coral);
+    border-radius: 999px;
+  }
+
+  /* Mini leaderboard — refined */
+  .lb-list { padding: 0; margin: 0; list-style: none; }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 20px 32px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--hairline);
+    cursor: pointer;
+    transition: padding-left .15s;
+  }
+  .lb-row:first-child { border-top: 0; padding-top: 0; }
+  .lb-row:hover { padding-left: 4px; }
+  .lb-rank {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-size: 16px;
+    text-align: center;
+  }
+  .lb-rank.gold { color: var(--gold); }
+  .lb-row .creator-avatar-sm { width: 32px; height: 32px; font-size: 12px; box-shadow: 0 0 0 1px rgba(255,255,255,0.6); }
+  .lb-row .creator-name { font-size: 13px; letter-spacing: -.005em; }
+  .lb-row .creator-bio { font-size: 10.5px; line-height: 1.35; }
+
+  /* ===== GUEST view styles ===== */
+  .guest-section-marker {
+    background: var(--surface-alt);
+    padding: 16px 32px;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+  .guest-section-marker strong { color: var(--ink); }
+
+  .guest-appbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .guest-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    padding: 8px 12px;
+  }
+  .guest-link:hover { color: var(--coral); }
+  .guest-cta {
+    background: var(--coral);
+    color: #fff;
+    border: 0;
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .guest-cta:hover { background: var(--coral-deep); }
+
+  /* Guest hero band */
+  .guest-hero {
+    background: linear-gradient(155deg, #2c4a3a 0%, #5b7559 60%, #87a079 100%);
+    color: #fffdf7;
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .guest-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(255,200,140,0.20) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .guest-hero > * { position: relative; z-index: 1; }
+  .guest-hero-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .guest-hero h2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    letter-spacing: -.02em;
+  }
+  .guest-hero p {
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0 0 20px;
+    opacity: 0.85;
+    max-width: 480px;
+  }
+  .guest-hero-actions { display: flex; gap: 8px; }
+  .guest-hero-actions .guest-cta { background: var(--coral); color: #fff; padding: 12px 22px; }
+  .guest-hero-actions .signin-secondary {
+    background: rgba(255,253,247,0.15);
+    border: 1px solid rgba(255,253,247,0.30);
+    color: #fffdf7;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .guest-hero-features {
+    display: grid;
+    gap: 10px;
+  }
+  .guest-feat {
+    padding: 12px 14px;
+    background: rgba(255,253,247,0.10);
+    border: 1px solid rgba(255,253,247,0.18);
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .guest-feat-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--coral);
+    display: grid; place-items: center;
+    font-size: 14px;
+  }
+  .guest-feat strong { font-weight: 600; }
+  .guest-feat small { display: block; font-size: 11px; opacity: 0.7; margin-top: 1px; }
+
+  /* Guest right rail join card */
+  .join-card {
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .join-card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(225,90,65,0.5) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .join-card > * { position: relative; z-index: 1; }
+  .join-card h4 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 6px;
+    line-height: 1.2;
+    color: #fffdf7;
+    letter-spacing: -.01em;
+  }
+  .join-card h4 em { color: var(--coral); font-style: italic; }
+  .join-card p {
+    font-size: 12px;
+    margin: 0 0 14px;
+    opacity: 0.78;
+    line-height: 1.5;
+  }
+  .join-card-list {
+    padding: 0; margin: 0 0 16px; list-style: none;
+    font-size: 12px;
+  }
+  .join-card-list li {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 8px;
+    padding: 4px 0;
+    opacity: 0.85;
+  }
+  .join-card-list .check { color: var(--coral); }
+  .join-card .guest-cta { width: 100%; }
+
+  /* Newsletter mini */
+  .newsletter-mini {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .newsletter-mini h4 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 4px;
+    line-height: 1.25;
+  }
+  .newsletter-mini h4 em { color: var(--coral); font-style: italic; }
+  .newsletter-mini p {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    line-height: 1.5;
+  }
+  .newsletter-mini-form { display: flex; gap: 6px; }
+  .newsletter-mini-form input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--surface);
+  }
+  .newsletter-mini-form button {
+    background: var(--coral);
+    color: #fff;
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .newsletter-mini-meta {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--ink-soft);
+  }
+
+  /* Trending tags — refined */
+  .tag-list { padding: 0; margin: 0; list-style: none; }
+  .tag-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    font-size: 13px;
+    border-top: 1px solid var(--hairline);
+    cursor: pointer;
+    transition: padding-left .15s;
+  }
+  .tag-row:first-child { border-top: 0; padding-top: 0; }
+  .tag-row:hover { padding-left: 4px; }
+  .tag-row:hover .tag-name strong { color: var(--coral); }
+  .tag-rank {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    width: 18px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .tag-name { font-weight: 500; flex: 1; letter-spacing: -.005em; }
+  .tag-name strong { color: var(--ink); font-weight: 600; transition: color .2s; }
+  .tag-count { font-size: 11px; color: var(--ink-soft); }
+
+  /* Suggested creators — refined */
+  .creator-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 12px;
+    padding: 14px 0;
+    align-items: center;
+    border-top: 1px solid var(--hairline);
+  }
+  .creator-row:first-of-type { border-top: 0; padding-top: 0; }
+  .creator-avatar-sm {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d4b896, #a07c5a);
+    display: grid; place-items: center;
+    color: #fff;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.6);
+  }
+  .creator-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -.005em;
+  }
+  .creator-name .verified { color: var(--coral); font-size: 10px; }
+  .creator-bio {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .follow-btn {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: -.005em;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .follow-btn:hover { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .follow-btn.following { background: var(--surface-alt); border-color: var(--surface-alt); color: var(--ink-muted); }
+  .follow-btn.following:hover { background: var(--surface-alt); color: var(--ink); border-color: var(--surface-alt); }
+
+  /* ============================================================
+     FILTER FAB (right edge floating button)
+     ============================================================ */
+  .filter-fab {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    background: var(--ink);
+    color: var(--surface);
+    border: 0;
+    padding: 18px 14px;
+    border-radius: 14px 0 0 14px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 80;
+    box-shadow: -4px 4px 16px rgba(44,40,35,0.15);
+    transition: padding-right .18s;
+  }
+  .filter-fab:hover { padding-right: 18px; }
+  .filter-fab svg { stroke: currentColor; fill: none; stroke-width: 2; }
+  .filter-fab .fab-count {
+    background: var(--coral);
+    color: #fff;
+    width: 18px; height: 18px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .filter-fab .fab-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* Filter drawer */
+  .filter-scrim {
+    position: fixed; inset: 0;
+    background: rgba(44,40,35,0.45);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease;
+  }
+  .filter-scrim.open { opacity: 1; pointer-events: auto; }
+  .filter-drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 420px;
+    max-width: 90vw;
+    background: var(--paper);
+    z-index: 110;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -16px 0 48px rgba(0,0,0,0.15);
+  }
+  .filter-drawer.open { transform: translateX(0); }
+  .drawer-h {
+    padding: 24px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-h h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .drawer-h-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .drawer-close {
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--paper);
+    display: grid; place-items: center;
+    font-size: 18px;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .drawer-close:hover { background: var(--surface); }
+  .drawer-body { flex: 1; padding: 24px; overflow-y: auto; }
+  .filter-group { padding: 16px 0; border-top: 1px solid var(--hairline); }
+  .filter-group:first-of-type { border-top: 0; padding-top: 0; }
+  .filter-group h4 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-pill {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .filter-pill:hover { border-color: var(--ink); color: var(--ink); }
+  .filter-pill.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .filter-pill .count { opacity: 0.5; margin-left: 4px; font-weight: 400; }
+
+  .filter-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .filter-checkbox {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--hairline);
+    border-radius: 4px;
+    flex: 0 0 auto;
+    display: grid; place-items: center;
+    transition: background .12s, border-color .12s;
+  }
+  .filter-checkbox.on {
+    background: var(--coral);
+    border-color: var(--coral);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .filter-row-text { flex: 1; }
+  .filter-row-count { font-size: 11px; color: var(--ink-soft); }
+
+  .range-wrap { padding: 8px 0; }
+  .range-vals { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .range-track { height: 3px; background: var(--hairline); border-radius: 999px; position: relative; }
+  .range-fill { position: absolute; height: 100%; background: var(--coral); border-radius: 999px; }
+  .range-thumb { position: absolute; width: 14px; height: 14px; background: var(--paper); border: 2px solid var(--coral); border-radius: 999px; top: 50%; transform: translate(-50%, -50%); cursor: grab; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; font-size: 13px; cursor: pointer; }
+  .toggle-row .label-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .toggle-pin {
+    width: 32px; height: 18px;
+    background: var(--hairline);
+    border-radius: 999px;
+    position: relative;
+    flex: 0 0 auto;
+    transition: background .18s;
+  }
+  .toggle-pin::after {
+    content: '';
+    width: 14px; height: 14px;
+    border-radius: 999px;
+    background: var(--paper);
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: left .18s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+  .toggle-pin.on { background: var(--coral); }
+  .toggle-pin.on::after { left: 16px; }
+
+  .drawer-foot {
+    padding: 16px 24px;
+    border-top: 1px solid var(--hairline);
+    background: var(--surface);
+    display: flex; gap: 8px;
+  }
+  .clear-btn { flex: 1; background: transparent; border: 1px solid var(--hairline); color: var(--ink-muted); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .show-btn { flex: 2; background: var(--coral); border: 0; color: #fff; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .show-btn:hover { background: var(--coral-deep); }
+
+  /* Responsive */
+  @media (max-width: 1180px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail-aside { display: none; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(3, 1fr); }
+    .card-featured { grid-column: span 2; }
+  }
+  @media (max-width: 720px) {
+    .appbar-row { gap: 12px; padding: 0 16px; }
+    .app-nav { display: none; }
+    .app-search { max-width: none; }
+    .create-cta { display: none; }
+    .shell { padding: 0 16px; }
+    .chip-rail-wrap { margin: 0 -16px; padding: 12px 16px; }
+    .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .card-featured { grid-column: span 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span style="opacity:0.5;">Pack</span> W3 &middot; Home Feed
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- ============ MODERN WEB-APP HEADER ============ -->
+<header class="appbar">
+  <div class="appbar-row">
+    <a class="brand">creator<em>hub</em></a>
+
+    <nav class="app-nav">
+      <a href="#" class="active">Home</a>
+      <a href="#">Discover</a>
+      <a href="#">Saved</a>
+      <a href="#">Bookings</a>
+    </nav>
+
+    <div class="app-search">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="app-search-text">Search creators, places, trips&hellip;</span>
+      <span class="app-search-kbd">&#8984; K</span>
+    </div>
+
+    <div class="app-actions">
+      <button class="icon-btn" title="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge">3</span>
+      </button>
+      <button class="create-cta">
+        <svg width="14" height="14" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create
+      </button>
+      <div class="avatar-btn">RB</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TWO-COL SHELL: feed + right rail (no left sidebar) ============ -->
+<div class="shell">
+
+  <main class="feed">
+
+    <!-- Sticky chip rail -->
+    <div class="chip-rail-wrap" id="chip-rail">
+      <div class="chip-rail">
+        <div class="scope-group">
+          <button class="scope-chip active">Near you</button>
+          <button class="scope-chip">Following</button>
+        </div>
+        <span class="chip-divider"></span>
+        <button class="chip location">&#128205; Mumbai</button>
+        <button class="chip active">All</button>
+        <button class="chip">Posts</button>
+        <button class="chip">Itineraries</button>
+        <button class="chip">Experiences</button>
+        <button class="chip">Events</button>
+        <span class="chip-divider"></span>
+        <button class="chip">Road Trips</button>
+        <button class="chip">Biking</button>
+        <button class="chip">Trekking</button>
+        <button class="chip">Food Trails</button>
+      </div>
+    </div>
+
+    <!-- Section: Hot near Mumbai (carousel) -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2>Hot near <em>Mumbai</em></h2>
+          <div class="section-h-sub">Top 12 saved this week within 200 km</div>
+        </div>
+        <a href="#" class="more">See all 42 &rarr;</a>
+      </div>
+
+      <div class="rail">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-konkan"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;6,500</span>
+            <span class="card-rating-overlay"><span class="star">&#9733;</span> 4.8</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya Ravi</strong><span class="verified">&#10003;</span>
+              <span class="time">3 d</span>
+            </div>
+            <h3 class="card-title">Konkan in 4 Quiet Days</h3>
+            <div class="card-meta">
+              <span>4 days &middot; 312 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>312 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-bhandardara"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;2,400</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya R.</strong><span class="verified">&#10003;</span>
+              <span class="time">5 d</span>
+            </div>
+            <h3 class="card-title">Bhandardara Sunrise Loop</h3>
+            <div class="card-meta">
+              <span>1 day &middot; 220 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>4.7 &#9733;</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-thane"></div>
+            <span class="card-pill experience">Experience</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;1,200</span>
+            <span class="card-rating-overlay"><span class="star">&#9733;</span> 4.9</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">DP</div>
+              <strong>Devansh P.</strong>
+              <span class="time">Sun</span>
+            </div>
+            <h3 class="card-title">Sunday Biryani Walk &middot; Thane</h3>
+            <div class="card-meta">
+              <span>3 hours</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>18 / 24 spots</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-matheran"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark saved"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;2,800</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya R.</strong><span class="verified">&#10003;</span>
+              <span class="time">2 w</span>
+            </div>
+            <h3 class="card-title">Matheran Without the Crowds</h3>
+            <div class="card-meta">
+              <span>2 days &middot; 80 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>218 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-velas"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;3,800</span>
+            <span class="card-rating-overlay"><span class="star">&#9733;</span> 4.9</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">DP</div>
+              <strong>Devansh P.</strong>
+              <span class="time">3 w</span>
+            </div>
+            <h3 class="card-title">Velas Turtle Festival &middot; Feb-Apr only</h3>
+            <div class="card-meta">
+              <span>2 days &middot; 240 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>412 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-bandra"></div>
+            <span class="card-pill event">Event</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay" style="background: rgba(73,138,90,0.92); color:#fff;">Free</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">SK</div>
+              <strong>Saanvi K.</strong><span class="verified">&#10003;</span>
+              <span class="time">Fri</span>
+            </div>
+            <h3 class="card-title">Monsoon Photo Walk &middot; Bandra</h3>
+            <div class="card-meta">
+              <span>2 hours</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>32 going</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-fishing"></div>
+            <span class="card-pill experience">Experience</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;1,500</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+              <strong>Riya M.</strong>
+              <span class="time">1 mo</span>
+            </div>
+            <h3 class="card-title">Konkan Fishing Village Walk</h3>
+            <div class="card-meta">
+              <span>4 hours</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>8 / 12 spots</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section: Hand-picked (featured + grid) -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2><em>Hand-picked</em> for you</h2>
+          <div class="section-h-sub">Based on Road Trips &amp; Biking &middot; refreshed Mondays</div>
+        </div>
+        <a href="#" class="more">All &rarr;</a>
+      </div>
+
+      <div class="grid-3">
+
+        <article class="card card-featured">
+          <div class="card-photo">
+            <div class="card-photo-img img-spiti"></div>
+            <div class="card-featured-overlay"></div>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <div class="card-featured-content">
+              <span class="card-pill">Featured Itinerary</span>
+              <h3 class="card-featured-title">Spiti in October &mdash; <em>Cold Desert Crossing</em></h3>
+              <div class="card-featured-meta">
+                <span><strong>Vivaan Kapoor</strong> &#10003;</span>
+                <span>9 days &middot; 1,100 km</span>
+                <span>From <strong>&#8377;22,000</strong></span>
+                <span>4.9 &#9733; (124)</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-coorg"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;8,400</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+              <strong>Pranav T.</strong>
+              <span class="time">1 w</span>
+            </div>
+            <h3 class="card-title">Coorg Coffee Estates &middot; A 3-Day Trail</h3>
+            <div class="card-meta">
+              <span>3 days &middot; 240 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>4.7 &#9733;</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section: Trips from Mumbai -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2>Trips from <em>Mumbai</em></h2>
+          <div class="section-h-sub">Within a 3-hour drive of you</div>
+        </div>
+        <a href="#" class="more">All 18 &rarr;</a>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-lonavala"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;3,200</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+              <strong>Riya M.</strong>
+            </div>
+            <h3 class="card-title">Lonavala &mdash; 36 hours of Monsoon</h3>
+            <div class="card-meta">
+              <span>2 days &middot; 95 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>4.7 &#9733; (124)</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-mahabaleshwar"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;5,400</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+              <strong>Pranav T.</strong>
+            </div>
+            <h3 class="card-title">Mahabaleshwar Strawberry Run</h3>
+            <div class="card-meta">
+              <span>2 days &middot; 280 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>96 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-kashid"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark saved"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;1,800</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya R.</strong><span class="verified">&#10003;</span>
+            </div>
+            <h3 class="card-title">Kashid Beach &mdash; the right way to do a day trip</h3>
+            <div class="card-meta">
+              <span>1 day &middot; 130 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>4.8 &#9733;</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section: Trending posts (3-col compact grid) -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2><em>Trending</em> posts</h2>
+          <div class="section-h-sub">Photos and short reads travelers are talking about right now</div>
+        </div>
+        <a href="#" class="more">All posts &rarr;</a>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-velas"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya Ravi</strong><span class="verified">&#10003;</span>
+              <span class="time">4 h</span>
+            </div>
+            <h3 class="card-title">A turtle the size of a wallet at 5:48 a.m.</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 241</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 32</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 412</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-coorg"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+              <strong>Pranav T.</strong>
+              <span class="time">8 h</span>
+            </div>
+            <h3 class="card-title">A coffee estate in Coorg that sells beans for &#8377;480/kg</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 184</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 21</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 96</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-himalaya"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark saved"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span style="position: absolute; bottom: 8px; left: 8px; padding: 3px 8px; border-radius: 4px; background: rgba(225,90,65,0.92); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;">Editor's pick</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+              <strong>Vivaan K.</strong><span class="verified">&#10003;</span>
+              <span class="time">1 d</span>
+            </div>
+            <h3 class="card-title">Spiti closes November 12. Here's how to do it before then.</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 312</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 48</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 218</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-goa"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+              <strong>Riya M.</strong>
+              <span class="time">2 d</span>
+            </div>
+            <h3 class="card-title">The 4 PM trick: empty south-Goa beaches in March</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 142</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 22</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 84</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-food"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">SK</div>
+              <strong>Saanvi K.</strong><span class="verified">&#10003;</span>
+              <span class="time">3 d</span>
+            </div>
+            <h3 class="card-title">Where to eat real Chettinad food in Karaikudi</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 96</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 14</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 64</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-bhandardara"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya R.</strong><span class="verified">&#10003;</span>
+              <span class="time">3 d</span>
+            </div>
+            <h3 class="card-title">A monsoon morning at Bhandardara &mdash; six photographs</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 84</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 12</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128205; 32</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section: From follows (carousel) -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2>From creators you <em>follow</em></h2>
+          <div class="section-h-sub">3 new today &middot; newest first</div>
+        </div>
+        <a href="#" class="more">All updates &rarr;</a>
+      </div>
+
+      <div class="rail">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-bhandardara"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya Ravi</strong><span class="verified">&#10003;</span>
+              <span class="time">3 h</span>
+            </div>
+            <h3 class="card-title">A monsoon morning at Bhandardara</h3>
+            <div class="card-meta">
+              <span>241 likes</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>32 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-coorg"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+              <strong>Pranav T.</strong>
+              <span class="time">8 h</span>
+            </div>
+            <h3 class="card-title">Found this hidden cafe in Coorg</h3>
+            <div class="card-meta">
+              <span>184 likes</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>21 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-spiti"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;22,000</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+              <strong>Vivaan K.</strong><span class="verified">&#10003;</span>
+              <span class="time">1 d</span>
+            </div>
+            <h3 class="card-title">Spiti Routes &mdash; Updated for 2026</h3>
+            <div class="card-meta">
+              <span>9 days &middot; 1,100 km</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-goa"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+              <strong>Riya M.</strong>
+              <span class="time">2 d</span>
+            </div>
+            <h3 class="card-title">The 4 PM trick: empty beaches in March</h3>
+            <div class="card-meta">
+              <span>142 likes</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>84 saves</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ RIGHT RAIL ============ -->
+  <aside class="rail-aside">
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Continue reading</h4>
+        <a>history</a>
+      </div>
+
+      <a class="continue-row">
+        <div class="continue-thumb"><div class="continue-thumb-img img-konkan"></div></div>
+        <div class="continue-meta">
+          <div class="continue-title">Konkan in 4 Quiet Days</div>
+          <div class="continue-sub">by Aanya Ravi &middot; Day 2</div>
+          <div class="continue-progress"><div class="continue-progress-fill" style="width: 38%;"></div></div>
+        </div>
+      </a>
+      <a class="continue-row">
+        <div class="continue-thumb"><div class="continue-thumb-img img-spiti"></div></div>
+        <div class="continue-meta">
+          <div class="continue-title">Spiti Routes &mdash; 2026</div>
+          <div class="continue-sub">by Vivaan K. &middot; Day 5</div>
+          <div class="continue-progress"><div class="continue-progress-fill" style="width: 62%;"></div></div>
+        </div>
+      </a>
+      <a class="continue-row">
+        <div class="continue-thumb"><div class="continue-thumb-img img-coorg"></div></div>
+        <div class="continue-meta">
+          <div class="continue-title">Coorg Coffee Trail</div>
+          <div class="continue-sub">by Pranav T. &middot; just started</div>
+          <div class="continue-progress"><div class="continue-progress-fill" style="width: 12%;"></div></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Top creators this month</h4>
+        <a>full</a>
+      </div>
+      <ol class="lb-list">
+        <li class="lb-row">
+          <span class="lb-rank gold">1</span>
+          <div class="creator-avatar-sm">AR</div>
+          <div>
+            <div class="creator-name">Aanya R. <span class="verified">&#10003;</span></div>
+            <div class="creator-bio">3,120 XP &middot; +2 this week</div>
+          </div>
+        </li>
+        <li class="lb-row">
+          <span class="lb-rank">2</span>
+          <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+          <div>
+            <div class="creator-name">Vivaan K. <span class="verified">&#10003;</span></div>
+            <div class="creator-bio">2,840 XP</div>
+          </div>
+        </li>
+        <li class="lb-row">
+          <span class="lb-rank">3</span>
+          <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+          <div>
+            <div class="creator-name">Riya M.</div>
+            <div class="creator-bio">2,408 XP &middot; +1</div>
+          </div>
+        </li>
+        <li class="lb-row">
+          <span class="lb-rank">4</span>
+          <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+          <div>
+            <div class="creator-name">Pranav T.</div>
+            <div class="creator-bio">1,884 XP</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Trending in Mumbai</h4>
+        <a>+ all</a>
+      </div>
+      <ol class="tag-list">
+        <li class="tag-row">
+          <span class="tag-rank">1</span>
+          <span class="tag-name"><strong>#solofemmetravel</strong></span>
+          <span class="tag-count">2.1k posts</span>
+        </li>
+        <li class="tag-row">
+          <span class="tag-rank">2</span>
+          <span class="tag-name"><strong>#weekenddrives</strong></span>
+          <span class="tag-count">1.8k posts</span>
+        </li>
+        <li class="tag-row">
+          <span class="tag-rank">3</span>
+          <span class="tag-name"><strong>#monsoonhills</strong></span>
+          <span class="tag-count">1.4k posts</span>
+        </li>
+        <li class="tag-row">
+          <span class="tag-rank">4</span>
+          <span class="tag-name"><strong>#konkancoast</strong></span>
+          <span class="tag-count">982 posts</span>
+        </li>
+        <li class="tag-row">
+          <span class="tag-rank">5</span>
+          <span class="tag-name"><strong>#hiddencafes</strong></span>
+          <span class="tag-count">684 posts</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Suggested creators</h4>
+        <a>more</a>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+        <div>
+          <div class="creator-name">Vivaan K. <span class="verified">&#10003;</span></div>
+          <div class="creator-bio">Himalayan high-altitude routes</div>
+        </div>
+        <button class="follow-btn">Follow</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+        <div>
+          <div class="creator-name">Riya M.</div>
+          <div class="creator-bio">Hidden Goa &amp; Konkan</div>
+        </div>
+        <button class="follow-btn following">Following</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c8a677, #8a6845);">SK</div>
+        <div>
+          <div class="creator-name">Saanvi K. <span class="verified">&#10003;</span></div>
+          <div class="creator-bio">Tamil Nadu food trails</div>
+        </div>
+        <button class="follow-btn">Follow</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm">DP</div>
+        <div>
+          <div class="creator-name">Devansh P.</div>
+          <div class="creator-bio">Mumbai food walks</div>
+        </div>
+        <button class="follow-btn">Follow</button>
+      </div>
+    </div>
+
+    <div class="rail-block" style="font-size: 11px; color: var(--ink-soft); line-height: 1.6;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+        <a style="color: var(--ink-muted);">About</a>
+        <a style="color: var(--ink-muted);">Help</a>
+        <a style="color: var(--ink-muted);">Privacy</a>
+        <a style="color: var(--ink-muted);">Terms</a>
+      </div>
+      &copy; 2026 CreatorHub &middot; Bengaluru
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- ============================================================
+     GUEST VIEW — same screen, logged-out state
+     ============================================================ -->
+<div class="guest-section-marker">Screen <strong>W3.B</strong> &middot; Guest view (signed-out user) &middot; same page, with sign-up nudges and a join CTA replacing personalized rail blocks</div>
+
+<!-- Guest header (no avatar, no Create button, no notification badge) -->
+<header class="appbar">
+  <div class="appbar-row">
+    <a class="brand">creator<em>hub</em></a>
+
+    <nav class="app-nav">
+      <a href="#" class="active">Home</a>
+      <a href="#">Discover</a>
+      <a href="#">Become a creator</a>
+    </nav>
+
+    <div class="app-search">
+      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="app-search-text">Search creators, places, trips&hellip;</span>
+      <span class="app-search-kbd">&#8984; K</span>
+    </div>
+
+    <div class="guest-appbar-actions">
+      <a class="guest-link">Sign in</a>
+      <button class="guest-cta">Get started &rarr;</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <main class="feed">
+
+    <!-- Guest hero promo band (inline value prop) -->
+    <section class="guest-hero">
+      <div>
+        <div class="guest-hero-tag">For travelers</div>
+        <h2>Travel stories worth saving. Travel plans worth <em>booking.</em></h2>
+        <p>Discover, save, and book trips directly from creators. UPI-first, escrowed, 100% refund if creator cancels. Free to browse, free to read.</p>
+        <div class="guest-hero-actions">
+          <button class="guest-cta">Create free account</button>
+          <button class="signin-secondary">Continue as guest</button>
+        </div>
+      </div>
+      <div class="guest-hero-features">
+        <div class="guest-feat">
+          <div class="guest-feat-icon">&#128205;</div>
+          <div><strong>Save spots &amp; trips</strong><small>Build your trip diary across web + iOS + Android</small></div>
+        </div>
+        <div class="guest-feat">
+          <div class="guest-feat-icon">&#128104;</div>
+          <div><strong>Follow creators</strong><small>2,400+ verified travel storytellers</small></div>
+        </div>
+        <div class="guest-feat">
+          <div class="guest-feat-icon">&#127881;</div>
+          <div><strong>Book directly</strong><small>UPI, escrow, refund guaranteed</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sticky chip rail for guest (Following tab disabled) -->
+    <div class="chip-rail-wrap">
+      <div class="chip-rail">
+        <div class="scope-group">
+          <button class="scope-chip active">Near you</button>
+          <button class="scope-chip" style="opacity: 0.5; cursor: not-allowed;" title="Sign in to see Following">Following &middot; sign in</button>
+        </div>
+        <span class="chip-divider"></span>
+        <button class="chip location">&#128205; Mumbai</button>
+        <button class="chip active">All</button>
+        <button class="chip">Posts</button>
+        <button class="chip">Itineraries</button>
+        <button class="chip">Experiences</button>
+        <button class="chip">Events</button>
+        <span class="chip-divider"></span>
+        <button class="chip">Road Trips</button>
+        <button class="chip">Biking</button>
+        <button class="chip">Trekking</button>
+        <button class="chip">Food Trails</button>
+      </div>
+    </div>
+
+    <!-- Same Hot near Mumbai carousel (works for guests too) -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2>Hot near <em>Mumbai</em></h2>
+          <div class="section-h-sub">Top trips travelers are saving this week</div>
+        </div>
+        <a href="#" class="more">See all 42 &rarr;</a>
+      </div>
+
+      <div class="rail">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-konkan"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;6,500</span>
+            <span class="card-rating-overlay"><span class="star">&#9733;</span> 4.8</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya Ravi</strong><span class="verified">&#10003;</span>
+              <span class="time">3 d</span>
+            </div>
+            <h3 class="card-title">Konkan in 4 Quiet Days</h3>
+            <div class="card-meta">
+              <span>4 days &middot; 312 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>312 saves</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-spiti"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;22,000</span>
+            <span class="card-rating-overlay"><span class="star">&#9733;</span> 4.9</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+              <strong>Vivaan K.</strong><span class="verified">&#10003;</span>
+            </div>
+            <h3 class="card-title">Spiti in October &mdash; Cold Desert Crossing</h3>
+            <div class="card-meta">
+              <span>9 days &middot; 1,100 km</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-thane"></div>
+            <span class="card-pill experience">Experience</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;1,200</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">DP</div>
+              <strong>Devansh P.</strong>
+              <span class="time">Sun</span>
+            </div>
+            <h3 class="card-title">Sunday Biryani Walk &middot; Thane</h3>
+            <div class="card-meta">
+              <span>3 hours</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>18 / 24 spots</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-velas"></div>
+            <span class="card-pill">Itinerary</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            <span class="card-price-overlay">&#8377;3,800</span>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">DP</div>
+              <strong>Devansh P.</strong>
+            </div>
+            <h3 class="card-title">Velas Turtle Festival</h3>
+            <div class="card-meta">
+              <span>2 days &middot; 240 km</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span>4.9 &#9733;</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Trending posts in 3-col -->
+    <section class="section">
+      <div class="section-h">
+        <div>
+          <h2><em>Trending</em> posts</h2>
+          <div class="section-h-sub">What travelers are talking about right now</div>
+        </div>
+        <a href="#" class="more">All posts &rarr;</a>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-velas"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs">AR</div>
+              <strong>Aanya Ravi</strong><span class="verified">&#10003;</span>
+              <span class="time">4 h</span>
+            </div>
+            <h3 class="card-title">A turtle the size of a wallet at 5:48 a.m.</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 241</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 32</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-coorg"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #c8a677, #8a6845);">PT</div>
+              <strong>Pranav T.</strong>
+              <span class="time">8 h</span>
+            </div>
+            <h3 class="card-title">A coffee estate in Coorg that sells beans for &#8377;480/kg</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 184</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 21</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-photo">
+            <div class="card-photo-img img-himalaya"></div>
+            <span class="card-pill">Post</span>
+            <button class="card-bookmark" title="Sign in to save"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="card-body">
+            <div class="card-byline">
+              <div class="avatar-xs" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+              <strong>Vivaan K.</strong><span class="verified">&#10003;</span>
+            </div>
+            <h3 class="card-title">Spiti closes November 12. Here's how to do it.</h3>
+            <div class="card-meta">
+              <span class="card-meta-stat">&#9829; 312</span>
+              <span class="card-meta-sep">&middot;</span>
+              <span class="card-meta-stat">&#128172; 48</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Guest right rail: Join CTA + Featured creators + Trending tags + Newsletter -->
+  <aside class="rail-aside">
+
+    <div class="rail-block">
+      <div class="join-card">
+        <h4>Join <em>CreatorHub</em></h4>
+        <p>Free to browse, free to read. Sign up to save trips, follow creators, and book directly.</p>
+        <ul class="join-card-list">
+          <li><span class="check">&#10003;</span> Save unlimited trips and spots</li>
+          <li><span class="check">&#10003;</span> Follow 2,400+ verified creators</li>
+          <li><span class="check">&#10003;</span> UPI checkout, 100% refund guarantee</li>
+          <li><span class="check">&#10003;</span> Web + iOS + Android, all synced</li>
+        </ul>
+        <button class="guest-cta">Create free account</button>
+        <div style="text-align: center; margin-top: 10px; font-size: 11px; opacity: 0.6;">
+          Already have one? <a style="color: var(--coral); font-weight: 600;">Sign in &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Featured creators</h4>
+        <a>browse all</a>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm">AR</div>
+        <div>
+          <div class="creator-name">Aanya Ravi <span class="verified">&#10003;</span></div>
+          <div class="creator-bio">Slow road trips through coastal India</div>
+        </div>
+        <button class="follow-btn" title="Sign in to follow" style="background: transparent; color: var(--coral); border: 1px solid var(--coral);">Follow</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+        <div>
+          <div class="creator-name">Vivaan Kapoor <span class="verified">&#10003;</span></div>
+          <div class="creator-bio">Himalayan high-altitude routes</div>
+        </div>
+        <button class="follow-btn" style="background: transparent; color: var(--coral); border: 1px solid var(--coral);">Follow</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+        <div>
+          <div class="creator-name">Riya Mehta</div>
+          <div class="creator-bio">Hidden Goa &amp; Konkan villages</div>
+        </div>
+        <button class="follow-btn" style="background: transparent; color: var(--coral); border: 1px solid var(--coral);">Follow</button>
+      </div>
+      <div class="creator-row">
+        <div class="creator-avatar-sm" style="background: linear-gradient(135deg, #c8a677, #8a6845);">SK</div>
+        <div>
+          <div class="creator-name">Saanvi K. <span class="verified">&#10003;</span></div>
+          <div class="creator-bio">Tamil Nadu food trails</div>
+        </div>
+        <button class="follow-btn" style="background: transparent; color: var(--coral); border: 1px solid var(--coral);">Follow</button>
+      </div>
+    </div>
+
+    <div class="rail-block">
+      <div class="rail-block-h">
+        <h4>Trending in Mumbai</h4>
+        <a>+ all</a>
+      </div>
+      <ol class="tag-list">
+        <li class="tag-row"><span class="tag-rank">1</span><span class="tag-name"><strong>#solofemmetravel</strong></span><span class="tag-count">2.1k</span></li>
+        <li class="tag-row"><span class="tag-rank">2</span><span class="tag-name"><strong>#weekenddrives</strong></span><span class="tag-count">1.8k</span></li>
+        <li class="tag-row"><span class="tag-rank">3</span><span class="tag-name"><strong>#monsoonhills</strong></span><span class="tag-count">1.4k</span></li>
+        <li class="tag-row"><span class="tag-rank">4</span><span class="tag-name"><strong>#konkancoast</strong></span><span class="tag-count">982</span></li>
+        <li class="tag-row"><span class="tag-rank">5</span><span class="tag-name"><strong>#hiddencafes</strong></span><span class="tag-count">684</span></li>
+      </ol>
+    </div>
+
+    <div class="rail-block">
+      <div class="newsletter-mini">
+        <h4>The <em>Sunday Trip</em></h4>
+        <p>One handpicked itinerary in your inbox every Sunday morning. No algorithm, no spam.</p>
+        <form class="newsletter-mini-form" onsubmit="event.preventDefault();">
+          <input type="email" placeholder="your@email.com" />
+          <button type="submit">Subscribe</button>
+        </form>
+        <div class="newsletter-mini-meta">2,184 travelers subscribed &middot; free</div>
+      </div>
+    </div>
+
+    <div class="rail-block" style="font-size: 11px; color: var(--ink-soft); line-height: 1.6;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+        <a style="color: var(--ink-muted);">About</a>
+        <a style="color: var(--ink-muted);">For creators</a>
+        <a style="color: var(--ink-muted);">Privacy</a>
+        <a style="color: var(--ink-muted);">Terms</a>
+      </div>
+      &copy; 2026 CreatorHub &middot; Bengaluru
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- ============ FILTER FAB (right edge) ============ -->
+<button class="filter-fab" id="filter-fab" aria-label="Open filters">
+  <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+  <span class="fab-count">4</span>
+  <span class="fab-label">Filters</span>
+</button>
+
+<!-- ============ FILTER DRAWER ============ -->
+<div class="filter-scrim" id="filter-scrim"></div>
+<aside class="filter-drawer" id="filter-drawer">
+  <div class="drawer-h">
+    <div>
+      <h3>Filters</h3>
+      <div class="drawer-h-meta">4 active &middot; showing 312 stories</div>
+    </div>
+    <button class="drawer-close" id="drawer-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="filter-group">
+      <h4>Sort by</h4>
+      <div class="filter-pills">
+        <button class="filter-pill on">Most relevant</button>
+        <button class="filter-pill">Newest</button>
+        <button class="filter-pill">Most saved</button>
+        <button class="filter-pill">Price &uarr;</button>
+        <button class="filter-pill">Highest rated</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Type</h4>
+      <div class="filter-pills">
+        <button class="filter-pill on">Itineraries <span class="count">128</span></button>
+        <button class="filter-pill on">Experiences <span class="count">42</span></button>
+        <button class="filter-pill">Posts <span class="count">412</span></button>
+        <button class="filter-pill">Events <span class="count">18</span></button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Sub-category</h4>
+      <div class="filter-pills">
+        <button class="filter-pill on">Road Trips</button>
+        <button class="filter-pill">Biking</button>
+        <button class="filter-pill">Trekking</button>
+        <button class="filter-pill">Food Trails</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Distance from Mumbai</h4>
+      <div class="range-wrap">
+        <div class="range-vals"><span>20 km</span><span>200 km</span></div>
+        <div class="range-track">
+          <div class="range-fill" style="left: 10%; right: 30%;"></div>
+          <div class="range-thumb" style="left: 10%;"></div>
+          <div class="range-thumb" style="left: 70%;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Duration</h4>
+      <div class="filter-pills">
+        <button class="filter-pill">Day trip</button>
+        <button class="filter-pill on">2&ndash;3 days</button>
+        <button class="filter-pill">4&ndash;7 days</button>
+        <button class="filter-pill">7+ days</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Price range</h4>
+      <div class="range-wrap">
+        <div class="range-vals"><span>Free</span><span>&#8377;6,000</span></div>
+        <div class="range-track">
+          <div class="range-fill" style="left: 0%; right: 40%;"></div>
+          <div class="range-thumb" style="left: 0%;"></div>
+          <div class="range-thumb" style="left: 60%;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Difficulty</h4>
+      <div class="filter-pills">
+        <button class="filter-pill on">Easy</button>
+        <button class="filter-pill on">Moderate</button>
+        <button class="filter-pill">Hard</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <h4>Tags</h4>
+      <div class="filter-row"><div class="filter-checkbox on">&#10003;</div><span class="filter-row-text">Solo female friendly</span><span class="filter-row-count">42</span></div>
+      <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Family with kids</span><span class="filter-row-count">28</span></div>
+      <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Pet friendly</span><span class="filter-row-count">14</span></div>
+      <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Vegetarian-friendly</span><span class="filter-row-count">86</span></div>
+      <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Photogenic</span><span class="filter-row-count">218</span></div>
+    </div>
+    <div class="filter-group">
+      <h4>Other</h4>
+      <div class="toggle-row">
+        <div>
+          <div>Verified creators only</div>
+          <div class="label-meta">Only show creators with KYC verified</div>
+        </div>
+        <div class="toggle-pin on"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div>Available next 30 days</div>
+          <div class="label-meta">Hide sold-out and full bookings</div>
+        </div>
+        <div class="toggle-pin"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div>Hide already-saved</div>
+          <div class="label-meta">Don't show what you've already saved</div>
+        </div>
+        <div class="toggle-pin"></div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="clear-btn">Clear all</button>
+    <button class="show-btn">Show 312 stories</button>
+  </div>
+</aside>
+
+<script>
+  // Sticky chip rail elevation
+  const chipRail = document.getElementById('chip-rail');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 24) chipRail.classList.add('scrolled');
+    else chipRail.classList.remove('scrolled');
+  }, { passive: true });
+
+  // Bookmark toggle
+  document.querySelectorAll('.card-bookmark').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      b.classList.toggle('saved');
+    });
+  });
+
+  // Chip toggles
+  document.querySelectorAll('.scope-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.scope-chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.chip:not(.location)').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.chip:not(.location)').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // Follow toggle
+  document.querySelectorAll('.follow-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      b.classList.toggle('following');
+      b.textContent = b.classList.contains('following') ? 'Following' : 'Follow';
+    });
+  });
+
+  // Filter drawer
+  const fab = document.getElementById('filter-fab');
+  const scrim = document.getElementById('filter-scrim');
+  const drawer = document.getElementById('filter-drawer');
+  const close = document.getElementById('drawer-close');
+  function openDrawer() { scrim.classList.add('open'); drawer.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeDrawer() { scrim.classList.remove('open'); drawer.classList.remove('open'); document.body.style.overflow = ''; }
+  fab.addEventListener('click', openDrawer);
+  scrim.addEventListener('click', closeDrawer);
+  close.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+  document.querySelectorAll('.filter-pill').forEach(p => p.addEventListener('click', () => p.classList.toggle('on')));
+  document.querySelectorAll('.filter-row').forEach(r => {
+    r.addEventListener('click', () => {
+      const cb = r.querySelector('.filter-checkbox');
+      cb.classList.toggle('on');
+      cb.textContent = cb.classList.contains('on') ? '✓' : '';
+    });
+  });
+  document.querySelectorAll('.toggle-pin').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+</script>
+
+</body>
+</html>

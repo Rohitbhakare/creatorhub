@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>W10 &middot; Notifications, Saved &amp; Social &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4; --surface-alt: #F2EEE8; --paper: #FFFFFF;
+    --hairline: #E5E0D7; --line: #C9C3B6;
+    --ink-soft: #9C9689; --ink-muted: #6B6660; --ink: #2C2823;
+    --coral: #E15A41; --coral-deep: #C9472D; --green: #498a5a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+  a { color: var(--coral); text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+  .screen-marker { background: var(--surface-alt); padding: 14px 32px; border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+  .screen-marker strong { color: var(--ink); }
+
+  /* ===== Top nav with drawer ===== */
+  .nav { background: var(--paper); border-bottom: 1px solid var(--hairline); height: 64px; padding: 0 32px; display: flex; align-items: center; gap: 24px; position: relative; z-index: 50; }
+  .nav-brand { font-family: var(--serif); font-weight: 600; font-size: 22px; }
+  .nav-brand span { color: var(--coral); }
+  .nav-spacer { flex: 1; }
+  .nav-icon-btn { width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--paper); display: grid; place-items: center; position: relative; transition: background .12s; cursor: pointer; }
+  .nav-icon-btn:hover { background: var(--surface); }
+  .nav-icon-btn svg { stroke: var(--ink-muted); fill: none; stroke-width: 2; }
+  .nav-icon-btn .dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; background: var(--coral); border-radius: 999px; border: 2px solid var(--paper); }
+  .nav-icon-btn .badge { position: absolute; top: -4px; right: -4px; background: var(--coral); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; border: 2px solid var(--paper); }
+
+  /* Notifications page (drawer-as-page on this canvas) */
+  .notif-shell { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 64px); background: var(--surface); }
+
+  .left-rail { background: var(--paper); border-right: 1px solid var(--hairline); padding: 24px; }
+  .left-rail h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0 0 20px; }
+  .filter-list { padding: 0; margin: 0; list-style: none; }
+  .filter-row {
+    display: grid; grid-template-columns: 24px 1fr auto; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; align-items: center;
+    margin-bottom: 2px;
+    font-size: 13px; font-weight: 500; color: var(--ink-muted);
+  }
+  .filter-row:hover { background: var(--surface-alt); color: var(--ink); }
+  .filter-row.active { background: var(--surface-alt); color: var(--ink); border-left: 2px solid var(--coral); padding-left: 10px; font-weight: 600; }
+  .filter-row svg { stroke: currentColor; fill: none; stroke-width: 2; }
+  .filter-count { font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+
+  .notif-canvas { padding: 32px 48px; max-width: 800px; }
+  .notif-h-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; }
+  .notif-h { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0; }
+  .notif-meta { font-size: 13px; color: var(--ink-muted); }
+  .mark-read-btn { background: transparent; border: 1px solid var(--hairline); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+  .mark-read-btn:hover { background: var(--paper); color: var(--ink); }
+
+  .day-h { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 0 12px; position: sticky; top: 64px; background: var(--surface); margin-top: 24px; }
+  .day-h:first-of-type { margin-top: 0; }
+
+  .notif-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 14px;
+    padding: 16px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, transform .12s;
+    align-items: center;
+  }
+  .notif-row:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); }
+  .notif-row.unread { background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04)); border-color: rgba(225,90,65,0.3); }
+  .notif-row.unread::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 999px;
+    background: var(--coral);
+    position: absolute;
+    left: -16px; top: 50%;
+    transform: translateY(-50%);
+  }
+  .notif-avatar { width: 44px; height: 44px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 15px; flex: 0 0 auto; }
+  .notif-avatar.t-2 { background: linear-gradient(135deg, #c0a094, #8a6e62); }
+  .notif-avatar.t-3 { background: linear-gradient(135deg, #c8a677, #8a6845); }
+  .notif-avatar.t-4 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .notif-avatar.system { background: var(--coral); font-size: 18px; }
+  .notif-text { font-size: 14px; line-height: 1.5; }
+  .notif-text strong { font-weight: 600; }
+  .notif-text a { color: var(--coral); }
+  .notif-text-meta { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+  .notif-actions { display: flex; gap: 6px; }
+  .notif-action {
+    background: transparent; border: 1px solid var(--hairline); color: var(--ink-muted);
+    padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;
+  }
+  .notif-action:hover { background: var(--surface); color: var(--ink); }
+  .notif-action.primary { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+  /* Web push opt-in modal */
+  .modal-scrim { background: rgba(44,40,35,0.55); backdrop-filter: blur(4px); padding: 80px 32px; min-height: 600px; display: flex; align-items: flex-start; justify-content: center; }
+  .push-modal { background: var(--paper); border-radius: 20px; padding: 40px; max-width: 480px; box-shadow: 0 24px 60px rgba(0,0,0,.25); text-align: center; }
+  .push-modal-icon { width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(225,90,65,0.10); color: var(--coral); border-radius: 16px; display: grid; place-items: center; font-size: 32px; }
+  .push-modal h3 { font-family: var(--serif); font-weight: 600; font-size: 26px; margin: 0 0 8px; line-height: 1.15; }
+  .push-modal p { color: var(--ink-muted); font-size: 14px; margin: 0 0 24px; line-height: 1.55; }
+  .push-modal-benefits { padding: 0; margin: 0 0 24px; list-style: none; text-align: left; }
+  .push-modal-benefits li { padding: 10px 0; border-top: 1px solid var(--hairline); font-size: 13px; display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: center; }
+  .push-modal-benefits li:first-child { border-top: 0; }
+  .push-modal-benefits .check { color: var(--green); font-size: 16px; }
+  .push-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-coral { background: var(--coral); color: #fff; border: 0; padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px; }
+  .btn-coral:hover { background: var(--coral-deep); }
+  .btn-secondary { background: transparent; border: 1px solid var(--hairline); color: var(--ink-muted); padding: 12px 20px; border-radius: 10px; font-weight: 500; font-size: 14px; }
+
+  /* Saved page */
+  .saved-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  .saved-sidebar { background: var(--paper); border-right: 1px solid var(--hairline); padding: 24px 16px; }
+  .saved-canvas { padding: 32px 48px; max-width: 1200px; }
+
+  .saved-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-alt); border-radius: 999px; width: fit-content; margin-bottom: 24px; flex-wrap: wrap; }
+  .saved-tab { background: transparent; border: 0; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink-muted); display: flex; align-items: center; gap: 6px; }
+  .saved-tab.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 600; }
+  .saved-tab-count { background: var(--surface-alt); padding: 2px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--ink-soft); }
+  .saved-tab.active .saved-tab-count { background: rgba(225,90,65,0.10); color: var(--coral); }
+
+  .saved-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Card (reusable) */
+  .card { background: var(--paper); border: 1px solid var(--hairline); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform .18s, box-shadow .18s; position: relative; }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .card-cover { aspect-ratio: 4/3; background: linear-gradient(135deg, #6e8a76, #a4b693); position: relative; }
+  .card-cover.t-2 { background: linear-gradient(135deg, #4a6f8a, #7da3bd); }
+  .card-cover.t-3 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .card-cover.t-4 { background: linear-gradient(135deg, #8a4f4f, #c08e7c); }
+  .card-cover.t-5 { background: linear-gradient(135deg, #5b7044, #98aa6e); }
+  .card-pill { position: absolute; top: 12px; left: 12px; font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); backdrop-filter: blur(6px); }
+  .card-remove { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 999px; background: rgba(255,255,255,.92); display: grid; place-items: center; backdrop-filter: blur(6px); border: 0; opacity: 0; transition: opacity .18s; }
+  .card:hover .card-remove { opacity: 1; }
+  .card-body { padding: 14px 16px; }
+  .card-title { font-family: var(--serif); font-weight: 600; font-size: 16px; line-height: 1.25; margin: 0 0 6px; }
+  .card-meta { font-size: 11px; color: var(--ink-soft); display: flex; gap: 10px; }
+  .card-saved-on { font-size: 11px; color: var(--coral); font-weight: 500; padding-top: 8px; margin-top: 8px; border-top: 1px solid var(--hairline); }
+
+  /* Saved spots map (for Spots tab) */
+  .saved-map-card { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: center; }
+  .saved-map { width: 100%; height: 220px; border-radius: 12px; background: radial-gradient(ellipse at 30% 30%, #d4dbc7, #97a48b); position: relative; }
+  .saved-map svg { width: 100%; height: 100%; }
+  .saved-map-stats h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0 0 6px; line-height: 1.2; }
+  .saved-map-stats p { color: var(--ink-muted); font-size: 13px; margin: 0 0 16px; }
+  .saved-map-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .saved-map-stat { padding: 12px 14px; background: var(--surface); border-radius: 10px; }
+  .saved-map-stat-num { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1; }
+  .saved-map-stat-label { font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; }
+
+  /* Comments thread */
+  .comments-shell { padding: 32px 48px; max-width: 720px; margin: 0 auto; }
+  .comments-h { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 0 0 16px; line-height: 1.15; }
+  .comment {
+    display: grid; grid-template-columns: 40px 1fr; gap: 12px;
+    padding: 16px 0; border-top: 1px solid var(--hairline);
+  }
+  .comment:first-of-type { border-top: 0; }
+  .comment-avatar { width: 40px; height: 40px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 13px; flex: 0 0 auto; }
+  .comment-head { font-size: 13px; margin-bottom: 4px; }
+  .comment-name { font-weight: 600; }
+  .comment-name .verified { color: var(--coral); margin-left: 2px; font-size: 10px; vertical-align: 1px; }
+  .comment-time { color: var(--ink-soft); font-size: 11px; margin-left: 4px; }
+  .comment-body { font-family: var(--serif); font-size: 16px; line-height: 1.55; color: var(--ink); margin-bottom: 8px; }
+  .comment-actions { display: flex; gap: 16px; font-size: 12px; }
+  .comment-action { background: transparent; border: 0; padding: 0; color: var(--ink-muted); display: flex; align-items: center; gap: 4px; }
+  .comment-action.liked { color: var(--coral); }
+  .comment-replies { margin-left: 52px; padding-left: 16px; border-left: 1px solid var(--hairline); }
+  .comment-replies .comment { padding: 12px 0; }
+
+  .comment-compose { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding-top: 24px; margin-top: 24px; border-top: 1px solid var(--hairline); }
+  .comment-input {
+    border: 1px solid var(--hairline);
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 12px 14px;
+    width: 100%;
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 80px;
+  }
+  .comment-compose-actions { display: flex; justify-content: space-between; margin-top: 8px; align-items: center; }
+  .comment-compose-meta { font-size: 11px; color: var(--ink-soft); }
+
+  /* Share modal */
+  .share-modal {
+    background: var(--paper);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 520px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    width: 100%;
+  }
+  .share-modal h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0 0 4px; line-height: 1.15; }
+  .share-modal-sub { font-size: 13px; color: var(--ink-muted); margin: 0 0 20px; }
+  .og-card-preview {
+    background: linear-gradient(135deg, #2c4a3a, #87a079);
+    border-radius: 14px;
+    aspect-ratio: 1.91 / 1;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    color: #fffdf7;
+    padding: 24px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .og-card-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65)); }
+  .og-card-preview > * { position: relative; z-index: 1; }
+  .og-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); display: inline-block; margin-bottom: 8px; align-self: flex-start; }
+  .og-title { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 32px; line-height: 1.15; margin-bottom: 8px; }
+  .og-meta { font-size: 12px; opacity: 0.85; }
+  .og-url { position: absolute; bottom: 12px; right: 16px; font-size: 11px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; z-index: 1; }
+
+  .share-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .share-btn { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 8px; cursor: pointer; transition: background .12s, border-color .12s; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+  .share-btn:hover { border-color: var(--ink); background: var(--paper); color: var(--ink); }
+  .share-btn-icon { font-size: 22px; }
+  .share-link-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; }
+  .share-link-row code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-muted); overflow-x: auto; }
+  .copy-btn { background: var(--ink); color: #fff; border: 0; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+  .copy-btn.copied { background: var(--green); }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 80px 32px; color: var(--ink-soft); }
+  .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  .empty h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; color: var(--ink); margin: 0 0 6px; }
+  .empty p { font-size: 14px; }
+
+  @media (max-width: 1080px) {
+    .notif-shell, .saved-shell { grid-template-columns: 1fr; }
+    .left-rail, .saved-sidebar { display: none; }
+    .saved-grid { grid-template-columns: repeat(2, 1fr); }
+    .saved-map-card { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span style="opacity:0.5;">Pack</span> W10 &middot; Notifications, Saved &amp; Social
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- ============ W10.1 + W10.2 — Notification centre ============ -->
+<div class="screen-marker">Screen <strong>W10.1 &middot; W10.2</strong> &middot; Notification centre &middot; Grouped by day</div>
+
+<nav class="nav">
+  <div class="nav-brand">creator<span>&middot;</span>hub</div>
+  <div class="nav-spacer"></div>
+  <button class="nav-icon-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </button>
+  <button class="nav-icon-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="badge">3</span>
+  </button>
+  <button class="nav-icon-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <div style="width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 13px;">RB</div>
+</nav>
+
+<div class="notif-shell">
+  <aside class="left-rail">
+    <h3>Inbox</h3>
+    <ul class="filter-list">
+      <li class="filter-row active">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        All
+        <span class="filter-count">28</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        Unread
+        <span class="filter-count">3</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Likes &amp; saves
+        <span class="filter-count">12</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Comments
+        <span class="filter-count">8</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Follows
+        <span class="filter-count">4</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Bookings
+        <span class="filter-count">3</span>
+      </li>
+      <li class="filter-row">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7-6.5-4-6.5 4 2-7L2 9h7z"/></svg>
+        Quests &amp; achievements
+        <span class="filter-count">1</span>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="notif-canvas">
+    <div class="notif-h-row">
+      <div>
+        <h1 class="notif-h">Notifications</h1>
+        <div class="notif-meta">28 total &middot; <strong style="color: var(--coral);">3 unread</strong></div>
+      </div>
+      <button class="mark-read-btn">Mark all read</button>
+    </div>
+
+    <div class="day-h">Today</div>
+
+    <article class="notif-row unread">
+      <div class="notif-avatar">PM</div>
+      <div>
+        <div class="notif-text"><strong>Pranav M.</strong> booked <a>Konkan in 4 Quiet Days</a> for May 11&ndash;14 &middot; <strong style="color: var(--coral);">&#8377;6,500 paid</strong></div>
+        <div class="notif-text-meta">2 hours ago &middot; Booking #BK-1052</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action primary">View booking</button>
+      </div>
+    </article>
+
+    <article class="notif-row unread">
+      <div class="notif-avatar t-2">SK</div>
+      <div>
+        <div class="notif-text"><strong>Saanvi K.</strong> left a 5-star review on <a>Konkan in 4 Quiet Days</a></div>
+        <div class="notif-text-meta">"The Velas turtle bit alone is worth the trip…" &middot; 4 h ago</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">Read review</button>
+      </div>
+    </article>
+
+    <article class="notif-row unread">
+      <div class="notif-avatar system">&#127881;</div>
+      <div>
+        <div class="notif-text"><strong>Achievement unlocked:</strong> <a>10 saves &middot; Curator</a> &middot; +50 XP</div>
+        <div class="notif-text-meta">5 hours ago</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">View</button>
+      </div>
+    </article>
+
+    <article class="notif-row">
+      <div class="notif-avatar t-3">VK</div>
+      <div>
+        <div class="notif-text"><strong>Vivaan K.</strong> commented on <a>A monsoon morning at Bhandardara</a></div>
+        <div class="notif-text-meta">"Stunning. What lens were you using?" &middot; 8 h ago</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">Reply</button>
+      </div>
+    </article>
+
+    <article class="notif-row">
+      <div class="notif-avatar t-4">DP</div>
+      <div>
+        <div class="notif-text"><strong>Devansh P.</strong> started following you</div>
+        <div class="notif-text-meta">10 h ago &middot; @devansh.travels &middot; 624 followers</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">View profile</button>
+        <button class="notif-action primary">Follow back</button>
+      </div>
+    </article>
+
+    <div class="day-h">Yesterday</div>
+
+    <article class="notif-row">
+      <div class="notif-avatar system">&#8377;</div>
+      <div>
+        <div class="notif-text">Payout of <strong>&#8377;28,406</strong> settled to ICICI ****4421</div>
+        <div class="notif-text-meta">Yesterday &middot; UTR N219831240128</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">View statement</button>
+      </div>
+    </article>
+
+    <article class="notif-row">
+      <div class="notif-avatar">12</div>
+      <div>
+        <div class="notif-text">12 new saves on <a>A monsoon morning at Bhandardara</a></div>
+        <div class="notif-text-meta">Yesterday, 6:14 p.m.</div>
+      </div>
+    </article>
+
+    <article class="notif-row">
+      <div class="notif-avatar t-2">AK</div>
+      <div>
+        <div class="notif-text"><strong>Aakash M.</strong> liked your post <a>"Found this hidden cafe in Coorg"</a></div>
+        <div class="notif-text-meta">Yesterday, 4:22 p.m.</div>
+      </div>
+    </article>
+
+    <div class="day-h">Last week</div>
+
+    <article class="notif-row">
+      <div class="notif-avatar system">&#127942;</div>
+      <div>
+        <div class="notif-text">Climbed to <strong>#287 in Mumbai</strong> &middot; +12 places this week</div>
+        <div class="notif-text-meta">3 days ago</div>
+      </div>
+    </article>
+
+    <article class="notif-row">
+      <div class="notif-avatar system">&#128274;</div>
+      <div>
+        <div class="notif-text">KYC verification approved &middot; You can now publish paid content</div>
+        <div class="notif-text-meta">5 days ago</div>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action">Publish &rarr;</button>
+      </div>
+    </article>
+  </main>
+</div>
+
+<!-- ============ W10.3 — Web push opt-in modal ============ -->
+<div class="screen-marker">Screen <strong>W10.3</strong> &middot; Web push opt-in modal &middot; appears after 3rd visit</div>
+
+<div class="modal-scrim">
+  <div class="push-modal">
+    <div class="push-modal-icon">&#128276;</div>
+    <h3>Stay in the loop in real time</h3>
+    <p>Get notified the moment a creator drops something new, a booking confirms, or your streak is about to break.</p>
+    <ul class="push-modal-benefits">
+      <li><span class="check">&#10003;</span> Booking confirmations and T-24h reminders</li>
+      <li><span class="check">&#10003;</span> Streak save alerts &mdash; never lose a streak again</li>
+      <li><span class="check">&#10003;</span> Live event countdowns from creators you follow</li>
+      <li><span class="check">&#10003;</span> You can mute or pick channels per event later</li>
+    </ul>
+    <div class="push-modal-actions">
+      <button class="btn-secondary">Maybe later</button>
+      <button class="btn-coral">Enable notifications</button>
+    </div>
+    <div style="margin-top: 16px; font-size: 11px; color: var(--ink-soft);">Browser will ask for permission. We'll only send what you opt in to.</div>
+  </div>
+</div>
+
+<!-- ============ W10.4 + W10.5 — Saved (All + Spots) ============ -->
+<div class="screen-marker">Screen <strong>W10.4 &middot; W10.5</strong> &middot; Saved page (All tab + per-type tabs)</div>
+
+<div class="saved-shell">
+  <aside class="saved-sidebar">
+    <div style="font-family: var(--serif); font-weight: 600; font-size: 22px; padding: 8px 12px 28px;">creator<span style="color: var(--coral);">&middot;</span>hub</div>
+    <div style="font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 12px 8px;">Discover</div>
+    <div class="filter-row">Home</div>
+    <div class="filter-row">Discover</div>
+    <div class="filter-row active">Saved <span class="filter-count">24</span></div>
+    <div style="font-size: 10px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; padding: 16px 12px 8px;">You</div>
+    <div class="filter-row">Quests</div>
+    <div class="filter-row">Notifications</div>
+    <div class="filter-row">Profile</div>
+  </aside>
+
+  <main class="saved-canvas">
+    <h1 class="notif-h" style="margin-bottom: 4px;">Saved</h1>
+    <p class="notif-meta" style="margin-bottom: 24px;">24 items across 8 collections</p>
+
+    <div class="saved-tabs">
+      <button class="saved-tab active">All <span class="saved-tab-count">24</span></button>
+      <button class="saved-tab">Posts <span class="saved-tab-count">8</span></button>
+      <button class="saved-tab">Itineraries <span class="saved-tab-count">5</span></button>
+      <button class="saved-tab">Experiences <span class="saved-tab-count">3</span></button>
+      <button class="saved-tab">Events <span class="saved-tab-count">2</span></button>
+      <button class="saved-tab">Spots <span class="saved-tab-count">6</span></button>
+    </div>
+
+    <!-- Spots map preview (above grid when Spots tab is active) -->
+    <div class="saved-map-card">
+      <div class="saved-map">
+        <svg viewBox="0 0 280 220" preserveAspectRatio="xMidYMid slice">
+          <path fill="#b6cdd8" stroke="#97aebd" stroke-width="1" d="M0,0 L80,0 C70,60 75,140 60,180 L0,220 L0,0 Z" />
+          <path fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="2 4" d="M170,30 L160,55 L155,80 L130,120 L100,150 L130,200" opacity="0.4" />
+          <circle cx="160" cy="55" r="6" fill="var(--coral)" stroke="#fff" stroke-width="2" />
+          <circle cx="145" cy="105" r="5" fill="#fff" stroke="var(--ink)" stroke-width="2" />
+          <circle cx="100" cy="150" r="5" fill="var(--coral)" stroke="#fff" stroke-width="2" />
+          <circle cx="130" cy="200" r="5" fill="#fff" stroke="var(--ink)" stroke-width="2" />
+          <circle cx="180" cy="100" r="5" fill="#fff" stroke="var(--ink)" stroke-width="2" />
+          <circle cx="200" cy="160" r="5" fill="#fff" stroke="var(--ink)" stroke-width="2" />
+        </svg>
+      </div>
+      <div class="saved-map-stats">
+        <h3>Your saved spots</h3>
+        <p>6 spots across 3 cities &middot; ready to drop into a future itinerary.</p>
+        <div class="saved-map-stat-grid">
+          <div class="saved-map-stat">
+            <div class="saved-map-stat-num">6</div>
+            <div class="saved-map-stat-label">Spots</div>
+          </div>
+          <div class="saved-map-stat">
+            <div class="saved-map-stat-num">3</div>
+            <div class="saved-map-stat-label">Cities</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saved-grid">
+      <div class="card">
+        <div class="card-cover t-2">
+          <span class="card-pill">Itinerary</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Konkan in 4 Quiet Days</h3>
+          <div class="card-meta"><span>4 days</span><span>by Aanya R.</span></div>
+          <div class="card-saved-on">Saved 2 weeks ago</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-3">
+          <span class="card-pill">Post</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">A monsoon morning at Bhandardara</h3>
+          <div class="card-meta"><span>241 likes</span><span>by Aanya R.</span></div>
+          <div class="card-saved-on">Saved 3 days ago</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-4">
+          <span class="card-pill">Experience</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Sunday Biryani Walk &middot; Thane</h3>
+          <div class="card-meta"><span>3 hours</span><span>&#8377;1,200</span></div>
+          <div class="card-saved-on">Saved 5 days ago</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-5">
+          <span class="card-pill">Itinerary</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Spiti Routes &mdash; Updated for 2026</h3>
+          <div class="card-meta"><span>9 days</span><span>by Vivaan K.</span></div>
+          <div class="card-saved-on">Saved 1 week ago</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover">
+          <span class="card-pill">Event</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Monsoon Photo Walk &middot; Bandra</h3>
+          <div class="card-meta"><span>Free RSVP</span><span>32 going</span></div>
+          <div class="card-saved-on">Saved yesterday</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-2">
+          <span class="card-pill">Itinerary</span>
+          <button class="card-remove">&times;</button>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Coorg Coffee Estates</h3>
+          <div class="card-meta"><span>3 days</span><span>by Pranav T.</span></div>
+          <div class="card-saved-on">Saved 4 days ago</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W10.7 — Comment thread ============ -->
+<div class="screen-marker">Screen <strong>W10.7</strong> &middot; Comment thread expanded (with replies + likes)</div>
+
+<div class="comments-shell">
+  <h2 class="comments-h">32 comments on <em>"Konkan in 4 Quiet Days"</em></h2>
+
+  <article class="comment">
+    <div class="comment-avatar" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">PM</div>
+    <div>
+      <div class="comment-head">
+        <span class="comment-name">Pranav M.<span class="verified">&#10003;</span></span>
+        <span class="comment-time">2 hours ago</span>
+      </div>
+      <p class="comment-body">The Velas turtle bit alone is worth the trip. Aanya's instructions on timing were exact. We saw 41 hatchlings on the second morning. Booked it on this site, smooth as it gets.</p>
+      <div class="comment-actions">
+        <button class="comment-action liked">&#9829; 12 likes</button>
+        <button class="comment-action">Reply</button>
+        <button class="comment-action">Share</button>
+      </div>
+      <div class="comment-replies">
+        <article class="comment">
+          <div class="comment-avatar">AR</div>
+          <div>
+            <div class="comment-head">
+              <span class="comment-name">Aanya Ravi<span class="verified">&#10003;</span></span>
+              <span style="font-size: 10px; padding: 2px 8px; background: var(--coral); color: #fff; border-radius: 999px; margin-left: 6px; vertical-align: 2px; font-weight: 700;">Creator</span>
+              <span class="comment-time">1 hour ago</span>
+            </div>
+            <p class="comment-body" style="font-size: 14px;">Thank you Pranav! 41 is a great morning. The villagers must have loved having an enthusiastic group there.</p>
+            <div class="comment-actions">
+              <button class="comment-action">&#9825; 4 likes</button>
+              <button class="comment-action">Reply</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </article>
+
+  <article class="comment">
+    <div class="comment-avatar" style="background: linear-gradient(135deg, #c8a677, #8a6845);">SK</div>
+    <div>
+      <div class="comment-head">
+        <span class="comment-name">Saanvi K.</span>
+        <span class="comment-time">4 hours ago</span>
+      </div>
+      <p class="comment-body">Everything was correctly priced. Even the homestay numbers were what we paid. Rare for a travel guide to be this honest about money.</p>
+      <div class="comment-actions">
+        <button class="comment-action">&#9825; 8 likes</button>
+        <button class="comment-action">Reply</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="comment">
+    <div class="comment-avatar" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div>
+    <div>
+      <div class="comment-head">
+        <span class="comment-name">Vivaan K.<span class="verified">&#10003;</span></span>
+        <span class="comment-time">8 hours ago</span>
+      </div>
+      <p class="comment-body">Aanya — the Day 3 chapter card photo is exactly what Bankot looks like at 5:30 p.m. Beautifully shot.</p>
+      <div class="comment-actions">
+        <button class="comment-action">&#9825; 6 likes</button>
+        <button class="comment-action">Reply</button>
+      </div>
+    </div>
+  </article>
+
+  <div class="comment-compose">
+    <div class="comment-avatar">RB</div>
+    <div>
+      <textarea class="comment-input" placeholder="Add a comment&hellip;">Just got back from this. Day 2 with the turtle</textarea>
+      <div class="comment-compose-actions">
+        <div class="comment-compose-meta">commenting as <strong>@rohit</strong> &middot; markdown supported</div>
+        <button class="btn-coral">Post comment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ W10.8 — Share modal ============ -->
+<div class="screen-marker">Screen <strong>W10.8</strong> &middot; Share modal &middot; OG card preview + 4 platforms + copy link</div>
+
+<div class="modal-scrim">
+  <div class="share-modal">
+    <h3>Share this trip</h3>
+    <p class="share-modal-sub">Konkan in 4 Quiet Days &middot; by Aanya Ravi</p>
+
+    <div class="og-card-preview">
+      <span class="og-tag">CreatorHub &middot; Itinerary</span>
+      <div class="og-title">Konkan in <em style="font-style: italic;">Four Quiet Days</em></div>
+      <div class="og-meta">4 days &middot; 312 km &middot; from &#8377;6,500 &middot; by Aanya Ravi &#10003;</div>
+      <span class="og-url">creatorhub.in/aanya/konkan-4-days</span>
+    </div>
+
+    <div class="share-buttons">
+      <button class="share-btn">
+        <span class="share-btn-icon">&#128241;</span>
+        WhatsApp
+      </button>
+      <button class="share-btn">
+        <span class="share-btn-icon">&#128062;</span>
+        Twitter / X
+      </button>
+      <button class="share-btn">
+        <span class="share-btn-icon">&#128247;</span>
+        Instagram DM
+      </button>
+      <button class="share-btn">
+        <span class="share-btn-icon">&#9993;</span>
+        Email
+      </button>
+    </div>
+
+    <div class="share-link-row">
+      <code>creatorhub.in/aanya/konkan-4-days</code>
+      <button class="copy-btn">Copy link</button>
+    </div>
+
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-soft); display: flex; justify-content: space-between;">
+      <span>&#128247; Download as image</span>
+      <span>&#128426; QR code</span>
+      <span>&#128231; Email it to me</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.saved-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.saved-tab').forEach(s => s.classList.remove('active'));
+    t.classList.add('active');
+  }));
+  document.querySelectorAll('.copy-btn').forEach(b => b.addEventListener('click', () => {
+    b.textContent = 'Copied ✓';
+    b.classList.add('copied');
+    setTimeout(() => { b.textContent = 'Copy link'; b.classList.remove('copied'); }, 1500);
+  }));
+</script>
+
+</body>
+</html>

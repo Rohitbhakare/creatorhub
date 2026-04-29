@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CreatorHub Web Redesign &middot; v1.5 Wireframe Canvas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4;
+    --surface-alt: #F2EEE8;
+    --paper: #FFFFFF;
+    --hairline: #E5E0D7;
+    --line: #C9C3B6;
+    --ink-soft: #9C9689;
+    --ink-muted: #6B6660;
+    --ink: #2C2823;
+    --coral: #E15A41;
+    --coral-light: #F38567;
+    --coral-deep: #C9472D;
+    --gold: #d8a04a;
+    --green: #498a5a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: var(--coral); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ========== Hero ========== */
+  .hero {
+    padding: 80px 64px 64px;
+    max-width: 1280px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--coral);
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(225,90,65,0.10);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    margin: 0 0 20px;
+    max-width: 880px;
+  }
+  .hero h1 em { font-style: italic; color: var(--coral); }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--ink-muted);
+    max-width: 720px;
+    margin: 0 0 32px;
+    line-height: 1.6;
+  }
+  .hero-stats {
+    display: flex; gap: 48px;
+    padding: 24px 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    max-width: 880px;
+  }
+  .hero-stat-num {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .hero-stat-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  /* ========== Section ========== */
+  .section { max-width: 1280px; margin: 0 auto; padding: 64px; }
+  .section-h {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .section-h h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  .section-h p {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0;
+  }
+
+  /* ========== Pack grid ========== */
+  .pack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .pack-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .pack-card:hover { border-color: var(--line); box-shadow: var(--shadow-2); transform: translateY(-2px); text-decoration: none; }
+  .pack-card.showpiece { border-color: var(--coral); }
+  .pack-card.showpiece::before {
+    content: 'Showpiece';
+    position: absolute; top: 12px; right: 12px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--coral);
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+  .pack-letter {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    margin-bottom: 8px;
+  }
+  .pack-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.2;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .pack-card.showpiece .pack-title { color: var(--coral-deep); }
+  .pack-desc {
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: 0 0 20px;
+    min-height: 60px;
+  }
+  .pack-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--hairline);
+    font-size: 12px;
+  }
+  .pack-meta-screens { color: var(--ink-soft); font-weight: 500; }
+  .pack-meta-fr { color: var(--coral); font-family: var(--mono); font-size: 11px; font-weight: 600; }
+  .pack-card .pack-cta {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600;
+    color: var(--ink); margin-top: 4px;
+  }
+
+  /* Pack visual previews (mini illustrations) */
+  .pack-preview {
+    height: 80px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+  }
+  .pp-w1 { background: linear-gradient(135deg, #e8e3da, #d4cdb8); }
+  .pp-w1::after { content: 'Marketing'; position: absolute; bottom: 8px; left: 12px; font-family: var(--serif); font-weight: 600; color: rgba(44,40,35,.4); font-size: 13px; font-style: italic; }
+  .pp-w2 { background: linear-gradient(135deg, #f1ebe1, #e0d4be); position: relative; }
+  .pp-w2::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; height: 6px; background: rgba(44,40,35,.15); border-radius: 999px; }
+  .pp-w2::after { content: ''; position: absolute; top: 24px; left: 12px; width: 40%; height: 6px; background: rgba(225,90,65,.4); border-radius: 999px; }
+
+  .pp-w3 { background: var(--paper); padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .pp-w3 div { background: var(--hairline); border-radius: 4px; }
+  .pp-w3 div:first-child { background: rgba(225,90,65,.5); }
+
+  .pp-w4 { background: var(--paper); padding: 12px; }
+  .pp-w4::before { content: '⌘ K'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--ink); background: var(--surface-alt); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); }
+
+  .pp-w5 { background: linear-gradient(135deg, #2c4a3a, #5b7559 50%, #87a079 100%); position: relative; }
+  .pp-w5::before { content: 'Konkan'; position: absolute; bottom: 12px; left: 12px; font-family: var(--serif); font-style: italic; font-weight: 600; color: #fffdf7; font-size: 16px; }
+  .pp-w5::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--coral); }
+
+  .pp-w6 { background: var(--paper); display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 12px; }
+  .pp-w6 span { background: var(--hairline); border-radius: 3px; aspect-ratio: 1; }
+  .pp-w6 span.s { background: var(--coral); }
+  .pp-w6 span.o { background: var(--surface-alt); }
+
+  .pp-w7 { background: var(--paper); padding: 12px; }
+  .pp-w7::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; height: 28px; background: linear-gradient(135deg, var(--coral-light), var(--coral)); opacity: 0.15; border-radius: 6px; }
+  .pp-w7::after { content: '₹48,200'; position: absolute; top: 16px; left: 20px; font-family: var(--serif); font-weight: 600; font-size: 18px; color: var(--ink); }
+
+  .pp-w8 { background: var(--paper); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .pp-w8 div { height: 8px; background: var(--hairline); border-radius: 999px; }
+  .pp-w8 div:first-child { width: 80%; }
+  .pp-w8 div:nth-child(2) { width: 60%; background: var(--coral); }
+  .pp-w8 div:nth-child(3) { width: 100%; }
+  .pp-w8 div:nth-child(4) { width: 40%; }
+
+  .pp-w9 { background: var(--paper); padding: 12px; }
+  .pp-w9::before { content: ''; position: absolute; top: 16px; left: 20px; width: 32px; height: 32px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); }
+  .pp-w9::after { content: 'Profile'; position: absolute; top: 22px; left: 64px; font-family: var(--serif); font-weight: 600; font-size: 14px; color: var(--ink); }
+
+  .pp-w10 { background: var(--paper); padding: 12px; }
+  .pp-w10::before { content: ''; position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 999px; background: var(--coral); box-shadow: 0 0 0 4px rgba(225,90,65,.2); }
+  .pp-w10::after { content: 'Notifications'; position: absolute; top: 12px; left: 12px; font-size: 12px; color: var(--ink-muted); font-weight: 500; }
+
+  .pp-w11 { background: var(--paper); display: grid; place-items: center; }
+  .pp-w11::before {
+    content: '';
+    width: 56px; height: 56px;
+    border-radius: 999px;
+    background: conic-gradient(var(--coral) 0deg 240deg, var(--hairline) 240deg 360deg);
+    mask: radial-gradient(circle, transparent 50%, black 51%);
+    -webkit-mask: radial-gradient(circle, transparent 50%, black 51%);
+  }
+  .pp-w11::after { content: '2/3'; position: absolute; font-family: var(--serif); font-weight: 600; font-size: 14px; }
+
+  .pp-w12 { background: var(--paper); padding: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .pp-w12 span { width: 6px; height: 6px; border-radius: 999px; background: var(--ink); animation: pp12 1.4s ease-in-out infinite; }
+  .pp-w12 span:nth-child(2) { animation-delay: -1.0s; }
+  .pp-w12 span:nth-child(3) { animation-delay: -0.6s; }
+  .pp-w12 span:nth-child(4) { background: var(--coral); animation-delay: -0.2s; }
+  @keyframes pp12 {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(-12px); opacity: 1; }
+  }
+
+  /* ========== Standalones strip ========== */
+  .standalone-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .standalone-card {
+    background: var(--ink);
+    color: #fffdf7;
+    border-radius: 12px;
+    padding: 20px;
+    text-decoration: none;
+    transition: background .18s, transform .18s;
+    display: block;
+  }
+  .standalone-card:hover { background: #1a1814; transform: translateY(-2px); text-decoration: none; }
+  .standalone-card-label { font-size: 10px; font-weight: 700; opacity: 0.5; text-transform: uppercase; letter-spacing: .14em; }
+  .standalone-card-title { font-family: var(--serif); font-weight: 600; font-size: 16px; margin-top: 4px; line-height: 1.25; }
+  .standalone-card-meta { font-size: 11px; opacity: 0.6; margin-top: 8px; }
+
+  /* ========== Design system reference ========== */
+  .ds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .ds-block {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .ds-block h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .ds-block code { font-family: var(--mono); font-size: 12px; color: var(--ink-muted); }
+
+  /* Palette swatches */
+  .palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .swatch {
+    border-radius: 10px;
+    padding: 16px 12px 12px;
+    border: 1px solid var(--hairline);
+    color: var(--ink);
+    font-size: 11px;
+  }
+  .swatch.dark { color: #fffdf7; }
+  .swatch-name { font-weight: 600; font-size: 13px; margin-bottom: 2px; font-family: var(--sans); }
+  .swatch-hex { font-family: var(--mono); font-size: 10px; opacity: 0.7; }
+  .sw-surface { background: var(--surface); }
+  .sw-surface-alt { background: var(--surface-alt); }
+  .sw-hairline { background: var(--hairline); }
+  .sw-line { background: var(--line); }
+  .sw-ink-soft { background: var(--ink-soft); color: #fff; }
+  .sw-ink-muted { background: var(--ink-muted); color: #fff; }
+  .sw-ink { background: var(--ink); color: #fff; }
+  .sw-coral { background: var(--coral); color: #fff; }
+
+  /* Typography sample */
+  .type-sample-display { font-family: var(--serif); font-size: 32px; line-height: 1.15; font-weight: 600; margin-bottom: 4px; }
+  .type-sample-display em { font-style: italic; color: var(--coral); }
+  .type-sample-meta { font-size: 11px; color: var(--ink-soft); font-family: var(--mono); }
+  .type-sample-body { font-family: var(--serif); font-size: 18px; line-height: 1.55; margin: 16px 0 4px; }
+  .type-sample-ui { font-family: var(--sans); font-size: 14px; margin: 16px 0 4px; }
+
+  /* Coral lockdown list */
+  .coral-list { padding-left: 0; list-style: none; }
+  .coral-list li {
+    padding: 12px 0;
+    border-top: 1px solid var(--hairline);
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .coral-list li:first-child { border-top: 0; }
+  .coral-list .num {
+    width: 22px; height: 22px;
+    border-radius: 999px;
+    background: var(--coral);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700;
+    font-family: var(--mono);
+  }
+  .coral-list li.web-only .num { background: var(--ink); }
+  .coral-list .label { color: var(--ink); font-weight: 600; }
+
+  /* Motion durations */
+  .duration-list { padding-left: 0; list-style: none; }
+  .duration-list li {
+    display: grid;
+    grid-template-columns: 80px 80px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--hairline);
+    font-size: 13px;
+    align-items: center;
+  }
+  .duration-list li:first-child { border-top: 0; }
+  .duration-list .ms { font-family: var(--mono); font-weight: 600; color: var(--coral); font-size: 13px; }
+  .duration-list .name { font-weight: 600; }
+  .duration-list .use { color: var(--ink-soft); font-size: 12px; }
+
+  /* ========== Footer ========== */
+  .canvas-footer {
+    border-top: 1px solid var(--hairline);
+    padding: 48px 64px 80px;
+    background: var(--paper);
+    margin-top: 64px;
+  }
+  .canvas-footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 48px;
+  }
+  .canvas-footer h4 { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; margin: 0 0 16px; }
+  .canvas-footer-list { padding: 0; margin: 0; list-style: none; }
+  .canvas-footer-list li { padding: 6px 0; font-size: 13px; }
+  .canvas-footer-list li code { font-family: var(--mono); font-size: 11px; color: var(--ink-muted); }
+  .canvas-footer-list a { color: var(--ink); text-decoration: none; }
+  .canvas-footer-list a:hover { color: var(--coral); }
+
+  /* ========== Top nav ========== */
+  .top-nav {
+    position: sticky; top: 0;
+    background: rgba(250,247,244,0.86);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--hairline);
+    padding: 0 64px;
+    height: 64px;
+    display: flex; align-items: center;
+    z-index: 50;
+  }
+  .top-nav-brand { font-family: var(--serif); font-weight: 600; font-size: 20px; }
+  .top-nav-brand span { color: var(--coral); }
+  .top-nav-tag { margin-left: 12px; font-size: 11px; color: var(--ink-soft); font-weight: 500; padding: 4px 10px; background: var(--surface-alt); border-radius: 999px; }
+  .top-nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+  .top-nav-links a { color: var(--ink-muted); }
+  .top-nav-links a:hover { color: var(--ink); text-decoration: none; }
+
+  @media (max-width: 1080px) {
+    .pack-grid { grid-template-columns: repeat(2, 1fr); }
+    .standalone-strip { grid-template-columns: repeat(2, 1fr); }
+    .ds-grid { grid-template-columns: 1fr; }
+    .canvas-footer-inner { grid-template-columns: 1fr; gap: 24px; }
+    .hero { padding: 48px 32px 32px; }
+    .section { padding: 48px 32px; }
+    .top-nav { padding: 0 32px; }
+  }
+  @media (max-width: 720px) {
+    .pack-grid { grid-template-columns: 1fr; }
+    .standalone-strip { grid-template-columns: 1fr; }
+    .palette { grid-template-columns: repeat(2, 1fr); }
+    .hero-stats { flex-wrap: wrap; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <span class="top-nav-brand">creator<span>&middot;</span>hub</span>
+  <span class="top-nav-tag">Web wireframes &middot; v1.5</span>
+  <div class="top-nav-links">
+    <a href="#packs">Packs</a>
+    <a href="#showpieces">Showpieces</a>
+    <a href="#system">System</a>
+    <a href="README.md">README</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="hero-tag">Wireframes &middot; v1.5</span>
+  <h1>The CreatorHub web app, drawn end-to-end with <em>magazine-grade</em> typography, gamified engagement, and a full-screen storytelling reader.</h1>
+  <p class="hero-sub">
+    12 packs covering full mobile parity (auth, feed, discover, booking, studio, publishing, KYC, profile) plus two web-first surfaces &mdash; gamification (quests &middot; streaks &middot; XP &middot; leaderboard) and immersive longform storytelling for itineraries. Pure White + Coral monochrome design system, Fraunces + Inter type pair, Framer Motion choreography. Approximately 120 screens.
+  </p>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-num">12</div>
+      <div class="hero-stat-label">Packs</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">~120</div>
+      <div class="hero-stat-label">Screens</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">4</div>
+      <div class="hero-stat-label">Standalones</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">97</div>
+      <div class="hero-stat-label">SRS FRs</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">7</div>
+      <div class="hero-stat-label">Coral spots</div>
+    </div>
+  </div>
+</header>
+
+<!-- ========== Showpieces ========== -->
+<section class="section" id="showpieces">
+  <div class="section-h">
+    <div>
+      <h2>Showpieces</h2>
+      <p>Open in a new tab &middot; full-fidelity standalone HTML</p>
+    </div>
+    <span style="font-size: 12px; color: var(--ink-soft);">No build step &middot; double-click to open</span>
+  </div>
+
+  <div class="standalone-strip">
+    <a href="standalone/reader-magazine.html" target="_blank" class="standalone-card">
+      <div class="standalone-card-label">W5 &middot; Storytelling</div>
+      <div class="standalone-card-title">Konkan in 4 Quiet Days</div>
+      <div class="standalone-card-meta">Magazine reader &middot; parallax hero, sticky day-nav, animated map polyline, drop-cap typography. <em style="color: var(--coral); font-style: normal;">Open &rarr;</em></div>
+    </a>
+    <a href="standalone/gamification-quests.html" target="_blank" class="standalone-card">
+      <div class="standalone-card-label">W11 &middot; Gamification</div>
+      <div class="standalone-card-title">Quests &middot; Streaks &middot; XP</div>
+      <div class="standalone-card-meta">Daily quest ring, animated streak flame, achievements grid, leaderboard with podium. <em style="color: var(--coral); font-style: normal;">Open &rarr;</em></div>
+    </a>
+    <a href="standalone/studio-dashboard.html" target="_blank" class="standalone-card">
+      <div class="standalone-card-label">W7 &middot; Studio</div>
+      <div class="standalone-card-title">Creator Dashboard</div>
+      <div class="standalone-card-meta">Earnings sparkline, content table, activity feed, payout ledger preview. <em style="color: var(--coral); font-style: normal;">Open &rarr;</em></div>
+    </a>
+    <a href="standalone/booking-flow.html" target="_blank" class="standalone-card">
+      <div class="standalone-card-label">W6 &middot; Booking</div>
+      <div class="standalone-card-title">4-step Booking Wizard</div>
+      <div class="standalone-card-meta">Dual-month calendar, pax + add-ons, live seat SSE, confetti confirmation. <em style="color: var(--coral); font-style: normal;">Open &rarr;</em></div>
+    </a>
+  </div>
+</section>
+
+<!-- ========== Pack grid ========== -->
+<section class="section" id="packs">
+  <div class="section-h">
+    <div>
+      <h2>All 12 packs</h2>
+      <p>Showpieces marked. Other packs detailed in SRS &middot; built next.</p>
+    </div>
+    <a href="../../00_SRS/v1.5/srs-v1.5-delta.md" style="font-size: 13px; font-weight: 500;">View SRS v1.5 &rarr;</a>
+  </div>
+
+  <div class="pack-grid">
+
+    <a href="standalone/pack-w1-marketing.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w1"></div>
+      <div class="pack-letter">Pack W1</div>
+      <h3 class="pack-title">Marketing &amp; SEO</h3>
+      <p class="pack-desc">Public landing, mini-site, content detail (guest), legal pages, SEO meta debug inspector.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">5 screens</span><span class="pack-meta-fr">WEB-FR-001..013</span></div>
+    </a>
+
+    <a href="standalone/pack-w2-auth-onboarding.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w2"></div>
+      <div class="pack-letter">Pack W2</div>
+      <h3 class="pack-title">Auth &amp; Onboarding</h3>
+      <p class="pack-desc">Sign-up (email/Google/phone), sign-in, magic-link, OTP, sub-cat picker, city, welcome celebration.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">8 screens</span><span class="pack-meta-fr">WEB-AUTH-FR-014..022</span></div>
+    </a>
+
+    <a href="standalone/pack-w3-home-feed.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w3"></div>
+      <div class="pack-letter">Pack W3</div>
+      <h3 class="pack-title">Home Feed</h3>
+      <p class="pack-desc">Cold-start, default home (3-col), Following, Posts, sub-cat filtered, see-all, right-rail dock.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">10 screens</span><span class="pack-meta-fr">WEB-FEED-FR-023..031</span></div>
+    </a>
+
+    <a href="standalone/pack-w4-discover-search.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w4"></div>
+      <div class="pack-letter">Pack W4</div>
+      <h3 class="pack-title">Discover &amp; Search</h3>
+      <p class="pack-desc">Discover home, &#8984;K overlay, results, 13-filter drawer, chip row, Places autocomplete.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">9 screens</span><span class="pack-meta-fr">WEB-DISC-FR-032..039</span></div>
+    </a>
+
+    <a href="standalone/reader-magazine.html" target="_blank" class="pack-card showpiece">
+      <div class="pack-preview pp-w5"></div>
+      <div class="pack-letter">Pack W5</div>
+      <h3 class="pack-title">Immersive Reader</h3>
+      <p class="pack-desc">Hero parallax, sticky day-nav, animated map polyline, magazine typography, save microinteractions, share-as-image.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">15 screens</span><span class="pack-meta-fr">WEB-READ-FR-040..049</span></div>
+    </a>
+
+    <a href="standalone/booking-flow.html" target="_blank" class="pack-card showpiece">
+      <div class="pack-preview pp-w6"></div>
+      <div class="pack-letter">Pack W6</div>
+      <h3 class="pack-title">Booking Flow</h3>
+      <p class="pack-desc">Date picker (dual-month), pax + add-ons, review, Razorpay redirect, confetti confirmation, my bookings.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">9 screens</span><span class="pack-meta-fr">WEB-BOOK-FR-050..056</span></div>
+    </a>
+
+    <a href="standalone/studio-dashboard.html" target="_blank" class="pack-card showpiece">
+      <div class="pack-preview pp-w7"></div>
+      <div class="pack-letter">Pack W7</div>
+      <h3 class="pack-title">Creator Studio</h3>
+      <p class="pack-desc">Dashboard, content list, bookings drawer, reviews, payouts ledger, settings, multi-tab broadcast.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">12 screens</span><span class="pack-meta-fr">WEB-STUD-FR-057..066</span></div>
+    </a>
+
+    <a href="standalone/pack-w8-publishing-wizard.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w8"></div>
+      <div class="pack-letter">Pack W8</div>
+      <h3 class="pack-title">Publishing Wizard</h3>
+      <p class="pack-desc">Type picker, cover uploader, crop modal, TipTap body editor, day builder, autosave, preview iframe.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">12 screens</span><span class="pack-meta-fr">WEB-PUB-FR-067..073</span></div>
+    </a>
+
+    <a href="standalone/pack-w9-profile-settings-kyc.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w9"></div>
+      <div class="pack-letter">Pack W9</div>
+      <h3 class="pack-title">Profile, Settings &amp; KYC</h3>
+      <p class="pack-desc">Profile edit, settings shell, account, notifications, privacy, danger zone, KYC PAN + selfie capture.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">12 screens</span><span class="pack-meta-fr">WEB-PROF/KYC-FR-074..083</span></div>
+    </a>
+
+    <a href="standalone/pack-w10-notifications-saved-social.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w10"></div>
+      <div class="pack-letter">Pack W10</div>
+      <h3 class="pack-title">Notifications, Saved, Social</h3>
+      <p class="pack-desc">Drawer slide-in, grouped list, push opt-in, saved tabs, optimistic follow, comment thread, share.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">9 screens</span><span class="pack-meta-fr">WEB-NTF/SAV/SOC-FR-084..088</span></div>
+    </a>
+
+    <a href="standalone/gamification-quests.html" target="_blank" class="pack-card showpiece">
+      <div class="pack-preview pp-w11"></div>
+      <div class="pack-letter">Pack W11</div>
+      <h3 class="pack-title">Gamification</h3>
+      <p class="pack-desc">Quest ring, streak flame, level-up modal, achievements grid, leaderboard podium, XP toasts.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">12 screens</span><span class="pack-meta-fr">WEB-GAM-FR-089..094</span></div>
+    </a>
+
+    <a href="standalone/pack-w12-motion-doc.html" target="_blank" class="pack-card">
+      <div class="pack-preview pp-w12"></div>
+      <div class="pack-letter">Pack W12</div>
+      <h3 class="pack-title">Motion Language Reference</h3>
+      <p class="pack-desc">Easings, durations, page transitions, list stagger, scroll reveals, cursor tilt, confetti, reduced-motion gating.</p>
+      <div class="pack-meta"><span class="pack-meta-screens">9 sections</span><span class="pack-meta-fr">WEB-MOTION-FR-100..105</span></div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ========== Design system reference ========== -->
+<section class="section" id="system">
+  <div class="section-h">
+    <div>
+      <h2>Design system reference</h2>
+      <p>Tokens &middot; type pair &middot; coral lockdown &middot; motion language</p>
+    </div>
+  </div>
+
+  <div class="ds-grid">
+
+    <!-- Palette -->
+    <div class="ds-block">
+      <h3>Palette &middot; warm monochrome + 1 coral accent</h3>
+      <div class="palette">
+        <div class="swatch sw-surface">
+          <div class="swatch-name">surface</div>
+          <div class="swatch-hex">#FAF7F4</div>
+        </div>
+        <div class="swatch sw-surface-alt">
+          <div class="swatch-name">surfaceAlt</div>
+          <div class="swatch-hex">#F2EEE8</div>
+        </div>
+        <div class="swatch sw-hairline">
+          <div class="swatch-name">hairline</div>
+          <div class="swatch-hex">#E5E0D7</div>
+        </div>
+        <div class="swatch sw-line">
+          <div class="swatch-name">line</div>
+          <div class="swatch-hex">#C9C3B6</div>
+        </div>
+        <div class="swatch sw-ink-soft dark">
+          <div class="swatch-name">inkSoft</div>
+          <div class="swatch-hex">#9C9689</div>
+        </div>
+        <div class="swatch sw-ink-muted dark">
+          <div class="swatch-name">inkMuted</div>
+          <div class="swatch-hex">#6B6660</div>
+        </div>
+        <div class="swatch sw-ink dark">
+          <div class="swatch-name">ink</div>
+          <div class="swatch-hex">#2C2823</div>
+        </div>
+        <div class="swatch sw-coral dark">
+          <div class="swatch-name">coral</div>
+          <div class="swatch-hex">#E15A41</div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--ink-soft); margin: 16px 0 0; line-height: 1.6;">Photography is exempt. Initial avatars use a 4-color warm-neutral grayscale (no coral).</p>
+    </div>
+
+    <!-- Type sample -->
+    <div class="ds-block">
+      <h3>Type pair &middot; Fraunces + Inter</h3>
+      <div class="type-sample-display">Konkan in <em>Four Quiet Days</em></div>
+      <div class="type-sample-meta">Fraunces Italic 32 / 1.15 / 600</div>
+      <div class="type-sample-body">A long arc of grey-black sand 30 minutes south of Alibaug, where the noise of Mumbai gives way to crickets and the slow boom of surf.</div>
+      <div class="type-sample-meta">Fraunces 18 / 1.55 / 400 &middot; reader body</div>
+      <div class="type-sample-ui">Sign in &middot; Save &middot; Book this experience</div>
+      <div class="type-sample-meta">Inter 14 / 1.55 / 500 &middot; UI / labels / metadata</div>
+      <p style="font-size: 12px; color: var(--ink-soft); margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--hairline); line-height: 1.6;">Spacing 4 px base &middot; radii 12 px (cards) &middot; 20 px (modals) &middot; 999 px (pills/chips)</p>
+    </div>
+
+    <!-- Coral lockdown list -->
+    <div class="ds-block">
+      <h3>Coral lockdown &middot; 7 contexts</h3>
+      <ol class="coral-list">
+        <li><span class="num">1</span><span><span class="label">Primary CTAs</span> &middot; book, publish, save changes, "Show N results"</span></li>
+        <li><span class="num">2</span><span><span class="label">Active bookmark icon</span> &middot; filled state</span></li>
+        <li><span class="num">3</span><span><span class="label">Location pin</span> &middot; city pin chip, results destination indicators</span></li>
+        <li><span class="num">4</span><span><span class="label">Active nav indicator</span> &middot; top-bar tab underline, sidebar active item</span></li>
+        <li><span class="num">5</span><span><span class="label">Critical unread signals</span> &middot; notif badge, active-filter count</span></li>
+        <li class="web-only"><span class="num">6</span><span><span class="label">XP &middot; streak progress fill</span> <span style="color: var(--coral); font-size: 11px; font-weight: 600;">&middot; web only</span> &middot; gamification user-state</span></li>
+        <li class="web-only"><span class="num">7</span><span><span class="label">Reading-progress bar</span> <span style="color: var(--coral); font-size: 11px; font-weight: 600;">&middot; web only</span> &middot; immersive reader content-state</span></li>
+      </ol>
+    </div>
+
+    <!-- Motion durations -->
+    <div class="ds-block">
+      <h3>Motion language &middot; Framer Motion 11</h3>
+      <ul class="duration-list">
+        <li><span class="ms">120 ms</span><span class="name">Microflick</span><span class="use">hover, active, fill</span></li>
+        <li><span class="ms">180 ms</span><span class="name">Chips</span><span class="use">tabs, toggles, segment fill</span></li>
+        <li><span class="ms">220 ms</span><span class="name">Page</span><span class="use">route transitions, fadeSlide8</span></li>
+        <li><span class="ms">300 ms</span><span class="name">Drawer</span><span class="use">side panels, sheets, accordion</span></li>
+        <li><span class="ms">480 ms</span><span class="name">Hero</span><span class="use">landing reveal, chapter cards</span></li>
+        <li><span class="ms" style="color: var(--ink);">spring</span><span class="name">280 / 26</span><span class="use">number-rolls, button press</span></li>
+        <li><span class="ms" style="color: var(--ink);">spring</span><span class="name">180 / 18</span><span class="use">confetti, level-up burst</span></li>
+      </ul>
+      <p style="font-size: 12px; color: var(--ink-soft); margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--hairline); line-height: 1.6;">All variants gated by <code style="background: var(--surface-alt); padding: 1px 4px; border-radius: 3px;">useReducedMotion()</code> &mdash; fallback = instant state change.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer class="canvas-footer">
+  <div class="canvas-footer-inner">
+
+    <div>
+      <h4>Wireframe artifacts</h4>
+      <ul class="canvas-footer-list">
+        <li><a href="standalone/reader-magazine.html" target="_blank">standalone/reader-magazine.html</a></li>
+        <li><a href="standalone/gamification-quests.html" target="_blank">standalone/gamification-quests.html</a></li>
+        <li><a href="standalone/studio-dashboard.html" target="_blank">standalone/studio-dashboard.html</a></li>
+        <li><a href="standalone/booking-flow.html" target="_blank">standalone/booking-flow.html</a></li>
+        <li><a href="README.md">README.md</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>SRS &amp; engineering</h4>
+      <ul class="canvas-footer-list">
+        <li><a href="../../00_SRS/v1.5/srs-v1.5-delta.md">SRS v1.5 delta</a></li>
+        <li><a href="../../00_SRS/v1.4/srs-v1.4-delta.md">SRS v1.4 delta</a></li>
+        <li><a href="../../00_SRS/v1.2/srs-v1.2.md">SRS v1.2 (canonical)</a></li>
+        <li><a href="../../engineering/HLD.md">HLD &middot; engineering</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>Mobile reference</h4>
+      <ul class="canvas-footer-list">
+        <li><a href="../project/CreatorHub Redesign.html">Mobile master canvas</a></li>
+        <li><a href="../project/wizard-screens-v1.html">Mobile wizard wireframes</a></li>
+        <li><a href="../project/home-feed-redesign.html">Mobile home feed</a></li>
+        <li><a href="../project/detail-screens-v3.html">Mobile detail screens</a></li>
+      </ul>
+    </div>
+
+  </div>
+</footer>
+
+</body>
+</html>

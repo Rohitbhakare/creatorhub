@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>W4 &middot; Discover &amp; Search &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4; --surface-alt: #F2EEE8; --paper: #FFFFFF;
+    --hairline: #E5E0D7; --line: #C9C3B6;
+    --ink-soft: #9C9689; --ink-muted: #6B6660; --ink: #2C2823;
+    --coral: #E15A41; --coral-deep: #C9472D; --green: #498a5a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: var(--coral); text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+  .screen-marker { background: var(--surface-alt); padding: 16px 64px; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 14px; font-weight: 600; color: var(--ink-muted); }
+  .screen-marker strong { color: var(--ink); }
+  .screen-marker code { font-family: var(--mono); font-size: 11px; background: var(--paper); padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+
+  /* Top nav */
+  .nav { height: 64px; background: var(--paper); border-bottom: 1px solid var(--hairline); padding: 0 32px; display: flex; align-items: center; gap: 24px; }
+  .nav-brand { font-family: var(--serif); font-weight: 600; font-size: 22px; }
+  .nav-brand span { color: var(--coral); }
+  .nav-search-trigger {
+    flex: 1; max-width: 480px;
+    height: 40px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 0 16px;
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-soft); font-size: 13px;
+    cursor: pointer;
+    transition: border-color .12s, background .12s;
+  }
+  .nav-search-trigger:hover { border-color: var(--line); background: var(--surface-alt); }
+  .nav-search-trigger .kbd { margin-left: auto; font-family: var(--mono); font-size: 10px; background: var(--paper); border: 1px solid var(--hairline); padding: 2px 6px; border-radius: 4px; }
+  .nav-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .nav-actions .avatar { width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 13px; }
+
+  /* W4.1 Discover home */
+  .discover-shell { padding: 64px; max-width: 1280px; margin: 0 auto; }
+  .discover-search-h { font-family: var(--serif); font-weight: 600; font-size: 48px; line-height: 1.1; margin: 0 0 12px; max-width: 720px; letter-spacing: -.02em; }
+  .discover-search-h em { color: var(--coral); font-style: italic; }
+  .discover-search-sub { font-size: 16px; color: var(--ink-muted); margin: 0 0 32px; max-width: 540px; }
+  .discover-search-input {
+    width: 100%; max-width: 720px;
+    height: 64px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow-1);
+    margin-bottom: 8px;
+  }
+  .discover-search-input svg { stroke: var(--ink-muted); fill: none; stroke-width: 2; flex: 0 0 auto; }
+  .discover-search-input input { flex: 1; border: 0; outline: 0; background: transparent; font-size: 17px; color: var(--ink); }
+  .discover-search-input input::placeholder { color: var(--ink-soft); font-style: italic; font-family: var(--serif); font-weight: 500; }
+  .discover-search-input .kbd { font-family: var(--mono); font-size: 11px; background: var(--surface); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 6px; color: var(--ink-muted); }
+  .discover-search-helpers { display: flex; gap: 8px; flex-wrap: wrap; max-width: 720px; margin-bottom: 64px; }
+  .helper-chip { font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--surface-alt); color: var(--ink-muted); cursor: pointer; transition: background .12s, color .12s; }
+  .helper-chip:hover { background: var(--ink); color: var(--surface); }
+
+  /* Section header */
+  .section-h { display: flex; align-items: baseline; justify-content: space-between; margin: 56px 0 20px; }
+  .section-h h2 { font-family: var(--serif); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0; letter-spacing: -.01em; }
+  .section-h-sub { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .section-h a { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+
+  /* Handpicked collections */
+  .collections-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .collection-tile {
+    aspect-ratio: 4/5;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    color: #fffdf7;
+    cursor: pointer;
+    background: linear-gradient(135deg, #2c4a3a, #87a079);
+    transition: transform .18s, box-shadow .18s;
+  }
+  .collection-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .collection-tile.t-2 { background: linear-gradient(135deg, #5e3724, #d49b6a); }
+  .collection-tile.t-3 { background: linear-gradient(135deg, #1f3047, #a3b9d4); }
+  .collection-tile.t-4 { background: linear-gradient(135deg, #946542, #d8a04a); }
+  .collection-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.65) 100%); }
+  .collection-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; z-index: 1; }
+  .collection-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,.30); display: inline-block; margin-bottom: 8px; backdrop-filter: blur(6px); }
+  .collection-title { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0 0 4px; }
+  .collection-meta { font-size: 12px; opacity: 0.85; }
+
+  /* Explore by city chip rail */
+  .city-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .city-chip {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+    transition: border-color .12s, background .12s;
+  }
+  .city-chip:hover { border-color: var(--coral); }
+  .city-chip-pin { color: var(--coral); font-size: 14px; }
+  .city-chip-count { color: var(--ink-soft); font-size: 11px; }
+
+  /* Categories */
+  .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .cat-tile {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color .18s, transform .18s, box-shadow .18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .cat-tile:hover { border-color: var(--coral); transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .cat-tile.soon { opacity: 0.55; cursor: not-allowed; background: var(--surface); }
+  .cat-tile.soon:hover { transform: none; box-shadow: none; border-color: var(--hairline); }
+  .cat-tile-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.8; }
+  .cat-tile-name { font-family: var(--serif); font-weight: 600; font-size: 18px; margin-bottom: 4px; }
+  .cat-tile-meta { font-size: 12px; color: var(--ink-soft); }
+  .cat-tile.soon .cat-tile-name::after { content: ' · Soon'; color: var(--coral); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-family: var(--sans); }
+
+  /* W4.2 Search overlay */
+  .overlay-shell { background: rgba(44,40,35,.55); backdrop-filter: blur(4px); padding: 80px 32px; min-height: 600px; display: flex; align-items: flex-start; justify-content: center; }
+  .search-overlay {
+    background: var(--paper);
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    width: 100%; max-width: 720px;
+    overflow: hidden;
+  }
+  .search-overlay-input { padding: 20px 24px; border-bottom: 1px solid var(--hairline); display: flex; align-items: center; gap: 14px; }
+  .search-overlay-input input { flex: 1; border: 0; outline: 0; font-size: 18px; color: var(--ink); background: transparent; }
+  .search-overlay-input .esc-pill { font-family: var(--mono); font-size: 11px; background: var(--surface); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 6px; color: var(--ink-muted); }
+  .search-overlay-section { padding: 16px 24px; }
+  .search-overlay-section h5 { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; margin: 0 0 12px; }
+  .search-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background .12s; }
+  .search-row:hover, .search-row.active { background: var(--surface-alt); }
+  .search-row.active { background: rgba(225,90,65,0.08); }
+  .search-row-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface-alt); display: grid; place-items: center; font-size: 14px; flex: 0 0 auto; }
+  .search-row-icon.itinerary { background: rgba(225,90,65,0.12); }
+  .search-row-text { flex: 1; }
+  .search-row-title { font-weight: 500; font-size: 14px; line-height: 1.3; }
+  .search-row-title em { background: rgba(225,90,65,0.18); color: var(--coral); font-style: normal; padding: 0 2px; border-radius: 2px; }
+  .search-row-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .search-row-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--surface-alt); color: var(--ink-muted); }
+  .search-row-arrow { color: var(--ink-soft); font-size: 16px; }
+
+  .search-trending { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 12px 8px; }
+  .search-trending .helper-chip { font-size: 11px; padding: 5px 10px; }
+
+  .search-overlay-foot { padding: 12px 24px; border-top: 1px solid var(--hairline); background: var(--surface); font-size: 11px; color: var(--ink-soft); display: flex; gap: 16px; }
+  .search-overlay-foot strong { color: var(--ink-muted); font-weight: 600; font-family: var(--mono); background: var(--paper); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
+
+  /* W4.3 Results page */
+  .results-shell { display: grid; grid-template-columns: 1fr 360px; max-width: 1400px; margin: 0 auto; padding: 32px; gap: 32px; }
+
+  .results-h-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .results-h { font-family: var(--serif); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0; letter-spacing: -.01em; }
+  .results-h em { color: var(--coral); font-style: italic; }
+  .results-h-meta { font-size: 13px; color: var(--ink-muted); margin-top: 4px; }
+
+  .results-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 7px 12px 7px 14px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--surface);
+    font-size: 12px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .filter-chip-x { background: rgba(255,253,247,0.2); border: 0; color: #fff; width: 16px; height: 16px; border-radius: 999px; display: grid; place-items: center; font-size: 10px; font-weight: 700; cursor: pointer; }
+  .filter-chip-x:hover { background: rgba(255,253,247,0.4); }
+  .clear-all { font-size: 12px; color: var(--ink-muted); cursor: pointer; }
+  .sort-dropdown { margin-left: auto; display: flex; align-items: center; gap: 6px; border: 1px solid var(--hairline); background: var(--paper); padding: 7px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+
+  .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Reuse card styles */
+  .card { background: var(--paper); border: 1px solid var(--hairline); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform .18s, box-shadow .18s; position: relative; }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .card-cover { aspect-ratio: 4/3; background: linear-gradient(135deg, #6e8a76, #a4b693); position: relative; }
+  .card-cover.t-2 { background: linear-gradient(135deg, #4a6f8a, #7da3bd); }
+  .card-cover.t-3 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .card-cover.t-4 { background: linear-gradient(135deg, #8a4f4f, #c08e7c); }
+  .card-cover.t-5 { background: linear-gradient(135deg, #5b7044, #98aa6e); }
+  .card-cover.t-6 { background: linear-gradient(135deg, #2c4a3a, #87a079); }
+  .card-pill { position: absolute; top: 12px; left: 12px; font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); backdrop-filter: blur(6px); }
+  .card-bookmark { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 999px; background: rgba(255,255,255,.92); display: grid; place-items: center; backdrop-filter: blur(6px); border: 0; }
+  .card-bookmark.saved { background: var(--coral); }
+  .card-bookmark svg { stroke: var(--ink); fill: none; stroke-width: 2; }
+  .card-bookmark.saved svg { stroke: #fff; fill: #fff; }
+  .card-body { padding: 14px 16px; }
+  .card-title { font-family: var(--serif); font-weight: 600; font-size: 17px; line-height: 1.25; margin: 0 0 8px; }
+  .card-creator { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .card-creator .avatar-s { width: 24px; height: 24px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; color: #fff; font-family: var(--serif); font-weight: 600; font-size: 10px; }
+  .card-creator-name { font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+  .card-meta { font-size: 11px; color: var(--ink-soft); display: flex; gap: 10px; padding-top: 8px; border-top: 1px solid var(--hairline); }
+
+  /* W4.4 Filter drawer */
+  .filter-drawer {
+    position: sticky; top: 32px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    overflow: hidden;
+    height: max-content;
+  }
+  .filter-drawer-head { padding: 20px 24px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--hairline); }
+  .filter-drawer-head h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; margin: 0; }
+  .filter-group { padding: 16px 24px; border-bottom: 1px solid var(--hairline); }
+  .filter-group:last-of-type { border-bottom: 0; }
+  .filter-group-h { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; }
+  .filter-group-h h4 { font-size: 13px; font-weight: 600; margin: 0; }
+  .filter-group-h .count { font-size: 11px; color: var(--coral); font-weight: 700; padding: 2px 6px; border-radius: 999px; background: rgba(225,90,65,0.10); margin-left: auto; margin-right: 8px; }
+  .filter-group-h .arrow { color: var(--ink-soft); font-size: 14px; transition: transform .18s; }
+  .filter-group.open .arrow { transform: rotate(90deg); }
+
+  .filter-content { padding-top: 12px; display: none; }
+  .filter-group.open .filter-content { display: block; }
+  .filter-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; cursor: pointer; }
+  .filter-checkbox { width: 16px; height: 16px; border: 1.5px solid var(--hairline); border-radius: 4px; flex: 0 0 auto; display: grid; place-items: center; }
+  .filter-checkbox.checked { background: var(--coral); border-color: var(--coral); color: #fff; font-size: 11px; font-weight: 700; }
+  .filter-row-text { flex: 1; }
+  .filter-row-count { font-size: 11px; color: var(--ink-soft); }
+
+  /* Range slider mock */
+  .range-slider { padding: 12px 6px; }
+  .range-track { height: 4px; background: var(--hairline); border-radius: 999px; position: relative; margin: 16px 0; }
+  .range-fill { position: absolute; height: 100%; background: var(--coral); border-radius: 999px; left: 20%; right: 30%; }
+  .range-thumb { position: absolute; width: 16px; height: 16px; background: var(--paper); border: 2px solid var(--coral); border-radius: 999px; top: 50%; transform: translate(-50%, -50%); }
+  .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-muted); }
+
+  .filter-drawer-foot { padding: 16px 24px; background: var(--surface); border-top: 1px solid var(--hairline); display: flex; gap: 8px; }
+  .btn-primary { background: var(--coral); color: #fff; border: 0; padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; flex: 1; }
+  .btn-primary:hover { background: var(--coral-deep); }
+  .btn-ghost { background: transparent; border: 1px solid var(--hairline); color: var(--ink-muted); padding: 10px 16px; border-radius: 10px; font-weight: 500; font-size: 12px; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 80px 32px; }
+  .empty-illustration { font-size: 56px; margin-bottom: 16px; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .empty-state h3 { font-family: var(--serif); font-weight: 600; font-size: 24px; margin: 0 0 8px; }
+  .empty-state p { color: var(--ink-muted); font-size: 14px; margin: 0 0 24px; }
+
+  @media (max-width: 1080px) {
+    .discover-shell { padding: 32px; }
+    .collections-grid, .cat-grid, .results-grid { grid-template-columns: repeat(2, 1fr); }
+    .results-shell { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span style="opacity:0.5;">Pack</span> W4 &middot; Discover &amp; Search
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- ============ W4.1 — Discover home ============ -->
+<div class="screen-marker">Screen <strong>W4.1</strong> &middot; Discover home (search-first editorial layout) <code>/discover</code></div>
+
+<nav class="nav">
+  <div class="nav-brand">creator<span>&middot;</span>hub</div>
+  <div class="nav-search-trigger">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Search creators, places, trips
+    <span class="kbd">&#8984; K</span>
+  </div>
+  <div class="nav-actions">
+    <div class="avatar">RB</div>
+  </div>
+</nav>
+
+<div class="discover-shell">
+  <h1 class="discover-search-h">Discover stories <em>worth saving</em>.</h1>
+  <p class="discover-search-sub">Search by destination, mood, season, or creator. Or browse by category below &mdash; we've curated this week's best.</p>
+
+  <div class="discover-search-input">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input placeholder="Try 'Konkan road trip', 'monsoon trekking', 'pondicherry food'…" />
+    <span class="kbd">&#8984; K</span>
+  </div>
+  <div class="discover-search-helpers">
+    <span class="helper-chip">monsoon hills</span>
+    <span class="helper-chip">solo female friendly</span>
+    <span class="helper-chip">under &#8377;5k</span>
+    <span class="helper-chip">weekend escapes</span>
+    <span class="helper-chip">first-time travelers</span>
+  </div>
+
+  <!-- Hand-picked collections -->
+  <div class="section-h">
+    <div>
+      <h2>Hand-picked for the season</h2>
+      <div class="section-h-sub">Algorithmic collections, refreshed weekly</div>
+    </div>
+    <a href="#">All collections &rarr;</a>
+  </div>
+  <div class="collections-grid">
+    <div class="collection-tile">
+      <div class="collection-content">
+        <span class="collection-tag">Popular this week</span>
+        <h3 class="collection-title">Hot in Mumbai</h3>
+        <div class="collection-meta">12 stories &middot; updated 2 h ago</div>
+      </div>
+    </div>
+    <div class="collection-tile t-2">
+      <div class="collection-content">
+        <span class="collection-tag">Budget-friendly</span>
+        <h3 class="collection-title">Under &#8377;2k</h3>
+        <div class="collection-meta">8 stories &middot; weekend doable</div>
+      </div>
+    </div>
+    <div class="collection-tile t-3">
+      <div class="collection-content">
+        <span class="collection-tag">Quick reads</span>
+        <h3 class="collection-title">Short stories</h3>
+        <div class="collection-meta">6 stories &middot; under 5 min reads</div>
+      </div>
+    </div>
+    <div class="collection-tile t-4">
+      <div class="collection-content">
+        <span class="collection-tag">Discover voices</span>
+        <h3 class="collection-title">New creators</h3>
+        <div class="collection-meta">5 creators &middot; first-time published</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explore by city -->
+  <div class="section-h">
+    <div>
+      <h2>Explore by city</h2>
+      <div class="section-h-sub">Stories grouped by where they happen</div>
+    </div>
+    <a href="#">All 24 cities &rarr;</a>
+  </div>
+  <div class="city-chips">
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Mumbai</strong><span class="city-chip-count">42</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Bengaluru</strong><span class="city-chip-count">38</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Pune</strong><span class="city-chip-count">28</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Goa</strong><span class="city-chip-count">24</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Delhi</strong><span class="city-chip-count">22</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Coorg</strong><span class="city-chip-count">14</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Lonavala</strong><span class="city-chip-count">12</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Mysore</strong><span class="city-chip-count">11</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Mahabaleshwar</strong><span class="city-chip-count">10</span></div>
+    <div class="city-chip"><span class="city-chip-pin">&#128205;</span><strong>Hampi</strong><span class="city-chip-count">9</span></div>
+  </div>
+
+  <!-- Categories -->
+  <div class="section-h">
+    <div>
+      <h2>Browse by interest</h2>
+      <div class="section-h-sub">4 active travel verticals + 8 launching after</div>
+    </div>
+  </div>
+  <div class="cat-grid">
+    <div class="cat-tile">
+      <div class="cat-tile-icon">&#128663;</div>
+      <div class="cat-tile-name">Road Trips</div>
+      <div class="cat-tile-meta">86 chapters &middot; 24 creators</div>
+    </div>
+    <div class="cat-tile">
+      <div class="cat-tile-icon">&#128692;</div>
+      <div class="cat-tile-name">Biking</div>
+      <div class="cat-tile-meta">42 chapters &middot; 12 creators</div>
+    </div>
+    <div class="cat-tile">
+      <div class="cat-tile-icon">&#127956;</div>
+      <div class="cat-tile-name">Trekking</div>
+      <div class="cat-tile-meta">68 chapters &middot; 18 creators</div>
+    </div>
+    <div class="cat-tile">
+      <div class="cat-tile-icon">&#127828;</div>
+      <div class="cat-tile-name">Food Trails</div>
+      <div class="cat-tile-meta">54 chapters &middot; 22 creators</div>
+    </div>
+    <div class="cat-tile soon">
+      <div class="cat-tile-icon">&#127881;</div>
+      <div class="cat-tile-name">Stories</div>
+      <div class="cat-tile-meta">After Travel verticals</div>
+    </div>
+    <div class="cat-tile soon">
+      <div class="cat-tile-icon">&#127908;</div>
+      <div class="cat-tile-name">Music</div>
+      <div class="cat-tile-meta">In planning</div>
+    </div>
+    <div class="cat-tile soon">
+      <div class="cat-tile-icon">&#127859;</div>
+      <div class="cat-tile-name">Cooking</div>
+      <div class="cat-tile-meta">In planning</div>
+    </div>
+    <div class="cat-tile soon">
+      <div class="cat-tile-icon">&#128218;</div>
+      <div class="cat-tile-name">Reading</div>
+      <div class="cat-tile-meta">In planning</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ W4.2 — Cmd+K search overlay ============ -->
+<div class="screen-marker">Screen <strong>W4.2</strong> &middot; Cmd+K search overlay (modal)</div>
+
+<div class="overlay-shell">
+  <div class="search-overlay">
+    <div class="search-overlay-input">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink-muted)" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input value="konkan road" autofocus />
+      <span class="esc-pill">ESC</span>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="search-overlay-section">
+      <h5>Suggestions</h5>
+      <div class="search-row active">
+        <div class="search-row-icon itinerary">&#128205;</div>
+        <div class="search-row-text">
+          <div class="search-row-title"><em>Konkan</em> in 4 Quiet Days &middot; <em>Road</em> trip</div>
+          <div class="search-row-meta">by Aanya Ravi &middot; 4 days &middot; 4.8 &#9733;</div>
+        </div>
+        <span class="search-row-pill">Itinerary</span>
+        <span class="search-row-arrow">&#8629;</span>
+      </div>
+      <div class="search-row">
+        <div class="search-row-icon">&#128205;</div>
+        <div class="search-row-text">
+          <div class="search-row-title">Coastal <em>Konkan</em>: 7-day deep dive</div>
+          <div class="search-row-meta">by Karthik N. &middot; 7 days &middot; 4.7 &#9733;</div>
+        </div>
+        <span class="search-row-pill">Itinerary</span>
+      </div>
+      <div class="search-row">
+        <div class="search-row-icon">&#128104;</div>
+        <div class="search-row-text">
+          <div class="search-row-title">Saanvi K. &middot; <em>Konkan</em> food trails</div>
+          <div class="search-row-meta">@saanvi &middot; Tamil Nadu &middot; 980 followers</div>
+        </div>
+        <span class="search-row-pill">Creator</span>
+      </div>
+      <div class="search-row">
+        <div class="search-row-icon">&#127956;</div>
+        <div class="search-row-text">
+          <div class="search-row-title"><em>Konkan</em> hill trek &middot; Sahyadri</div>
+          <div class="search-row-meta">Trek &middot; 1 day &middot; 12 km</div>
+        </div>
+        <span class="search-row-pill">Itinerary</span>
+      </div>
+      <div class="search-row">
+        <div class="search-row-icon">&#128205;</div>
+        <div class="search-row-text">
+          <div class="search-row-title"><em>Konkan</em> Express &middot; Mumbai &harr; Goa</div>
+          <div class="search-row-meta">Place &middot; 4 itineraries reference this</div>
+        </div>
+        <span class="search-row-pill">Place</span>
+      </div>
+    </div>
+
+    <!-- Trending -->
+    <div class="search-overlay-section">
+      <h5>Trending searches</h5>
+      <div class="search-trending">
+        <span class="helper-chip">monsoon hills</span>
+        <span class="helper-chip">spiti october</span>
+        <span class="helper-chip">offbeat goa</span>
+        <span class="helper-chip">ladakh first-timer</span>
+        <span class="helper-chip">solo female road trip</span>
+      </div>
+    </div>
+
+    <div class="search-overlay-foot">
+      <span><strong>&#8593; &#8595;</strong> navigate</span>
+      <span><strong>&crarr;</strong> open</span>
+      <span><strong>esc</strong> close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ W4.3 — Discover Results page ============ -->
+<div class="screen-marker">Screen <strong>W4.3</strong> &middot; Discover results page (3-col desktop, 13-filter sidebar drawer)</div>
+
+<nav class="nav">
+  <div class="nav-brand">creator<span>&middot;</span>hub</div>
+  <div class="nav-search-trigger">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span style="color: var(--ink); font-weight: 500;">Konkan road trip weekend</span>
+    <span class="kbd">&#8984; K</span>
+  </div>
+  <div class="nav-actions">
+    <div class="avatar">RB</div>
+  </div>
+</nav>
+
+<div class="results-shell">
+
+  <!-- Main results -->
+  <main>
+    <div class="results-h-row">
+      <div>
+        <h1 class="results-h"><em>"Konkan road trip"</em></h1>
+        <div class="results-h-meta">14 results &middot; near Mumbai &middot; under &#8377;10k &middot; verified creators only</div>
+      </div>
+    </div>
+
+    <div class="results-controls">
+      <div class="filter-chip">Road Trips <button class="filter-chip-x">&times;</button></div>
+      <div class="filter-chip">Mumbai &middot; 200km <button class="filter-chip-x">&times;</button></div>
+      <div class="filter-chip">Under &#8377;10k <button class="filter-chip-x">&times;</button></div>
+      <div class="filter-chip">Verified <button class="filter-chip-x">&times;</button></div>
+      <span class="clear-all">Clear all</span>
+      <div class="sort-dropdown">Sort: Most relevant <span style="font-size: 10px; color: var(--ink-soft);">&#9660;</span></div>
+    </div>
+
+    <div class="results-grid">
+      <div class="card">
+        <div class="card-cover t-2"><span class="card-pill">Itinerary</span><button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Konkan in 4 Quiet Days</h3>
+          <div class="card-creator"><div class="avatar-s">AR</div><span class="card-creator-name">Aanya Ravi &#10003;</span></div>
+          <div class="card-meta"><span>4 days</span><span>From &#8377;6.5k</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover"><span class="card-pill">Itinerary</span><button class="card-bookmark saved"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Coastal Konkan 7-day deep dive</h3>
+          <div class="card-creator"><div class="avatar-s" style="background: linear-gradient(135deg, #c8a677, #8a6845);">KN</div><span class="card-creator-name">Karthik N. &#10003;</span></div>
+          <div class="card-meta"><span>7 days</span><span>From &#8377;9.8k</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-3"><span class="card-pill">Itinerary</span><button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Mumbai-Goa via Konkan</h3>
+          <div class="card-creator"><div class="avatar-s" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div><span class="card-creator-name">Riya M. &#10003;</span></div>
+          <div class="card-meta"><span>3 days</span><span>From &#8377;4.8k</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-4"><span class="card-pill">Itinerary</span><button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Konkan Express: 2-day weekender</h3>
+          <div class="card-creator"><div class="avatar-s">AR</div><span class="card-creator-name">Aanya Ravi &#10003;</span></div>
+          <div class="card-meta"><span>2 days</span><span>From &#8377;3.4k</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-5"><span class="card-pill">Itinerary</span><button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Sahyadri-to-sea: 5 days</h3>
+          <div class="card-creator"><div class="avatar-s" style="background: linear-gradient(135deg, #b89a76, #d8c4a6);">VK</div><span class="card-creator-name">Vivaan K. &#10003;</span></div>
+          <div class="card-meta"><span>5 days</span><span>From &#8377;7.2k</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-cover t-6"><span class="card-pill">Itinerary</span><button class="card-bookmark"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="card-body">
+          <h3 class="card-title">Velas Turtle Festival road trip</h3>
+          <div class="card-creator"><div class="avatar-s" style="background: linear-gradient(135deg, #c8a677, #8a6845);">DP</div><span class="card-creator-name">Devansh P. &#10003;</span></div>
+          <div class="card-meta"><span>2 days</span><span>From &#8377;3.8k</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state preview after grid -->
+    <div style="margin-top: 64px; padding: 48px 32px; border: 1px dashed var(--hairline); border-radius: 16px;">
+      <div style="font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .14em; font-weight: 600; margin-bottom: 16px; text-align: center;">Empty state preview</div>
+      <div class="empty-state" style="padding: 0;">
+        <div class="empty-illustration">&#128270;</div>
+        <h3>No matches with these filters.</h3>
+        <p>Try fewer filters, or check Hand-picked collections instead.</p>
+        <button class="btn-primary" style="display: inline-block; padding: 10px 20px;">Try fewer filters</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Filter drawer -->
+  <aside class="filter-drawer">
+    <div class="filter-drawer-head">
+      <h3>Filters</h3>
+      <span style="font-size: 11px; color: var(--coral); font-weight: 600;">4 active</span>
+    </div>
+
+    <div class="filter-group open">
+      <div class="filter-group-h"><h4>Type</h4><span class="count">2</span><span class="arrow">&rsaquo;</span></div>
+      <div class="filter-content">
+        <div class="filter-row"><div class="filter-checkbox checked">&#10003;</div><span class="filter-row-text">Itineraries</span><span class="filter-row-count">128</span></div>
+        <div class="filter-row"><div class="filter-checkbox checked">&#10003;</div><span class="filter-row-text">Experiences</span><span class="filter-row-count">42</span></div>
+        <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Posts</span><span class="filter-row-count">412</span></div>
+        <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Events</span><span class="filter-row-count">18</span></div>
+      </div>
+    </div>
+
+    <div class="filter-group open">
+      <div class="filter-group-h"><h4>Sub-category</h4><span class="count">1</span><span class="arrow">&rsaquo;</span></div>
+      <div class="filter-content">
+        <div class="filter-row"><div class="filter-checkbox checked">&#10003;</div><span class="filter-row-text">Road Trips</span><span class="filter-row-count">86</span></div>
+        <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Biking</span><span class="filter-row-count">42</span></div>
+        <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Trekking</span><span class="filter-row-count">68</span></div>
+        <div class="filter-row"><div class="filter-checkbox"></div><span class="filter-row-text">Food Trails</span><span class="filter-row-count">54</span></div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-h"><h4>City</h4><span class="count">1</span><span class="arrow">&rsaquo;</span></div>
+    </div>
+
+    <div class="filter-group open">
+      <div class="filter-group-h"><h4>Distance from me</h4><span class="arrow">&rsaquo;</span></div>
+      <div class="filter-content">
+        <div class="range-slider">
+          <div class="range-track">
+            <div class="range-fill"></div>
+            <div class="range-thumb" style="left: 20%;"></div>
+            <div class="range-thumb" style="left: 70%;"></div>
+          </div>
+          <div class="range-labels"><span>0 km</span><span>200 km</span><span>500 km+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-h"><h4>Duration</h4><span class="arrow">&rsaquo;</span></div>
+    </div>
+
+    <div class="filter-group open">
+      <div class="filter-group-h"><h4>Price</h4><span class="count">1</span><span class="arrow">&rsaquo;</span></div>
+      <div class="filter-content">
+        <div class="range-slider">
+          <div class="range-track">
+            <div class="range-fill" style="left: 0%; right: 40%;"></div>
+            <div class="range-thumb" style="left: 0%;"></div>
+            <div class="range-thumb" style="left: 60%;"></div>
+          </div>
+          <div class="range-labels"><span>&#8377;0</span><span>&#8377;10k</span><span>&#8377;25k+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group"><div class="filter-group-h"><h4>Travel dates</h4><span class="arrow">&rsaquo;</span></div></div>
+    <div class="filter-group"><div class="filter-group-h"><h4>Crew size</h4><span class="arrow">&rsaquo;</span></div></div>
+    <div class="filter-group"><div class="filter-group-h"><h4>Difficulty</h4><span class="arrow">&rsaquo;</span></div></div>
+    <div class="filter-group"><div class="filter-group-h"><h4>Tags</h4><span class="arrow">&rsaquo;</span></div></div>
+    <div class="filter-group"><div class="filter-group-h"><h4>Language</h4><span class="arrow">&rsaquo;</span></div></div>
+
+    <div class="filter-group">
+      <div class="filter-group-h" style="margin: 0;">
+        <h4 style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" checked />
+          Verified creators only
+        </h4>
+        <span class="count">1</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-h" style="margin: 0;">
+        <h4 style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" />
+          Available now (next 30 days)
+        </h4>
+      </div>
+    </div>
+
+    <div class="filter-drawer-foot">
+      <button class="btn-ghost">Reset all</button>
+      <button class="btn-primary">Show 14 results</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+  // Toggle filter groups
+  document.querySelectorAll('.filter-group-h').forEach(h => {
+    h.addEventListener('click', () => {
+      const group = h.closest('.filter-group');
+      group.classList.toggle('open');
+    });
+  });
+  // Toggle filter rows
+  document.querySelectorAll('.filter-row').forEach(r => {
+    r.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cb = r.querySelector('.filter-checkbox');
+      cb.classList.toggle('checked');
+      cb.textContent = cb.classList.contains('checked') ? '✓' : '';
+    });
+  });
+  // Toggle bookmarks
+  document.querySelectorAll('.card-bookmark').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      b.classList.toggle('saved');
+    });
+  });
+</script>
+
+</body>
+</html>

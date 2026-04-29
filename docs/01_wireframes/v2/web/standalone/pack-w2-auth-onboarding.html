@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>W2 &middot; Auth &amp; Onboarding &middot; CreatorHub Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --surface: #FAF7F4; --surface-alt: #F2EEE8; --paper: #FFFFFF;
+    --hairline: #E5E0D7; --line: #C9C3B6;
+    --ink-soft: #9C9689; --ink-muted: #6B6660; --ink: #2C2823;
+    --coral: #E15A41; --coral-deep: #C9472D;
+    --green: #498a5a; --red: #b8504a; --gold: #d8a04a;
+    --shadow-1: 0 1px 2px rgba(44,40,35,.05), 0 4px 12px rgba(44,40,35,.04);
+    --shadow-2: 0 4px 12px rgba(44,40,35,.06), 0 16px 40px rgba(44,40,35,.06);
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+  a { color: var(--coral); text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, select, textarea { font: inherit; color: inherit; }
+
+  .pack-bar { background: var(--ink); color: #fffdf7; padding: 12px 32px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: flex; align-items: center; gap: 16px; }
+  .pack-bar .lbl { opacity: 0.5; }
+  .pack-bar a { color: #fffdf7; opacity: 0.7; }
+
+  .screen-marker { background: var(--surface-alt); padding: 16px 64px; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); font-family: var(--serif); font-size: 14px; font-weight: 600; color: var(--ink-muted); }
+  .screen-marker strong { color: var(--ink); }
+  .screen-marker code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--paper); padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+
+  /* Auth shell */
+  .auth-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    background: var(--surface);
+  }
+  .auth-side {
+    background: linear-gradient(155deg, #2c4a3a 0%, #5b7559 60%, #87a079 100%);
+    color: #fffdf7;
+    padding: 48px 56px;
+    display: flex; flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-side::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(0,0,0,.20) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 20%, rgba(255,220,180,.15) 0%, transparent 60%);
+  }
+  .auth-side > * { position: relative; z-index: 1; }
+  .auth-side-brand { font-family: var(--serif); font-weight: 600; font-size: 24px; letter-spacing: -.01em; }
+  .auth-side-brand span { color: var(--coral); }
+  .auth-side-quote { margin-top: auto; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 32px; line-height: 1.3; max-width: 460px; }
+  .auth-side-quote::before { content: '"'; font-size: 64px; color: var(--coral); line-height: 0; vertical-align: -16px; margin-right: 4px; }
+  .auth-side-attribution { margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255,253,247,0.15); font-size: 13px; opacity: 0.8; display: flex; align-items: center; gap: 10px; }
+  .auth-side-attribution-avatar { width: 32px; height: 32px; border-radius: 999px; background: linear-gradient(135deg, #d4b896, #a07c5a); display: grid; place-items: center; font-family: var(--serif); font-weight: 600; font-size: 12px; color: #fff; }
+
+  .auth-form { padding: 56px 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+  .auth-form-inner { width: 100%; max-width: 360px; }
+  .auth-h { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -.01em; }
+  .auth-sub { font-size: 14px; color: var(--ink-muted); margin: 0 0 28px; line-height: 1.55; }
+  .auth-sub a { font-weight: 600; }
+
+  /* Auth tabs */
+  .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-alt); border-radius: 999px; width: 100%; margin-bottom: 28px; }
+  .auth-tab { flex: 1; background: transparent; border: 0; padding: 9px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink-muted); transition: background .18s, color .18s; }
+  .auth-tab.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 600; }
+
+  /* Form fields */
+  .field { margin-bottom: 16px; }
+  .field-label { font-size: 12px; font-weight: 600; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .field-input { width: 100%; padding: 12px 14px; border: 1px solid var(--hairline); background: var(--paper); border-radius: 10px; font-size: 14px; transition: border-color .12s, box-shadow .12s; }
+  .field-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(44,40,35,0.06); }
+  .field-input.error { border-color: var(--red); }
+  .field-error { font-size: 12px; color: var(--red); margin-top: 6px; }
+  .field-hint { font-size: 11px; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
+
+  .password-strength { display: flex; gap: 4px; margin-top: 8px; }
+  .password-strength span { flex: 1; height: 3px; background: var(--hairline); border-radius: 999px; }
+  .password-strength span.fill { background: var(--coral); }
+  .password-strength-label { font-size: 11px; color: var(--coral); margin-top: 4px; font-weight: 600; }
+
+  .checkbox-row { display: flex; align-items: flex-start; gap: 8px; padding: 12px 0; font-size: 12px; color: var(--ink-muted); }
+  .checkbox-row input { margin: 2px 0 0; }
+
+  /* Buttons */
+  .btn-primary { width: 100%; background: var(--coral); color: #fff; border: 0; padding: 13px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; transition: background .12s, transform .12s; }
+  .btn-primary:hover { background: var(--coral-deep); }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { background: var(--hairline); color: var(--ink-soft); cursor: not-allowed; }
+  .btn-ink { width: 100%; background: var(--ink); color: var(--surface); border: 0; padding: 13px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+  .btn-ink:hover { background: #1a1814; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--hairline); }
+
+  .btn-google { width: 100%; background: var(--paper); color: var(--ink); border: 1px solid var(--hairline); padding: 12px 16px; border-radius: 12px; font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: border-color .12s, background .12s; }
+  .btn-google:hover { border-color: var(--line); background: var(--surface); }
+  .google-icon { width: 16px; height: 16px; border-radius: 999px; background: conic-gradient(from 0deg, #4285F4 0% 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75% 100%); }
+
+  .auth-foot { text-align: center; font-size: 13px; color: var(--ink-muted); margin-top: 24px; }
+
+  /* OTP boxes */
+  .otp-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 24px 0; }
+  .otp-box {
+    aspect-ratio: 1;
+    border: 2px solid var(--hairline);
+    border-radius: 12px;
+    background: var(--paper);
+    display: grid; place-items: center;
+    font-family: var(--serif); font-size: 28px; font-weight: 600;
+    transition: border-color .12s, background .12s, transform .12s;
+  }
+  .otp-box.filled { border-color: var(--ink); }
+  .otp-box.active { border-color: var(--coral); box-shadow: 0 0 0 4px rgba(225,90,65,0.10); }
+
+  .resend-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); margin-bottom: 16px; }
+  .resend-row a { color: var(--ink-muted); font-weight: 500; }
+
+  /* Magic-link sent screen */
+  .ml-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 48px 40px;
+    text-align: center;
+    box-shadow: var(--shadow-1);
+  }
+  .ml-icon {
+    width: 72px; height: 72px;
+    margin: 0 auto 20px;
+    background: rgba(225,90,65,0.10);
+    color: var(--coral);
+    border-radius: 16px;
+    display: grid; place-items: center;
+    font-size: 32px;
+    animation: bob 2s ease-in-out infinite;
+  }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .ml-card h2 { font-family: var(--serif); font-weight: 600; font-size: 26px; margin: 0 0 8px; }
+  .ml-card p { color: var(--ink-muted); font-size: 14px; margin: 0 0 8px; line-height: 1.55; }
+  .ml-card p strong { color: var(--ink); font-weight: 600; }
+  .ml-card .resend-row { justify-content: center; gap: 6px; padding-top: 20px; border-top: 1px solid var(--hairline); margin-top: 24px; margin-bottom: 0; }
+
+  /* Travel sub-cat picker */
+  .picker-shell { background: var(--surface); min-height: 100vh; padding: 80px 64px 64px; }
+  .picker-inner { max-width: 800px; margin: 0 auto; }
+  .picker-progress { display: flex; gap: 4px; margin-bottom: 40px; }
+  .picker-progress span { flex: 1; height: 4px; background: var(--hairline); border-radius: 999px; }
+  .picker-progress span.done { background: var(--coral); }
+  .picker-progress span.active { background: var(--coral); }
+  .picker h1 { font-family: var(--serif); font-weight: 600; font-size: 40px; line-height: 1.15; margin: 0 0 12px; max-width: 600px; letter-spacing: -.01em; }
+  .picker h1 em { color: var(--coral); font-style: italic; }
+  .picker-h-sub { font-size: 16px; color: var(--ink-muted); margin: 0 0 40px; max-width: 600px; }
+
+  .picker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+  .picker-tile {
+    background: var(--paper);
+    border: 2px solid var(--hairline);
+    border-radius: 20px;
+    padding: 28px 28px 24px;
+    cursor: pointer;
+    transition: border-color .18s, transform .18s, box-shadow .18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .picker-tile:hover { border-color: var(--line); transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .picker-tile.selected { border-color: var(--coral); background: linear-gradient(145deg, var(--paper), rgba(225,90,65,0.04)); }
+  .picker-tile-illustration { height: 140px; border-radius: 12px; margin-bottom: 16px; background: linear-gradient(135deg, #6e8a76, #a4b693); position: relative; }
+  .picker-tile-illustration.t-2 { background: linear-gradient(135deg, #b89a76, #d8c4a6); }
+  .picker-tile-illustration.t-3 { background: linear-gradient(135deg, #4a6f8a, #7da3bd); }
+  .picker-tile-illustration.t-4 { background: linear-gradient(135deg, #8a4f4f, #c08e7c); }
+  .picker-tile-illustration::after {
+    content: attr(data-icon);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 56px;
+    opacity: 0.6;
+  }
+  .picker-tile-name { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.2; margin-bottom: 6px; }
+  .picker-tile-desc { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+  .picker-tile-check {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 28px; height: 28px;
+    border-radius: 999px;
+    background: var(--coral);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 14px; font-weight: 700;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity .18s, transform .18s cubic-bezier(.22,1,.36,1);
+  }
+  .picker-tile.selected .picker-tile-check { opacity: 1; transform: scale(1); }
+
+  .picker-counter { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 12px; margin-bottom: 16px; }
+  .picker-counter-text { font-size: 13px; color: var(--ink-muted); }
+  .picker-counter-text strong { color: var(--ink); font-weight: 600; }
+  .picker-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+  /* City picker */
+  .city-picker { max-width: 520px; margin: 0 auto; padding: 80px 32px; }
+  .city-card { background: var(--paper); border: 1px solid var(--hairline); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-1); }
+  .city-geo {
+    width: 100%;
+    border: 2px dashed var(--hairline);
+    border-radius: 14px;
+    padding: 32px;
+    text-align: center;
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .18s, background .18s;
+  }
+  .city-geo:hover { border-color: var(--coral); background: rgba(225,90,65,0.04); }
+  .city-geo-icon { font-size: 32px; margin-bottom: 12px; color: var(--coral); }
+  .city-geo-title { font-family: var(--serif); font-weight: 600; font-size: 18px; }
+  .city-geo-sub { font-size: 13px; color: var(--ink-muted); margin-top: 4px; }
+
+  .city-or { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
+  .city-or::before, .city-or::after { content: ''; flex: 1; height: 1px; background: var(--hairline); }
+  .city-skip { display: block; text-align: center; margin-top: 16px; font-size: 13px; color: var(--ink-muted); }
+
+  /* Welcome celebration */
+  .welcome-shell {
+    min-height: 100vh;
+    background: linear-gradient(155deg, #2c4a3a 0%, #5b7559 60%, #87a079 100%);
+    display: grid; place-items: center;
+    position: relative;
+    overflow: hidden;
+    color: #fffdf7;
+  }
+  .welcome-shell::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%); }
+  .welcome-card {
+    position: relative; z-index: 2;
+    background: rgba(255,255,255,0.96);
+    color: var(--ink);
+    border-radius: 28px;
+    padding: 64px 56px;
+    text-align: center;
+    width: 480px; max-width: 90vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  }
+  .welcome-emoji { font-size: 72px; margin-bottom: 16px; animation: pop .8s cubic-bezier(.22,1,.36,1); }
+  @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  .welcome-card h1 { font-family: var(--serif); font-weight: 600; font-size: 42px; line-height: 1.1; margin: 0 0 12px; letter-spacing: -.01em; }
+  .welcome-card h1 em { color: var(--coral); font-style: italic; }
+  .welcome-card p { color: var(--ink-muted); font-size: 16px; line-height: 1.5; margin: 0 0 32px; }
+  .welcome-card .btn-primary { width: auto; padding: 14px 28px; font-size: 15px; }
+
+  /* Confetti */
+  .confetti { position: absolute; width: 8px; height: 12px; pointer-events: none; opacity: 0; }
+  @keyframes burst {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--cx), var(--cy)) rotate(var(--rot)); opacity: 0; }
+  }
+
+  @media (max-width: 1080px) {
+    .auth-shell { grid-template-columns: 1fr; }
+    .auth-side { display: none; }
+    .picker-shell { padding: 48px 24px; }
+    .picker-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pack-bar">
+  <span class="lbl">Pack</span> W2 &middot; Auth &amp; Onboarding
+  <span style="margin-left: auto;"><a href="../CreatorHub Web Redesign.html">&larr; Back to canvas</a></span>
+</div>
+
+<!-- ============ W2.1 — Sign-up ============ -->
+<div class="screen-marker">Screen <strong>W2.1</strong> &middot; Sign-up <code>/signup</code></div>
+<div class="auth-shell">
+  <aside class="auth-side">
+    <div class="auth-side-brand">creator<span>&middot;</span>hub</div>
+    <div class="auth-side-quote">
+      I left Mumbai at 5:14 a.m. The city's worst-kept secret is that it empties at dawn, and the highway becomes a quiet, crooked ribbon between hills.
+    </div>
+    <div class="auth-side-attribution">
+      <div class="auth-side-attribution-avatar">AR</div>
+      <div>
+        <div style="font-weight: 600; color: #fffdf7; opacity: 1;">Aanya Ravi</div>
+        <div style="font-size: 11px;">From "Konkan in 4 Quiet Days"</div>
+      </div>
+    </div>
+  </aside>
+  <main class="auth-form">
+    <div class="auth-form-inner">
+      <h1 class="auth-h">Join CreatorHub</h1>
+      <p class="auth-sub">Travel stories worth saving. Already a member? <a href="#">Sign in</a></p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active">Email</button>
+        <button class="auth-tab">Google</button>
+        <button class="auth-tab">Phone</button>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Full name</label>
+        <input class="field-input" type="text" placeholder="Aanya Ravi" />
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" value="aanya@example.com" />
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" value="••••••••••••" />
+        <div class="password-strength">
+          <span class="fill"></span>
+          <span class="fill"></span>
+          <span class="fill"></span>
+          <span></span>
+        </div>
+        <div class="password-strength-label">Strong</div>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="legal" checked />
+        <label for="legal">I accept the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I'm 18+ years old.</label>
+      </div>
+
+      <button class="btn-primary">Create account</button>
+
+      <div class="divider">OR</div>
+      <button class="btn-google"><span class="google-icon"></span> Continue with Google</button>
+
+      <div class="auth-foot">By signing up you agree to receive booking-related WhatsApp updates.</div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W2.2 — Sign-in ============ -->
+<div class="screen-marker">Screen <strong>W2.2</strong> &middot; Sign-in <code>/signin</code></div>
+<div class="auth-shell">
+  <aside class="auth-side">
+    <div class="auth-side-brand">creator<span>&middot;</span>hub</div>
+    <div class="auth-side-quote">
+      A turtle the size of a wallet pushes its way out of damp sand at 5:48 a.m. The villagers clap, very softly, like they don't want to startle it.
+    </div>
+    <div class="auth-side-attribution">
+      <div class="auth-side-attribution-avatar" style="background: linear-gradient(135deg, #c0a094, #8a6e62);">RM</div>
+      <div>
+        <div style="font-weight: 600; color: #fffdf7; opacity: 1;">Riya Mehta</div>
+        <div style="font-size: 11px;">From "Velas turtle festival"</div>
+      </div>
+    </div>
+  </aside>
+  <main class="auth-form">
+    <div class="auth-form-inner">
+      <h1 class="auth-h">Welcome back</h1>
+      <p class="auth-sub">Don't have an account? <a href="#">Sign up</a></p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active">Email</button>
+        <button class="auth-tab">Google</button>
+        <button class="auth-tab">Phone</button>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" value="aanya@example.com" />
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input error" type="password" value="•••••" />
+        <div class="field-error">Email or password incorrect &middot; 2 attempts remaining</div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 12px;">
+        <label style="display: flex; align-items: center; gap: 6px; color: var(--ink-muted);"><input type="checkbox" /> Stay signed in</label>
+        <a href="#">Forgot password?</a>
+      </div>
+
+      <button class="btn-primary">Sign in</button>
+
+      <div class="auth-foot" style="margin-top: 16px;"><a href="#">Or send me a magic link instead &rarr;</a></div>
+
+      <div class="divider">OR</div>
+      <button class="btn-google"><span class="google-icon"></span> Continue with Google</button>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W2.3 — Magic-link sent ============ -->
+<div class="screen-marker">Screen <strong>W2.3</strong> &middot; Magic-link sent</div>
+<div class="auth-shell">
+  <aside class="auth-side">
+    <div class="auth-side-brand">creator<span>&middot;</span>hub</div>
+    <div class="auth-side-quote">There's a stretch outside Indapur where the road belongs to no one.</div>
+    <div class="auth-side-attribution">
+      <div class="auth-side-attribution-avatar">AR</div>
+      <div>
+        <div style="font-weight: 600; color: #fffdf7; opacity: 1;">Aanya Ravi</div>
+        <div style="font-size: 11px;">Day 1 notes</div>
+      </div>
+    </div>
+  </aside>
+  <main class="auth-form">
+    <div class="auth-form-inner">
+      <div class="ml-card">
+        <div class="ml-icon">&#9993;</div>
+        <h2>Check your inbox</h2>
+        <p>We sent a sign-in link to</p>
+        <p><strong>aanya@example.com</strong></p>
+        <p style="margin-top: 16px; font-size: 13px;">Click the link from the same browser to continue. The link expires in 15 minutes.</p>
+        <div class="resend-row">
+          <span>Didn't receive it?</span>
+          <a href="#">Resend in 24s</a>
+        </div>
+      </div>
+      <div class="auth-foot" style="margin-top: 16px;"><a href="#">&larr; Wrong email? Go back</a></div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W2.4 — OTP verify ============ -->
+<div class="screen-marker">Screen <strong>W2.4</strong> &middot; OTP verify</div>
+<div class="auth-shell">
+  <aside class="auth-side">
+    <div class="auth-side-brand">creator<span>&middot;</span>hub</div>
+    <div class="auth-side-quote">You can drive the full distance to Alibaug, but I never recommend it. Take the boat.</div>
+    <div class="auth-side-attribution">
+      <div class="auth-side-attribution-avatar">AR</div>
+      <div>
+        <div style="font-weight: 600; color: #fffdf7; opacity: 1;">Aanya Ravi</div>
+        <div style="font-size: 11px;">"Konkan in 4 Quiet Days"</div>
+      </div>
+    </div>
+  </aside>
+  <main class="auth-form">
+    <div class="auth-form-inner">
+      <h1 class="auth-h">Enter the code</h1>
+      <p class="auth-sub">We sent a 6-digit code to <strong style="color: var(--ink);">+91 98765 43210</strong>. <a href="#">Change number</a></p>
+
+      <div class="otp-row">
+        <div class="otp-box filled">3</div>
+        <div class="otp-box filled">9</div>
+        <div class="otp-box filled">8</div>
+        <div class="otp-box active">|</div>
+        <div class="otp-box"></div>
+        <div class="otp-box"></div>
+      </div>
+
+      <div class="resend-row">
+        <span>Didn't get it?</span>
+        <a href="#">Resend in 22s</a>
+      </div>
+
+      <button class="btn-primary" disabled style="opacity: 0.5;">Verify &amp; continue</button>
+      <div class="auth-foot" style="margin-top: 16px;">Auto-verifies as soon as you type the 6th digit.</div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ W2.5 — Travel sub-cat picker ============ -->
+<div class="screen-marker">Screen <strong>W2.5</strong> &middot; Travel sub-category picker (4-tile grid &middot; min 2)</div>
+<div class="picker-shell picker">
+  <div class="picker-inner">
+    <div class="picker-progress">
+      <span class="done"></span>
+      <span class="active"></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>What kind of travel <em>calls you?</em></h1>
+    <p class="picker-h-sub">Pick at least 2. We'll use these to shape your feed. You can change these later in settings.</p>
+
+    <div class="picker-grid">
+      <div class="picker-tile selected">
+        <div class="picker-tile-illustration t-2" data-icon="&#128663;"></div>
+        <div class="picker-tile-name">Road Trips</div>
+        <div class="picker-tile-desc">Long drives, coastal routes, hill highways. From weekend escapes to multi-week loops.</div>
+        <div class="picker-tile-check">&#10003;</div>
+      </div>
+      <div class="picker-tile selected">
+        <div class="picker-tile-illustration t-3" data-icon="&#128692;"></div>
+        <div class="picker-tile-name">Biking</div>
+        <div class="picker-tile-desc">Cycle tours, Royal Enfield runs, e-bike day trips. Easy to epic.</div>
+        <div class="picker-tile-check">&#10003;</div>
+      </div>
+      <div class="picker-tile">
+        <div class="picker-tile-illustration" data-icon="&#127956;"></div>
+        <div class="picker-tile-name">Trekking</div>
+        <div class="picker-tile-desc">Day hikes, weekend treks, high-altitude expeditions. Sahyadris to Himalayas.</div>
+        <div class="picker-tile-check">&#10003;</div>
+      </div>
+      <div class="picker-tile">
+        <div class="picker-tile-illustration t-4" data-icon="&#127828;"></div>
+        <div class="picker-tile-name">Food Trails</div>
+        <div class="picker-tile-desc">Family kitchens, street food walks, regional markets. Eat your way through India.</div>
+        <div class="picker-tile-check">&#10003;</div>
+      </div>
+    </div>
+
+    <div class="picker-counter">
+      <div class="picker-counter-text"><strong>2 of 4</strong> selected &middot; <span style="color: var(--green); font-weight: 600;">&#10003; minimum reached</span></div>
+      <div style="font-size: 12px; color: var(--ink-soft);">Pick more to broaden your feed</div>
+    </div>
+
+    <div class="picker-actions">
+      <button class="btn-ink" style="width: auto;">&larr; Back</button>
+      <button class="btn-primary" style="width: auto;">Continue &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ W2.6 — City picker ============ -->
+<div class="screen-marker">Screen <strong>W2.6</strong> &middot; City picker</div>
+<div class="picker-shell" style="background: var(--paper);">
+  <div class="city-picker">
+    <div class="picker-progress" style="margin-bottom: 32px;">
+      <span class="done"></span>
+      <span class="done"></span>
+      <span class="active"></span>
+      <span></span>
+    </div>
+    <h1 class="picker" style="font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.15; margin: 0 0 8px;">Where are you <em style="color: var(--coral); font-style: italic;">exploring from?</em></h1>
+    <p style="font-size: 14px; color: var(--ink-muted); margin: 0 0 28px;">We'll surface stories near you first. Just helps us shape Day 1.</p>
+
+    <div class="city-card">
+      <button class="city-geo">
+        <div class="city-geo-icon">&#128205;</div>
+        <div class="city-geo-title">Use my location</div>
+        <div class="city-geo-sub">We'll detect your city automatically</div>
+      </button>
+      <div class="city-or">Or</div>
+      <div class="field" style="margin: 0;">
+        <input class="field-input" placeholder="Type a city &middot; e.g. Mumbai, Bengaluru, Pune" value="Mum" />
+        <div style="margin-top: 8px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden;">
+          <div style="padding: 12px 14px; border-bottom: 1px solid var(--hairline); font-size: 13px; cursor: pointer; background: rgba(225,90,65,0.04);">
+            <strong>Mumbai</strong> &middot; <span style="color: var(--ink-soft);">Maharashtra, India</span>
+          </div>
+          <div style="padding: 12px 14px; border-bottom: 1px solid var(--hairline); font-size: 13px; cursor: pointer;">
+            Mumbra &middot; <span style="color: var(--ink-soft);">Maharashtra, India</span>
+          </div>
+          <div style="padding: 12px 14px; font-size: 13px; cursor: pointer;">
+            Mumbai Suburban &middot; <span style="color: var(--ink-soft);">Maharashtra, India</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-soft); margin-top: 12px; text-align: right;">Powered by Google Places</div>
+    </div>
+    <a href="#" class="city-skip">Skip for now &rarr;</a>
+  </div>
+</div>
+
+<!-- ============ W2.7 — Welcome celebration ============ -->
+<div class="screen-marker">Screen <strong>W2.7</strong> &middot; Welcome celebration (with confetti spring)</div>
+<div class="welcome-shell" id="welcome-shell">
+  <div class="welcome-card" id="welcome-card">
+    <div class="welcome-emoji">&#127881;</div>
+    <h1>Welcome aboard, <em>Aanya</em>!</h1>
+    <p>Your feed is ready. We've handpicked 12 starter creators based on Road Trips and Biking.</p>
+    <button class="btn-primary" style="width: auto; padding: 14px 28px; font-size: 15px;" onclick="spawnConfettiOn(this)">Take me home &rarr;</button>
+  </div>
+</div>
+
+<!-- ============ W2.8 — Forgot password / reset ============ -->
+<div class="screen-marker">Screen <strong>W2.8</strong> &middot; Forgot password / reset</div>
+<div class="auth-shell">
+  <aside class="auth-side">
+    <div class="auth-side-brand">creator<span>&middot;</span>hub</div>
+    <div class="auth-side-quote">No turning back. The hills lean in.</div>
+    <div class="auth-side-attribution">
+      <div class="auth-side-attribution-avatar">VK</div>
+      <div>
+        <div style="font-weight: 600; color: #fffdf7; opacity: 1;">Vivaan Kapoor</div>
+        <div style="font-size: 11px;">Spiti, Day 4</div>
+      </div>
+    </div>
+  </aside>
+  <main class="auth-form">
+    <div class="auth-form-inner">
+      <h1 class="auth-h">Reset your password</h1>
+      <p class="auth-sub">Type your email and we'll send a link to set a new one.</p>
+
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" placeholder="aanya@example.com" />
+        <div class="field-hint">Rate-limited to 3 reset requests per hour. <strong style="color: var(--ink);">3 of 3 left this hour.</strong></div>
+      </div>
+
+      <button class="btn-primary">Send reset link</button>
+      <div class="auth-foot" style="margin-top: 16px;"><a href="#">&larr; Back to sign in</a></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const colors = ['#E15A41', '#F38567', '#d8a04a', '#fff8d4', '#2C2823'];
+  function spawnConfettiOn(btn) {
+    if (reduce) return;
+    const card = document.getElementById('welcome-card');
+    const rect = card.getBoundingClientRect();
+    const cx = rect.width / 2;
+    for (let i = 0; i < 100; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti';
+      piece.style.left = cx + 'px';
+      piece.style.top = '40%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.borderRadius = (Math.random() < 0.5) ? '0' : '999px';
+      const dx = (Math.random() - 0.5) * 700;
+      const dy = -200 - Math.random() * 400;
+      const rot = Math.random() * 720;
+      piece.style.setProperty('--cx', dx + 'px');
+      piece.style.setProperty('--cy', dy + 'px');
+      piece.style.setProperty('--rot', rot + 'deg');
+      piece.style.animation = 'burst 1.4s cubic-bezier(.22,1,.36,1) forwards';
+      piece.style.animationDelay = (Math.random() * 0.2) + 's';
+      card.appendChild(piece);
+      setTimeout(() => piece.remove(), 1700);
+    }
+  }
+  // Auto-spawn confetti once on page load for the welcome card
+  setTimeout(() => spawnConfettiOn(), 600);
+</script>
+
+</body>
+</html>
