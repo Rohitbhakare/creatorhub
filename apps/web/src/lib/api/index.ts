@@ -48,26 +48,25 @@ export async function fetchContentDetail(contentId: string): Promise<ContentDeta
   }
 }
 
+/**
+ * Active cities for the home/discover chip rail. Calls the discover/cities
+ * endpoint which returns `{ cities: [{ city_id, name, state, content_count }] }`
+ * ordered by content_count desc.
+ */
 export async function fetchPopularCities(): Promise<{ name: string; count: number }[]> {
   try {
-    const data = await apiFetchPublic<unknown>(`/api/v1/cities/popular`, {
-      next: { revalidate: 3600 },
+    const data = await apiFetchPublic<{ cities?: unknown[] }>(`/api/v1/discover/cities`, {
+      next: { revalidate: 3600, tags: ['cities'] },
     })
-    if (Array.isArray(data)) {
-      return data
-        .map((c) => {
-          if (typeof c !== 'object' || c === null) return null
-          const r = c as { name?: string; count?: number; content_count?: number }
-          if (!r.name) return null
-          return { name: r.name, count: r.count ?? r.content_count ?? 0 }
-        })
-        .filter((c): c is { name: string; count: number } => c !== null)
-    }
-    if (data && typeof data === 'object' && 'items' in data) {
-      const obj = data as { items?: { name: string; count: number }[] }
-      return obj.items ?? []
-    }
-    return []
+    const rows = Array.isArray(data?.cities) ? data.cities : []
+    return rows
+      .map((c) => {
+        if (typeof c !== 'object' || c === null) return null
+        const r = c as { name?: string; content_count?: number; count?: number }
+        if (!r.name) return null
+        return { name: r.name, count: r.content_count ?? r.count ?? 0 }
+      })
+      .filter((c): c is { name: string; count: number } => c !== null)
   } catch {
     return []
   }

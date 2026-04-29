@@ -59,8 +59,14 @@ async function delay(ms: number): Promise<void> {
   })
 }
 
+/**
+ * Retry only on transient server-side failures.
+ * Explicitly NOT retrying 429 — retrying a rate-limit response just
+ * compounds the pressure on the upstream and gets the client banned faster.
+ * Callers that need a backoff strategy on 429 should handle it explicitly.
+ */
 function isRetryable(status: number): boolean {
-  return status === 408 || status === 429 || status >= 500
+  return status === 408 || status === 502 || status === 503 || status === 504
 }
 
 /**
@@ -168,7 +174,12 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
         continue
       }
 
-      const logLevel = res.status >= 500 ? 'error' : 'warn'
+      // 404 is "expected missing" — many resources are looked up speculatively
+      // (creator-by-username, content-by-id from a stale link, etc.). Logging
+      // every 404 at warn level pollutes the signal we actually care about
+      // (5xx, 429, 4xx with bad inputs from us).
+      const logLevel: 'info' | 'warn' | 'error' =
+        res.status === 404 ? 'info' : res.status >= 500 ? 'error' : 'warn'
       log[logLevel]({ status: res.status, durationMs: duration, attempt }, 'api:error')
       throw appErr
     } catch (err) {

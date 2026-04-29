@@ -45,7 +45,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
       >
         <div
           style={{
-            maxWidth: 1240,
+            maxWidth: 1640,
             margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
@@ -94,7 +94,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
     >
       <div
         style={{
-          maxWidth: 1240,
+          maxWidth: 1640,
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '1.5fr repeat(4, 1fr)',
@@ -178,7 +178,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
 
       <div
         style={{
-          maxWidth: 1240,
+          maxWidth: 1640,
           margin: '36px auto 0',
           paddingTop: 20,
           borderTop: '1px solid var(--hairline)',

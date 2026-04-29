@@ -174,15 +174,29 @@ export interface DiscoverParams {
   page?: number
 }
 
+/**
+ * Search for content matching `q` (and optional filters). The API requires
+ * the `q` query param so we early-return empty when it's missing — callers
+ * (the /discover page) render a discover-by-category landing in that state
+ * instead of an empty results list.
+ *
+ * Response shape from /api/v1/discover/search:
+ *   { content: [...], cities: [...], creators: [...], places: [...] }
+ * We only surface the `content` rows here.
+ */
 export async function searchDiscover(params: DiscoverParams): Promise<{
   items: ContentCard[]
   total: number
 }> {
+  const q = params.q?.trim() ?? ''
+  if (q.length === 0) {
+    return { items: [], total: 0 }
+  }
   const search = new URLSearchParams()
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== '') search.set(k, String(v))
   }
-  const path = `/api/v1/discover/search${search.toString() ? `?${search.toString()}` : ''}`
+  const path = `/api/v1/discover/search?${search.toString()}`
   try {
     const data = await apiFetchPublic<unknown>(path, {
       next: { revalidate: 30 },
@@ -193,8 +207,9 @@ export async function searchDiscover(params: DiscoverParams): Promise<{
       return { items, total: items.length }
     }
     if (typeof data === 'object') {
-      const obj = data as { items?: unknown; total?: number }
-      const items = listOf(obj.items, transformContentCard)
+      const obj = data as { content?: unknown; items?: unknown; total?: number }
+      const rawItems = obj.content ?? obj.items
+      const items = listOf(rawItems, transformContentCard)
       return { items, total: obj.total ?? items.length }
     }
     return { items: [], total: 0 }

@@ -4,6 +4,7 @@ import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
 import { RightRail } from '@/components/chrome/right-rail'
 import { GuestRailCard } from '@/components/chrome/guest-rail-card'
+import { GuestLocationPrompt } from '@/components/chrome/guest-location-prompt'
 import { SectionRail } from '@/components/content/section-rail'
 import { HeroFeature } from '@/components/content/hero-feature'
 import { BentoMosaic } from '@/components/content/bento-mosaic'
@@ -100,11 +101,15 @@ export default async function HomePage({ searchParams }: Props) {
     <>
       <WebHeader session={session} active="home" streak={quests?.streakDays ?? 0} />
 
+      {isGuest && city == null && cities.length > 0 && (
+        <GuestLocationPrompt cities={cities} />
+      )}
+
       <main id="main-content">
         {/* Editorial intro: weather kicker + tight greeting + LIVE pill */}
         <section
           style={{
-            maxWidth: 1240,
+            maxWidth: 1640,
             margin: '0 auto',
             padding: '24px 32px 16px',
           }}
@@ -199,7 +204,7 @@ export default async function HomePage({ searchParams }: Props) {
         >
           <div
             style={{
-              maxWidth: 1240,
+              maxWidth: 1640,
               margin: '0 auto',
               padding: '10px 32px',
               display: 'flex',
@@ -274,7 +279,7 @@ export default async function HomePage({ searchParams }: Props) {
 
         <div
           style={{
-            maxWidth: 1240,
+            maxWidth: 1640,
             margin: '0 auto',
             padding: '24px 32px 80px',
             display: 'grid',

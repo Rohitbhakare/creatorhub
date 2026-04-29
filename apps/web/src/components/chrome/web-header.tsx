@@ -79,7 +79,7 @@ export function WebHeader({
     >
       <div
         style={{
-          maxWidth: 1240,
+          maxWidth: 1640,
           margin: '0 auto',
           padding: '0 32px',
           height: 72,

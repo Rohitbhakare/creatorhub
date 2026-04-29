@@ -76,7 +76,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
             padding: '40px 32px',
           }}
         >
-          <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div style={{ maxWidth: 1640, margin: '0 auto' }}>
             <h1
               className="ch-display"
               style={{ fontSize: 'clamp(32px, 5vw, 56px)', color: 'var(--ink)', marginBottom: 12 }}
@@ -126,7 +126,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
           </div>
         </section>
 
-        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 32px 80px' }}>
+        <div style={{ maxWidth: 1640, margin: '0 auto', padding: '32px 32px 80px' }}>
           <div
             style={{
               display: 'flex',
