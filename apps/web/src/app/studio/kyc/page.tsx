@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { WebHeader } from '@/components/chrome/web-header'
-import { WebFooter } from '@/components/chrome/web-footer'
 import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchKycStatus, type KycStatus } from '@/lib/kyc'
@@ -25,9 +23,11 @@ export default async function KycEntryPage() {
   if (!session) redirect('/signin?next=/studio/kyc')
   const kyc = await fetchKycStatus()
 
+  // Suppress unused — session is enforced by parent layout, kept for clarity
+  void session
+
   return (
     <>
-      <WebHeader session={session} active="studio" />
       <div
         style={{
           maxWidth: 1240,
@@ -140,7 +140,6 @@ export default async function KycEntryPage() {
           )}
         </main>
       </div>
-      <WebFooter />
     </>
   )
 }

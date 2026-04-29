@@ -7,6 +7,7 @@ import type {
   Booking,
   BookingIntent,
   ContentDetail,
+  ContentType,
   CreatorProfile,
   Notification,
   QuestSummary,
@@ -60,6 +61,144 @@ export async function fetchStudioMetrics(): Promise<StudioMetrics | null> {
     return await apiFetch<StudioMetrics>(`/api/v1/studio/metrics`, { next: { revalidate: 60 } })
   } catch {
     return null
+  }
+}
+
+export interface StudioContent {
+  id: string
+  type: ContentType
+  title: string
+  status: 'draft' | 'published' | 'archived' | 'rejected'
+  publishedAt: string | null
+  views: number
+  saves: number
+  bookings: number
+  priceInPaisa: number
+  isFree: boolean
+}
+
+export async function fetchStudioContents(): Promise<StudioContent[]> {
+  try {
+    const data = await apiFetch<{ items: StudioContent[] }>(`/api/v1/studio/content`, {
+      next: { revalidate: 30 },
+    })
+    return data.items
+  } catch {
+    return []
+  }
+}
+
+export interface StudioBookingRow {
+  id: string
+  contentId: string
+  contentTitle: string
+  travellerName: string
+  travellerEmail: string
+  pax: number
+  status: Booking['status']
+  totalPaisa: number
+  startsAt: string | null
+  bookedAt: string
+}
+
+export async function fetchStudioBookings(): Promise<StudioBookingRow[]> {
+  try {
+    const data = await apiFetch<{ items: StudioBookingRow[] }>(
+      `/api/v1/studio/bookings`,
+      { next: { revalidate: 30 } },
+    )
+    return data.items
+  } catch {
+    return []
+  }
+}
+
+export interface StudioReview {
+  id: string
+  contentId: string
+  contentTitle: string
+  reviewerName: string
+  rating: number
+  body: string
+  createdAt: string
+  reply: string | null
+}
+
+export async function fetchStudioReviews(): Promise<StudioReview[]> {
+  try {
+    const data = await apiFetch<{ items: StudioReview[] }>(`/api/v1/studio/reviews`, {
+      next: { revalidate: 30 },
+    })
+    return data.items
+  } catch {
+    return []
+  }
+}
+
+export interface PayoutRow {
+  id: string
+  bookingId: string
+  date: string
+  grossPaisa: number
+  platformFeePaisa: number
+  tdsPaisa: number
+  gstPaisa: number
+  netPaisa: number
+  utr: string | null
+  status: 'pending' | 'initiated' | 'settled' | 'failed'
+}
+
+export async function fetchPayouts(): Promise<PayoutRow[]> {
+  try {
+    const data = await apiFetch<{ items: PayoutRow[] }>(`/api/v1/creators/me/payouts`, {
+      next: { revalidate: 60 },
+    })
+    return data.items
+  } catch {
+    return []
+  }
+}
+
+export interface AchievementSummary {
+  id: string
+  name: string
+  description: string
+  unlocked: boolean
+  progress?: { current: number; total: number }
+  xpReward: number
+}
+
+export async function fetchAchievements(): Promise<AchievementSummary[]> {
+  try {
+    const data = await apiFetch<{ items: AchievementSummary[] }>(
+      `/api/v1/social/quests/achievements`,
+      { next: { revalidate: 60 } },
+    )
+    return data.items
+  } catch {
+    return []
+  }
+}
+
+export interface LeaderboardRow {
+  rank: number
+  userId: string
+  displayName: string
+  avatarUrl: string | null
+  city: string | null
+  xp: number
+  isMe: boolean
+}
+
+export async function fetchLeaderboard(scope: 'city' | 'national' | 'all-time'): Promise<LeaderboardRow[]> {
+  try {
+    const data = await apiFetch<{ items: LeaderboardRow[] }>(
+      `/api/v1/social/quests/leaderboard?scope=${scope}`,
+      { next: { revalidate: 60 } },
+    )
+    return data.items
+  } catch {
+    return []
   }
 }
 

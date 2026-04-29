@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { WebHeader } from '@/components/chrome/web-header'
-import { WebFooter } from '@/components/chrome/web-footer'
 import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchStudioMetrics } from '@/lib/api'
@@ -23,7 +21,6 @@ export default async function StudioPage() {
 
   return (
     <>
-      <WebHeader session={session} active="studio" />
       <div
         style={{
           maxWidth: 1240,
@@ -179,7 +176,6 @@ export default async function StudioPage() {
           )}
         </main>
       </div>
-      <WebFooter />
     </>
   )
 }

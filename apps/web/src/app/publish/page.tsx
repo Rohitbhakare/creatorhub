@@ -1,0 +1,142 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { WebHeader } from '@/components/chrome/web-header'
+import { WebFooter } from '@/components/chrome/web-footer'
+import { getSession } from '@/lib/session'
+import { fetchKycStatus } from '@/lib/kyc'
+
+export const metadata: Metadata = {
+  title: 'Publish',
+  robots: { index: false, follow: false },
+}
+
+const TYPES = [
+  {
+    id: 'post',
+    label: 'Post',
+    blurb: 'A quick photo + caption from the road. Free, no KYC.',
+    paid: false,
+    href: '/publish/post',
+  },
+  {
+    id: 'itinerary',
+    label: 'Itinerary',
+    blurb: 'Multi-day plan with spots and a route. Free or paid unlock.',
+    paid: true,
+    href: '/publish/itinerary',
+  },
+  {
+    id: 'experience',
+    label: 'Experience',
+    blurb: 'Live event you host — date, venue, capacity. KYC required.',
+    paid: true,
+    href: '/publish/experience',
+  },
+  {
+    id: 'event',
+    label: 'Event',
+    blurb: 'Group meetup or launch — RSVP-based, public or invite-only.',
+    paid: true,
+    href: '/publish/event',
+  },
+]
+
+export default async function PublishTypePicker() {
+  const session = await getSession()
+  if (!session) redirect('/signin?next=/publish')
+  const kyc = await fetchKycStatus()
+  const kycVerified = kyc.status === 'approved'
+
+  return (
+    <>
+      <WebHeader session={session} active="studio" />
+      <main
+        id="main-content"
+        style={{ maxWidth: 1080, margin: '0 auto', padding: '40px 32px 80px' }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          New
+        </span>
+        <h1
+          className="ch-display"
+          style={{ fontSize: 'clamp(36px, 5vw, 56px)', color: 'var(--ink)', margin: '8px 0 12px' }}
+        >
+          What are you publishing?
+        </h1>
+        <p
+          style={{
+            fontSize: 16,
+            color: 'var(--ink-soft)',
+            lineHeight: 1.55,
+            maxWidth: 560,
+            marginBottom: 32,
+          }}
+        >
+          Pick the type — we tailor the wizard to what each format needs. You can always switch
+          before publishing.
+        </p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 16,
+          }}
+        >
+          {TYPES.map((t) => {
+            const lockedForKyc = t.paid && !kycVerified
+            return (
+              <Link
+                key={t.id}
+                href={lockedForKyc ? '/studio/kyc' : t.href}
+                aria-disabled={lockedForKyc}
+                className="ch-card"
+                style={{
+                  padding: 24,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  position: 'relative',
+                  opacity: lockedForKyc ? 0.7 : 1,
+                }}
+              >
+                <div className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>
+                  {t.label}
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>{t.blurb}</p>
+                {lockedForKyc && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      marginTop: 12,
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      background: 'var(--surface-alt)',
+                      color: 'var(--ink-soft)',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Verify identity to unlock →
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </main>
+      <WebFooter />
+    </>
+  )
+}

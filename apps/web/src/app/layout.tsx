@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Fraunces } from 'next/font/google'
 import { getTheme, getCoralHue } from '@/lib/theme'
 import { RouteFocus } from '@/components/a11y/route-focus'
+import { CommandPalette } from '@/components/discover/command-palette'
 import './globals.css'
 
 const inter = Inter({
@@ -79,6 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to main content
         </a>
         <RouteFocus />
+        <CommandPalette />
         {children}
       </body>
     </html>

@@ -10,6 +10,11 @@ import { SaveButton } from '@/components/reader/save-button'
 import { BookCta } from '@/components/reader/book-cta'
 import { MarkdownBody } from '@/components/reader/markdown-body'
 import { GuestPromptBar } from '@/components/reader/guest-prompt-bar'
+import { ParallaxHero } from '@/components/reader/parallax-hero'
+import { StickyDayNav } from '@/components/reader/sticky-day-nav'
+import { AnimatedMap } from '@/components/reader/animated-map'
+import { LikeButton } from '@/components/social/like-button'
+import { ShareButton } from '@/components/social/share-button'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -55,6 +60,27 @@ function formatDate(iso: string): string {
     month: 'short',
     year: 'numeric',
   })
+}
+
+function hasItinerary(c: NonNullable<Awaited<ReturnType<typeof fetchContentDetail>>>): boolean {
+  return c.type === 'itinerary' && (c.spots ?? []).length > 0
+}
+
+function groupSpotsByDay(
+  spots: NonNullable<NonNullable<Awaited<ReturnType<typeof fetchContentDetail>>>['spots']>,
+) {
+  const map = new Map<number, typeof spots>()
+  spots.forEach((s) => {
+    const list = map.get(s.dayNumber) ?? []
+    list.push(s)
+    map.set(s.dayNumber, list)
+  })
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([day, items]) => ({
+      day,
+      spots: items.sort((a, b) => a.orderIndex - b.orderIndex),
+    }))
 }
 
 function pickPhoto(title: string): string {
@@ -115,17 +141,7 @@ export default async function ContentDetailPage({ params }: Props) {
       <script type="application/ld+json">{jsonLdString}</script>
 
       <main id="main-content">
-        <section
-          className={`ch-photo ${photoClass}`}
-          style={{
-            position: 'relative',
-            height: '70vh',
-            minHeight: 480,
-            borderRadius: 0,
-            margin: 0,
-          }}
-        >
-          <div className="ch-photo-overlay" />
+        <ParallaxHero photoClass={photoClass}>
           <div
             style={{
               position: 'absolute',
@@ -212,7 +228,7 @@ export default async function ContentDetailPage({ params }: Props) {
               {content.startsAt && <span>· Starts {formatDate(content.startsAt)}</span>}
             </div>
           </div>
-        </section>
+        </ParallaxHero>
 
         <div
           style={{
@@ -220,11 +236,12 @@ export default async function ContentDetailPage({ params }: Props) {
             margin: '0 auto',
             padding: '64px 32px 80px',
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) 320px',
-            gap: 56,
+            gridTemplateColumns: hasItinerary(content) ? '200px minmax(0, 1fr) 280px' : 'minmax(0, 1fr) 320px',
+            gap: 48,
             alignItems: 'start',
           }}
         >
+          {hasItinerary(content) && content.spots && <StickyDayNav spots={content.spots} />}
           <article
             style={{
               fontFamily: 'var(--font-serif)',
@@ -268,85 +285,108 @@ export default async function ContentDetailPage({ params }: Props) {
                 >
                   Stops along the way
                 </h2>
-                <ol
-                  style={{
-                    listStyle: 'none',
-                    padding: 0,
-                    margin: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                  }}
-                >
-                  {content.spots.map((spot, i) => (
-                    <li
-                      key={spot.id}
-                      className="ch-card"
+                {groupSpotsByDay(content.spots).map(({ day, spots }) => (
+                  <div
+                    key={day}
+                    id={`day-${String(day)}`}
+                    data-day={day}
+                    style={{ marginBottom: 48 }}
+                  >
+                    <span
                       style={{
-                        padding: 16,
-                        display: 'grid',
-                        gridTemplateColumns: '40px 1fr',
-                        gap: 16,
-                        alignItems: 'start',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-muted)',
+                        display: 'block',
+                        marginBottom: 12,
                       }}
                     >
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 999,
-                          background: 'var(--primary-tint)',
-                          color: 'var(--primary-deep)',
-                          display: 'grid',
-                          placeItems: 'center',
-                          fontWeight: 600,
-                          fontFamily: 'var(--font-serif)',
-                          fontSize: 16,
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                      <div>
-                        <div
+                      Day {String(day)}
+                    </span>
+                    <ol
+                      style={{
+                        listStyle: 'none',
+                        padding: 0,
+                        margin: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                      }}
+                    >
+                      {spots.map((spot, i) => (
+                        <li
+                          key={spot.id}
+                          className="ch-card"
                           style={{
-                            fontFamily: 'var(--font-serif)',
-                            fontSize: 18,
-                            color: 'var(--ink)',
+                            padding: 16,
+                            display: 'grid',
+                            gridTemplateColumns: '40px 1fr',
+                            gap: 16,
+                            alignItems: 'start',
                           }}
                         >
-                          {spot.name}
-                        </div>
-                        {spot.description && (
-                          <p
-                            style={{
-                              fontSize: 14,
-                              color: 'var(--ink-muted)',
-                              marginTop: 4,
-                              fontFamily: 'var(--font-sans)',
-                            }}
-                          >
-                            {spot.description}
-                          </p>
-                        )}
-                        {spot.distanceFromPreviousKm != null && (
                           <div
                             style={{
-                              fontSize: 11,
-                              color: 'var(--ink-faint)',
-                              marginTop: 6,
-                              fontFamily: 'var(--font-sans)',
+                              width: 40,
+                              height: 40,
+                              borderRadius: 999,
+                              background: 'var(--primary-tint)',
+                              color: 'var(--primary-deep)',
+                              display: 'grid',
+                              placeItems: 'center',
+                              fontWeight: 600,
+                              fontFamily: 'var(--font-serif)',
+                              fontSize: 16,
                             }}
                           >
-                            {String(spot.distanceFromPreviousKm)} km from previous
-                            {spot.durationFromPreviousMin != null
-                              ? ` · ${String(spot.durationFromPreviousMin)} min`
-                              : ''}
+                            {i + 1}
                           </div>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                          <div>
+                            <div
+                              style={{
+                                fontFamily: 'var(--font-serif)',
+                                fontSize: 18,
+                                color: 'var(--ink)',
+                              }}
+                            >
+                              {spot.name}
+                            </div>
+                            {spot.description && (
+                              <p
+                                style={{
+                                  fontSize: 14,
+                                  color: 'var(--ink-muted)',
+                                  marginTop: 4,
+                                  fontFamily: 'var(--font-sans)',
+                                }}
+                              >
+                                {spot.description}
+                              </p>
+                            )}
+                            {spot.distanceFromPreviousKm != null && (
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: 'var(--ink-faint)',
+                                  marginTop: 6,
+                                  fontFamily: 'var(--font-sans)',
+                                }}
+                              >
+                                {String(spot.distanceFromPreviousKm)} km from previous
+                                {spot.durationFromPreviousMin != null
+                                  ? ` · ${String(spot.durationFromPreviousMin)} min`
+                                  : ''}
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
               </section>
             )}
 
@@ -362,6 +402,8 @@ export default async function ContentDetailPage({ params }: Props) {
               }}
             >
               <SaveButton contentId={content.id} isAuthenticated={isAuthenticated} />
+              <LikeButton contentId={content.id} isAuthenticated={isAuthenticated} />
+              <ShareButton url={`/content/${content.id}`} title={content.title} />
               <Link
                 href={`/${content.creator.vertical}/${content.creator.username}`}
                 className="ch-btn ch-btn-ghost"
@@ -371,7 +413,15 @@ export default async function ContentDetailPage({ params }: Props) {
             </div>
           </article>
 
-          <aside style={{ position: 'sticky', top: 96 }}>
+          <aside
+            style={{
+              position: 'sticky',
+              top: 96,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+          >
             <BookCta
               contentId={content.id}
               contentType={content.type}
@@ -380,6 +430,9 @@ export default async function ContentDetailPage({ params }: Props) {
               scheduledDates={content.scheduledDates ?? []}
               isAuthenticated={isAuthenticated}
             />
+            {hasItinerary(content) && content.spots && content.spots.length >= 2 && (
+              <AnimatedMap spots={content.spots} />
+            )}
           </aside>
         </div>
       </main>

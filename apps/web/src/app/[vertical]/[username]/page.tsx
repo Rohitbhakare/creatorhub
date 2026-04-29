@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchCreatorProfile } from '@/lib/api'
 import { getSession } from '@/lib/session'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
 import { ContentCard } from '@/components/content/content-card'
+import { FollowButton } from '@/components/social/follow-button'
 
 interface Props {
   params: Promise<{ vertical: string; username: string }>
@@ -134,9 +134,10 @@ export default async function CreatorMiniSitePage({ params }: Props) {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Link href="/signin" className="ch-btn ch-btn-primary">
-                Follow
-              </Link>
+              <FollowButton
+                creatorId={creator.id}
+                isAuthenticated={Boolean(session)}
+              />
               <a
                 href={`creatorhub://creator/${username}`}
                 className="ch-btn ch-btn-ghost"

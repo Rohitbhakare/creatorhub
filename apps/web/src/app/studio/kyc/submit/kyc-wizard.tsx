@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import {
+  dataUrlToBlob,
+  isStorageConfigured,
+  uploadToStorage,
+} from '@/lib/firebase-storage'
 
 type Step = 'pan' | 'aadhaar' | 'selfie' | 'bank' | 'review'
 
@@ -110,8 +115,28 @@ export function KycWizard({ isResubmit }: { isResubmit: boolean }) {
     setError(null)
     startTransition(async () => {
       try {
-        // For now, server stores documents as data URLs. Real Firebase
-        // Storage upload kicks in when NEXT_PUBLIC_FIREBASE_API_KEY is set.
+        // Upload images to Firebase Storage if configured; otherwise pass
+        // through data URLs (API will reject — caller must configure Firebase
+        // before going live).
+        let panDocUrl = data.panDocUrl
+        let selfieUrl = data.selfieDataUrl
+        if (isStorageConfigured()) {
+          const panBlob = await dataUrlToBlob(data.panDocUrl)
+          const selfieBlob = await dataUrlToBlob(data.selfieDataUrl)
+          ;[panDocUrl, selfieUrl] = await Promise.all([
+            uploadToStorage({
+              path: 'kyc/pan',
+              file: panBlob,
+              contentType: panBlob.type || 'image/jpeg',
+            }),
+            uploadToStorage({
+              path: 'kyc/selfie',
+              file: selfieBlob,
+              contentType: 'image/jpeg',
+            }),
+          ])
+        }
+
         const res = await fetch('/api/kyc/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -123,8 +148,8 @@ export function KycWizard({ isResubmit }: { isResubmit: boolean }) {
             bankAccount: data.bankAccount,
             bankIfsc: data.bankIfsc.toUpperCase(),
             bankName: data.bankName.trim(),
-            selfieUrl: data.selfieDataUrl,
-            panDocUrl: data.panDocUrl,
+            selfieUrl,
+            panDocUrl,
             resubmit: isResubmit,
           }),
         })

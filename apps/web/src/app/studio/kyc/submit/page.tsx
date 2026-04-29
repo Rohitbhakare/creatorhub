@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { WebHeader } from '@/components/chrome/web-header'
 import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchKycStatus } from '@/lib/kyc'
@@ -20,9 +19,10 @@ export default async function KycSubmitPage() {
     redirect('/studio/kyc')
   }
 
+  void session
+
   return (
     <>
-      <WebHeader session={session} active="studio" />
       <div
         style={{
           maxWidth: 1240,
