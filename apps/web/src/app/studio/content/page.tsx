@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { StudioShell, EmptyState } from '@/components/chrome/studio-shell'
 import { fetchStudioContents } from '@/lib/api'
 import { formatPrice } from '@/lib/format'
+import { contentSlugId } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'Content',
@@ -76,7 +77,7 @@ export default async function StudioContentPage() {
           {items.map((c, i) => (
             <Link
               key={c.id}
-              href={`/content/${c.id}`}
+              href={`/content/${contentSlugId(c.title, c.id)}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 2fr) 110px 110px repeat(3, 90px) 100px',

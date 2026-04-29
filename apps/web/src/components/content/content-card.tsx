@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { ContentCard as ContentCardModel } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
+import { contentSlugId } from '@/lib/slug'
 
 interface ContentCardProps {
   content: ContentCardModel
@@ -71,7 +72,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
 
   return (
     <Link
-      href={`/content/${content.id}`}
+      href={`/content/${contentSlugId(content.title, content.id)}`}
       style={{
         display: 'flex',
         flexDirection: 'column',

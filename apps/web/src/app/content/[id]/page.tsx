@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchContentDetail, formatPrice } from '@/lib/api'
+import { contentSlugId, extractContentId } from '@/lib/slug'
 import { getSession } from '@/lib/session'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
@@ -21,7 +22,9 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = extractContentId(rawId)
+  if (!id) return { title: 'Content not found' }
   const content = await fetchContentDetail(id)
   if (!content) return { title: 'Content not found' }
 
@@ -124,7 +127,9 @@ function buildJsonLd(
 }
 
 export default async function ContentDetailPage({ params }: Props) {
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = extractContentId(rawId)
+  if (!id) notFound()
   const [content, session] = await Promise.all([fetchContentDetail(id), getSession()])
 
   if (!content) notFound()
@@ -132,6 +137,7 @@ export default async function ContentDetailPage({ params }: Props) {
   const isAuthenticated = Boolean(session)
   const photoClass = `ch-photo--${pickPhoto(content.title)}`
   const jsonLdString = JSON.stringify(buildJsonLd(content))
+  const isStory = content.type === 'post'
 
   return (
     <>
@@ -141,7 +147,96 @@ export default async function ContentDetailPage({ params }: Props) {
       <script type="application/ld+json">{jsonLdString}</script>
 
       <main id="main-content">
-        <ParallaxHero photoClass={photoClass}>
+        {isStory ? (
+          <header
+            style={{
+              maxWidth: 760,
+              margin: '0 auto',
+              padding: '64px 32px 0',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                marginBottom: 24,
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              <span className="ch-pill">{TYPE_LABELS[content.type]}</span>
+              {content.isFree ? (
+                <span className="ch-pill ch-pill-coral">Free</span>
+              ) : (
+                <span className="ch-pill ch-pill-coral">
+                  {formatPrice(content.priceInPaisa, content.isFree)}
+                </span>
+              )}
+            </div>
+            <h1
+              className="ch-display"
+              style={{
+                fontSize: 'clamp(32px, 4.4vw, 52px)',
+                color: 'var(--ink)',
+                lineHeight: 1.1,
+                margin: '0 0 24px',
+              }}
+            >
+              {content.title}
+            </h1>
+            <Link
+              href={`/${content.creator.vertical}/${content.creator.username}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 12,
+                color: 'var(--ink)',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              <div
+                aria-hidden
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 999,
+                  background: 'linear-gradient(135deg, #d4b896, #a07c5a)',
+                  color: 'white',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}
+              >
+                {content.creator.displayName.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>
+                  {content.creator.displayName}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
+                  @{content.creator.username}
+                </div>
+              </div>
+            </Link>
+            <figure
+              className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}
+              style={{
+                marginTop: 32,
+                aspectRatio: '16 / 9',
+                width: '100%',
+                borderRadius: 'var(--radius-lg)',
+                backgroundImage: content.coverImageUrl
+                  ? `url(${content.coverImageUrl})`
+                  : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+              aria-hidden
+            />
+          </header>
+        ) : (
+          <ParallaxHero photoClass={photoClass}>
           <div
             style={{
               position: 'absolute',
@@ -229,14 +324,19 @@ export default async function ContentDetailPage({ params }: Props) {
             </div>
           </div>
         </ParallaxHero>
+        )}
 
         <div
           style={{
-            maxWidth: 1240,
+            maxWidth: isStory ? 760 : 1240,
             margin: '0 auto',
-            padding: '64px 32px 80px',
+            padding: isStory ? '40px 32px 80px' : '64px 32px 80px',
             display: 'grid',
-            gridTemplateColumns: hasItinerary(content) ? '200px minmax(0, 1fr) 280px' : 'minmax(0, 1fr) 320px',
+            gridTemplateColumns: isStory
+              ? 'minmax(0, 1fr)'
+              : hasItinerary(content)
+                ? '200px minmax(0, 1fr) 280px'
+                : 'minmax(0, 1fr) 320px',
             gap: 48,
             alignItems: 'start',
           }}
@@ -403,7 +503,10 @@ export default async function ContentDetailPage({ params }: Props) {
             >
               <SaveButton contentId={content.id} isAuthenticated={isAuthenticated} />
               <LikeButton contentId={content.id} isAuthenticated={isAuthenticated} />
-              <ShareButton url={`/content/${content.id}`} title={content.title} />
+              <ShareButton
+                url={`/content/${contentSlugId(content.title, content.id)}`}
+                title={content.title}
+              />
               <Link
                 href={`/${content.creator.vertical}/${content.creator.username}`}
                 className="ch-btn ch-btn-ghost"
@@ -413,27 +516,29 @@ export default async function ContentDetailPage({ params }: Props) {
             </div>
           </article>
 
-          <aside
-            style={{
-              position: 'sticky',
-              top: 96,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
-            <BookCta
-              contentId={content.id}
-              contentType={content.type}
-              priceInPaisa={content.priceInPaisa}
-              isFree={content.isFree}
-              scheduledDates={content.scheduledDates ?? []}
-              isAuthenticated={isAuthenticated}
-            />
-            {hasItinerary(content) && content.spots && content.spots.length >= 2 && (
-              <AnimatedMap spots={content.spots} />
-            )}
-          </aside>
+          {!isStory && (
+            <aside
+              style={{
+                position: 'sticky',
+                top: 96,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+              }}
+            >
+              <BookCta
+                contentId={content.id}
+                contentType={content.type}
+                priceInPaisa={content.priceInPaisa}
+                isFree={content.isFree}
+                scheduledDates={content.scheduledDates ?? []}
+                isAuthenticated={isAuthenticated}
+              />
+              {hasItinerary(content) && content.spots && content.spots.length >= 2 && (
+                <AnimatedMap spots={content.spots} />
+              )}
+            </aside>
+          )}
         </div>
       </main>
 

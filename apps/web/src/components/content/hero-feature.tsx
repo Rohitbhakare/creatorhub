@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { ContentCard as ContentCardModel } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
+import { contentSlugId } from '@/lib/slug'
 
 interface HeroFeatureProps {
   content: ContentCardModel
@@ -28,7 +29,7 @@ export function HeroFeature({
   href,
 }: HeroFeatureProps) {
   const photoClass = pickPhoto(content)
-  const target = href ?? `/content/${content.id}`
+  const target = href ?? `/content/${contentSlugId(content.title, content.id)}`
   const summary = pullQuote ?? content.summary ?? ''
   const meta = formatMeta(content)
 

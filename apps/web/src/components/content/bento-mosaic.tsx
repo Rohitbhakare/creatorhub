@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { ContentCard as ContentCardModel } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
+import { contentSlugId } from '@/lib/slug'
 
 interface BentoMosaicProps {
   /** Up to 5 items used in this layout: 1 large feature + 1 tall + 3 small. */
@@ -126,7 +127,7 @@ function BentoTile({ content, placement, style }: BentoTileProps) {
 
   return (
     <Link
-      href={`/content/${content.id}`}
+      href={`/content/${contentSlugId(content.title, content.id)}`}
       style={{
         position: 'relative',
         display: 'block',

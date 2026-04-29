@@ -302,7 +302,7 @@ function Live({
               label={c.title}
               sub={c.creatorName ? `${c.type} · ${c.creatorName}` : c.type}
               onClick={() => {
-                onPick(q, `/content/${c.id}`)
+                onPick(q, `/content/${c.id}`) // search returns minimal payload — bare UUID still resolves via extractContentId
               }}
             />
           ))}

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ContentCard, QuestSummary } from '@/lib/api/types'
+import { contentSlugId } from '@/lib/slug'
 
 interface RightRailProps {
   quests?: QuestSummary | null
@@ -108,7 +109,7 @@ export function RightRail({
             Continue reading
           </span>
           <Link
-            href={`/content/${continueReading.id}`}
+            href={`/content/${contentSlugId(continueReading.title, continueReading.id)}`}
             style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
           >
             <div

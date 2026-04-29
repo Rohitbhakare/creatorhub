@@ -11,6 +11,7 @@ import { BentoMosaic } from '@/components/content/bento-mosaic'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { getSession } from '@/lib/session'
 import { fetchPopularCities, fetchQuestSummary, getHomeFeedSections } from '@/lib/api'
+import { contentSlugId } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'CreatorHub — Travel stories worth saving',
@@ -417,7 +418,7 @@ export default async function HomePage({ searchParams }: Props) {
                     Try this first
                   </span>
                   <Link
-                    href={`/content/${continueReading.id}`}
+                    href={`/content/${contentSlugId(continueReading.title, continueReading.id)}`}
                     style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
                   >
                     <div
