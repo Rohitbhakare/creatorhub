@@ -3,6 +3,38 @@ import { env } from '../env.js'
 
 const isDev = env.NODE_ENV === 'development'
 
+// Fields whose values must never hit the dev console — even in development,
+// these can land in screenshots, terminal scrollback, or shared session logs.
+// Pattern matches `"key": "value"` (with optional whitespace) and replaces
+// the value with [REDACTED] regardless of length.
+const SENSITIVE_KEYS = [
+  'firebase_token',
+  'refresh_token',
+  'access_token',
+  'id_token',
+  'password',
+  'otp',
+  'code',
+  'pan',
+  'pan_number',
+  'aadhaar',
+  'aadhaar_number',
+  'bank_account',
+  'bank_account_number',
+  'ifsc',
+  'cvv',
+  'card_number',
+]
+
+function redactSensitive(body: string): string {
+  let out = body
+  for (const key of SENSITIVE_KEYS) {
+    const re = new RegExp(`"${key}"\\s*:\\s*"[^"]*"`, 'g')
+    out = out.replace(re, `"${key}":"[REDACTED]"`)
+  }
+  return out
+}
+
 /**
  * Request/response logger middleware.
  *
@@ -22,9 +54,7 @@ export const requestLogger: MiddlewareHandler = async (c, next) => {
       if (body) {
         // Truncate large bodies, redact sensitive fields
         const truncated = body.length > 500 ? body.slice(0, 500) + '...' : body
-        const redacted = truncated
-          .replace(/"firebase_token"\s*:\s*"[^"]{20}[^"]*"/g, '"firebase_token":"[REDACTED]"')
-          .replace(/"refresh_token"\s*:\s*"[^"]{20}[^"]*"/g, '"refresh_token":"[REDACTED]"')
+        const redacted = redactSensitive(truncated)
         console.log(`→ ${method} ${path} body: ${redacted}`)
       }
     } catch {

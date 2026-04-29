@@ -13,11 +13,30 @@ interface ApiSuccess<T> {
   data: T
 }
 
-interface ApiError {
+interface ApiErrorBody {
   type: string
   status: number
   detail: string
   instance?: string
+}
+
+/**
+ * Hono API wraps errors as `{ success: false, error: { type, status, detail, instance } }`
+ * (see apps/api/src/middleware/errorHandler.ts). It also tolerates the bare
+ * `{ type, ... }` shape some legacy handlers emit. Normalise both.
+ */
+function unwrapError(raw: unknown): ApiErrorBody | null {
+  if (!raw || typeof raw !== 'object') return null
+  const obj = raw as Record<string, unknown>
+  // Wrapped: { success: false, error: {...} }
+  if (obj.success === false && obj.error && typeof obj.error === 'object') {
+    return obj.error as ApiErrorBody
+  }
+  // Bare: { type, status, detail, ... }
+  if (typeof obj.type === 'string') {
+    return obj as unknown as ApiErrorBody
+  }
+  return null
 }
 
 export interface FetchOptions extends Omit<RequestInit, 'body'> {
@@ -150,9 +169,9 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
       }
 
       // Non-2xx
-      let errBody: ApiError | null = null
+      let errBody: ApiErrorBody | null = null
       try {
-        errBody = (await res.json()) as ApiError
+        errBody = unwrapError(await res.json())
       } catch {
         /* body wasn't JSON */
       }
