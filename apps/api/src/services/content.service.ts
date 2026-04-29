@@ -49,6 +49,10 @@ export async function createDraft(
 /**
  * Look up content by either UUID or slug. The web sends slugs; the mobile
  * app sends UUIDs; both resolve here.
+ *
+ * NOTE: slug column requires migration 031_content_slug.sql to be deployed.
+ * Until then, we tolerate "column does not exist" by catching the lookup
+ * error on the slug branch and 404-ing — same UX as a not-found content.
  */
 export async function getById(
   contentIdOrSlug: string,
@@ -61,10 +65,12 @@ export async function getById(
   if (isUuid) {
     query = query.eq('id', contentIdOrSlug)
   } else {
+    // Slug lookup will 42703 (column does not exist) until migration deploys
+    // — surface as 404 so the route renders not-found.tsx instead of 500.
     query = query.eq('slug', contentIdOrSlug)
   }
 
-  const { data: content, error } = await query.single()
+  const { data: content, error } = await query.maybeSingle()
 
   if (error || !content) {
     throw new AppError('not-found', 404, 'Content not found')

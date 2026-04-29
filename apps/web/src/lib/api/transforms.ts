@@ -36,10 +36,32 @@ interface RawCreator {
   content?: RawContent[]
 }
 
+/**
+ * The API enum uses long names (`self_paced_itinerary`, `scheduled_experience`)
+ * matching the SRS DD content_type enum, while the web/mobile UI uses short
+ * names (`itinerary`, `experience`). Normalise here once at the boundary so
+ * the rest of the codebase only sees the short form.
+ */
+const TYPE_ALIASES: Record<string, ContentType> = {
+  post: 'post',
+  event: 'event',
+  itinerary: 'itinerary',
+  experience: 'experience',
+  self_paced_itinerary: 'itinerary',
+  scheduled_experience: 'experience',
+}
+function normaliseContentType(raw: string | undefined): ContentType {
+  if (raw && raw in TYPE_ALIASES) {
+    const mapped = TYPE_ALIASES[raw]
+    if (mapped) return mapped
+  }
+  return 'post'
+}
+
 interface RawContent {
   id?: string
   slug?: string | null
-  type?: ContentType
+  type?: string
   title?: string
   summary?: string | null
   description?: string | null
@@ -171,7 +193,7 @@ export function transformContentCard(raw: RawContent): ContentCard {
   return {
     id: raw.id ?? '',
     slug: raw.slug ?? null,
-    type: raw.type ?? 'post',
+    type: normaliseContentType(raw.type),
     title: raw.title ?? '',
     coverImageUrl: raw.cover_image_url ?? raw.cover_url ?? null,
     priceInPaisa,

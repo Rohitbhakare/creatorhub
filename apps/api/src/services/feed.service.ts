@@ -326,7 +326,7 @@ async function getPopularAcrossIndia(): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
     .select(
-      'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
     )
     .eq('status', 'published')
     .eq('visibility', 'public')
@@ -379,7 +379,7 @@ export async function getNearYouSection(
     let fbq = supabase
       .from('content')
       .select(
-        'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
       )
       .eq('status', 'published')
       .eq('visibility', 'public')
@@ -458,7 +458,7 @@ export async function getVerticalSection(
 ): Promise<FeedContentItem[]> {
   let query = supabase
     .from('content')
-    .select('id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body')
+    .select('id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('vertical', vertical)
@@ -550,7 +550,7 @@ export async function getForYouSection(userId: string | null): Promise<FeedConte
       : supabase
           .from('content')
           .select(
-            'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+            'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
           )
           .eq('status', 'published')
           .eq('visibility', 'public')
@@ -579,7 +579,7 @@ export async function getForYouSection(userId: string | null): Promise<FeedConte
     const { data, error } = await supabase
       .from('content')
       .select(
-        'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+        'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
       )
       .eq('status', 'published')
       .eq('visibility', 'public')
@@ -636,7 +636,7 @@ export async function getFollowingSection(userId: string | null): Promise<FeedCo
   const { data, error } = await supabase
     .from('content')
     .select(
-      'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body',
     )
     .eq('status', 'published')
     .eq('visibility', 'public')
@@ -772,7 +772,7 @@ export async function getCategoryBrowse(params: {
   let contentQuery = supabase
     .from('content')
     .select(
-      'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
     )
     .eq('status', 'published')
     .eq('vertical', params.vertical)
@@ -819,7 +819,7 @@ export async function getCategoryBrowse(params: {
 // mobile keeps working unchanged.
 
 const TRAVEL_FEED_SELECT =
-  'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body, sub_category_id'
+  'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, user_id, published_at, facets, body, sub_category_id'
 
 interface NearLocationParams {
   userId?: string | null
@@ -1269,7 +1269,7 @@ export async function getEditorsPicks(): Promise<FeedContentItem[]> {
   const { data, error } = await supabase
     .from('content')
     .select(
-      'id, slug, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
+      'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, body, facets, user_id',
     )
     .eq('status', 'published')
     .eq('featured', true)
