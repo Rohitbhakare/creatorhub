@@ -134,7 +134,7 @@ interface RawBooking {
   id?: string
   content_id?: string
   content_title?: string
-  content_type?: ContentType
+  content_type?: string
   creator?: RawCreator
   status?: Booking['status']
   starts_at?: string | null
@@ -300,7 +300,7 @@ export function transformBooking(raw: RawBooking): Booking {
     id: raw.id ?? '',
     contentId: raw.content_id ?? '',
     contentTitle: raw.content_title ?? '',
-    contentType: raw.content_type ?? 'experience',
+    contentType: normaliseContentType(raw.content_type),
     creator,
     status: raw.status ?? 'confirmed',
     startsAt: raw.starts_at ?? null,

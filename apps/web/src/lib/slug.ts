@@ -43,9 +43,11 @@ export function contentSlugId(
 }
 
 /**
- * Given any [id] param — either a bare UUID or a slug-prefixed UUID —
- * extract the UUID for the API lookup. Returns null when no UUID could be
- * extracted (the route should 404).
+ * Given any [id] param — bare UUID, slug-prefixed UUID, or pure slug —
+ * return the lookup key for the API. Prefers a UUID when one is present
+ * (most reliable). Falls back to the raw segment so the API can resolve
+ * it as a slug column lookup once migration 031 lands. Returns null only
+ * when the segment is empty.
  */
 export function extractContentId(segment: string): string | null {
   let value: string
@@ -54,11 +56,12 @@ export function extractContentId(segment: string): string | null {
   } catch {
     value = segment
   }
-  // The id is always the LAST 36 chars when the slug is well-formed
-  // (slugifyTitle strips anything UUID-shaped from the title).
+  if (value.length === 0) return null
+  // Prefer the trailing UUID when present (slug-prefixed form).
   const tail = value.slice(-36)
   if (UUID_RE.test(tail)) return tail.toLowerCase()
-  // Fall back to a generic search across the whole string.
   const m = value.match(UUID_RE)
-  return m?.[0]?.toLowerCase() ?? null
+  if (m) return m[0]!.toLowerCase()
+  // No UUID — pass through as a slug lookup. API resolves either form.
+  return value
 }

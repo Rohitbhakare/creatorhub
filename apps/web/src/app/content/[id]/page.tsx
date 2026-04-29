@@ -46,7 +46,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: content.coverImageUrl ? [content.coverImageUrl] : [],
     },
-    alternates: { canonical: `/content/${id}` },
+    alternates: {
+      canonical: `/content/${contentSlugId(content.title, content.id, content.slug)}`,
+    },
   }
 }
 
