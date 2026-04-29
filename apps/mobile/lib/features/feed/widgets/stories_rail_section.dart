@@ -35,7 +35,7 @@ class StoriesRailSection extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 310,
+              height: 285,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.none,

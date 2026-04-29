@@ -1,4 +1,4 @@
-###
+### In era of AI people will value human hence our application has scope
 
 date: 20 APR 
 [ ] Lead generation create a application to fetch it from Insta and YT

@@ -170,15 +170,17 @@ export async function publishPost(
     )
   }
 
-  // Validate at least 1 media image
+  // Validate image count upper bound. Text-only posts are a first-class
+  // travel-story format under BUNDLE/REDESIGN-001 (rich-text body), so we
+  // no longer require ≥1 image — the body itself is the content vehicle.
   const { count: mediaCount, error: mediaError } = await supabase
     .from('content_media')
     .select('id', { count: 'exact', head: true })
     .eq('content_id', contentId)
     .eq('media_type', 'image')
 
-  if (mediaError || (mediaCount ?? 0) === 0) {
-    throw new AppError('validation-failed', 400, 'Posts require at least 1 image')
+  if (mediaError) {
+    throw new AppError('validation-failed', 400, 'Failed to validate post media')
   }
 
   if ((mediaCount ?? 0) > MAX_IMAGES_PER_POST) {

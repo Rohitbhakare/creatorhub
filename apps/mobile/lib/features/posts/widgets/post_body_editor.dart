@@ -18,15 +18,22 @@ import '../../../shared/theme/typography.dart' as typ;
 import '../../../shared/utils/firebase_storage.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../content/providers/wizard_provider.dart';
+import '../../content/services/media_upload_service.dart';
 import '../../content/widgets/ai_helper_chip.dart';
 import '../../content/widgets/location_picker_sheet.dart';
+import '../../content/widgets/steps/media_step.dart' show MediaTile;
 
 /// Post body editor — combines markdown body editor + media grid + location chip.
 ///
 /// Step 2 of the post wizard. Body uses a 2-mode markdown editor (edit/preview)
 /// with formatting toolbar. Plain-text legacy posts render unchanged.
 class PostBodyEditor extends ConsumerStatefulWidget {
-  const PostBodyEditor({super.key});
+  const PostBodyEditor({super.key, required this.ensureDraft});
+
+  /// Idempotent draft creation — wired through the wizard shell so the
+  /// upload pipeline can attach media to a real `content_id` even if the
+  /// user picks photos before the auto-save tick fires.
+  final Future<void> Function() ensureDraft;
 
   @override
   ConsumerState<PostBodyEditor> createState() => _PostBodyEditorState();
@@ -120,35 +127,29 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
   }
 
   Future<void> _pickImages() async {
-    unawaited(HapticFeedback.lightImpact());
     final wizard = ref.read(wizardProvider);
     final remaining = _maxImages - wizard.media.length;
-    if (remaining <= 0) return;
-
-    try {
-      final images = await _picker.pickMultiImage(
-        limit: remaining,
-        imageQuality: 85,
-      );
-
-      for (final xFile in images) {
-        final id = DateTime.now().microsecondsSinceEpoch.toString();
-        ref.read(wizardProvider.notifier).addMedia(
-              MediaItem(
-                id: id,
-                uri: xFile.path,
-                mimeType: 'image/jpeg',
-              ),
-            );
-      }
-    } catch (_) {
-      // User cancelled or error — silently ignore
-    }
+    await MediaUploadService.pickAndUpload(
+      ref: ref,
+      context: context,
+      ensureDraft: widget.ensureDraft,
+      remaining: remaining,
+      storageFolder: 'posts',
+    );
   }
 
-  void _removeImage(String id) {
-    HapticFeedback.lightImpact();
-    ref.read(wizardProvider.notifier).removeMedia(id);
+  Future<void> _removeImage(String id) async {
+    await MediaUploadService.removeMedia(ref: ref, mediaId: id);
+  }
+
+  Future<void> _retryImage(String id) async {
+    await MediaUploadService.retryUpload(
+      ref: ref,
+      context: context,
+      ensureDraft: widget.ensureDraft,
+      mediaId: id,
+      storageFolder: 'posts',
+    );
   }
 
   Future<void> _openLocationPicker() async {
@@ -264,6 +265,7 @@ class _PostBodyEditorState extends ConsumerState<PostBodyEditor> {
                 _ImageGrid(
                   media: wizard.media,
                   onRemove: _removeImage,
+                  onRetry: _retryImage,
                 ),
                 const SizedBox(height: Spacing.md),
               ],
@@ -597,14 +599,18 @@ class _LocationChip extends StatelessWidget {
   }
 }
 
-/// 2-column image grid showing local file thumbnails.
+/// 2-column image grid using the shared [MediaTile] (with upload-state
+/// overlay) so the post editor and the generic [MediaStep] render
+/// identically.
 class _ImageGrid extends StatelessWidget {
   final List<MediaItem> media;
   final ValueChanged<String> onRemove;
+  final ValueChanged<String> onRetry;
 
   const _ImageGrid({
     required this.media,
     required this.onRemove,
+    required this.onRetry,
   });
 
   @override
@@ -621,69 +627,12 @@ class _ImageGrid extends StatelessWidget {
       itemCount: media.length,
       itemBuilder: (context, index) {
         final item = media[index];
-        return _ImageTile(
+        return MediaTile(
           item: item,
           onRemove: () => onRemove(item.id),
+          onRetry: () => onRetry(item.id),
         );
       },
-    );
-  }
-}
-
-/// Single image tile with remove button overlay.
-class _ImageTile extends StatelessWidget {
-  final MediaItem item;
-  final VoidCallback onRemove;
-
-  const _ImageTile({
-    required this.item,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Layout.cardRadius),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.file(
-            File(item.uri),
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              color: AppColors.surfaceAlt,
-              child: const Center(
-                child: Icon(
-                  PhosphorIconsFill.imageSquare,
-                  size: 32,
-                  color: AppColors.inkMuted,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: Spacing.xs,
-            right: Spacing.xs,
-            child: GestureDetector(
-              onTap: onRemove,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: AppColors.ink.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  PhosphorIconsFill.x,
-                  size: 14,
-                  color: AppColors.surface,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

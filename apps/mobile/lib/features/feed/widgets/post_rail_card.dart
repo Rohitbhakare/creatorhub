@@ -69,23 +69,28 @@ class _PostRailCardState extends ConsumerState<PostRailCard> {
           _cover(),
           Flexible(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.postBody.copyWith(
-                      color: AppColors.ink,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      height: 1.35,
+                  // Title flexes to 1 line when the parent constraint is
+                  // tight (cards in horizontal rails sit inside a fixed
+                  // height) and to 2 when there is room.
+                  Flexible(
+                    child: Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.postBody.copyWith(
+                        color: AppColors.ink,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        height: 1.3,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _creatorRow(),
                 ],
               ),

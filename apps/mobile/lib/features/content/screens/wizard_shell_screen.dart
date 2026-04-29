@@ -127,6 +127,18 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     _showEmptyCloseSheet();
   }
 
+  /// Top-bar shortcut — flush pending edits to the server and exit without
+  /// the discard/save sheet. Equivalent to picking "Save draft" in the
+  /// close sheet, just one tap shorter.
+  Future<void> _onSaveDraftAndExit() async {
+    unawaited(HapticFeedback.lightImpact());
+    await _ensureDraft();
+    await _autoSave?.flushNow();
+    if (!mounted) return;
+    ref.read(studioContentProvider.notifier).retry();
+    context.pop();
+  }
+
   /// Show the empty-close bottom sheet (DD-033).
   ///
   /// "Save draft" → flush pending edits and pop.
@@ -434,6 +446,12 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
 
       ref.read(wizardProvider.notifier).markSaved();
 
+      // Refresh studio so the just-published post appears in the list and
+      // the "Published" pill count + stats card update without requiring a
+      // manual pull-to-refresh.
+      ref.read(studioContentProvider.notifier).retry();
+      ref.invalidate(studioStatsProvider);
+
       if (mounted) {
         await PublishCelebration.show(
           context,
@@ -508,6 +526,28 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
                     ),
                   ),
 
+                  // Save draft text button — explicit shortcut so creators
+                  // don't have to discover it via the close-sheet.
+                  if (wizard.isDirty || _draftCreated)
+                    GestureDetector(
+                      onTap: _onSaveDraftAndExit,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        height: Layout.minTapTarget,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.sm,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Save draft',
+                          style: typ.AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.coral,
+                          ),
+                        ),
+                      ),
+                    ),
+
                   // Delete (trash) icon — only shown when a draft exists
                   if (wizard.contentId != null)
                     GestureDetector(
@@ -526,7 +566,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
                         ),
                       ),
                     )
-                  else
+                  else if (!(wizard.isDirty || _draftCreated))
                     const SizedBox(width: Layout.minTapTarget),
                 ],
               ),
@@ -573,7 +613,7 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
   Widget _buildPostStep(int step) {
     return switch (step) {
       1 => const BasicsStep(),
-      2 => const PostMediaStep(),
+      2 => PostMediaStep(ensureDraft: _ensureDraft),
       3 => ReviewStep(onPublish: _onPublish),
       _ => const SizedBox.shrink(),
     };
@@ -584,9 +624,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
       1 => const ItineraryBasicsStep(),
       2 => const TripOverviewStep(),
       3 => const DayBuilderStep(),
-      4 => const MediaStep(
+      4 => MediaStep(
           title: 'Add photos',
           subtitle: 'Show travelers what to expect on this trip.',
+          ensureDraft: _ensureDraft,
+          storageFolder: 'itineraries',
         ),
       5 => const PricingStep(),
       6 => ReviewStep(onPublish: _onPublish),
@@ -598,9 +640,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     return switch (step) {
       1 => const BasicsStep(),
       2 => const EventDetailsStep(),
-      3 => const MediaStep(
+      3 => MediaStep(
           title: 'Add event photos',
           subtitle: 'Help attendees visualize the event.',
+          ensureDraft: _ensureDraft,
+          storageFolder: 'events',
         ),
       4 => const PricingStep(),
       5 => ReviewStep(onPublish: _onPublish),
@@ -612,9 +656,11 @@ class _WizardShellScreenState extends ConsumerState<WizardShellScreen> {
     return switch (step) {
       1 => const BasicsStep(),
       2 => const ExperienceDetailsStep(),
-      3 => const MediaStep(
+      3 => MediaStep(
           title: 'Add experience photos',
           subtitle: 'Show participants what to expect.',
+          ensureDraft: _ensureDraft,
+          storageFolder: 'experiences',
         ),
       4 => const PricingStep(),
       5 => ReviewStep(onPublish: _onPublish),

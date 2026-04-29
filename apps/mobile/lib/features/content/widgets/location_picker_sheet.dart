@@ -248,26 +248,35 @@ class _InlineEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Spacing.xxl),
-      child: Column(
-        children: [
-          Icon(icon, size: 36, color: AppColors.inkMuted),
-          const SizedBox(height: Spacing.md),
-          Text(
-            title,
-            style: typ.AppTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.ink,
+    // The parent column uses CrossAxisAlignment.start, so an unconstrained
+    // inner Column would shrink to its widest child and pin itself to the
+    // left. Stretch to fill the sheet width and centre children explicitly.
+    return SizedBox(
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: Spacing.xxl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, size: 36, color: AppColors.inkMuted),
+            const SizedBox(height: Spacing.md),
+            Text(
+              title,
+              style: typ.AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: Spacing.xs),
-          Text(
-            description,
-            style: typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: Spacing.xs),
+            Text(
+              description,
+              style:
+                  typ.AppTypography.bodySmall.copyWith(color: AppColors.inkSoft),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

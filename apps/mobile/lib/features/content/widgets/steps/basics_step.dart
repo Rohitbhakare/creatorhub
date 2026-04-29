@@ -79,7 +79,10 @@ class _BasicsStepState extends ConsumerState<BasicsStep> {
         wizard.contentType == ContentType.scheduledExperience;
     final showGroupSize = isItinerary || isExperience;
     const titleMax = 100;
-    final titleMin = isPost ? 1 : 5;
+    // API enforces 5–100 for every content type (post.service.ts and the
+    // shared schemas). Keep mobile in lockstep so the "Next" gate matches
+    // the publish-time validation instead of letting users hit a 400.
+    const titleMin = 5;
     // SRS CRT-FR-013: events allow up to 500 chars in description
     final isEvent = wizard.contentType == ContentType.event;
     final descriptionMax = isEvent ? 500 : 280;

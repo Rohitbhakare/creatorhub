@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,14 +39,30 @@ class PostPreviewCard extends ConsumerWidget {
         children: [
           AspectRatio(
             aspectRatio: 16 / 9,
-            child: cover != null
-                ? Image.file(
-                    File(cover.uri),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        _GradientFallback(seed: title.isEmpty ? 'post' : title),
-                  )
-                : _GradientFallback(seed: title.isEmpty ? 'post' : title),
+            child: cover == null
+                ? _GradientFallback(seed: title.isEmpty ? 'post' : title)
+                : (cover.remoteUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: cover.remoteUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => _GradientFallback(
+                          seed: title.isEmpty ? 'post' : title,
+                        ),
+                        errorWidget: (_, _, _) => _GradientFallback(
+                          seed: title.isEmpty ? 'post' : title,
+                        ),
+                      )
+                    : (cover.localPath != null
+                        ? Image.file(
+                            File(cover.localPath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _GradientFallback(
+                              seed: title.isEmpty ? 'post' : title,
+                            ),
+                          )
+                        : _GradientFallback(
+                            seed: title.isEmpty ? 'post' : title,
+                          ))),
           ),
           Padding(
             padding: const EdgeInsets.all(Spacing.lg),
@@ -101,17 +118,20 @@ class PostPreviewCard extends ConsumerWidget {
                 else
                   // Render the body as markdown so headings, lists, bold,
                   // links etc. match how the post will appear in the feed.
-                  // Cap the visual height so the preview card stays compact.
-                  ClipRect(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 110),
+                  // SingleChildScrollView (non-scrolling) gives MarkdownBody
+                  // unbounded vertical space inside a fixed 110px viewport,
+                  // so long bodies clip instead of overflowing the RenderFlex
+                  // (ClipRect+ConstrainedBox clips paint but not layout, so
+                  // it tripped the "overflowed by N pixels" assertion).
+                  SizedBox(
+                    height: 110,
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
                       child: MarkdownBody(
                         data: body,
                         styleSheet: postMarkdownStyleSheet(context),
                         sizedImageBuilder: postMarkdownImageBuilder,
                         selectable: false,
-                        shrinkWrap: true,
-                        fitContent: true,
                       ),
                     ),
                   ),

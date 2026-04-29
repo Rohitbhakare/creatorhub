@@ -63,20 +63,68 @@ enum ContentType {
 
 // ── Media Item ─────────────────────────────────────────────────
 
+/// One picked image / media attachment. The lifecycle is:
+///
+///   picked → uploading (localPath set, isUploading true)
+///   → uploaded (remoteUrl + serverId set, isUploading false)
+///   → failed (uploadFailed true; user can retry or remove)
+///
+/// [displayUri] returns whichever URI is currently renderable (remote
+/// preferred so the grid swaps from the local thumbnail to the CDN
+/// version automatically once the upload finishes).
 class MediaItem {
   final String id;
-  final String uri;
+  final String? localPath;
+  final String? remoteUrl;
+  final String? serverId;
   final String mimeType;
   final int? width;
   final int? height;
+  final bool isUploading;
+  final bool uploadFailed;
 
   const MediaItem({
     required this.id,
-    required this.uri,
-    required this.mimeType,
+    this.localPath,
+    this.remoteUrl,
+    this.serverId,
+    this.mimeType = 'image/jpeg',
     this.width,
     this.height,
+    this.isUploading = false,
+    this.uploadFailed = false,
   });
+
+  /// Whichever URI is renderable right now. Remote wins so the tile
+  /// updates seamlessly once Firebase Storage returns the download URL.
+  String get displayUri => remoteUrl ?? localPath ?? '';
+
+  /// True once the API has accepted the media row — safe to publish.
+  bool get isPersisted => serverId != null && remoteUrl != null;
+
+  MediaItem copyWith({
+    String? id,
+    String? localPath,
+    String? remoteUrl,
+    String? serverId,
+    String? mimeType,
+    int? width,
+    int? height,
+    bool? isUploading,
+    bool? uploadFailed,
+  }) {
+    return MediaItem(
+      id: id ?? this.id,
+      localPath: localPath ?? this.localPath,
+      remoteUrl: remoteUrl ?? this.remoteUrl,
+      serverId: serverId ?? this.serverId,
+      mimeType: mimeType ?? this.mimeType,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      isUploading: isUploading ?? this.isUploading,
+      uploadFailed: uploadFailed ?? this.uploadFailed,
+    );
+  }
 }
 
 // ── Wizard State ───────────────────────────────────────────────
@@ -272,6 +320,8 @@ class WizardState {
     return switch (currentStep) {
       1 => [
           if (title.trim().isEmpty) 'Title is required',
+          if (title.trim().isNotEmpty && title.trim().length < 5)
+            'Title must be at least 5 characters',
           if (title.trim().length > 100) 'Title must be 100 characters or less',
         ],
       2 => [
@@ -547,6 +597,17 @@ class WizardNotifier extends Notifier<WizardState> {
       isDirty: true,
       saveError: null,
     );
+  }
+
+  /// Replace one media item in-place by id — used by the upload pipeline
+  /// to swap a local placeholder for the persisted remote row, or to flip
+  /// the failure flag on a retry.
+  void updateMedia(String id, MediaItem updated) {
+    final idx = state.media.indexWhere((m) => m.id == id);
+    if (idx == -1) return;
+    final next = [...state.media];
+    next[idx] = updated;
+    state = state.copyWith(media: next, isDirty: true, saveError: null);
   }
 
   void reorderMedia(List<String> orderedIds) {
