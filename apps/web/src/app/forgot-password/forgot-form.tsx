@@ -11,10 +11,21 @@ interface AttemptLog {
   attempts: number[]
 }
 
+function readLog(): AttemptLog {
+  try {
+    const raw = localStorage.getItem(RATE_LIMIT_KEY)
+    if (!raw) return { attempts: [] }
+    const parsed = JSON.parse(raw) as AttemptLog
+    if (!Array.isArray(parsed.attempts)) return { attempts: [] }
+    return parsed
+  } catch {
+    return { attempts: [] }
+  }
+}
+
 function checkRateLimit(): { allowed: boolean; remainingMs: number } {
   if (typeof window === 'undefined') return { allowed: true, remainingMs: 0 }
-  const raw = localStorage.getItem(RATE_LIMIT_KEY)
-  const log: AttemptLog = raw ? (JSON.parse(raw) as AttemptLog) : { attempts: [] }
+  const log = readLog()
   const now = Date.now()
   log.attempts = log.attempts.filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
   if (log.attempts.length >= RATE_LIMIT_MAX) {
@@ -25,10 +36,13 @@ function checkRateLimit(): { allowed: boolean; remainingMs: number } {
 }
 
 function recordAttempt(): void {
-  const raw = localStorage.getItem(RATE_LIMIT_KEY)
-  const log: AttemptLog = raw ? (JSON.parse(raw) as AttemptLog) : { attempts: [] }
+  const log = readLog()
   log.attempts.push(Date.now())
-  localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(log))
+  try {
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(log))
+  } catch {
+    // localStorage full / disabled / private mode — best-effort only
+  }
 }
 
 export function ForgotForm() {

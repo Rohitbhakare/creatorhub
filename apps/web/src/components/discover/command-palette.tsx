@@ -25,7 +25,10 @@ function readRecent(): string[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(RECENT_KEY)
-    return raw ? (JSON.parse(raw) as string[]).slice(0, 5) : []
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((r): r is string => typeof r === 'string').slice(0, 5)
   } catch {
     return []
   }
@@ -35,7 +38,11 @@ function pushRecent(q: string): void {
   if (typeof window === 'undefined') return
   const cur = readRecent().filter((r) => r !== q)
   cur.unshift(q)
-  localStorage.setItem(RECENT_KEY, JSON.stringify(cur.slice(0, 5)))
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(cur.slice(0, 5)))
+  } catch {
+    // storage quota / disabled — recent searches are nice-to-have
+  }
 }
 
 /**

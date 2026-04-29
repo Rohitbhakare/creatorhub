@@ -366,10 +366,15 @@ function GoogleGlyph() {
 
 function deviceId(): string {
   if (typeof window === 'undefined') return 'web-server'
-  let id = localStorage.getItem('ch_device_id')
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem('ch_device_id', id)
+  try {
+    let id = localStorage.getItem('ch_device_id')
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem('ch_device_id', id)
+    }
+    return id
+  } catch {
+    // private mode / disabled — return ephemeral id, sign-in still works
+    return crypto.randomUUID()
   }
-  return id
 }

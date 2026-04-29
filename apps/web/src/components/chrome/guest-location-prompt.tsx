@@ -29,13 +29,22 @@ export function GuestLocationPrompt({ cities }: GuestLocationPromptProps) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const hasCity = Boolean(localStorage.getItem(STORAGE_KEY))
-    const skipped = sessionStorage.getItem(SKIP_KEY) === '1'
-    if (!hasCity && !skipped) setShow(true)
+    try {
+      const hasCity = Boolean(localStorage.getItem(STORAGE_KEY))
+      const skipped = sessionStorage.getItem(SKIP_KEY) === '1'
+      if (!hasCity && !skipped) setShow(true)
+    } catch {
+      // storage disabled (private mode, etc.) — show the prompt anyway
+      setShow(true)
+    }
   }, [])
 
   function pick(name: string) {
-    localStorage.setItem(STORAGE_KEY, name)
+    try {
+      localStorage.setItem(STORAGE_KEY, name)
+    } catch {
+      /* storage quota / disabled — URL still carries the city */
+    }
     setShow(false)
     const url = new URL(window.location.href)
     url.searchParams.set('city', name)
@@ -44,7 +53,11 @@ export function GuestLocationPrompt({ cities }: GuestLocationPromptProps) {
   }
 
   function skip() {
-    sessionStorage.setItem(SKIP_KEY, '1')
+    try {
+      sessionStorage.setItem(SKIP_KEY, '1')
+    } catch {
+      /* fall through — at worst the prompt re-shows next visit */
+    }
     setShow(false)
   }
 
