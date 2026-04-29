@@ -11,7 +11,7 @@ interface WebHeaderProps {
 }
 
 const NAV_ITEMS: { id: 'home' | 'discover' | 'saved' | 'bookings'; label: string; href: string }[] = [
-  { id: 'home', label: 'Home', href: '/feed' },
+  { id: 'home', label: 'Home', href: '/' },
   { id: 'discover', label: 'Discover', href: '/discover' },
   { id: 'saved', label: 'Saved', href: '/saved' },
   { id: 'bookings', label: 'Bookings', href: '/bookings' },

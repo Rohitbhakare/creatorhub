@@ -1,381 +1,356 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
-import { ContentCard } from '@/components/content/content-card'
+import { RightRail } from '@/components/chrome/right-rail'
+import { GuestBanner, GuestRailCard } from '@/components/chrome/guest-rail-card'
+import { SectionRail } from '@/components/content/section-rail'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { getSession } from '@/lib/session'
-import { getHomeFeedSections, fetchPopularCities } from '@/lib/api'
+import { fetchPopularCities, fetchQuestSummary, getHomeFeedSections } from '@/lib/api'
 
 export const metadata: Metadata = {
-  title: 'CreatorHub — Travel Stories Worth Saving',
+  title: 'CreatorHub — Travel stories worth saving',
   description:
-    'Discover travel stories, itineraries, and live experiences from local creators across India. Save what inspires, book what calls.',
+    'Discover authentic travel stories, itineraries, and live experiences from local creators across India.',
+  alternates: { canonical: '/' },
   openGraph: {
-    title: 'CreatorHub — Travel Stories Worth Saving',
+    title: 'CreatorHub — Travel stories worth saving',
     description:
-      'Discover travel stories, itineraries, and live experiences from local creators across India.',
+      'Discover authentic travel stories, itineraries, and live experiences from local creators across India.',
     type: 'website',
   },
-  alternates: { canonical: '/' },
 }
 
-const HERO_CHAPTER = {
-  photo: 'ch-photo--konkan',
-  title: 'Konkan in 4 quiet days',
-  creator: 'Aarav · @aaravnomad',
-  chapter: 'Chapter · Coastal',
+interface Props {
+  searchParams: Promise<{
+    scope?: 'near-you' | 'following' | 'all'
+    type?: string
+    city?: string
+  }>
 }
 
-const MOODS = [
-  { label: 'Coastal calm', subtitle: 'Beaches, slow towns' },
-  { label: 'Mountain quiet', subtitle: 'Trails, high altitudes' },
-  { label: 'City wander', subtitle: 'Food, art, late-night' },
-  { label: 'Monsoon green', subtitle: 'Rain, waterfalls, mist' },
+const SCOPES = [
+  { id: 'near-you' as const, label: 'Near you' },
+  { id: 'following' as const, label: 'Following' },
+  { id: 'all' as const, label: 'All' },
 ]
 
-export default async function HomePage() {
-  const [session, sections, cities] = await Promise.all([
-    getSession(),
-    getHomeFeedSections({ scope: 'all' }),
-    fetchPopularCities(),
+const FILTERS: { id: string; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'post', label: 'Posts' },
+  { id: 'itinerary', label: 'Itineraries' },
+  { id: 'experience', label: 'Experiences' },
+  { id: 'event', label: 'Events' },
+]
+
+export default async function HomePage({ searchParams }: Props) {
+  const session = await getSession()
+  const isGuest = !session
+
+  const sp = await searchParams
+  const scope: 'near-you' | 'following' | 'all' = sp.scope ?? 'near-you'
+  const type = sp.type
+  const city = sp.city
+
+  const [sections, quests, cities] = await Promise.all([
+    getHomeFeedSections(city ? { scope, city } : { scope }),
+    isGuest ? Promise.resolve(null) : fetchQuestSummary(),
+    isGuest ? fetchPopularCities() : Promise.resolve([]),
   ])
 
-  const preview = sections.slice(0, 3)
+  const filteredSections = type
+    ? sections.map((s) => ({ ...s, items: s.items.filter((i) => i.type === type) }))
+    : sections
+
+  const continueReading = sections[0]?.items[0] ?? null
 
   return (
     <>
-      <WebHeader session={session} active={null} />
+      {isGuest && <GuestBanner next="/" />}
+      <WebHeader session={session} active="home" streak={quests?.streakDays ?? 0} />
+
+      {isGuest && <GuestHeroStrip />}
 
       <main id="main-content">
-        <section style={{ padding: '40px 32px 0', maxWidth: 1240, margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.1fr 0.9fr',
-              gap: 56,
-              alignItems: 'center',
-              minHeight: 540,
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-muted)',
-                  display: 'block',
-                  marginBottom: 18,
-                }}
-              >
-                {HERO_CHAPTER.chapter} · 2026 Spring
-              </span>
-              <h1
-                className="ch-display"
-                style={{
-                  fontSize: 'clamp(40px, 6vw, 72px)',
-                  color: 'var(--ink)',
-                  marginBottom: 20,
-                }}
-              >
-                Travel stories{' '}
-                <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>worth</em> saving.
-              </h1>
-              <p
-                style={{
-                  fontSize: 18,
-                  color: 'var(--ink-soft)',
-                  lineHeight: 1.55,
-                  maxWidth: 480,
-                  marginBottom: 28,
-                }}
-              >
-                Discover real travel from people who&rsquo;ve been there — chapters, itineraries, and
-                live experiences across India. Save what inspires. Book what calls.
-              </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link
-                  href={session ? '/feed' : '/signup'}
-                  className="ch-btn ch-btn-primary"
-                  style={{ padding: '14px 22px', fontSize: 14.5 }}
-                >
-                  {session ? 'Open feed' : 'Get started · free'}
-                </Link>
-                <Link
-                  href="/discover"
-                  className="ch-btn ch-btn-ghost"
-                  style={{ padding: '14px 22px', fontSize: 14.5 }}
-                >
-                  Browse stories
-                </Link>
-              </div>
-              <div
-                style={{
-                  marginTop: 36,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  fontSize: 12,
-                  color: 'var(--ink-muted)',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span>★ 4.9 from 2,400+ travelers</span>
-                <span aria-hidden>·</span>
-                <span>UPI · Refund guarantee · GST included</span>
-              </div>
-            </div>
-
-            <div style={{ position: 'relative' }}>
-              <div
-                className={`ch-photo ${HERO_CHAPTER.photo}`}
-                style={{
-                  aspectRatio: '4/5',
-                  height: 'auto',
-                  width: '100%',
-                  borderRadius: 24,
-                }}
-              >
-                <div className="ch-photo-overlay" />
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 24,
-                    left: 24,
-                    right: 24,
-                    color: 'white',
-                  }}
-                >
-                  <span className="ch-pill ch-pill-glass">{HERO_CHAPTER.chapter}</span>
-                  <h2
-                    className="ch-display"
-                    style={{
-                      fontSize: 32,
-                      color: 'white',
-                      marginTop: 12,
-                      lineHeight: 1.15,
-                    }}
-                  >
-                    {HERO_CHAPTER.title}
-                  </h2>
-                  <span style={{ fontSize: 13, opacity: 0.9 }}>{HERO_CHAPTER.creator}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <ScrollReveal as="section">
+        <div
+          style={{
+            position: 'sticky',
+            top: 72,
+            zIndex: 20,
+            background: 'color-mix(in srgb, var(--bg) 92%, transparent)',
+            backdropFilter: 'blur(12px)',
+            borderBottom: '1px solid var(--hairline)',
+          }}
+        >
           <div
             style={{
               maxWidth: 1240,
               margin: '0 auto',
-              padding: '80px 32px 0',
+              padding: '12px 32px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              overflowX: 'auto',
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-muted)',
-                display: 'block',
-                marginBottom: 16,
-              }}
-            >
-              Find your mood
-            </span>
-            <h2
-              className="ch-display"
-              style={{ fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--ink)', marginBottom: 32 }}
-            >
-              What kind of travel calls you?
-            </h2>
+            <div style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
+              {SCOPES.map((s) => {
+                const guestDisabled = isGuest && s.id === 'following'
+                const isActive = scope === s.id && !guestDisabled
+                const href = guestDisabled
+                  ? '/signin?next=/'
+                  : `/?scope=${s.id}${type !== undefined ? `&type=${type}` : ''}`
+                return (
+                  <Link
+                    key={s.id}
+                    href={href}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive
+                        ? 'white'
+                        : guestDisabled
+                          ? 'var(--ink-faint)'
+                          : 'var(--ink-soft)',
+                      background: isActive ? 'var(--ink)' : 'transparent',
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {s.label}
+                    {guestDisabled && (
+                      <span style={{ marginLeft: 4, fontSize: 11 }}>· sign in</span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: 16,
+                width: 1,
+                height: 22,
+                background: 'var(--hairline)',
+                flex: '0 0 auto',
               }}
-            >
-              {MOODS.map((mood) => (
-                <Link
-                  key={mood.label}
-                  href={`/discover?q=${encodeURIComponent(mood.label)}`}
-                  className="ch-card"
-                  style={{
-                    padding: 24,
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <div
-                    className="ch-display"
-                    style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 6 }}
-                  >
-                    {mood.label}
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{mood.subtitle}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </ScrollReveal>
-
-        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 32px' }}>
-          {preview.map((section) => (
-            <ScrollReveal key={section.id} as="section">
-              <div style={{ marginTop: 80 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'space-between',
-                    marginBottom: 24,
-                    gap: 16,
-                  }}
-                >
-                  <div>
-                    {section.subtitle && (
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          letterSpacing: '0.18em',
-                          textTransform: 'uppercase',
-                          color: 'var(--ink-muted)',
-                          display: 'block',
-                          marginBottom: 8,
-                        }}
-                      >
-                        {section.subtitle}
-                      </span>
-                    )}
-                    <h2
-                      className="ch-display"
-                      style={{
-                        fontSize: 'clamp(26px, 3.5vw, 36px)',
-                        color: 'var(--ink)',
-                        margin: 0,
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      {section.title}
-                    </h2>
-                  </div>
+            />
+            <div style={{ display: 'flex', gap: 6, flex: '1 1 auto', overflowX: 'auto' }}>
+              {FILTERS.map((f) => {
+                const isActive = (type ?? 'all') === f.id
+                const queryType = f.id === 'all' ? '' : `&type=${f.id}`
+                return (
                   <Link
-                    href={`/discover?section=${encodeURIComponent(section.id)}`}
+                    key={f.id}
+                    href={`/?scope=${scope}${queryType}`}
                     style={{
+                      padding: '8px 14px',
+                      borderRadius: 999,
                       fontSize: 13,
-                      fontWeight: 600,
-                      color: 'var(--ink-soft)',
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive ? 'var(--primary-deep)' : 'var(--ink-soft)',
+                      background: isActive ? 'var(--primary-tint)' : 'transparent',
                       textDecoration: 'none',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    See all →
+                    {f.label}
                   </Link>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: 32,
-                  }}
-                >
-                  {section.items.slice(0, 4).map((item) => (
-                    <ContentCard key={item.id} content={item} />
-                  ))}
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
+                )
+              })}
+            </div>
+          </div>
         </div>
 
-        {cities.length > 0 && (
-          <ScrollReveal as="section">
-            <div style={{ maxWidth: 1240, margin: '0 auto', padding: '80px 32px 0' }}>
-              <h2
-                className="ch-display"
-                style={{ fontSize: 'clamp(26px, 3.5vw, 36px)', color: 'var(--ink)', marginBottom: 24 }}
-              >
-                Explore by city
-              </h2>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {cities.slice(0, 18).map((c) => (
-                  <Link
-                    key={c.name}
-                    href={`/discover?city=${encodeURIComponent(c.name)}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '10px 16px',
-                      borderRadius: 999,
-                      border: '1px solid var(--hairline)',
-                      background: 'var(--surface)',
-                      fontSize: 13.5,
-                      color: 'var(--ink)',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <span aria-hidden style={{ color: 'var(--primary)' }}>
-                      ●
-                    </span>
-                    {c.name}
-                    <span style={{ color: 'var(--ink-muted)', fontSize: 12 }}>{c.count}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </ScrollReveal>
-        )}
-
-        <section
+        <div
           style={{
-            marginTop: 100,
-            padding: '80px 32px',
-            background: 'var(--surface)',
-            borderTop: '1px solid var(--hairline)',
-            borderBottom: '1px solid var(--hairline)',
+            maxWidth: 1240,
+            margin: '0 auto',
+            padding: '32px 32px 80px',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 296px',
+            gap: 56,
+            alignItems: 'start',
           }}
         >
-          <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-            <h2
-              className="ch-display"
-              style={{ fontSize: 'clamp(32px, 5vw, 56px)', color: 'var(--ink)', marginBottom: 16 }}
-            >
-              Stories worth saving.
-              <br />
-              <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>Trips worth booking.</em>
-            </h2>
-            <p
+          <div>
+            {filteredSections.length === 0 ? (
+              <div
+                className="ch-card"
+                style={{ padding: 64, textAlign: 'center', color: 'var(--ink-muted)' }}
+              >
+                <h2
+                  className="ch-display"
+                  style={{ fontSize: 28, color: 'var(--ink)', marginBottom: 12 }}
+                >
+                  Nothing here yet
+                </h2>
+                <p style={{ fontSize: 14, lineHeight: 1.55, marginBottom: 20 }}>
+                  Try a different filter, or browse Discover for the full library.
+                </p>
+                <Link href="/discover" className="ch-btn ch-btn-primary">
+                  Browse discover
+                </Link>
+              </div>
+            ) : (
+              filteredSections.map((section, i) => (
+                <ScrollReveal key={section.id} delay={i * 0.05}>
+                  <SectionRail section={section} variant={i === 0 ? 'rail' : 'grid'} />
+                </ScrollReveal>
+              ))
+            )}
+
+            {isGuest && cities.length > 0 && (
+              <ScrollReveal>
+                <section style={{ marginTop: 80 }}>
+                  <h2
+                    className="ch-display"
+                    style={{
+                      fontSize: 'clamp(24px, 3.5vw, 32px)',
+                      color: 'var(--ink)',
+                      marginBottom: 16,
+                    }}
+                  >
+                    Explore by city
+                  </h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {cities.slice(0, 16).map((c) => (
+                      <Link
+                        key={c.name}
+                        href={`/discover?city=${encodeURIComponent(c.name)}`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '10px 16px',
+                          borderRadius: 999,
+                          border: '1px solid var(--hairline)',
+                          background: 'var(--surface)',
+                          fontSize: 13.5,
+                          color: 'var(--ink)',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <span aria-hidden style={{ color: 'var(--primary)' }}>
+                          ●
+                        </span>
+                        {c.name}
+                        {c.count > 0 && (
+                          <span style={{ color: 'var(--ink-muted)', fontSize: 12 }}>
+                            {String(c.count)}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              </ScrollReveal>
+            )}
+          </div>
+
+          {isGuest ? (
+            <aside
               style={{
-                fontSize: 16,
-                color: 'var(--ink-muted)',
-                lineHeight: 1.55,
-                marginBottom: 28,
+                width: 296,
+                flex: '0 0 296px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
               }}
             >
-              Free to browse, free to save, free to follow. Pay only when you book a paid experience.
-            </p>
-            <Link
-              href={session ? '/feed' : '/signup'}
-              className="ch-btn ch-btn-primary"
-              style={{ padding: '14px 28px', fontSize: 15 }}
-            >
-              {session ? 'Open feed' : 'Join free'}
-            </Link>
-          </div>
-        </section>
+              <GuestRailCard next="/" />
+              {continueReading && (
+                <div className="ch-card" style={{ padding: 16 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-muted)',
+                      marginBottom: 10,
+                      display: 'block',
+                    }}
+                  >
+                    Try this first
+                  </span>
+                  <Link
+                    href={`/content/${continueReading.id}`}
+                    style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-serif)',
+                        fontSize: 16,
+                        lineHeight: 1.3,
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {continueReading.title}
+                    </div>
+                    {continueReading.creator && (
+                      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>
+                        by {continueReading.creator.displayName}
+                      </div>
+                    )}
+                  </Link>
+                </div>
+              )}
+            </aside>
+          ) : (
+            <RightRail
+              quests={quests}
+              continueReading={continueReading}
+              trendingTags={['konkan', 'monsoon', 'spiti', 'roadtrip', 'beachweekend']}
+            />
+          )}
+        </div>
       </main>
-
-      <WebFooter big />
+      <WebFooter />
     </>
+  )
+}
+
+function GuestHeroStrip() {
+  return (
+    <section
+      style={{
+        background: 'var(--surface)',
+        borderBottom: '1px solid var(--hairline)',
+        padding: '32px 32px 28px',
+      }}
+    >
+      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+            display: 'block',
+            marginBottom: 12,
+          }}
+        >
+          CreatorHub · Spring 2026
+        </span>
+        <h1
+          className="ch-display"
+          style={{
+            fontSize: 'clamp(36px, 5vw, 56px)',
+            color: 'var(--ink)',
+            margin: 0,
+            lineHeight: 1.05,
+            maxWidth: 880,
+          }}
+        >
+          Travel stories <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>worth</em>{' '}
+          saving — chapters, itineraries, and live experiences from creators across India.
+        </h1>
+      </div>
+    </section>
   )
 }

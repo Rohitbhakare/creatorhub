@@ -18,7 +18,14 @@ async function fetchSection(
     const data = await apiFetchPublic<unknown>(path, {
       next: { revalidate: REVALIDATE_FEED_SECONDS, tags: [`feed:${endpoint}`] },
     })
-    return listOf(data, transformContentCard)
+    // Some feed endpoints return `data: [...]` directly; others return
+    // `data: { items: [...] }`. Handle both transparently.
+    if (Array.isArray(data)) return listOf(data, transformContentCard)
+    if (data && typeof data === 'object' && 'items' in data) {
+      const items = (data as { items?: unknown }).items
+      return listOf(items, transformContentCard)
+    }
+    return []
   } catch {
     return []
   }
@@ -32,16 +39,41 @@ export async function getHomeFeedSections(opts: {
   const city = opts.city
   const scope = opts.scope ?? 'near-you'
 
-  const [hotNearYou, handpicked, weekend, fromCity, posts, events] = await Promise.all([
+  const [
+    forYou,
+    hotNearYou,
+    handpicked,
+    weekend,
+    fromCity,
+    posts,
+    events,
+    dayTrips,
+    weekendGetaways,
+  ] = await Promise.all([
+    fetchSection('for-you'),
     fetchSection('hot-near-you', { city }),
     fetchSection('editors-picks'),
     fetchSection('this-weekend', { city }),
     fetchSection('trips-from-city', { city }),
     fetchSection('posts'),
     fetchSection('upcoming-events', { city }),
+    fetchSection('day-trips', { city }),
+    fetchSection('weekend-getaways', { city }),
   ])
 
   const sections: FeedSection[] = []
+
+  // Slice for-you by type so the feed reads more editorially. Track seen
+  // ids so an item can't appear in two sections if the API ever doubles up.
+  const seen = new Set<string>()
+  const forYouTrips: ContentCard[] = []
+  const forYouStories: ContentCard[] = []
+  for (const card of forYou) {
+    if (seen.has(card.id)) continue
+    seen.add(card.id)
+    if (card.type === 'post') forYouStories.push(card)
+    else forYouTrips.push(card)
+  }
 
   if (hotNearYou.length) {
     sections.push({
@@ -51,12 +83,28 @@ export async function getHomeFeedSections(opts: {
       items: hotNearYou,
     })
   }
+  if (forYouTrips.length) {
+    sections.push({
+      id: 'for-you-trips',
+      title: 'Picked for you',
+      subtitle: 'Itineraries and experiences we think you’ll like',
+      items: forYouTrips.slice(0, 8),
+    })
+  }
   if (handpicked.length) {
     sections.push({
       id: 'handpicked',
       title: 'Handpicked for you',
       subtitle: 'Curated by our editors',
       items: handpicked,
+    })
+  }
+  if (forYouStories.length) {
+    sections.push({
+      id: 'stories',
+      title: 'Stories worth your morning coffee',
+      subtitle: 'Long reads from our travel writers',
+      items: forYouStories.slice(0, 8),
     })
   }
   if (weekend.length) {
@@ -68,10 +116,22 @@ export async function getHomeFeedSections(opts: {
     })
   }
   if (fromCity.length && city) {
+    sections.push({ id: 'from-city', title: `Trips from ${city}`, items: fromCity })
+  }
+  if (dayTrips.length) {
     sections.push({
-      id: 'from-city',
-      title: `Trips from ${city}`,
-      items: fromCity,
+      id: 'day-trips',
+      title: 'Day trips',
+      subtitle: 'Out and back before sundown',
+      items: dayTrips,
+    })
+  }
+  if (weekendGetaways.length) {
+    sections.push({
+      id: 'weekend-getaways',
+      title: 'Weekend getaways',
+      subtitle: 'Friday night to Sunday',
+      items: weekendGetaways,
     })
   }
   if (posts.length) {
@@ -83,12 +143,7 @@ export async function getHomeFeedSections(opts: {
     })
   }
   if (events.length) {
-    sections.push({
-      id: 'events',
-      title: 'Upcoming events',
-      subtitle: 'RSVP now',
-      items: events,
-    })
+    sections.push({ id: 'events', title: 'Upcoming events', subtitle: 'RSVP now', items: events })
   }
 
   void scope
