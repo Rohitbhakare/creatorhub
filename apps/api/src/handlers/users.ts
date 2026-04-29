@@ -2,6 +2,7 @@ import type { Context } from 'hono'
 import { getUserProfile } from '../services/auth.service.js'
 import {
   getPublicProfile,
+  getPublicProfileByUsername,
   updateProfile,
   updateUsername,
   getProfileCompletion,
@@ -79,5 +80,19 @@ export async function handleGetPublicProfile(c: Context): Promise<Response> {
 
   const viewerId = (c.get('userId') as string | undefined) ?? null
   const profile = await getPublicProfile(targetId, viewerId)
+  return c.json({ success: true, data: profile })
+}
+
+/**
+ * GET /users/by-username/:username
+ * Resolves a public profile by its username (case-insensitive). Used by the
+ * web app for human-readable URLs. Mobile uses the UUID route directly.
+ */
+export async function handleGetPublicProfileByUsername(
+  c: Context,
+): Promise<Response> {
+  const username = c.req.param('username')!
+  const viewerId = (c.get('userId') as string | undefined) ?? null
+  const profile = await getPublicProfileByUsername(username, viewerId)
   return c.json({ success: true, data: profile })
 }

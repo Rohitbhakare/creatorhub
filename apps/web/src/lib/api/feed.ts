@@ -1,12 +1,8 @@
 import { apiFetch, apiFetchPublic } from '../api-client'
 import type { ContentCard, FeedSection } from './types'
+import { listOf, transformContentCard } from './transforms'
 
 const REVALIDATE_FEED_SECONDS = 60
-
-interface FeedSectionResponse {
-  items: ContentCard[]
-  count?: number
-}
 
 async function fetchSection(
   endpoint: string,
@@ -19,10 +15,10 @@ async function fetchSection(
   const qs = search.toString()
   const path = `/api/v1/feed/${endpoint}${qs ? `?${qs}` : ''}`
   try {
-    const data = await apiFetchPublic<FeedSectionResponse>(path, {
+    const data = await apiFetchPublic<unknown>(path, {
       next: { revalidate: REVALIDATE_FEED_SECONDS, tags: [`feed:${endpoint}`] },
     })
-    return data?.items ?? []
+    return listOf(data, transformContentCard)
   } catch {
     return []
   }
@@ -95,16 +91,19 @@ export async function getHomeFeedSections(opts: {
     })
   }
 
-  // Suppress unused warning — scope is reserved for /feed/following extension
   void scope
-
   return sections
 }
 
 export async function getFollowingFeed(): Promise<ContentCard[]> {
-  return apiFetch<{ items: ContentCard[] }>(`/api/v1/feed/following`, {
-    next: { revalidate: 30 },
-  }).then((d) => d.items).catch(() => [])
+  try {
+    const data = await apiFetch<unknown>(`/api/v1/feed/following`, {
+      next: { revalidate: 30 },
+    })
+    return listOf(data, transformContentCard)
+  } catch {
+    return []
+  }
 }
 
 export interface DiscoverParams {
@@ -130,10 +129,20 @@ export async function searchDiscover(params: DiscoverParams): Promise<{
   }
   const path = `/api/v1/discover/search${search.toString() ? `?${search.toString()}` : ''}`
   try {
-    const data = await apiFetchPublic<{ items: ContentCard[]; total: number }>(path, {
+    const data = await apiFetchPublic<unknown>(path, {
       next: { revalidate: 30 },
     })
-    return data ?? { items: [], total: 0 }
+    if (!data) return { items: [], total: 0 }
+    if (Array.isArray(data)) {
+      const items = listOf(data, transformContentCard)
+      return { items, total: items.length }
+    }
+    if (typeof data === 'object') {
+      const obj = data as { items?: unknown; total?: number }
+      const items = listOf(obj.items, transformContentCard)
+      return { items, total: obj.total ?? items.length }
+    }
+    return { items: [], total: 0 }
   } catch {
     return { items: [], total: 0 }
   }

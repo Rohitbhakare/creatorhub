@@ -5,8 +5,10 @@ import { type NextRequest, NextResponse } from 'next/server'
  * Edge runtime — keep this lightweight (no DB, no heavy imports).
  */
 
+// Routes that require auth. /feed is intentionally NOT here — guests can
+// browse the home feed (per IAM-FR-010 / WEB-FEED-FR-023 cold-start), they
+// just see a Join card in place of the personalised right rail.
 const PROTECTED_PREFIXES = [
-  '/feed',
   '/saved',
   '/bookings',
   '/studio',

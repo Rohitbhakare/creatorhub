@@ -13,6 +13,13 @@ import type {
   QuestSummary,
   StudioMetrics,
 } from './types'
+import {
+  listOf,
+  transformBooking,
+  transformContentDetail,
+  transformCreatorProfile,
+  transformNotification,
+} from './transforms'
 
 export * from './types'
 export * from './feed'
@@ -20,24 +27,47 @@ export * from './feed'
 // ───────── Public surface (guest-friendly) ─────────
 
 export async function fetchCreatorProfile(username: string): Promise<CreatorProfile | null> {
-  return apiFetchPublic<CreatorProfile>(`/api/v1/users/by-username/${encodeURIComponent(username)}`, {
-    next: { revalidate: 60, tags: [`creator:${username}`] },
-  })
+  const raw = await apiFetchPublic<unknown>(
+    `/api/v1/users/by-username/${encodeURIComponent(username)}`,
+    { next: { revalidate: 60, tags: [`creator:${username}`] } },
+  )
+  if (!raw) return null
+  return transformCreatorProfile(raw as Parameters<typeof transformCreatorProfile>[0])
 }
 
 export async function fetchContentDetail(contentId: string): Promise<ContentDetail | null> {
-  return apiFetchPublic<ContentDetail>(`/api/v1/content/${encodeURIComponent(contentId)}`, {
-    next: { revalidate: 30, tags: [`content:${contentId}`] },
-  })
+  const raw = await apiFetchPublic<unknown>(
+    `/api/v1/content/${encodeURIComponent(contentId)}`,
+    { next: { revalidate: 30, tags: [`content:${contentId}`] } },
+  )
+  if (!raw) return null
+  try {
+    return transformContentDetail(raw as Parameters<typeof transformContentDetail>[0])
+  } catch {
+    return null
+  }
 }
 
 export async function fetchPopularCities(): Promise<{ name: string; count: number }[]> {
   try {
-    const data = await apiFetchPublic<{ items: { name: string; count: number }[] }>(
-      `/api/v1/cities/popular`,
-      { next: { revalidate: 3600 } },
-    )
-    return data?.items ?? []
+    const data = await apiFetchPublic<unknown>(`/api/v1/cities/popular`, {
+      next: { revalidate: 3600 },
+    })
+    if (Array.isArray(data)) {
+      return data
+        .map((c) => {
+          if (typeof c !== 'object' || c === null) return null
+          const r = c as { name?: string; count?: number; content_count?: number }
+          if (!r.name) return null
+          return { name: r.name, count: r.count ?? r.content_count ?? 0 }
+        })
+        .filter((c): c is { name: string; count: number } => c !== null)
+    }
+    if (data && typeof data === 'object' && 'items' in data) {
+      const obj = data as { items?: { name: string; count: number }[] }
+      return obj.items ?? []
+    }
+    return []
   } catch {
     return []
   }
@@ -47,10 +77,8 @@ export async function fetchPopularCities(): Promise<{ name: string; count: numbe
 
 export async function fetchMyBookings(): Promise<Booking[]> {
   try {
-    const data = await apiFetch<{ items: Booking[] }>(`/api/v1/bookings/me`, {
-      next: { revalidate: 0 },
-    })
-    return data.items
+    const data = await apiFetch<unknown>(`/api/v1/bookings/me`, { next: { revalidate: 0 } })
+    return listOf(data, transformBooking)
   } catch {
     return []
   }
@@ -214,10 +242,8 @@ export async function fetchQuestSummary(): Promise<QuestSummary | null> {
 
 export async function fetchNotifications(): Promise<Notification[]> {
   try {
-    const data = await apiFetch<{ items: Notification[] }>(`/api/v1/notifications`, {
-      next: { revalidate: 0 },
-    })
-    return data.items
+    const data = await apiFetch<unknown>(`/api/v1/notifications`, { next: { revalidate: 0 } })
+    return listOf(data, transformNotification)
   } catch {
     return []
   }

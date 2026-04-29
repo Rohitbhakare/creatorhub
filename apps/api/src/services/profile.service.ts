@@ -65,6 +65,31 @@ export async function getPublicProfile(userId: string, viewerId?: string | null)
   }
 }
 
+// ─── Public Profile by Username ────────────────────────────────
+
+/**
+ * Resolve a public profile by its case-insensitive username, then hydrate
+ * via getPublicProfile so the response shape matches /users/:id exactly.
+ * Used by the web app for stable creator URLs (/{vertical}/{username}).
+ */
+export async function getPublicProfileByUsername(
+  username: string,
+  viewerId?: string | null,
+) {
+  if (!/^[A-Za-z0-9_]{2,30}$/.test(username)) {
+    throw new AppError('validation-failed', 400, 'Invalid username format')
+  }
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id')
+    .ilike('username', username)
+    .maybeSingle()
+  if (error || !user) {
+    throw new AppError('not-found', 404, 'User not found')
+  }
+  return getPublicProfile(user.id as string, viewerId)
+}
+
 // ─── Update Profile ────────────────────────────────────────────
 
 export async function updateProfile(

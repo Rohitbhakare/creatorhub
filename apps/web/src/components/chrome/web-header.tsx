@@ -17,7 +17,15 @@ const NAV_ITEMS: { id: 'home' | 'discover' | 'saved' | 'bookings'; label: string
   { id: 'bookings', label: 'Bookings', href: '/bookings' },
 ]
 
-function Avatar({ name, size = 34 }: { name: string; size?: number }) {
+function Avatar({
+  name,
+  url,
+  size = 34,
+}: {
+  name: string
+  url?: string | null
+  size?: number
+}) {
   const initials = name
     .split(' ')
     .map((s) => s[0])
@@ -32,7 +40,7 @@ function Avatar({ name, size = 34 }: { name: string; size?: number }) {
         width: size,
         height: size,
         borderRadius: 999,
-        background: 'linear-gradient(135deg, #d4b896, #a07c5a)',
+        background: url ? 'transparent' : 'linear-gradient(135deg, #d4b896, #a07c5a)',
         color: 'white',
         display: 'grid',
         placeItems: 'center',
@@ -40,9 +48,13 @@ function Avatar({ name, size = 34 }: { name: string; size?: number }) {
         fontWeight: 600,
         fontSize: size * 0.4,
         flex: '0 0 auto',
+        overflow: 'hidden',
+        backgroundImage: url ? `url(${url})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
-      {initials || '?'}
+      {url ? '' : initials || '?'}
     </div>
   )
 }
@@ -245,7 +257,7 @@ export function WebHeader({
               </Link>
 
               <Link href="/you" aria-label="Profile" style={{ display: 'flex', textDecoration: 'none' }}>
-                <Avatar name={session?.displayName ?? '?'} />
+                <Avatar name={session?.displayName ?? '?'} url={session?.avatarUrl ?? null} />
               </Link>
             </div>
           </>

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
 import { RightRail } from '@/components/chrome/right-rail'
+import { GuestBanner, GuestRailCard } from '@/components/chrome/guest-rail-card'
 import { SectionRail } from '@/components/content/section-rail'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { getSession } from '@/lib/session'
@@ -34,7 +34,7 @@ const FILTERS: { id: string; label: string }[] = [
 
 export default async function FeedPage({ searchParams }: Props) {
   const session = await getSession()
-  if (!session) redirect('/signin?next=/feed')
+  const isGuest = !session
 
   const sp = await searchParams
   const scope: 'near-you' | 'following' | 'all' = sp.scope ?? 'near-you'
@@ -42,7 +42,7 @@ export default async function FeedPage({ searchParams }: Props) {
   const city = sp.city
   const [sections, quests] = await Promise.all([
     getHomeFeedSections(city ? { scope, city } : { scope }),
-    fetchQuestSummary(),
+    isGuest ? Promise.resolve(null) : fetchQuestSummary(),
   ])
 
   const filteredSections = type
@@ -53,6 +53,7 @@ export default async function FeedPage({ searchParams }: Props) {
 
   return (
     <>
+      {isGuest && <GuestBanner next="/feed" />}
       <WebHeader session={session} active="home" streak={quests?.streakDays ?? 0} />
       <main id="main-content">
         <div
@@ -173,11 +174,63 @@ export default async function FeedPage({ searchParams }: Props) {
             )}
           </div>
 
-          <RightRail
-            quests={quests}
-            continueReading={continueReading}
-            trendingTags={['konkan', 'monsoon', 'spiti', 'roadtrip', 'beachweekend']}
-          />
+          {isGuest ? (
+            <aside
+              style={{
+                width: 296,
+                flex: '0 0 296px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
+              }}
+            >
+              <GuestRailCard next="/feed" />
+              {continueReading && (
+                <div className="ch-card" style={{ padding: 16 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-muted)',
+                      marginBottom: 10,
+                      display: 'block',
+                    }}
+                  >
+                    Try this first
+                  </span>
+                  <Link
+                    href={`/content/${continueReading.id}`}
+                    style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-serif)',
+                        fontSize: 16,
+                        lineHeight: 1.3,
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {continueReading.title}
+                    </div>
+                    {continueReading.creator && (
+                      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>
+                        by {continueReading.creator.displayName}
+                      </div>
+                    )}
+                  </Link>
+                </div>
+              )}
+            </aside>
+          ) : (
+            <RightRail
+              quests={quests}
+              continueReading={continueReading}
+              trendingTags={['konkan', 'monsoon', 'spiti', 'roadtrip', 'beachweekend']}
+            />
+          )}
         </div>
       </main>
       <WebFooter />

@@ -55,6 +55,8 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '**.cloudfront.net' },
       { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'https', hostname: 'creatorhub.in' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1640, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

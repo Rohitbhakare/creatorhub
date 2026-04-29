@@ -12,6 +12,7 @@ import {
   handleUpdateUsername,
   handleGetCompletion,
   handleGetPublicProfile,
+  handleGetPublicProfileByUsername,
   handleSetDnd,
   handleSetTravelSubCategories,
 } from '../handlers/users.js'
@@ -40,6 +41,9 @@ usersRoutes.put(
 usersRoutes.put('/me/dnd', authenticate, handleSetDnd)
 
 // ── Public profile ─────────────────────────────────────────────
+// Username route MUST be declared before /:id so Hono doesn't capture
+// "by-username" as the id parameter.
+usersRoutes.get('/by-username/:username', optionalAuthenticate, handleGetPublicProfileByUsername)
 usersRoutes.get('/:id', optionalAuthenticate, handleGetPublicProfile)
 
 export default usersRoutes

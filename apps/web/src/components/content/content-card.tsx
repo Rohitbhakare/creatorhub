@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import type { ContentCard as ContentCardModel } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
 
@@ -38,6 +39,31 @@ function typeLabel(type: ContentCardModel['type']): string {
   return { post: 'Post', itinerary: 'Itinerary', experience: 'Experience', event: 'Event' }[type]
 }
 
+/** Skip Next image optimizer for hosts not in next.config remotePatterns. */
+function isExternalUnoptimized(url: string): boolean {
+  try {
+    const u = new URL(url)
+    const allowed = [
+      'firebasestorage.googleapis.com',
+      'storage.googleapis.com',
+      'creatorhub.in',
+    ]
+    if (allowed.some((host) => u.host.endsWith(host))) return false
+    if (
+      u.host.endsWith('.googleusercontent.com') ||
+      u.host.endsWith('.cloudfront.net') ||
+      u.host.endsWith('.supabase.co') ||
+      u.host === 'images.unsplash.com' ||
+      u.host === 'plus.unsplash.com'
+    ) {
+      return false
+    }
+    return true
+  } catch {
+    return true
+  }
+}
+
 export function ContentCard({ content, variant = 'default', hero = false }: ContentCardProps) {
   const photoClass = pickPhoto(content)
   const isCompact = variant === 'compact'
@@ -54,10 +80,20 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
       }}
     >
       <div
-        className={`ch-photo ${photoClass}`}
-        style={{ height: photoHeight, position: 'relative' }}
+        className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}
+        style={{ height: photoHeight, position: 'relative', overflow: 'hidden' }}
       >
-        <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6 }}>
+        {content.coverImageUrl && (
+          <Image
+            src={content.coverImageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1240px) 33vw, 320px"
+            style={{ objectFit: 'cover' }}
+            unoptimized={isExternalUnoptimized(content.coverImageUrl)}
+          />
+        )}
+        <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, zIndex: 2 }}>
           <span className="ch-pill ch-pill-glass">{typeLabel(content.type)}</span>
           {content.isFree && <span className="ch-pill ch-pill-coral">Free</span>}
         </div>
@@ -75,6 +111,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
               backdropFilter: 'blur(8px)',
               padding: '4px 10px',
               borderRadius: 999,
+              zIndex: 2,
             }}
           >
             {formatPrice(content.priceInPaisa, content.isFree)}
