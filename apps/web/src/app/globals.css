@@ -1,21 +1,374 @@
 @import "tailwindcss";
 
-:root {
-  /* Warm Neutrals */
-  --color-linen: #FBF7F4;
-  --color-stone: #8A7B6B;
-  --color-bark: #3E3228;
+/* CreatorHub v3 — Pure White + Coral
+ * Themes: Paper (default) · Snow · Bone · Ink Night
+ * Coral #E15A41 is the sole decorative accent (SRS C-17).
+ * Theme switches via [data-theme] on <html>; cookie-driven SSR.
+ */
 
-  /* Coral accent — 8 contexts only (see ui-ux.md) */
-  --color-coral: #E15A41;
+@theme {
+  --font-sans: var(--font-inter), -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-mono: ui-monospace, "JetBrains Mono", monospace;
+}
 
-  /* Semantic */
-  --color-success: #2D7A4F;
-  --color-warning: #C47C1B;
-  --color-error: #C0392B;
+:root,
+[data-theme="paper"] {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-alt: #f2f1ee;
+  --surface-sunk: #ecebe5;
+  --ink: #16161a;
+  --ink-soft: #3a3a40;
+  --ink-muted: #7a7a82;
+  --ink-faint: #b4b4ba;
+  --hairline: #e8e6e1;
+  --hairline-strong: #d8d5ce;
+  --primary: #e15a41;
+  --primary-deep: #b9401e;
+  --primary-tint: #fcebe6;
+  --success: #1d9e75;
+  --warning: #ba7517;
+  --danger: #c2362f;
+  --info: #185fa5;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(20, 20, 24, 0.04);
+  --shadow-md: 0 2px 8px rgba(20, 20, 24, 0.06), 0 1px 2px rgba(20, 20, 24, 0.04);
+  --shadow-lg: 0 12px 28px rgba(20, 20, 24, 0.08), 0 4px 8px rgba(20, 20, 24, 0.04);
+
+  /* Legacy aliases — keep existing pages compiling during migration */
+  --color-linen: #f7f7f5;
+  --color-stone: #7a7a82;
+  --color-bark: #16161a;
+  --color-coral: #e15a41;
+
+  color-scheme: light;
+}
+
+[data-theme="snow"] {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-alt: #eef0f4;
+  --surface-sunk: #e5e8ee;
+  --ink: #0e1116;
+  --ink-soft: #353a44;
+  --ink-muted: #6e7683;
+  --ink-faint: #aab0bb;
+  --hairline: #e1e4ea;
+  --hairline-strong: #ced3db;
+}
+
+[data-theme="bone"] {
+  --bg: #f4f1ea;
+  --surface: #fbf9f4;
+  --surface-alt: #efebe1;
+  --surface-sunk: #e7e2d5;
+  --ink: #1c1a14;
+  --ink-soft: #3e3a30;
+  --ink-muted: #7b7565;
+  --ink-faint: #b2ac9c;
+  --hairline: #e2dccb;
+  --hairline-strong: #cfc7b2;
+}
+
+[data-theme="ink"] {
+  --bg: #0e0f12;
+  --surface: #17181c;
+  --surface-alt: #202126;
+  --surface-sunk: #2a2b31;
+  --ink: #f5f4f0;
+  --ink-soft: #c8c6c0;
+  --ink-muted: #8a8880;
+  --ink-faint: #56544e;
+  --hairline: #2e2f36;
+  --hairline-strong: #3d3e46;
+  --primary: #e85a41;
+  --primary-deep: #ff8164;
+  --primary-tint: #2a1a16;
+  --success: #55c79a;
+  --warning: #d99b3a;
+  --danger: #e46760;
+  --info: #5fa4e5;
+
+  color-scheme: dark;
+}
+
+[data-coral="terracotta"] {
+  --primary: #c9502a;
+  --primary-deep: #933410;
+  --primary-tint: #f7e4da;
+}
+[data-coral="saffron"] {
+  --primary: #d97b1a;
+  --primary-deep: #9c5608;
+  --primary-tint: #fbecd3;
 }
 
 html {
-  background-color: var(--color-linen);
-  color: var(--color-bark);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--primary-tint);
+  color: var(--primary-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.ch-glass {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.ch-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.ch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: 0;
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms;
+  text-decoration: none;
+}
+
+.ch-btn:active {
+  transform: scale(0.98);
+}
+
+.ch-btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.ch-btn-primary:hover {
+  background: var(--primary-deep);
+}
+
+.ch-btn-ink {
+  background: var(--ink);
+  color: var(--surface);
+}
+.ch-btn-ink:hover {
+  opacity: 0.9;
+}
+
+.ch-btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--hairline-strong);
+}
+.ch-btn-ghost:hover {
+  background: var(--surface-alt);
+}
+
+.ch-brand {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.ch-brand em {
+  font-style: italic;
+  color: var(--primary);
+}
+
+.ch-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.ch-photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #6e8aa0 0%, #b89a76 35%, #6e6452 65%, #2c2823 100%);
+}
+
+.ch-photo--konkan {
+  background:
+    radial-gradient(ellipse at 25% 75%, rgba(0, 30, 60, 0.32) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 30%, rgba(255, 180, 90, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, #6e8aa0 0%, #b89a76 35%, #6e6452 65%, #2c2823 100%);
+}
+.ch-photo--spiti {
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(80, 40, 20, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 30%, rgba(255, 200, 140, 0.45) 0%, transparent 50%),
+    linear-gradient(180deg, #5b89c3 0%, #87a8c8 35%, #d8c4a6 60%, #b89a76 80%, #4a3a30 100%);
+}
+.ch-photo--monsoon {
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(120, 140, 160, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 70%, rgba(80, 100, 80, 0.55) 0%, transparent 55%),
+    linear-gradient(180deg, #4a5660 0%, #6e7a72 35%, #4a5848 65%, #2a3028 100%);
+}
+.ch-photo--goa {
+  background:
+    radial-gradient(ellipse at 70% 70%, rgba(255, 180, 120, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 25% 30%, rgba(120, 180, 200, 0.45) 0%, transparent 50%),
+    linear-gradient(180deg, #5e90b0 0%, #c8a890 50%, #d8b890 80%, #6a4a30 100%);
+}
+.ch-photo--ladakh {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(180, 210, 255, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse at 25% 80%, rgba(180, 90, 50, 0.5) 0%, transparent 55%),
+    linear-gradient(180deg, #6a8db0 0%, #c8a890 40%, #8a6a52 70%, #3a2820 100%);
+}
+.ch-photo--hampi {
+  background:
+    radial-gradient(ellipse at 50% 70%, rgba(180, 80, 40, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 25% 30%, rgba(255, 200, 140, 0.55) 0%, transparent 50%),
+    linear-gradient(180deg, #b89a76 0%, #c8784a 40%, #8a5024 70%, #4a2818 100%);
+}
+.ch-photo--bandra {
+  background:
+    radial-gradient(ellipse at 40% 80%, rgba(0, 30, 60, 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 25%, rgba(255, 140, 80, 0.55) 0%, transparent 55%),
+    linear-gradient(180deg, #6a4a60 0%, #b86850 35%, #d8a06a 60%, #6a4a4a 100%);
+}
+.ch-photo--matheran {
+  background:
+    radial-gradient(ellipse at 30% 80%, rgba(40, 60, 40, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 20%, rgba(220, 200, 160, 0.45) 0%, transparent 50%),
+    linear-gradient(180deg, #6a7a6a 0%, #8a9a82 30%, #4a6048 60%, #2a3828 100%);
+}
+
+.ch-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.65) 100%);
+  pointer-events: none;
+}
+
+.ch-divider {
+  height: 1px;
+  background: var(--hairline);
+  border: 0;
+}
+
+@keyframes ch-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ch-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-alt) 0%,
+    var(--surface) 50%,
+    var(--surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: ch-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Utility: chip / pill */
+.ch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ch-pill-coral {
+  background: var(--primary);
+  color: white;
+}
+
+.ch-pill-glass {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  backdrop-filter: blur(8px);
+}
+
+.ch-pill-tint {
+  background: var(--primary-tint);
+  color: var(--primary-deep);
+}
+
+.ch-pill-ink {
+  background: rgba(20, 20, 24, 0.78);
+  color: white;
+  backdrop-filter: blur(8px);
+}
+
+/* Reading progress bar */
+.ch-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  transform-origin: left;
+  z-index: 50;
+}
+
+/* Coral accent underline (active nav) */
+.ch-nav-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -10px;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 999px;
 }

@@ -1,258 +1,381 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { WebHeader } from '@/components/chrome/web-header'
+import { WebFooter } from '@/components/chrome/web-footer'
+import { ContentCard } from '@/components/content/content-card'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
+import { getSession } from '@/lib/session'
+import { getHomeFeedSections, fetchPopularCities } from '@/lib/api'
 
 export const metadata: Metadata = {
-  title: 'CreatorHub — Travel Stories & Experiences by Local Creators',
+  title: 'CreatorHub — Travel Stories Worth Saving',
   description:
-    'Discover authentic travel stories, book unique experiences, and connect with local creators across India. Download the CreatorHub app.',
+    'Discover travel stories, itineraries, and live experiences from local creators across India. Save what inspires, book what calls.',
   openGraph: {
-    title: 'CreatorHub — Travel Stories & Experiences by Local Creators',
+    title: 'CreatorHub — Travel Stories Worth Saving',
     description:
-      'Discover authentic travel stories, book unique experiences, and connect with local creators across India.',
+      'Discover travel stories, itineraries, and live experiences from local creators across India.',
     type: 'website',
   },
+  alternates: { canonical: '/' },
 }
 
-const APP_STORE_URL = 'https://apps.apple.com/app/creatorhub'
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=in.creatorhub'
+const HERO_CHAPTER = {
+  photo: 'ch-photo--konkan',
+  title: 'Konkan in 4 quiet days',
+  creator: 'Aarav · @aaravnomad',
+  chapter: 'Chapter · Coastal',
+}
 
-const FEATURES = [
-  {
-    icon: '📖',
-    title: 'Authentic Stories',
-    description:
-      'Read travel stories from creators who have actually been there — not generic listicles, but real experiences.',
-  },
-  {
-    icon: '🗺️',
-    title: 'Book Experiences',
-    description:
-      'Find and book curated experiences, itineraries, and events led by trusted local creators.',
-  },
-  {
-    icon: '🤝',
-    title: 'Meet Local Creators',
-    description:
-      'Follow creators who know the places you want to visit. Get tips, itineraries, and insider knowledge.',
-  },
+const MOODS = [
+  { label: 'Coastal calm', subtitle: 'Beaches, slow towns' },
+  { label: 'Mountain quiet', subtitle: 'Trails, high altitudes' },
+  { label: 'City wander', subtitle: 'Food, art, late-night' },
+  { label: 'Monsoon green', subtitle: 'Rain, waterfalls, mist' },
 ]
 
-const CONTENT_TYPES = [
-  {
-    label: 'Posts',
-    description: 'Short travel stories, tips, and moments from the road.',
-    badge: 'Free',
-    badgeColor: '#1D9E75',
-  },
-  {
-    label: 'Itineraries',
-    description: 'Day-by-day travel plans you can follow at your own pace.',
-    badge: 'Free & Paid',
-    badgeColor: '#6B6660',
-  },
-  {
-    label: 'Experiences',
-    description: 'Scheduled group experiences led in person by a local creator.',
-    badge: 'Paid',
-    badgeColor: '#E15A41',
-  },
-  {
-    label: 'Events',
-    description: 'One-off gatherings, meetups, and special occasions.',
-    badge: 'Free & Paid',
-    badgeColor: '#6B6660',
-  },
-]
+export default async function HomePage() {
+  const [session, sections, cities] = await Promise.all([
+    getSession(),
+    getHomeFeedSections({ scope: 'all' }),
+    fetchPopularCities(),
+  ])
 
-export default function HomePage() {
+  const preview = sections.slice(0, 3)
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-linen)' }}>
-      {/* Top Bar */}
-      <header
-        className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: '#E5E0D7' }}
-      >
-        <span className="font-serif text-2xl font-bold" style={{ color: '#2C2823' }}>
-          CreatorHub
-        </span>
-        <nav className="flex items-center gap-4 text-sm" style={{ color: '#6B6660' }}>
-          <Link href="/terms" className="hover:underline hidden sm:inline">
-            Terms
-          </Link>
-          <Link href="/privacy" className="hover:underline hidden sm:inline">
-            Privacy
-          </Link>
-          <a
-            href={APP_STORE_URL}
-            className="px-4 py-2 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#E15A41' }}
-          >
-            Download App
-          </a>
-        </nav>
-      </header>
+    <>
+      <WebHeader session={session} active={null} />
 
       <main>
-        {/* Hero */}
-        <section className="px-6 py-16 md:py-24 text-center max-w-3xl mx-auto">
-          <h1
-            className="font-serif text-4xl md:text-5xl font-bold leading-tight mb-6"
-            style={{ color: '#2C2823', lineHeight: '1.18' }}
+        <section style={{ padding: '40px 32px 0', maxWidth: 1240, margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.1fr 0.9fr',
+              gap: 56,
+              alignItems: 'center',
+              minHeight: 540,
+            }}
           >
-            Travel stories, real experiences.
-          </h1>
-          <p className="text-lg md:text-xl leading-relaxed mb-10" style={{ color: '#6B6660' }}>
-            Discover and book with creators who&rsquo;ve been there. Authentic guides, curated
-            itineraries, and live experiences — all in one place.
-          </p>
-          <div className="flex justify-center gap-3 flex-wrap">
-            <a
-              href={APP_STORE_URL}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#E15A41' }}
-            >
-              Download on App Store
-            </a>
-            <a
-              href={PLAY_STORE_URL}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold border transition-opacity hover:opacity-80"
-              style={{ borderColor: '#2C2823', color: '#2C2823', backgroundColor: '#FFFFFF' }}
-            >
-              Get on Google Play
-            </a>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section
-          className="py-16 px-6 border-t"
-          style={{ borderColor: '#E5E0D7', backgroundColor: '#F2EEE8' }}
-        >
-          <div className="max-w-4xl mx-auto">
-            <h2
-              className="font-serif text-3xl font-semibold text-center mb-10"
-              style={{ color: '#2C2823' }}
-            >
-              Why CreatorHub?
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {FEATURES.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-2xl p-6 border"
-                  style={{ borderColor: '#E5E0D7', backgroundColor: '#FFFFFF' }}
+            <div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-muted)',
+                  display: 'block',
+                  marginBottom: 18,
+                }}
+              >
+                {HERO_CHAPTER.chapter} · 2026 Spring
+              </span>
+              <h1
+                className="ch-display"
+                style={{
+                  fontSize: 'clamp(40px, 6vw, 72px)',
+                  color: 'var(--ink)',
+                  marginBottom: 20,
+                }}
+              >
+                Travel stories{' '}
+                <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>worth</em> saving.
+              </h1>
+              <p
+                style={{
+                  fontSize: 18,
+                  color: 'var(--ink-soft)',
+                  lineHeight: 1.55,
+                  maxWidth: 480,
+                  marginBottom: 28,
+                }}
+              >
+                Discover real travel from people who&rsquo;ve been there — chapters, itineraries, and
+                live experiences across India. Save what inspires. Book what calls.
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <Link
+                  href={session ? '/feed' : '/signup'}
+                  className="ch-btn ch-btn-primary"
+                  style={{ padding: '14px 22px', fontSize: 14.5 }}
                 >
-                  <div className="text-4xl mb-4">{feature.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2" style={{ color: '#2C2823' }}>
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#6B6660' }}>
-                    {feature.description}
-                  </p>
+                  {session ? 'Open feed' : 'Get started · free'}
+                </Link>
+                <Link
+                  href="/discover"
+                  className="ch-btn ch-btn-ghost"
+                  style={{ padding: '14px 22px', fontSize: 14.5 }}
+                >
+                  Browse stories
+                </Link>
+              </div>
+              <div
+                style={{
+                  marginTop: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  fontSize: 12,
+                  color: 'var(--ink-muted)',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span>★ 4.9 from 2,400+ travelers</span>
+                <span aria-hidden>·</span>
+                <span>UPI · Refund guarantee · GST included</span>
+              </div>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <div
+                className={`ch-photo ${HERO_CHAPTER.photo}`}
+                style={{
+                  aspectRatio: '4/5',
+                  height: 'auto',
+                  width: '100%',
+                  borderRadius: 24,
+                }}
+              >
+                <div className="ch-photo-overlay" />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 24,
+                    left: 24,
+                    right: 24,
+                    color: 'white',
+                  }}
+                >
+                  <span className="ch-pill ch-pill-glass">{HERO_CHAPTER.chapter}</span>
+                  <h2
+                    className="ch-display"
+                    style={{
+                      fontSize: 32,
+                      color: 'white',
+                      marginTop: 12,
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {HERO_CHAPTER.title}
+                  </h2>
+                  <span style={{ fontSize: 13, opacity: 0.9 }}>{HERO_CHAPTER.creator}</span>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Content Types Showcase */}
-        <section className="py-16 px-6 border-t" style={{ borderColor: '#E5E0D7' }}>
-          <div className="max-w-4xl mx-auto">
-            <h2
-              className="font-serif text-3xl font-semibold text-center mb-3"
-              style={{ color: '#2C2823' }}
+        <ScrollReveal as="section">
+          <div
+            style={{
+              maxWidth: 1240,
+              margin: '0 auto',
+              padding: '80px 32px 0',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted)',
+                display: 'block',
+                marginBottom: 16,
+              }}
             >
-              Everything you need to travel better
+              Find your mood
+            </span>
+            <h2
+              className="ch-display"
+              style={{ fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--ink)', marginBottom: 32 }}
+            >
+              What kind of travel calls you?
             </h2>
-            <p className="text-center text-base mb-10" style={{ color: '#9C9689' }}>
-              Four content types designed for the whole travel journey.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {CONTENT_TYPES.map((ct) => (
-                <div
-                  key={ct.label}
-                  className="flex items-start gap-4 p-5 rounded-2xl border"
-                  style={{ borderColor: '#E5E0D7', backgroundColor: '#FFFFFF' }}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: 16,
+              }}
+            >
+              {MOODS.map((mood) => (
+                <Link
+                  key={mood.label}
+                  href={`/discover?q=${encodeURIComponent(mood.label)}`}
+                  className="ch-card"
+                  style={{
+                    padding: 24,
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base font-semibold" style={{ color: '#2C2823' }}>
-                        {ct.label}
-                      </span>
-                      <span
-                        className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: ct.badgeColor + '1A', color: ct.badgeColor }}
-                      >
-                        {ct.badge}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-relaxed" style={{ color: '#6B6660' }}>
-                      {ct.description}
-                    </p>
+                  <div
+                    className="ch-display"
+                    style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 6 }}
+                  >
+                    {mood.label}
                   </div>
-                </div>
+                  <div style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{mood.subtitle}</div>
+                </Link>
               ))}
             </div>
           </div>
-        </section>
+        </ScrollReveal>
 
-        {/* App Download CTA */}
-        <section
-          className="py-16 px-6 text-center border-t"
-          style={{ borderColor: '#E5E0D7', backgroundColor: '#F2EEE8' }}
-        >
-          <div className="max-w-lg mx-auto">
-            <h2
-              className="font-serif text-3xl font-semibold mb-3"
-              style={{ color: '#2C2823' }}
-            >
-              Ready to explore?
-            </h2>
-            <p className="text-base mb-8" style={{ color: '#6B6660' }}>
-              Download CreatorHub and start following creators who inspire your next journey.
-            </p>
-            <div className="flex justify-center gap-3 flex-wrap">
-              <a
-                href={APP_STORE_URL}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#E15A41' }}
+        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 32px' }}>
+          {preview.map((section) => (
+            <ScrollReveal key={section.id} as="section">
+              <div style={{ marginTop: 80 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    marginBottom: 24,
+                    gap: 16,
+                  }}
+                >
+                  <div>
+                    {section.subtitle && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.18em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          display: 'block',
+                          marginBottom: 8,
+                        }}
+                      >
+                        {section.subtitle}
+                      </span>
+                    )}
+                    <h2
+                      className="ch-display"
+                      style={{
+                        fontSize: 'clamp(26px, 3.5vw, 36px)',
+                        color: 'var(--ink)',
+                        margin: 0,
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {section.title}
+                    </h2>
+                  </div>
+                  <Link
+                    href={`/discover?section=${encodeURIComponent(section.id)}`}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--ink-soft)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    See all →
+                  </Link>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: 32,
+                  }}
+                >
+                  {section.items.slice(0, 4).map((item) => (
+                    <ContentCard key={item.id} content={item} />
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+
+        {cities.length > 0 && (
+          <ScrollReveal as="section">
+            <div style={{ maxWidth: 1240, margin: '0 auto', padding: '80px 32px 0' }}>
+              <h2
+                className="ch-display"
+                style={{ fontSize: 'clamp(26px, 3.5vw, 36px)', color: 'var(--ink)', marginBottom: 24 }}
               >
-                App Store
-              </a>
-              <a
-                href={PLAY_STORE_URL}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold border transition-opacity hover:opacity-80"
-                style={{ borderColor: '#2C2823', color: '#2C2823', backgroundColor: '#FFFFFF' }}
-              >
-                Google Play
-              </a>
+                Explore by city
+              </h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {cities.slice(0, 18).map((c) => (
+                  <Link
+                    key={c.name}
+                    href={`/discover?city=${encodeURIComponent(c.name)}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '10px 16px',
+                      borderRadius: 999,
+                      border: '1px solid var(--hairline)',
+                      background: 'var(--surface)',
+                      fontSize: 13.5,
+                      color: 'var(--ink)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span aria-hidden style={{ color: 'var(--primary)' }}>
+                      ●
+                    </span>
+                    {c.name}
+                    <span style={{ color: 'var(--ink-muted)', fontSize: 12 }}>{c.count}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
+          </ScrollReveal>
+        )}
+
+        <section
+          style={{
+            marginTop: 100,
+            padding: '80px 32px',
+            background: 'var(--surface)',
+            borderTop: '1px solid var(--hairline)',
+            borderBottom: '1px solid var(--hairline)',
+          }}
+        >
+          <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+            <h2
+              className="ch-display"
+              style={{ fontSize: 'clamp(32px, 5vw, 56px)', color: 'var(--ink)', marginBottom: 16 }}
+            >
+              Stories worth saving.
+              <br />
+              <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>Trips worth booking.</em>
+            </h2>
+            <p
+              style={{
+                fontSize: 16,
+                color: 'var(--ink-muted)',
+                lineHeight: 1.55,
+                marginBottom: 28,
+              }}
+            >
+              Free to browse, free to save, free to follow. Pay only when you book a paid experience.
+            </p>
+            <Link
+              href={session ? '/feed' : '/signup'}
+              className="ch-btn ch-btn-primary"
+              style={{ padding: '14px 28px', fontSize: 15 }}
+            >
+              {session ? 'Open feed' : 'Join free'}
+            </Link>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t" style={{ borderColor: '#E5E0D7' }}>
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="font-serif text-lg font-bold" style={{ color: '#2C2823' }}>
-            CreatorHub
-          </span>
-          <div className="flex items-center gap-6 text-xs" style={{ color: '#9C9689' }}>
-            <Link href="/terms" className="hover:underline">
-              Terms of Service
-            </Link>
-            <Link href="/privacy" className="hover:underline">
-              Privacy Policy
-            </Link>
-            <Link href="/community-guidelines" className="hover:underline">
-              Community Guidelines
-            </Link>
-          </div>
-          <p className="text-xs" style={{ color: '#9C9689' }}>
-            &copy; {new Date().getFullYear()} CreatorHub
-          </p>
-        </div>
-      </footer>
-    </div>
+      <WebFooter big />
+    </>
   )
 }
