@@ -327,18 +327,21 @@ export default async function ContentDetailPage({ params }: Props) {
         )}
 
         <div
+          className={isStory ? '' : hasItinerary(content) ? 'ch-reader-grid' : 'ch-page-grid'}
           style={{
-            maxWidth: isStory ? 760 : 1240,
+            maxWidth: isStory ? 760 : 1640,
             margin: '0 auto',
-            padding: isStory ? '40px 32px 80px' : '64px 32px 80px',
-            display: 'grid',
-            gridTemplateColumns: isStory
-              ? 'minmax(0, 1fr)'
-              : hasItinerary(content)
-                ? '200px minmax(0, 1fr) 280px'
-                : 'minmax(0, 1fr) 320px',
-            gap: 48,
-            alignItems: 'start',
+            padding: isStory
+              ? 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px) 80px'
+              : 'clamp(32px, 5vw, 64px) clamp(16px, 4vw, 32px) 80px',
+            ...(isStory
+              ? {
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr)',
+                  gap: 48,
+                  alignItems: 'start',
+                }
+              : {}),
           }}
         >
           {hasItinerary(content) && content.spots && <StickyDayNav spots={content.spots} />}
@@ -504,7 +507,7 @@ export default async function ContentDetailPage({ params }: Props) {
               <SaveButton contentId={content.id} isAuthenticated={isAuthenticated} />
               <LikeButton contentId={content.id} isAuthenticated={isAuthenticated} />
               <ShareButton
-                url={`/content/${contentSlugId(content.title, content.id)}`}
+                url={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
                 title={content.title}
               />
               <Link

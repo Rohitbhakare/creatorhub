@@ -18,6 +18,8 @@ export interface Creator {
 
 export interface ContentCard {
   id: string
+  /** Human-readable URL slug (set by API once migration 031 lands). */
+  slug?: string | null
   type: ContentType
   title: string
   summary?: string | null

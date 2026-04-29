@@ -72,7 +72,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
 
   return (
     <Link
-      href={`/content/${contentSlugId(content.title, content.id)}`}
+      href={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
       style={{
         display: 'flex',
         flexDirection: 'column',

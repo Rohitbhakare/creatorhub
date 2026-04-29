@@ -109,7 +109,7 @@ export function RightRail({
             Continue reading
           </span>
           <Link
-            href={`/content/${contentSlugId(continueReading.title, continueReading.id)}`}
+            href={`/content/${contentSlugId(continueReading.title, continueReading.id, continueReading.slug)}`}
             style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
           >
             <div

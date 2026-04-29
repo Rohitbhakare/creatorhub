@@ -93,14 +93,12 @@ export function WebFooter({ big = false }: WebFooterProps) {
       }}
     >
       <div
+        className="ch-footer-grid"
         style={{
           maxWidth: 1640,
           margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1.5fr repeat(4, 1fr)',
-          gap: 40,
+          paddingInline: 'clamp(16px, 4vw, 32px)',
         }}
-        className="ch-footer-grid"
       >
         <div>
           <span className="ch-brand" style={{ display: 'block', marginBottom: 10 }}>

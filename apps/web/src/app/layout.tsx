@@ -3,6 +3,8 @@ import { Inter, Fraunces } from 'next/font/google'
 import { getTheme, getCoralHue } from '@/lib/theme'
 import { RouteFocus } from '@/components/a11y/route-focus'
 import { CommandPalette } from '@/components/discover/command-palette'
+import { RouteProgress } from '@/components/ui/route-progress'
+import { Suspense } from 'react'
 import './globals.css'
 
 const inter = Inter({
@@ -80,6 +82,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to main content
         </a>
         <RouteFocus />
+        <Suspense fallback={null}>
+          <RouteProgress />
+        </Suspense>
         <CommandPalette />
         {children}
       </body>

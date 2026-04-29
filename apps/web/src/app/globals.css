@@ -424,3 +424,149 @@ body {
   background: var(--primary);
   border-radius: 999px;
 }
+
+/* ───────── Responsive layout utilities ─────────
+ * Breakpoints (matches WEB-NFR-006):
+ *   < 768   mobile
+ *   < 1080  tablet
+ *   ≥ 1080  desktop
+ */
+
+/* Container caps the line-length and tightens side gutters on mobile.
+ * Desktop has 32px gutters; tablet 24px; mobile 16px. */
+.ch-container {
+  max-width: 1640px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+@media (max-width: 1079px) {
+  .ch-container { padding-inline: 24px; }
+}
+@media (max-width: 767px) {
+  .ch-container { padding-inline: 16px; }
+}
+
+/* Two-column page layout (main + 296px right rail).
+ * Tablet: keep 2-col but shrink rail to 260.
+ * Mobile: stack — rail drops below main. */
+.ch-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 296px;
+  gap: 40px;
+  align-items: start;
+}
+@media (max-width: 1079px) {
+  .ch-page-grid { grid-template-columns: minmax(0, 1fr) 260px; gap: 28px; }
+}
+@media (max-width: 767px) {
+  .ch-page-grid { grid-template-columns: 1fr; gap: 24px; }
+  .ch-page-grid > aside { position: static !important; width: auto !important; }
+}
+
+/* Hero feature card — 1.3fr/1fr on desktop, stack on mobile. */
+.ch-hero-feature-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  min-height: 420px;
+}
+@media (max-width: 767px) {
+  .ch-hero-feature-grid { grid-template-columns: 1fr; min-height: 0; }
+  .ch-hero-feature-grid > .ch-hero-photo { min-height: 280px !important; aspect-ratio: 4/3; }
+}
+
+/* Bento mosaic — 4-col / 2-row on desktop, 2-col on tablet, 1-col on mobile. */
+.ch-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 220px);
+  gap: 12px;
+}
+@media (max-width: 1079px) {
+  .ch-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 220px 220px 180px 180px;
+  }
+  .ch-bento-grid > .ch-bento-feature { grid-column: span 2; grid-row: span 1; }
+  .ch-bento-grid > .ch-bento-tall { grid-column: span 2; grid-row: span 1; }
+}
+@media (max-width: 767px) {
+  .ch-bento-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 220px 200px 180px 180px;
+  }
+  .ch-bento-grid > .ch-bento-feature,
+  .ch-bento-grid > .ch-bento-tall { grid-column: 1; grid-row: span 1; }
+}
+
+/* Three-column reader (day-nav + body + map) — collapse aggressively. */
+.ch-reader-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 280px;
+  gap: 48px;
+  align-items: start;
+}
+@media (max-width: 1079px) {
+  .ch-reader-grid { grid-template-columns: minmax(0, 1fr) 280px; gap: 32px; }
+  .ch-reader-grid > nav[aria-label="Days"] { display: none; }
+}
+@media (max-width: 767px) {
+  .ch-reader-grid { grid-template-columns: 1fr; gap: 24px; }
+  .ch-reader-grid > aside { position: static !important; }
+}
+
+/* Hide on mobile (header search pill, decorative pieces). */
+.ch-hide-on-mobile { display: initial; }
+@media (max-width: 767px) { .ch-hide-on-mobile { display: none !important; } }
+
+/* Show only on mobile. */
+.ch-only-mobile { display: none; }
+@media (max-width: 767px) { .ch-only-mobile { display: initial !important; } }
+
+/* Generic responsive padding helpers. */
+.ch-pad-block-lg { padding-block: 32px; }
+@media (max-width: 767px) { .ch-pad-block-lg { padding-block: 20px; } }
+
+/* Sticky chip rail — reduce vertical padding on mobile. */
+.ch-chip-rail-pad { padding: 10px 32px; }
+@media (max-width: 1079px) { .ch-chip-rail-pad { padding: 10px 24px; } }
+@media (max-width: 767px) { .ch-chip-rail-pad { padding: 8px 16px; } }
+
+/* Image gradient fallback heights scale down on mobile. */
+.ch-photo-md { height: 200px; }
+@media (max-width: 767px) { .ch-photo-md { height: 180px; } }
+
+/* Footer grid: 5-col desktop, 2-col tablet, 1-col mobile. */
+.ch-footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: 40px;
+}
+@media (max-width: 1079px) {
+  .ch-footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+}
+@media (max-width: 767px) {
+  .ch-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* Display title clamp pattern — used on greeting H1 + bento headers. */
+.ch-display-h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-size: clamp(24px, 4.5vw, 40px);
+}
+
+/* Hero feature title scales aggressively on mobile. */
+.ch-hero-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-size: clamp(24px, 6vw, 40px);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  color: white;
+  margin: 0;
+  max-width: 95%;
+}
+

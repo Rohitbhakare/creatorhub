@@ -108,13 +108,7 @@ export default async function HomePage({ searchParams }: Props) {
 
       <main id="main-content">
         {/* Editorial intro: weather kicker + tight greeting + LIVE pill */}
-        <section
-          style={{
-            maxWidth: 1640,
-            margin: '0 auto',
-            padding: '24px 32px 16px',
-          }}
-        >
+        <section className="ch-container" style={{ paddingBlock: '20px 12px' }}>
           <div
             style={{
               display: 'flex',
@@ -204,10 +198,8 @@ export default async function HomePage({ searchParams }: Props) {
           }}
         >
           <div
+            className="ch-container ch-chip-rail-pad"
             style={{
-              maxWidth: 1640,
-              margin: '0 auto',
-              padding: '10px 32px',
               display: 'flex',
               alignItems: 'center',
               gap: 16,
@@ -279,15 +271,8 @@ export default async function HomePage({ searchParams }: Props) {
         </div>
 
         <div
-          style={{
-            maxWidth: 1640,
-            margin: '0 auto',
-            padding: '24px 32px 80px',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) 296px',
-            gap: 40,
-            alignItems: 'start',
-          }}
+          className="ch-container ch-page-grid"
+          style={{ paddingBlock: '24px 64px' }}
         >
           <div>
             {filteredSections.length === 0 ? (
@@ -418,7 +403,7 @@ export default async function HomePage({ searchParams }: Props) {
                     Try this first
                   </span>
                   <Link
-                    href={`/content/${contentSlugId(continueReading.title, continueReading.id)}`}
+                    href={`/content/${contentSlugId(continueReading.title, continueReading.id, continueReading.slug)}`}
                     style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
                   >
                     <div

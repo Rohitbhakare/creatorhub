@@ -93,6 +93,7 @@ export async function fetchStudioMetrics(): Promise<StudioMetrics | null> {
 
 export interface StudioContent {
   id: string
+  slug?: string | null
   type: ContentType
   title: string
   status: 'draft' | 'published' | 'archived' | 'rejected'

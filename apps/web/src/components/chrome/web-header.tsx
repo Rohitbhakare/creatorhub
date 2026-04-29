@@ -78,10 +78,8 @@ export function WebHeader({
       }}
     >
       <div
+        className="ch-container"
         style={{
-          maxWidth: 1640,
-          margin: '0 auto',
-          padding: '0 32px',
           height: 72,
           display: 'flex',
           alignItems: 'center',
@@ -114,7 +112,11 @@ export function WebHeader({
 
         {resolvedVariant === 'logged' && (
           <>
-            <nav style={{ display: 'flex', gap: 2, marginLeft: 6 }} aria-label="Main">
+            <nav
+              className="ch-hide-on-mobile"
+              style={{ display: 'flex', gap: 2, marginLeft: 6 }}
+              aria-label="Main"
+            >
               {NAV_ITEMS.map((item) => {
                 const isActive = active === item.id
                 return (
@@ -142,6 +144,7 @@ export function WebHeader({
             <Link
               href="/discover"
               prefetch={false}
+              className="ch-hide-on-mobile"
               style={{
                 flex: '1 1 auto',
                 maxWidth: 380,
@@ -182,6 +185,7 @@ export function WebHeader({
               {streak > 0 && (
                 <div
                   title={`${String(streak)}-day streak`}
+                  className="ch-hide-on-mobile"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -253,7 +257,7 @@ export function WebHeader({
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Publish
+                <span className="ch-hide-on-mobile">Publish</span>
               </Link>
 
               <Link href="/you" aria-label="Profile" style={{ display: 'flex', textDecoration: 'none' }}>

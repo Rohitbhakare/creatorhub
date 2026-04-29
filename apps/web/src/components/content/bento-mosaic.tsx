@@ -87,23 +87,22 @@ export function BentoMosaic({ items, kicker, title, seeAllHref }: BentoMosaicPro
         </header>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gridTemplateRows: 'repeat(2, 220px)',
-          gap: 12,
-        }}
-      >
+      <div className="ch-bento-grid">
         {feature && (
           <BentoTile
             content={feature}
             placement="feature"
+            className="ch-bento-feature"
             style={{ gridColumn: 'span 2', gridRow: 'span 2' }}
           />
         )}
         {tall && (
-          <BentoTile content={tall} placement="tall" style={{ gridRow: 'span 2' }} />
+          <BentoTile
+            content={tall}
+            placement="tall"
+            className="ch-bento-tall"
+            style={{ gridRow: 'span 2' }}
+          />
         )}
         {small1 && <BentoTile content={small1} placement="small" />}
         {small2 && <BentoTile content={small2} placement="small" />}
@@ -116,9 +115,10 @@ interface BentoTileProps {
   content: ContentCardModel
   placement: 'feature' | 'tall' | 'small'
   style?: React.CSSProperties
+  className?: string
 }
 
-function BentoTile({ content, placement, style }: BentoTileProps) {
+function BentoTile({ content, placement, style, className }: BentoTileProps) {
   const photoClass = pickPhoto(content)
   const titleSize =
     placement === 'feature' ? 'clamp(22px, 2.4vw, 28px)' : placement === 'tall' ? 18 : 15
@@ -127,7 +127,8 @@ function BentoTile({ content, placement, style }: BentoTileProps) {
 
   return (
     <Link
-      href={`/content/${contentSlugId(content.title, content.id)}`}
+      href={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
+      className={className}
       style={{
         position: 'relative',
         display: 'block',

@@ -77,7 +77,7 @@ export default async function StudioContentPage() {
           {items.map((c, i) => (
             <Link
               key={c.id}
-              href={`/content/${contentSlugId(c.title, c.id)}`}
+              href={`/content/${contentSlugId(c.title, c.id, c.slug)}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 2fr) 110px 110px repeat(3, 90px) 100px',

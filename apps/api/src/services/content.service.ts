@@ -46,20 +46,30 @@ export async function createDraft(
 
 // ─── getById ────────────────────────────────────────────────────
 
+/**
+ * Look up content by either UUID or slug. The web sends slugs; the mobile
+ * app sends UUIDs; both resolve here.
+ */
 export async function getById(
-  contentId: string,
+  contentIdOrSlug: string,
   requesterId?: string | null,
 ): Promise<{ content: ContentRow; media: ContentRow[]; creator: CreatorSummary }> {
-  const { data: content, error } = await supabase
-    .from('content')
-    .select('*')
-    .eq('id', contentId)
-    .is('deleted_at', null)
-    .single()
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contentIdOrSlug)
+
+  let query = supabase.from('content').select('*').is('deleted_at', null)
+  if (isUuid) {
+    query = query.eq('id', contentIdOrSlug)
+  } else {
+    query = query.eq('slug', contentIdOrSlug)
+  }
+
+  const { data: content, error } = await query.single()
 
   if (error || !content) {
     throw new AppError('not-found', 404, 'Content not found')
   }
+  const contentId = content.id as string
 
   // Visibility check: non-owners can only see published + public content
   const isOwner = requesterId != null && content.user_id === requesterId

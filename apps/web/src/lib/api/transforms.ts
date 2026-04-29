@@ -38,6 +38,7 @@ interface RawCreator {
 
 interface RawContent {
   id?: string
+  slug?: string | null
   type?: ContentType
   title?: string
   summary?: string | null
@@ -169,6 +170,7 @@ export function transformContentCard(raw: RawContent): ContentCard {
   const creator = transformCreator(raw.creator)
   return {
     id: raw.id ?? '',
+    slug: raw.slug ?? null,
     type: raw.type ?? 'post',
     title: raw.title ?? '',
     coverImageUrl: raw.cover_image_url ?? raw.cover_url ?? null,

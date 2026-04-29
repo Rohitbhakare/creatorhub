@@ -29,7 +29,7 @@ export function HeroFeature({
   href,
 }: HeroFeatureProps) {
   const photoClass = pickPhoto(content)
-  const target = href ?? `/content/${contentSlugId(content.title, content.id)}`
+  const target = href ?? `/content/${contentSlugId(content.title, content.id, content.slug)}`
   const summary = pullQuote ?? content.summary ?? ''
   const meta = formatMeta(content)
 

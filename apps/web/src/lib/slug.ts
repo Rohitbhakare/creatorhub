@@ -23,8 +23,22 @@ export function slugifyTitle(title: string): string {
   return slug.length > 0 ? slug : 'untitled'
 }
 
-/** Build the canonical /content URL segment. */
-export function contentSlugId(title: string, id: string): string {
+/**
+ * Build the canonical /content URL segment.
+ *
+ * If the API has populated `slug` (migration 031 deployed), use that —
+ * gives us the cleanest URL: /content/konkan-in-4-quiet-days
+ *
+ * Otherwise, generate a slug from the title and append the UUID so we
+ * still have a unique, lookup-able URL until the migration lands:
+ *   /content/konkan-in-4-quiet-days-dd000000-...
+ */
+export function contentSlugId(
+  title: string,
+  id: string,
+  apiSlug?: string | null,
+): string {
+  if (apiSlug && apiSlug.length > 0) return apiSlug
   return `${slugifyTitle(title)}-${id}`
 }
 
