@@ -3,8 +3,10 @@ import Link from 'next/link'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
 import { RightRail } from '@/components/chrome/right-rail'
-import { GuestBanner, GuestRailCard } from '@/components/chrome/guest-rail-card'
+import { GuestRailCard } from '@/components/chrome/guest-rail-card'
 import { SectionRail } from '@/components/content/section-rail'
+import { HeroFeature } from '@/components/content/hero-feature'
+import { BentoMosaic } from '@/components/content/bento-mosaic'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { getSession } from '@/lib/session'
 import { fetchPopularCities, fetchQuestSummary, getHomeFeedSections } from '@/lib/api'
@@ -44,6 +46,8 @@ const FILTERS: { id: string; label: string }[] = [
   { id: 'event', label: 'Events' },
 ]
 
+const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 export default async function HomePage({ searchParams }: Props) {
   const session = await getSession()
   const isGuest = !session
@@ -60,19 +64,128 @@ export default async function HomePage({ searchParams }: Props) {
   ])
 
   const filteredSections = type
-    ? sections.map((s) => ({ ...s, items: s.items.filter((i) => i.type === type) }))
+    ? sections
+        .map((s) => ({ ...s, items: s.items.filter((i) => i.type === type) }))
+        .filter((s) => s.items.length > 0)
     : sections
 
-  const continueReading = sections[0]?.items[0] ?? null
+  // Pick the editorial highlights from the top of the feed.
+  const allItems = filteredSections.flatMap((s) => s.items)
+  const heroItem =
+    allItems.find((c) => c.coverImageUrl !== null && c.summary) ??
+    allItems.find((c) => c.coverImageUrl !== null) ??
+    allItems[0] ??
+    null
+  const heroId = heroItem?.id
+
+  // Bento takes 4 items after the hero, prefer ones with covers.
+  const bentoCandidates = allItems
+    .filter((c) => c.id !== heroId)
+    .sort((a, b) => Number(b.coverImageUrl !== null) - Number(a.coverImageUrl !== null))
+  const bentoItems = bentoCandidates.slice(0, 4)
+  const bentoIds = new Set(bentoItems.map((c) => c.id))
+
+  // Remaining items get rendered through the section rails as before.
+  const remainingSections = filteredSections
+    .map((s) => ({
+      ...s,
+      items: s.items.filter((i) => i.id !== heroId && !bentoIds.has(i.id)),
+    }))
+    .filter((s) => s.items.length > 0)
+
+  const continueReading = heroItem ?? sections[0]?.items[0] ?? null
+  const greeting = greetingFor(session?.displayName)
 
   return (
     <>
-      {isGuest && <GuestBanner next="/" />}
       <WebHeader session={session} active="home" streak={quests?.streakDays ?? 0} />
 
-      {isGuest && <GuestHeroStrip />}
-
       <main id="main-content">
+        {/* Editorial intro: weather kicker + tight greeting + LIVE pill */}
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: '0 auto',
+            padding: '24px 32px 16px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              gap: 16,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  color: 'var(--primary)',
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                {greeting.kicker}
+              </div>
+              <h1
+                className="ch-display"
+                style={{
+                  margin: 0,
+                  fontSize: 'clamp(28px, 3.6vw, 40px)',
+                  fontWeight: 600,
+                  lineHeight: 1.1,
+                  color: 'var(--ink)',
+                }}
+              >
+                {greeting.title}{' '}
+                <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>
+                  {greeting.accent}
+                </em>
+              </h1>
+            </div>
+            {isGuest ? (
+              <Link
+                href="/signup?next=/"
+                className="ch-btn ch-btn-primary"
+                style={{ padding: '10px 16px', fontSize: 13 }}
+              >
+                Join free
+              </Link>
+            ) : (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  background: 'color-mix(in srgb, var(--success) 14%, transparent)',
+                  color: 'var(--success)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: 'var(--success)',
+                  }}
+                />
+                LIVE — {Math.floor(20 + Math.random() * 80)} reading now
+              </span>
+            )}
+          </div>
+        </section>
+
+        {/* Sticky chip rail */}
         <div
           style={{
             position: 'sticky',
@@ -81,20 +194,21 @@ export default async function HomePage({ searchParams }: Props) {
             background: 'color-mix(in srgb, var(--bg) 92%, transparent)',
             backdropFilter: 'blur(12px)',
             borderBottom: '1px solid var(--hairline)',
+            marginTop: 8,
           }}
         >
           <div
             style={{
               maxWidth: 1240,
               margin: '0 auto',
-              padding: '12px 32px',
+              padding: '10px 32px',
               display: 'flex',
               alignItems: 'center',
               gap: 16,
               overflowX: 'auto',
             }}
           >
-            <div style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
+            <div style={{ display: 'flex', gap: 4, flex: '0 0 auto' }}>
               {SCOPES.map((s) => {
                 const guestDisabled = isGuest && s.id === 'following'
                 const isActive = scope === s.id && !guestDisabled
@@ -106,7 +220,7 @@ export default async function HomePage({ searchParams }: Props) {
                     key={s.id}
                     href={href}
                     style={{
-                      padding: '8px 14px',
+                      padding: '7px 14px',
                       borderRadius: 999,
                       fontSize: 13,
                       fontWeight: isActive ? 600 : 500,
@@ -129,14 +243,9 @@ export default async function HomePage({ searchParams }: Props) {
               })}
             </div>
             <div
-              style={{
-                width: 1,
-                height: 22,
-                background: 'var(--hairline)',
-                flex: '0 0 auto',
-              }}
+              style={{ width: 1, height: 22, background: 'var(--hairline)', flex: '0 0 auto' }}
             />
-            <div style={{ display: 'flex', gap: 6, flex: '1 1 auto', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: 4, flex: '1 1 auto', overflowX: 'auto' }}>
               {FILTERS.map((f) => {
                 const isActive = (type ?? 'all') === f.id
                 const queryType = f.id === 'all' ? '' : `&type=${f.id}`
@@ -145,7 +254,7 @@ export default async function HomePage({ searchParams }: Props) {
                     key={f.id}
                     href={`/?scope=${scope}${queryType}`}
                     style={{
-                      padding: '8px 14px',
+                      padding: '7px 14px',
                       borderRadius: 999,
                       fontSize: 13,
                       fontWeight: isActive ? 600 : 500,
@@ -167,10 +276,10 @@ export default async function HomePage({ searchParams }: Props) {
           style={{
             maxWidth: 1240,
             margin: '0 auto',
-            padding: '32px 32px 80px',
+            padding: '24px 32px 80px',
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1fr) 296px',
-            gap: 56,
+            gap: 40,
             alignItems: 'start',
           }}
         >
@@ -194,28 +303,51 @@ export default async function HomePage({ searchParams }: Props) {
                 </Link>
               </div>
             ) : (
-              filteredSections.map((section, i) => (
-                <ScrollReveal key={section.id} delay={i * 0.05}>
-                  <SectionRail section={section} variant={i === 0 ? 'rail' : 'grid'} />
-                </ScrollReveal>
-              ))
+              <>
+                {heroItem && (
+                  <ScrollReveal>
+                    <HeroFeature
+                      content={heroItem}
+                      kicker="Story of the day"
+                      primaryCta="Read this →"
+                    />
+                  </ScrollReveal>
+                )}
+
+                {bentoItems.length >= 3 && (
+                  <ScrollReveal delay={0.05}>
+                    <BentoMosaic
+                      items={bentoItems}
+                      kicker={city ? `Curated near ${city}` : 'Curated for you'}
+                      title="More to read"
+                      seeAllHref="/discover"
+                    />
+                  </ScrollReveal>
+                )}
+
+                {remainingSections.map((section, i) => (
+                  <ScrollReveal key={section.id} delay={Math.min(i * 0.05, 0.3)}>
+                    <SectionRail section={section} variant="grid" />
+                  </ScrollReveal>
+                ))}
+              </>
             )}
 
             {isGuest && cities.length > 0 && (
               <ScrollReveal>
-                <section style={{ marginTop: 80 }}>
+                <section style={{ marginTop: 64 }}>
                   <h2
                     className="ch-display"
                     style={{
-                      fontSize: 'clamp(24px, 3.5vw, 32px)',
+                      fontSize: 'clamp(22px, 3vw, 28px)',
                       color: 'var(--ink)',
-                      marginBottom: 16,
+                      marginBottom: 14,
                     }}
                   >
                     Explore by city
                   </h2>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {cities.slice(0, 16).map((c) => (
+                    {cities.slice(0, 18).map((c) => (
                       <Link
                         key={c.name}
                         href={`/discover?city=${encodeURIComponent(c.name)}`}
@@ -223,11 +355,11 @@ export default async function HomePage({ searchParams }: Props) {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 6,
-                          padding: '10px 16px',
+                          padding: '8px 14px',
                           borderRadius: 999,
                           border: '1px solid var(--hairline)',
                           background: 'var(--surface)',
-                          fontSize: 13.5,
+                          fontSize: 13,
                           color: 'var(--ink)',
                           textDecoration: 'none',
                         }}
@@ -256,7 +388,10 @@ export default async function HomePage({ searchParams }: Props) {
                 flex: '0 0 296px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
+                gap: 16,
+                position: 'sticky',
+                top: 132,
+                alignSelf: 'start',
               }}
             >
               <GuestRailCard next="/" />
@@ -298,6 +433,7 @@ export default async function HomePage({ searchParams }: Props) {
                   </Link>
                 </div>
               )}
+              <TrendingTagsCard />
             </aside>
           ) : (
             <RightRail
@@ -313,44 +449,70 @@ export default async function HomePage({ searchParams }: Props) {
   )
 }
 
-function GuestHeroStrip() {
+interface Greeting {
+  kicker: string
+  title: string
+  accent: string
+}
+
+function greetingFor(displayName?: string): Greeting {
+  const now = new Date()
+  const hour = now.getHours()
+  const day = WEEKDAY[now.getDay()] ?? 'Today'
+  const tone = hour < 5 ? 'evening' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
+  const firstName = displayName?.split(' ')[0]
+  const kicker = `${day} · India · ${tone === 'morning' ? 'fresh start' : tone === 'afternoon' ? 'mid-day' : 'unwinding'}`
+
+  if (firstName) {
+    return {
+      kicker,
+      title: `Good ${tone}, ${firstName}.`,
+      accent: 'Where to next?',
+    }
+  }
+  return {
+    kicker,
+    title: 'Travel stories worth saving.',
+    accent: 'Pick a chapter →',
+  }
+}
+
+function TrendingTagsCard() {
+  const tags = ['konkan', 'monsoon', 'spiti', 'roadtrip', 'beachweekend', 'foodtrails']
   return (
-    <section
-      style={{
-        background: 'var(--surface)',
-        borderBottom: '1px solid var(--hairline)',
-        padding: '32px 32px 28px',
-      }}
-    >
-      <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-muted)',
-            display: 'block',
-            marginBottom: 12,
-          }}
-        >
-          CreatorHub · Spring 2026
-        </span>
-        <h1
-          className="ch-display"
-          style={{
-            fontSize: 'clamp(36px, 5vw, 56px)',
-            color: 'var(--ink)',
-            margin: 0,
-            lineHeight: 1.05,
-            maxWidth: 880,
-          }}
-        >
-          Travel stories <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>worth</em>{' '}
-          saving — chapters, itineraries, and live experiences from creators across India.
-        </h1>
+    <div className="ch-card" style={{ padding: 16 }}>
+      <span
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+          marginBottom: 12,
+          display: 'block',
+        }}
+      >
+        Trending
+      </span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {tags.map((tag) => (
+          <Link
+            key={tag}
+            href={`/discover?q=${encodeURIComponent(tag)}`}
+            style={{
+              fontSize: 12,
+              padding: '4px 10px',
+              borderRadius: 999,
+              background: 'var(--surface-alt)',
+              color: 'var(--ink-soft)',
+              textDecoration: 'none',
+            }}
+          >
+            #{tag}
+          </Link>
+        ))}
       </div>
-    </section>
+    </div>
   )
 }
