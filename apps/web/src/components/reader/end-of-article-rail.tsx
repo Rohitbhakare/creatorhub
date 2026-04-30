@@ -169,7 +169,7 @@ export async function EndOfArticleRail({
               lineHeight: 1.2,
             }}
           >
-            Save stories, follow creators, book the trips that move you.
+            Save the work you love. Follow the creators behind it.
           </h3>
           <p
             style={{
@@ -181,7 +181,7 @@ export async function EndOfArticleRail({
             }}
           >
             Free · 30 seconds · no spam. Pick up where you left off, and
-            unlock day-by-day plans + booking on every story.
+            unlock the rest of every plan, event, and live drop.
           </p>
           <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
             <Link

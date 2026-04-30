@@ -2,17 +2,18 @@ import Link from 'next/link'
 
 /**
  * Guest right-rail card — replaces the Quest ring + streak when no session.
- * Shows up on /feed for unauthenticated users so the layout doesn't collapse
- * and the CTA to join is unmissable.
+ * The card is intentionally quiet: one primary CTA, one ghost link, no
+ * gradient halo. The header already carries the big Join button; this is
+ * the contextual nudge, not the loudest CTA on the page.
  */
-export function GuestRailCard({ next = '/feed' }: { next?: string }) {
+export function GuestRailCard({ next = '/' }: { next?: string }) {
   return (
     <div
       className="ch-card"
       style={{
-        padding: 24,
-        background: 'linear-gradient(160deg, var(--surface) 0%, var(--primary-tint) 120%)',
-        border: '1px solid color-mix(in srgb, var(--primary) 25%, var(--hairline))',
+        padding: 20,
+        background: 'var(--surface)',
+        border: '1px solid var(--hairline)',
       }}
     >
       <span
@@ -22,46 +23,42 @@ export function GuestRailCard({ next = '/feed' }: { next?: string }) {
           fontWeight: 700,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: 'var(--primary-deep)',
+          color: 'var(--ink-muted)',
           display: 'block',
-          marginBottom: 12,
+          marginBottom: 10,
         }}
       >
-        You&rsquo;re browsing as guest
+        Browsing as guest
       </span>
       <h3
         className="ch-display"
-        style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.2 }}
+        style={{ fontSize: 19, color: 'var(--ink)', marginBottom: 6, lineHeight: 1.25 }}
       >
-        Join free to{' '}
-        <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>save & follow</em>
+        Save your favourite work
       </h3>
       <p
         style={{
-          fontSize: 13,
-          color: 'var(--ink-soft)',
+          fontSize: 12.5,
+          color: 'var(--ink-muted)',
           lineHeight: 1.55,
-          marginBottom: 16,
+          marginBottom: 14,
         }}
       >
-        Track creators, save chapters, earn streak XP. No card needed — UPI-only when you book.
+        Follow creators, save what inspires you, get notified for live drops.
       </p>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Link
-          href={`/signup?next=${encodeURIComponent(next)}`}
-          className="ch-btn ch-btn-primary"
-          style={{ padding: '10px 16px', fontSize: 13.5 }}
-        >
-          Join free
-        </Link>
-        <Link
-          href={`/signin?next=${encodeURIComponent(next)}`}
-          className="ch-btn ch-btn-ghost"
-          style={{ padding: '10px 16px', fontSize: 13.5 }}
-        >
-          Sign in
-        </Link>
-      </div>
+      <Link
+        href={`/signup?next=${encodeURIComponent(next)}`}
+        style={{
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--primary-deep)',
+          textDecoration: 'none',
+          borderBottom: '1.5px solid var(--primary)',
+          paddingBottom: 2,
+        }}
+      >
+        Create a free account →
+      </Link>
     </div>
   )
 }

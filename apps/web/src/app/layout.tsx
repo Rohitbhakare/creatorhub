@@ -25,11 +25,11 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: 'CreatorHub — Travel Stories Worth Saving',
+    default: 'CreatorHub — Stories, plans, and live moments',
     template: '%s | CreatorHub',
   },
   description:
-    'Discover authentic travel stories, itineraries, and live experiences from local creators across India. Save what inspires, book what calls.',
+    'Where creators build their thing. Posts, plans, live experiences, group events — all in one home. Discover, save, and book the work of creators you trust.',
   metadataBase: new URL(process.env.SITE_URL ?? 'https://creatorhub.in'),
   applicationName: 'CreatorHub',
   generator: 'Next.js',

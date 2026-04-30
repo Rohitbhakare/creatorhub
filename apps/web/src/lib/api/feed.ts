@@ -87,7 +87,7 @@ export async function getHomeFeedSections(opts: {
     sections.push({
       id: 'for-you-trips',
       title: 'Picked for you',
-      subtitle: 'Itineraries and experiences we think you’ll like',
+      subtitle: 'Plans and live experiences we think you’ll like',
       items: forYouTrips.slice(0, 8),
     })
   }
@@ -103,7 +103,7 @@ export async function getHomeFeedSections(opts: {
     sections.push({
       id: 'stories',
       title: 'Stories worth your morning coffee',
-      subtitle: 'Long reads from our travel writers',
+      subtitle: 'Long reads worth saving',
       items: forYouStories.slice(0, 8),
     })
   }

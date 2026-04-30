@@ -5,13 +5,14 @@ import { WebFooter } from '@/components/chrome/web-footer'
 import { getSession } from '@/lib/session'
 
 export const metadata: Metadata = {
-  title: 'For creators — earn from your travel stories',
+  title: 'For creators — build your thing, earn from what you love',
   description:
-    'CreatorHub turns your travel stories into a livelihood. Publish itineraries, host experiences, build a following — keep 83% of bookings.',
+    'CreatorHub turns your work into a livelihood. Post anything, host events, sell plans, build a fanbase — keep 83% of bookings.',
   alternates: { canonical: '/creators' },
   openGraph: {
     title: 'For creators on CreatorHub',
-    description: 'Earn from your travel stories. 17% platform fee. Daily payouts.',
+    description:
+      'Build your creator business. Posts, plans, events. 17% platform fee. Daily payouts.',
     type: 'website',
   },
 }
@@ -19,23 +20,23 @@ export const metadata: Metadata = {
 const FAQS: { q: string; a: string }[] = [
   {
     q: 'How do I get paid?',
-    a: 'Bookings clear to your bank or UPI 48 hours after the trip is completed. We handle GST collection and TDS withholding so you never have to.',
+    a: 'Paid bookings clear to your bank or UPI 48 hours after the event/trip is completed. We handle GST collection and TDS withholding so you never have to.',
   },
   {
     q: 'What does CreatorHub take?',
     a: '17% platform fee on paid bookings. That covers payment processing, refund insurance, support, and discovery surfaces. There are no listing fees, no monthly fees, and no fees on free posts.',
   },
   {
-    q: 'Do I need to be a tour operator?',
-    a: 'No. Most CreatorHub creators are travellers who write — bloggers, photographers, small-group hosts. Our terms cover liability and refunds; you focus on the story.',
+    q: 'Who is this for?',
+    a: 'Any creator with a craft and an audience — writers, photographers, hosts, educators, foodies, fitness coaches, musicians. If you have something to share or sell, the platform fits. Our launch wave is travel + lifestyle, but the model is content-type agnostic.',
   },
   {
     q: 'What can I publish?',
-    a: 'Posts (free social content), itineraries (DIY plans), experiences (live events you host), and events (group meetups). All four work the same way — write once, earn from saves and bookings.',
+    a: 'Four formats. Posts (short, free, social-style), plans (DIY guides + itineraries — free or paid), experiences (live events you host), and group events (meetups, workshops, AMAs). Mix and match — all four feed the same audience and earnings.',
   },
   {
     q: 'How long does verification take?',
-    a: 'KYC usually clears in 24 hours. You can publish free content immediately; paid content unlocks once you’re verified.',
+    a: 'KYC usually clears in 24 hours. You can publish free content immediately; paid bookings unlock once you’re verified.',
   },
   {
     q: 'Is there an app?',
@@ -89,9 +90,9 @@ export default async function CreatorsPage() {
                 letterSpacing: '-0.015em',
               }}
             >
-              Earn from your{' '}
+              Build your{' '}
               <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>
-                travel stories
+                creator business
               </em>
               .
             </h1>
@@ -101,13 +102,12 @@ export default async function CreatorsPage() {
                 color: 'var(--ink-muted)',
                 marginTop: 18,
                 lineHeight: 1.5,
-                maxWidth: 600,
+                maxWidth: 620,
                 marginInline: 'auto',
               }}
             >
-              Publish your itineraries, host walks, build a following.
-              CreatorHub is the platform for India&apos;s travel creators —
-              17% fee, daily payouts, full editorial control.
+              Post your work, host live events, sell the plans you&apos;ve perfected.
+              One home for everything you make — 17% fee, daily payouts, full editorial control.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap' }}>
               <Link href="/signup?role=creator" className="ch-btn ch-btn-primary" style={{ padding: '12px 22px', fontSize: 14 }}>
@@ -312,8 +312,8 @@ const STEPS: { kicker: string; title: string; body: string }[] = [
   },
   {
     kicker: 'Step 2',
-    title: 'Publish your first story',
-    body: 'A trip recap, a curated itinerary, an experience you host. Drag-and-drop editor, autosave, live preview.',
+    title: 'Publish your first piece',
+    body: 'A post, a curated plan, an event you host. Drag-and-drop editor, autosave, live preview. All four formats live in the same studio.',
   },
   {
     kicker: 'Step 3',
@@ -323,12 +323,12 @@ const STEPS: { kicker: string; title: string; body: string }[] = [
   {
     kicker: 'Step 4',
     title: 'Get discovered',
-    body: 'CreatorHub surfaces new creators in the home feed, discover, and city-specific rails. SEO + share cards do the rest.',
+    body: 'CreatorHub surfaces new creators in the home feed, discover, and city rails. SEO + share cards carry the rest.',
   },
   {
     kicker: 'Step 5',
     title: 'Earn',
-    body: 'Bookings + tips clear to your bank/UPI 48h after trip completion. We handle GST + TDS automatically.',
+    body: 'Bookings + tips clear to your bank/UPI 48h after the event/trip is completed. We handle GST + TDS automatically.',
   },
 ]
 

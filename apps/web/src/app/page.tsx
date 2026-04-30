@@ -15,14 +15,14 @@ import { fetchPopularCities, fetchQuestSummary, getHomeFeedSections } from '@/li
 import { contentSlugId } from '@/lib/slug'
 
 export const metadata: Metadata = {
-  title: 'CreatorHub — Travel stories worth saving',
+  title: 'CreatorHub — Stories, plans, and live moments',
   description:
-    'Discover authentic travel stories, itineraries, and live experiences from local creators across India.',
+    'Where creators build their thing. Posts, plans, live experiences, group events — discover and book the work of creators you trust.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'CreatorHub — Travel stories worth saving',
+    title: 'CreatorHub — Stories, plans, and live moments',
     description:
-      'Discover authentic travel stories, itineraries, and live experiences from local creators across India.',
+      'Where creators build their thing. Posts, plans, live experiences, group events.',
     type: 'website',
   },
 }
@@ -135,15 +135,11 @@ export default async function HomePage({ searchParams }: Props) {
                 </em>
               </h1>
             </div>
-            {isGuest ? (
-              <Link
-                href="/signup?next=/"
-                className="ch-btn ch-btn-primary"
-                style={{ padding: '10px 16px', fontSize: 13 }}
-              >
-                Join free
-              </Link>
-            ) : (
+            {/* No CTA in the hero — header has Join, the right rail has the
+                contextual nudge. Keeping the hero clean lets the editorial
+                title carry the moment. The LIVE pill stays for authed users
+                as ambient social proof. */}
+            {!isGuest && (
               <span
                 style={{
                   display: 'inline-flex',
@@ -363,19 +359,19 @@ function greetingFor(displayName?: string): Greeting {
   const day = WEEKDAY[now.getDay()] ?? 'Today'
   const tone = hour < 5 ? 'evening' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
   const firstName = displayName?.split(' ')[0]
-  const kicker = `${day} · India · ${tone === 'morning' ? 'fresh start' : tone === 'afternoon' ? 'mid-day' : 'unwinding'}`
+  const kicker = `${day} · ${tone === 'morning' ? 'fresh start' : tone === 'afternoon' ? 'mid-day' : 'unwinding'}`
 
   if (firstName) {
     return {
       kicker,
       title: `Good ${tone}, ${firstName}.`,
-      accent: 'Where to next?',
+      accent: 'What’s new?',
     }
   }
   return {
     kicker,
-    title: 'Travel stories worth saving.',
-    accent: 'Pick a chapter →',
+    title: 'Stories, plans, and live moments',
+    accent: 'from creators you trust',
   }
 }
 
@@ -426,7 +422,7 @@ function CreatorAcquisitionBand() {
               lineHeight: 1.3,
             }}
           >
-            Are you a creator? Earn from your travel stories.
+            Build your creator business — earn from what you love.
           </div>
           <div
             style={{
@@ -435,8 +431,7 @@ function CreatorAcquisitionBand() {
               marginTop: 2,
             }}
           >
-            Publish itineraries, host walks, sell your favourite plans.
-            17% platform fee · daily payouts.
+            Post anything. Host events. Sell plans. 17% platform fee · daily payouts.
           </div>
         </div>
         <Link

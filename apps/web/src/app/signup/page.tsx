@@ -6,7 +6,7 @@ import { SignInForm } from '../signin/signin-form'
 
 export const metadata: Metadata = {
   title: 'Join CreatorHub',
-  description: 'Join CreatorHub to follow creators and book travel experiences.',
+  description: 'Join CreatorHub to follow creators and book live experiences.',
   robots: { index: false, follow: true },
 }
 
@@ -44,7 +44,7 @@ export default async function SignUpPage({ searchParams }: Props) {
               marginBottom: 28,
             }}
           >
-            Travel stories worth saving. Free to join. We&rsquo;ll text a one-time code.
+            Save the work you love, follow the creators behind it, book what calls. We&rsquo;ll text a one-time code.
           </p>
           <SignInForm next={nextSafe} />
           <div

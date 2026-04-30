@@ -1,4 +1,19 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+// In Next.js 15.5 a notFound() thrown after metadata commits the response as
+// HTTP 200 — the body is still our not-found.tsx, but the status code is
+// wrong. Adding noindex here means Google won't index "Not found" pages even
+// if they slip through with status 200. Twitter/Facebook treat noindex on OG
+// cards the same way.
+export const metadata: Metadata = {
+  title: 'Not found',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+}
 
 export default function NotFound() {
   return (

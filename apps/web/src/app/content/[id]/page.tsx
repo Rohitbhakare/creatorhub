@@ -26,9 +26,12 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: rawId } = await params
   const id = extractContentId(rawId)
-  if (!id) return { title: 'Content not found' }
+  // Calling notFound() in generateMetadata is required in Next.js 15 — the
+  // metadata phase commits the response status before the page render runs,
+  // so a notFound() in the page itself is too late to set HTTP 404.
+  if (!id) notFound()
   const content = await fetchContentDetail(id)
-  if (!content) return { title: 'Content not found' }
+  if (!content) notFound()
 
   const description = (content.description ?? content.body ?? '').slice(0, 160)
 

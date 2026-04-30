@@ -5,16 +5,16 @@ interface WebFooterProps {
 }
 
 const COLUMNS = [
-  { h: 'Travelers', items: [
+  { h: 'Explore', items: [
     { label: 'Discover', href: '/discover' },
-    { label: 'Stories', href: '/discover?type=post' },
-    { label: 'Itineraries', href: '/discover?type=itinerary' },
+    { label: 'Posts', href: '/discover?type=post' },
+    { label: 'Plans', href: '/discover?type=itinerary' },
     { label: 'Experiences', href: '/discover?type=experience' },
     { label: 'Events', href: '/discover?type=event' },
   ]},
   { h: 'Creators', items: [
-    { label: 'Why CreatorHub', href: '/for-creators' },
-    { label: 'Earnings', href: '/for-creators#earnings' },
+    { label: 'Why CreatorHub', href: '/creators' },
+    { label: 'Earnings', href: '/creators#earnings' },
     { label: 'Get verified', href: '/studio/kyc' },
     { label: 'Help center', href: '/help' },
   ]},
@@ -57,7 +57,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
             creator<em>hub</em>
           </span>
           <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-            Travel stories worth saving · Made in Bengaluru
+            Where creators build their thing · Made in Bengaluru
           </span>
           <div
             style={{
@@ -113,7 +113,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
               maxWidth: 280,
             }}
           >
-            Travel stories worth saving. Travel plans worth booking. Made in Bengaluru, India.
+            Where creators build, share, and earn — stories, plans, live experiences, group events. Made in Bengaluru, India.
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             {['IG', 'YT', 'X', 'WA'].map((s) => (

@@ -14,7 +14,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Discover',
-  description: 'Discover travel stories, itineraries, and experiences across India.',
+  description: 'Discover posts, plans, live experiences, and group events from creators across India.',
 }
 
 interface Props {
@@ -130,8 +130,8 @@ export default async function DiscoverPage({ searchParams }: Props) {
               }}
             >
               {total > 0
-                ? `${total.toLocaleString('en-IN')} ${total === 1 ? 'story' : 'stories'} match`
-                : 'Browse by mood, city, or type'}
+                ? `${total.toLocaleString('en-IN')} ${total === 1 ? 'piece' : 'pieces'} match`
+                : 'Browse by interest, place, or format'}
             </p>
             <form
               action="/discover"

@@ -15,7 +15,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
   const creator = await fetchCreatorProfile(username)
-  if (!creator) return { title: 'Creator not found' }
+  // notFound() must fire in generateMetadata — see content/[id]/page.tsx note.
+  if (!creator) notFound()
 
   const description = (creator.bio ?? '').slice(0, 160)
 

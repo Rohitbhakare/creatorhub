@@ -141,47 +141,35 @@ export function WebHeader({
               })}
             </nav>
 
-            <Link
-              href="/discover"
-              prefetch={false}
-              className="ch-hide-on-mobile"
+            <div
               style={{
-                flex: '1 1 auto',
-                maxWidth: 380,
-                height: 40,
-                marginLeft: 'auto',
-                background: 'var(--surface-alt)',
-                borderRadius: 999,
-                padding: '0 16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
-                cursor: 'pointer',
-                textDecoration: 'none',
-                color: 'var(--ink-muted)',
+                gap: 6,
+                marginLeft: 'auto',
+                flex: '0 0 auto',
               }}
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <span style={{ flex: 1, fontSize: 13 }}>Search creators, places, trips…</span>
-              <span
+              {/* Compact search icon — Cmd+K palette is the primary entry. */}
+              <Link
+                href="/discover"
+                aria-label="Search"
+                title="Search (⌘K)"
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  padding: '2px 5px',
-                  borderRadius: 4,
-                  background: 'var(--surface)',
-                  border: '1px solid var(--hairline)',
-                  fontWeight: 500,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 999,
+                  display: 'grid',
+                  placeItems: 'center',
+                  textDecoration: 'none',
+                  color: 'var(--ink)',
                 }}
               >
-                ⌘ K
-              </span>
-            </Link>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </Link>
               {streak > 0 && (
                 <div
                   title={`${String(streak)}-day streak`}
@@ -269,56 +257,6 @@ export function WebHeader({
 
         {resolvedVariant === 'guest' && (
           <>
-            {/* Wide search pill — desktop. Cmd+K opens the same palette. */}
-            <Link
-              href="/discover"
-              prefetch={false}
-              className="ch-hide-on-mobile"
-              aria-label="Search"
-              style={{
-                flex: '1 1 auto',
-                maxWidth: 380,
-                height: 40,
-                marginLeft: 'auto',
-                background: 'var(--surface-alt)',
-                borderRadius: 999,
-                padding: '0 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                cursor: 'pointer',
-                textDecoration: 'none',
-                color: 'var(--ink-muted)',
-              }}
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden
-              >
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <span style={{ flex: 1, fontSize: 13 }}>Search creators, places, trips…</span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  padding: '2px 5px',
-                  borderRadius: 4,
-                  background: 'var(--surface)',
-                  border: '1px solid var(--hairline)',
-                  fontWeight: 500,
-                }}
-              >
-                ⌘ K
-              </span>
-            </Link>
-
             <div
               style={{
                 marginLeft: 'auto',
@@ -327,11 +265,11 @@ export function WebHeader({
                 gap: 10,
               }}
             >
-              {/* Mobile-only icon search → /discover. */}
+              {/* Compact search icon — Cmd+K palette is the primary search entry. */}
               <Link
                 href="/discover"
                 aria-label="Search"
-                className="ch-only-mobile"
+                title="Search (⌘K)"
                 style={{
                   width: 38,
                   height: 38,
@@ -343,8 +281,8 @@ export function WebHeader({
                 }}
               >
                 <svg
-                  width="18"
-                  height="18"
+                  width="17"
+                  height="17"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
