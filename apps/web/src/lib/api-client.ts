@@ -3,7 +3,24 @@ import { cookies } from 'next/headers'
 import { logger } from './logger'
 import { AppError, toAppError } from './errors'
 
-const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:3001'
+// Tests set E2E_API_BASE_URL to point Next at the mock-api-server. We check
+// it first because Next.js loads .env.local with higher precedence than
+// inline `API_BASE_URL=…` on the command line, so a developer with a real
+// API_BASE_URL in .env.local would otherwise see tests hit production.
+const API_BASE =
+  process.env.E2E_API_BASE_URL ??
+  process.env.API_BASE_URL ??
+  'http://localhost:3001'
+
+// Debug print on module load — visible in dev stdout. Helps diagnose
+// "tests are hitting the wrong API" issues quickly.
+if (
+  process.env.NODE_ENV !== 'production' &&
+  typeof window === 'undefined'
+) {
+  // eslint-disable-next-line no-console
+  console.log(`[api-client] API_BASE = ${API_BASE}`)
+}
 const DEFAULT_TIMEOUT_MS = 5_000
 const MAX_RETRIES = 2
 const RETRY_BACKOFF_BASE_MS = 150

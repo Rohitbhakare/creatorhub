@@ -27,14 +27,27 @@ const baseConfig: pino.LoggerOptions = {
   timestamp: pino.stdTimeFunctions.isoTime,
 }
 
+// Pino's pino-pretty transport spawns a worker_thread. Next.js bundles the
+// app for dev and that worker file ends up missing from .next/server/
+// vendor-chunks, which throws "Cannot find module .../lib/worker.js" the
+// first time we log — and the throw cascades through every server action
+// (api-client → page render → falsey content → notFound()). To keep the
+// console readable in dev *without* the worker, we use the synchronous
+// pretty path, and skip pretty entirely when the test harness sets
+// E2E_API_BASE_URL (where readable output isn't worth the stability cost).
+const isE2E = !!process.env.E2E_API_BASE_URL
+
 const transport =
-  isDev && typeof window === 'undefined'
+  isDev && !isE2E && typeof window === 'undefined'
     ? pino.transport({
         target: 'pino-pretty',
         options: {
           colorize: true,
           translateTime: 'HH:MM:ss.l',
           ignore: 'pid,hostname,service,env',
+          // Sync mode — no worker_thread, so Next's dev bundler doesn't
+          // need to ship a separate worker.js chunk.
+          sync: true,
         },
       })
     : undefined
