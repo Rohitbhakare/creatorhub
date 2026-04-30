@@ -6,8 +6,18 @@
 -- ═══════════════════════════════════════════════════════════════════
 
 -- Make placeholder_text idempotent so the migration can re-run cleanly.
-ALTER TABLE search_placeholder_defaults
-  ADD CONSTRAINT search_placeholder_defaults_text_unique UNIQUE (placeholder_text);
+-- Postgres doesn't support `ADD CONSTRAINT IF NOT EXISTS` directly, so we
+-- wrap in a DO block + pg_constraint check.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'search_placeholder_defaults_text_unique'
+  ) THEN
+    ALTER TABLE search_placeholder_defaults
+      ADD CONSTRAINT search_placeholder_defaults_text_unique UNIQUE (placeholder_text);
+  END IF;
+END$$;
 
 INSERT INTO search_placeholder_defaults (placeholder_text, priority, is_active) VALUES
   ('Spiti',                       100, true),
