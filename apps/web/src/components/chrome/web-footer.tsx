@@ -57,7 +57,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
             creator<em>hub</em>
           </span>
           <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-            Where creators build their thing · Made in Bengaluru
+            Where creators build their thing · Made in Pune
           </span>
           <div
             style={{
@@ -113,7 +113,7 @@ export function WebFooter({ big = false }: WebFooterProps) {
               maxWidth: 280,
             }}
           >
-            Where creators build, share, and earn — stories, plans, live experiences, group events. Made in Bengaluru, India.
+            Where creators build, share, and earn — stories, plans, live experiences, group events. Made in Pune, India.
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             {['IG', 'YT', 'X', 'WA'].map((s) => (
