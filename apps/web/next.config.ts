@@ -55,6 +55,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
+  // Pino's transport spawns a worker_thread that loads from `pino/lib/worker.js`.
+  // When Next.js bundles pino into `.next/server/vendor-chunks`, that worker
+  // file ends up missing and the transport crashes with `Cannot find module
+  // .../lib/worker.js`. Marking pino + its transport stack as "external" tells
+  // Next to leave them alone and let Node resolve them from node_modules at
+  // runtime, where the worker chunk lives. (Same pattern as how `sharp` is
+  // handled.)
+  serverExternalPackages: ['pino', 'pino-pretty', 'thread-stream', 'sonic-boom'],
   experimental: {
     optimizePackageImports: ['framer-motion'],
   },
