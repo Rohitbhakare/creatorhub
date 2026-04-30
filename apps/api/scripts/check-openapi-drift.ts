@@ -41,7 +41,24 @@ async function endpointsFromFile(path: string, prefixMap: Map<string, string>): 
   const src = await readFile(path, 'utf8')
   const decl = /\b(?:const|let)\s+(\w+)\s*=\s*new\s+Hono/.exec(src)
   const routerVar = decl?.[1]
-  const prefix = routerVar ? prefixMap.get(routerVar) ?? '' : ''
+  // Try the var name first (matches files where router var matches its
+  // imported name in index.ts). Fall back to filename: a file named
+  // `auth.routes.ts` mounted in index.ts as `app.route('/api/v1/auth', …)`
+  // is the codebase convention, so derive the prefix from the basename
+  // when var-name lookup misses.
+  let prefix = routerVar ? (prefixMap.get(routerVar) ?? '') : ''
+  if (!prefix) {
+    const base = /([^/]+)\.routes\.ts$/.exec(path)?.[1]
+    if (base) {
+      const candidate = `/api/v1/${base}`
+      // Inverted: the candidate is correct *because* it appears in the
+      // prefix map values (some route in index.ts mounts to this path).
+      // The local var just doesn't match the import name.
+      if (Array.from(prefixMap.values()).includes(candidate)) {
+        prefix = candidate
+      }
+    }
+  }
   const out: Endpoint[] = []
   for (const m of src.matchAll(HONO_RE)) {
     const method = m[1]!.toUpperCase()
@@ -57,7 +74,14 @@ async function endpointsFromFile(path: string, prefixMap: Map<string, string>): 
 }
 
 function normalise(p: string): string {
-  return p.replace(/:([A-Za-z0-9_]+)/g, '{$1}')
+  // 1. Convert Hono `:foo` path params to OpenAPI `{foo}` syntax.
+  // 2. Collapse all path-param NAMES to a single placeholder so spec vs code
+  //    don't diff just because one calls it `{contentId}` and the other
+  //    `{id}`. Same goes for `userId` vs `id`. The checker is a drift signal,
+  //    not a style enforcer.
+  return p
+    .replace(/:([A-Za-z0-9_]+)/g, '{$1}')
+    .replace(/\{[A-Za-z0-9_]+\}/g, '{*}')
 }
 
 async function collectHandlers(): Promise<Endpoint[]> {
@@ -78,7 +102,7 @@ async function collectSpec(): Promise<Endpoint[]> {
     if (p) { cur = p[1]!; continue }
     if (cur) {
       const m = /^ {4}(get|post|put|patch|delete):\s*$/.exec(line)
-      if (m) out.push({ method: m[1]!.toUpperCase(), path: cur })
+      if (m) out.push({ method: m[1]!.toUpperCase(), path: normalise(cur) })
     }
     if (/^[A-Za-z]/.test(line)) cur = null
   }
