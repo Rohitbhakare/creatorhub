@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { SessionPayload } from '@/lib/session'
+import { InitialAvatar } from '@/components/ui/initial-avatar'
+import { StreakChip } from '@/components/ui/streak-chip'
 
 type Variant = 'auth' | 'logged' | 'guest'
 
@@ -16,48 +18,6 @@ const NAV_ITEMS: { id: 'home' | 'discover' | 'saved' | 'bookings'; label: string
   { id: 'saved', label: 'Saved', href: '/saved' },
   { id: 'bookings', label: 'Bookings', href: '/bookings' },
 ]
-
-function Avatar({
-  name,
-  url,
-  size = 34,
-}: {
-  name: string
-  url?: string | null
-  size?: number
-}) {
-  const initials = name
-    .split(' ')
-    .map((s) => s[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-  return (
-    <div
-      aria-hidden
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 999,
-        background: url ? 'transparent' : 'linear-gradient(135deg, #d4b896, #a07c5a)',
-        color: 'white',
-        display: 'grid',
-        placeItems: 'center',
-        fontFamily: 'var(--font-serif)',
-        fontWeight: 600,
-        fontSize: size * 0.4,
-        flex: '0 0 auto',
-        overflow: 'hidden',
-        backgroundImage: url ? `url(${url})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {url ? '' : initials || '?'}
-    </div>
-  )
-}
 
 export function WebHeader({
   session,
@@ -171,28 +131,9 @@ export function WebHeader({
                 </svg>
               </Link>
               {streak > 0 && (
-                <div
-                  title={`${String(streak)}-day streak`}
-                  className="ch-hide-on-mobile"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '6px 11px 6px 8px',
-                    borderRadius: 999,
-                    background: 'var(--primary-tint)',
-                    color: 'var(--primary-deep)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    border: '1px solid color-mix(in srgb, var(--primary) 13%, transparent)',
-                  }}
-                >
-                  <span style={{ fontSize: 13, lineHeight: 1 }} aria-hidden>
-                    🔥
-                  </span>
-                  {streak}
-                  <span style={{ opacity: 0.65, fontWeight: 500 }}>d</span>
-                </div>
+                <span className="ch-hide-on-mobile">
+                  <StreakChip days={streak} />
+                </span>
               )}
 
               <Link
@@ -249,7 +190,11 @@ export function WebHeader({
               </Link>
 
               <Link href="/you" aria-label="Profile" style={{ display: 'flex', textDecoration: 'none' }}>
-                <Avatar name={session?.displayName ?? '?'} url={session?.avatarUrl ?? null} />
+                <InitialAvatar
+                  name={session?.displayName ?? '?'}
+                  url={session?.avatarUrl ?? null}
+                  size={34}
+                />
               </Link>
             </div>
           </>

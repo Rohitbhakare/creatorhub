@@ -1,8 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import {
+  CSRF_COOKIE,
+  CSRF_ORIGIN_ALLOW_LIST,
+  generateCsrfToken,
+  isOriginAllowed,
+  isSafeMethod,
+} from './lib/csrf'
 
 /**
- * Middleware: theme cookie + auth gate + security headers + request id.
+ * Middleware: theme cookie + auth gate + CSRF + security headers + request id.
  * Edge runtime — keep this lightweight (no DB, no heavy imports).
+ *
+ * CSRF defense (WEB-NFR-008):
+ *   - Mint a high-entropy `ch_csrf` cookie on first response
+ *   - Block mutating verbs whose Origin header doesn't match this deployment
+ *   - Safe verbs (GET / HEAD / OPTIONS) are short-circuited
  */
 
 // Routes that require auth. /feed is intentionally NOT here — guests can
@@ -31,11 +43,38 @@ function isAuthRoute(pathname: string): boolean {
   return PUBLIC_AUTH_ROUTES.some((p) => pathname === p)
 }
 
+// Legacy creator URL pattern — /travel/<username> and /stories/<username>.
+// Permanently redirected to /u/<username> (vertical-independent canonical).
+// Matches exactly two segments where the first is a known vertical, so it
+// won't collide with any /travel/foo/bar future routes.
+const LEGACY_CREATOR_RE = /^\/(travel|stories)\/([^/]+)\/?$/
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  const legacyMatch = LEGACY_CREATOR_RE.exec(pathname)
+  if (legacyMatch && legacyMatch[2]) {
+    const url = req.nextUrl.clone()
+    url.pathname = `/u/${legacyMatch[2]}`
+    return NextResponse.redirect(url, 301)
+  }
+
   const sessionCookie = req.cookies.get('ch_session')?.value
   const isAuthenticated = Boolean(sessionCookie)
+
+  // CSRF defense for mutating verbs (WEB-NFR-008). Run before auth-gate
+  // redirects so an attacker can't trigger a 302 + cookie-set response.
+  if (!isSafeMethod(req.method)) {
+    const ownOrigin = req.nextUrl.origin
+    const origin = req.headers.get('origin')
+    const referer = req.headers.get('referer')
+    if (!isOriginAllowed(origin, referer, ownOrigin, CSRF_ORIGIN_ALLOW_LIST)) {
+      return new NextResponse('CSRF check failed', {
+        status: 403,
+        headers: { 'content-type': 'text/plain' },
+      })
+    }
+  }
 
   // Auth gate — push unauthenticated users away from protected routes
   if (isProtected(pathname) && !isAuthenticated) {
@@ -62,6 +101,19 @@ export function middleware(req: NextRequest) {
     res.cookies.set('ch_theme', 'paper', {
       maxAge: 60 * 60 * 24 * 365,
       sameSite: 'lax',
+      path: '/',
+    })
+  }
+
+  // Mint the CSRF double-submit cookie if missing. Not httpOnly so client
+  // fetch handlers can read it and echo as `x-csrf-token`. SameSite=Lax
+  // and Secure (in prod) are what stop a cross-site form from carrying it.
+  if (!req.cookies.get(CSRF_COOKIE)) {
+    res.cookies.set(CSRF_COOKIE, generateCsrfToken(), {
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false,
       path: '/',
     })
   }

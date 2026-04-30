@@ -116,6 +116,25 @@
 
 ---
 
+## M2.5 — Web v3 Parity (in progress)
+
+> Pack-based series rebuilding `apps/web/` to match v3 wireframes (`docs/01_wireframes/v3/`) and implement SRS v1.5 web FRs (97 FRs across 14 sub-domains). One epic per v3 web pack. E5.0 is the foundation; E5.1..E5.8 ship in v3's locked pack order.
+> **Master plan:** [/Users/rohit/.claude/plans/web-application-is-not-enumerated-matsumoto.md](/Users/rohit/.claude/plans/web-application-is-not-enumerated-matsumoto.md)
+
+| Epic | Name | Status | Tasks | Tests | Lint | Type | Review Gate | API Boot | DB | Flutter | Commit |
+|------|------|--------|-------|-------|------|------|-------------|----------|----|---------| -------|
+| E5.0 | Web Foundation (chrome + primitives + motion + a11y + CSRF) | `DONE` | 10/10 | `[x]` 135 web tests (+43 new: primitives, layout, csrf, robots, toast) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[ ]` pending |
+| E5.1 | Home Feed v3 (W3 — chapter hero + bento + right-rail dock) | `NOT STARTED` | 0/11 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.2 | Discover + Search (W4 — Cmd+K + 13-filter drawer) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.3 | Reader / Detail (Magazine + Compact, parallax, drop-caps, spot save) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.4 | Booking (4-step desktop wizard + Razorpay desktop hosted page) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.5 | Publishing Wizard (TipTap editor + crop + reorder + autosave) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.6 | Auth + Onboarding (3-tab signup + OAuth + OTP + magic-link) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.7 | KYC + Profile + Studio (webcam selfie + dashboard charts + payouts ledger) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+| E5.8 | Gamification + Notif/Saved/Social + Web Push | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
+
+---
+
 ## V2 — Platform Features (pulled forward)
 
 | Epic | Name | Status | Tasks | Notes |

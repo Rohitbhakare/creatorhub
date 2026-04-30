@@ -302,6 +302,10 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes ch-spin {
+  to { transform: rotate(360deg); }
+}
+
 .ch-skeleton {
   background: linear-gradient(
     90deg,
@@ -512,6 +516,19 @@ body {
 @media (max-width: 767px) {
   .ch-reader-grid { grid-template-columns: 1fr; gap: 24px; }
   .ch-reader-grid > aside { position: static !important; }
+}
+
+/* Reader without a day-nav (posts / stories): drop the left column. */
+.ch-reader-grid--no-days {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+@media (max-width: 767px) {
+  .ch-reader-grid--no-days { grid-template-columns: 1fr; }
+}
+
+/* Reader without an aside (posts that want full width): single column. */
+.ch-reader-grid--no-aside {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Hide on mobile (header search pill, decorative pieces). */

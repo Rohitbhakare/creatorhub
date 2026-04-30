@@ -2,6 +2,12 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 import type { ReactNode } from 'react'
+import {
+  easing,
+  revealVariants,
+  revealVariantsReduced,
+  REDUCED_DURATION_MS,
+} from '@/lib/motion'
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -12,20 +18,11 @@ interface ScrollRevealProps {
   as?: 'div' | 'section' | 'article' | 'li'
 }
 
-const DEFAULT_VARIANT = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0 },
-}
-
-const REDUCED_VARIANT = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
-
 /**
  * Wraps children in a `whileInView` reveal — used for editorial sections
- * and grid items. Respects `prefers-reduced-motion`: skips transform,
- * keeps a soft opacity fade so layout shifts are still cushioned.
+ * and grid items (WEB-MOTION-FR-102). Respects `prefers-reduced-motion`:
+ * skips transform, keeps a soft opacity fade so layout shifts are still
+ * cushioned (WEB-MOTION-FR-105).
  */
 export function ScrollReveal({
   children,
@@ -35,7 +32,7 @@ export function ScrollReveal({
   as = 'div',
 }: ScrollRevealProps) {
   const reduced = useReducedMotion()
-  const variants = reduced ? REDUCED_VARIANT : DEFAULT_VARIANT
+  const variants = reduced ? revealVariantsReduced : revealVariants
   const Component = motion[as] as typeof motion.div
 
   return (
@@ -43,7 +40,11 @@ export function ScrollReveal({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: threshold }}
-      transition={{ duration: reduced ? 0.12 : 0.55, ease: [0.22, 1, 0.36, 1], delay }}
+      transition={{
+        duration: reduced ? REDUCED_DURATION_MS / 1000 : 0.55,
+        ease: easing.easeOut,
+        delay: reduced ? 0 : delay,
+      }}
       variants={variants}
       className={className}
     >

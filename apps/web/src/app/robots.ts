@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/saved',
           '/bookings',
+          '/booking/', // confirmation pages are personal
           '/studio',
           '/publish',
           '/you',
@@ -26,6 +27,7 @@ export default function robots(): MetadataRoute.Robots {
           '/signin',
           '/signup',
           '/forgot-password',
+          '/admin',
           '/api/',
         ],
       },

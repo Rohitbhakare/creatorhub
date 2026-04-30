@@ -47,7 +47,7 @@ creatorhub/
 │   └── shared/           # TypeScript types, Zod schemas, constants
 └── docs/
     ├── 00_SRS/           # SRS v1.2 (single source of truth)
-    ├── 01_wireframes/    # v2/ = canonical design (Pure White + Coral, 9 packs); archive/v1/ = historical
+    ├── 01_wireframes/    # v3/ = canonical design (Pure White + Coral, web + mobile pack JSXs + standalone HTML); v2/ and archive/v1/ are historical
     ├── engineering/      # HLD, OpenAPI spec
     └── epics/            # Epic plans, tasks, tracking
 ```
@@ -68,9 +68,10 @@ creatorhub/
 
 | What you need | Read this |
 |---------------|-----------|
-| Any feature requirement | `docs/00_SRS/v1.2/srs-v1.2.md` |
-| Screen layout/design | `docs/01_wireframes/v2/` (read `v2/README.md` first; `archive/v1/` is historical only) |
-| Pack ship order | `docs/01_wireframes/v2/project/CreatorHub Redesign.html` |
+| Any feature requirement | `docs/00_SRS/v1.2/srs-v1.2.md` + deltas `v1.3/`, `v1.4/`, `v1.5/` (web FRs) |
+| Screen layout/design | `docs/01_wireframes/v3/` (read `v3/README.md` first; `v2/` and `archive/v1/` are historical only) |
+| Web design system | `docs/01_wireframes/v3/WEB-DESIGN-SYSTEM.md` (CSS vars + primitive index + coral allow-list) |
+| Pack ship order | `docs/01_wireframes/v3/project/CreatorHub Redesign (standalone).html` (sections in order = ship order) |
 | System architecture | `docs/engineering/HLD.md` |
 | API endpoint contracts | `docs/engineering/openapi.yaml` |
 | Epic plans & progress | `docs/epics/TRACKING.md` |

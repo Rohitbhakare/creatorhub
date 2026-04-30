@@ -300,6 +300,34 @@ These are user-state and content-state indicators where graying them out would m
 
 ---
 
+## 9.5 Primitives — typed React wrappers
+
+Land in `apps/web/src/components/ui/`. Use these instead of reaching for raw `ch-*` classes — they enforce the variant matrix at the type level.
+
+| Primitive | Use | File |
+|---|---|---|
+| `<Btn>` / `<BtnLink>` | Three variants (primary / ink / ghost), three sizes (sm / md / lg), `loading`, `block`, leading + trailing icons. `<BtnLink>` renders Next.js `<Link>` for navigation. | [btn.tsx](../../../apps/web/src/components/ui/btn.tsx) |
+| `<Pill>` | Five variants (default / coral / glass / tint / ink), optional leading dot. Wraps `ch-pill-*`. | [pill.tsx](../../../apps/web/src/components/ui/pill.tsx) |
+| `<Tag>` | Inline hashtag / category label, three tones (default / tint / ink). Quieter than `<Pill>`. | [tag.tsx](../../../apps/web/src/components/ui/tag.tsx) |
+| `<InitialAvatar>` | Two-letter initials in the locked taupe gradient. Replaces four hand-rolled copies (content-card, web-header, hero-feature, comments). | [initial-avatar.tsx](../../../apps/web/src/components/ui/initial-avatar.tsx) |
+| `<Ring>` | SVG circular progress ring. Coral fill for quest progress (allow-list spot 6). | [ring.tsx](../../../apps/web/src/components/ui/ring.tsx) |
+| `<XPChip>` | Composes `<Pill variant="tint">` + `<Ring>`. Level + xp/max + accessible label. | [xp-chip.tsx](../../../apps/web/src/components/ui/xp-chip.tsx) |
+| `<StreakChip>` | Flame glyph + day count, dimmed when streak is at risk. | [streak-chip.tsx](../../../apps/web/src/components/ui/streak-chip.tsx) |
+
+### Layout primitives
+
+| Primitive | Use | File |
+|---|---|---|
+| `<PageShell>` | Centered max-1640 / 32px-gutter wrapper. Renders as `<main>` by default; pass `flush` to drop gutters for full-bleed heroes. | [page-shell.tsx](../../../apps/web/src/components/ui/page-shell.tsx) |
+| `<TwoColLayout>` | Main + 296px right rail. Wraps `.ch-page-grid` with `<aside aria-label>` semantic. Pass `rail={null}` to skip the aside. | [two-col-layout.tsx](../../../apps/web/src/components/ui/two-col-layout.tsx) |
+| `<ReaderLayout>` | 200/720/280 three-col reader. `dayNav={null}` collapses to two columns; `aside={null}` collapses to one. Wraps `.ch-reader-grid`. | [reader-layout.tsx](../../../apps/web/src/components/ui/reader-layout.tsx) |
+
+### Motion library
+
+[`@/lib/motion`](../../../apps/web/src/lib/motion.ts) exposes `easing` (easeOut / easeInOut / spring), `secs(durationKey)` for ms→s conversion, `pageVariants` + `revealVariants` (with `…Reduced` counterparts), and `transitionFor(reduced, key, ease)` which honors `useReducedMotion()` automatically. Pair with framer-motion's `useReducedMotion()` hook at the call site.
+
+---
+
 ## 10. Adding a new component — the checklist
 
 1. Does an existing primitive cover this? (`ch-card`, `ch-btn-*`, `ch-pill-*`)
