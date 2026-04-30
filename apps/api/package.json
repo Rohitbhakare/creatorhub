@@ -9,7 +9,8 @@
     "start": "node --env-file=.env dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "openapi:drift": "tsx scripts/check-openapi-drift.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
