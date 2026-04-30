@@ -268,27 +268,133 @@ export function WebHeader({
         )}
 
         {resolvedVariant === 'guest' && (
-          <div
-            style={{
-              marginLeft: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-            }}
-          >
+          <>
+            {/* Wide search pill — desktop. Cmd+K opens the same palette. */}
             <Link
               href="/discover"
-              style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-soft)', textDecoration: 'none' }}
+              prefetch={false}
+              className="ch-hide-on-mobile"
+              aria-label="Search"
+              style={{
+                flex: '1 1 auto',
+                maxWidth: 380,
+                height: 40,
+                marginLeft: 'auto',
+                background: 'var(--surface-alt)',
+                borderRadius: 999,
+                padding: '0 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'var(--ink-muted)',
+              }}
             >
-              Browse stories
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span style={{ flex: 1, fontSize: 13 }}>Search creators, places, trips…</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  padding: '2px 5px',
+                  borderRadius: 4,
+                  background: 'var(--surface)',
+                  border: '1px solid var(--hairline)',
+                  fontWeight: 500,
+                }}
+              >
+                ⌘ K
+              </span>
             </Link>
-            <Link href="/signin" className="ch-btn ch-btn-ghost" style={{ padding: '8px 16px' }}>
-              Sign in
-            </Link>
-            <Link href="/signup" className="ch-btn ch-btn-primary" style={{ padding: '8px 16px' }}>
-              Join
-            </Link>
-          </div>
+
+            <div
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              {/* Mobile-only icon search → /discover. */}
+              <Link
+                href="/discover"
+                aria-label="Search"
+                className="ch-only-mobile"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 999,
+                  display: 'grid',
+                  placeItems: 'center',
+                  textDecoration: 'none',
+                  color: 'var(--ink)',
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </Link>
+              <Link
+                href="/discover"
+                className="ch-hide-on-mobile"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'var(--ink-soft)',
+                  textDecoration: 'none',
+                }}
+              >
+                Browse
+              </Link>
+              <Link
+                href="/creators"
+                className="ch-hide-on-mobile"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'var(--ink-soft)',
+                  textDecoration: 'none',
+                }}
+              >
+                For creators
+              </Link>
+              <Link
+                href="/signin"
+                className="ch-btn ch-btn-ghost ch-hide-on-mobile"
+                style={{ padding: '8px 16px' }}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/signup"
+                className="ch-btn ch-btn-primary"
+                style={{ padding: '8px 16px' }}
+              >
+                Join
+              </Link>
+            </div>
+          </>
         )}
 
         {resolvedVariant === 'auth' && (

@@ -16,6 +16,7 @@ import {
   handleDayTrips,
   handleWeekendGetaways,
   handlePostsFeed,
+  handleSitemapEntries,
 } from '../handlers/feed.js'
 
 const feedRoutes = new Hono()
@@ -39,5 +40,8 @@ feedRoutes.get('/upcoming-events', optionalAuthenticate, handleUpcomingEvents)
 feedRoutes.get('/day-trips', optionalAuthenticate, handleDayTrips)
 feedRoutes.get('/weekend-getaways', optionalAuthenticate, handleWeekendGetaways)
 feedRoutes.get('/posts', optionalAuthenticate, handlePostsFeed)
+
+// SEO: sitemap entries — public, no auth, edge-cacheable.
+feedRoutes.get('/sitemap', handleSitemapEntries)
 
 export default feedRoutes

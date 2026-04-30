@@ -570,3 +570,51 @@ body {
   max-width: 95%;
 }
 
+/* ─── Print stylesheet ───────────────────────────────────────────
+   When a guest or member prints / saves-as-PDF a content page, strip
+   the header, sidebar, sticky CTA, map, and decoration so only the
+   article body renders cleanly. Keeps the URL footer (browsers add it
+   automatically) and gives long-form sharing a real artifact. */
+@media print {
+  /* Avoid breaking inside cards or images. */
+  img,
+  svg,
+  .ch-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Strip the chrome and any guest-only nudges. */
+  header,
+  nav,
+  footer,
+  aside,
+  [aria-label='Comments'],
+  [data-print='hide'],
+  .ch-hide-on-mobile,
+  button[aria-label='Close'],
+  iframe {
+    display: none !important;
+  }
+
+  /* Remove backgrounds + scrim overlays so the print is paper-clean. */
+  body,
+  main,
+  article,
+  section {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  a {
+    color: black !important;
+    text-decoration: underline;
+  }
+
+  /* Reading-progress bar + sticky CTAs are noise on paper. */
+  [style*='position: sticky'],
+  [style*='position:fixed'] {
+    position: static !important;
+  }
+}

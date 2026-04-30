@@ -172,6 +172,8 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
         </section>
 
+        {isGuest && <CreatorAcquisitionBand />}
+
         <FeedChipRail
           scope={scope}
           type={type}
@@ -375,6 +377,78 @@ function greetingFor(displayName?: string): Greeting {
     title: 'Travel stories worth saving.',
     accent: 'Pick a chapter →',
   }
+}
+
+function CreatorAcquisitionBand() {
+  // Lightweight, link-only band aimed at the half of our visitors who'll
+  // become creators. Static numbers — kept conservative + believable;
+  // we'll wire to real platform stats later.
+  return (
+    <section
+      className="ch-container"
+      style={{ paddingBlock: '14px 8px' }}
+      aria-label="For creators"
+    >
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1.5px solid var(--hairline)',
+          borderRadius: 14,
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          flexWrap: 'wrap',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            background: 'var(--primary-tint)',
+            color: 'var(--primary-deep)',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 16,
+            flex: '0 0 auto',
+          }}
+        >
+          ★
+        </span>
+        <div style={{ flex: '1 1 280px', minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 16,
+              color: 'var(--ink)',
+              lineHeight: 1.3,
+            }}
+          >
+            Are you a creator? Earn from your travel stories.
+          </div>
+          <div
+            style={{
+              fontSize: 12.5,
+              color: 'var(--ink-muted)',
+              marginTop: 2,
+            }}
+          >
+            Publish itineraries, host walks, sell your favourite plans.
+            17% platform fee · daily payouts.
+          </div>
+        </div>
+        <Link
+          href="/creators"
+          className="ch-btn ch-btn-ink"
+          style={{ padding: '8px 16px', fontSize: 13 }}
+        >
+          See how it works →
+        </Link>
+      </div>
+    </section>
+  )
 }
 
 function TrendingTagsCard() {

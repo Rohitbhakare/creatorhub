@@ -10,12 +10,14 @@ import { ReadingProgress } from '@/components/reader/reading-progress'
 import { SaveButton } from '@/components/reader/save-button'
 import { BookCta } from '@/components/reader/book-cta'
 import { MarkdownBody } from '@/components/reader/markdown-body'
-import { GuestPromptBar } from '@/components/reader/guest-prompt-bar'
 import { ParallaxHero } from '@/components/reader/parallax-hero'
 import { StickyDayNav } from '@/components/reader/sticky-day-nav'
 import { AnimatedMap } from '@/components/reader/animated-map'
 import { LikeButton } from '@/components/social/like-button'
 import { ShareButton } from '@/components/social/share-button'
+import { CommentsSection } from '@/components/reader/comments-section'
+import { EndOfArticleRail } from '@/components/reader/end-of-article-rail'
+import { GuestGate } from '@/components/reader/guest-gate'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -390,38 +392,38 @@ export default async function ContentDetailPage({ params }: Props) {
                 >
                   Stops along the way
                 </h2>
-                {groupSpotsByDay(content.spots).map(({ day, spots }) => (
-                  <div
-                    key={day}
-                    id={`day-${String(day)}`}
-                    data-day={day}
-                    style={{ marginBottom: 48 }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink-muted)',
-                        display: 'block',
-                        marginBottom: 12,
-                      }}
+                {groupSpotsByDay(content.spots).map(({ day, spots }, dayIndex) => {
+                  const dayBlock = (
+                    <div
+                      id={`day-${String(day)}`}
+                      data-day={day}
+                      style={{ marginBottom: 48 }}
                     >
-                      Day {String(day)}
-                    </span>
-                    <ol
-                      style={{
-                        listStyle: 'none',
-                        padding: 0,
-                        margin: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
-                      }}
-                    >
-                      {spots.map((spot, i) => (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.18em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted)',
+                          display: 'block',
+                          marginBottom: 12,
+                        }}
+                      >
+                        Day {String(day)}
+                      </span>
+                      <ol
+                        style={{
+                          listStyle: 'none',
+                          padding: 0,
+                          margin: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16,
+                        }}
+                      >
+                        {spots.map((spot, i) => (
                         <li
                           key={spot.id}
                           className="ch-card"
@@ -489,9 +491,26 @@ export default async function ContentDetailPage({ params }: Props) {
                           </div>
                         </li>
                       ))}
-                    </ol>
-                  </div>
-                ))}
+                      </ol>
+                    </div>
+                  )
+                  // Day 1 is a free preview; gate Day 2+ for guests.
+                  if (dayIndex === 0 || isAuthenticated) {
+                    return <div key={day}>{dayBlock}</div>
+                  }
+                  return (
+                    <GuestGate
+                      key={day}
+                      mode="fade"
+                      isAuthenticated={isAuthenticated}
+                      contextLabel={`See Day ${String(day)} and the rest of the trip`}
+                      reason="The full plan unlocks instantly when you sign in. Free, no spam, takes 30 seconds."
+                      ctaLabel="Sign in to keep reading"
+                    >
+                      {dayBlock}
+                    </GuestGate>
+                  )
+                })}
               </section>
             )}
 
@@ -506,8 +525,18 @@ export default async function ContentDetailPage({ params }: Props) {
                 fontFamily: 'var(--font-sans)',
               }}
             >
-              <SaveButton contentId={content.id} isAuthenticated={isAuthenticated} />
-              <LikeButton contentId={content.id} isAuthenticated={isAuthenticated} />
+              <SaveButton
+                contentId={content.id}
+                contentTitle={content.title}
+                initialCount={content.saveCount ?? 0}
+                isAuthenticated={isAuthenticated}
+              />
+              <LikeButton
+                contentId={content.id}
+                contentTitle={content.title}
+                initialCount={(content as { likeCount?: number | null }).likeCount ?? 0}
+                isAuthenticated={isAuthenticated}
+              />
               <ShareButton
                 url={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
                 title={content.title}
@@ -519,6 +548,25 @@ export default async function ContentDetailPage({ params }: Props) {
                 More from {content.creator.displayName}
               </Link>
             </div>
+
+            <CommentsSection
+              contentId={content.id}
+              totalCount={
+                (content as { commentCount?: number | null }).commentCount ?? 0
+              }
+              isAuthenticated={isAuthenticated}
+              contentTitle={content.title}
+            />
+
+            <EndOfArticleRail
+              currentContentId={content.id}
+              creatorId={content.creator.id}
+              creatorDisplayName={content.creator.displayName}
+              creatorVertical={content.creator.vertical}
+              creatorUsername={content.creator.username}
+              city={content.city ?? null}
+              showJoinPanel={!isAuthenticated}
+            />
           </article>
 
           {!isStory && (
@@ -533,6 +581,7 @@ export default async function ContentDetailPage({ params }: Props) {
             >
               <BookCta
                 contentId={content.id}
+                contentTitle={content.title}
                 contentType={content.type}
                 priceInPaisa={content.priceInPaisa}
                 isFree={content.isFree}
@@ -548,10 +597,6 @@ export default async function ContentDetailPage({ params }: Props) {
       </main>
 
       <WebFooter />
-
-      {!isAuthenticated && (
-        <GuestPromptBar contentId={content.id} creatorName={content.creator.displayName} />
-      )}
     </>
   )
 }

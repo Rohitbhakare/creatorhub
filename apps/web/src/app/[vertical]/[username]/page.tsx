@@ -6,6 +6,7 @@ import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
 import { ContentCard } from '@/components/content/content-card'
 import { FollowButton } from '@/components/social/follow-button'
+import { GuestGate } from '@/components/reader/guest-gate'
 
 interface Props {
   params: Promise<{ vertical: string; username: string }>
@@ -136,6 +137,8 @@ export default async function CreatorMiniSitePage({ params }: Props) {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <FollowButton
                 creatorId={creator.id}
+                creatorName={creator.displayName}
+                initialFollowerCount={creator.followerCount}
                 isAuthenticated={Boolean(session)}
               />
               <a
@@ -145,6 +148,26 @@ export default async function CreatorMiniSitePage({ params }: Props) {
                 Open in app
               </a>
             </div>
+          </div>
+
+          {/* Trust strip — KYC + refund + rating signals above the fold so
+              guests build confidence before scrolling. */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+              marginBottom: 24,
+            }}
+          >
+            <TrustChip label="KYC verified" emphasised />
+            <TrustChip label="Refund guaranteed" />
+            {creator.averageRating != null && (
+              <TrustChip label={`★ ${creator.averageRating.toFixed(1)} avg`} />
+            )}
+            {creator.followerCount > 0 && (
+              <TrustChip label={`${formatCount(creator.followerCount)} followers`} />
+            )}
           </div>
 
           {creator.bio && (
@@ -184,25 +207,11 @@ export default async function CreatorMiniSitePage({ params }: Props) {
           </div>
 
           {(creator.content ?? []).length > 0 ? (
-            <section style={{ marginBottom: 80 }}>
-              <h2
-                className="ch-display"
-                style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 24 }}
-              >
-                Recent chapters
-              </h2>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: 32,
-                }}
-              >
-                {(creator.content ?? []).map((c) => (
-                  <ContentCard key={c.id} content={c} />
-                ))}
-              </div>
-            </section>
+            <CreatorContentSection
+              content={creator.content ?? []}
+              isAuthenticated={Boolean(session)}
+              creatorName={creator.displayName}
+            />
           ) : (
             <div
               className="ch-card"
@@ -222,6 +231,96 @@ export default async function CreatorMiniSitePage({ params }: Props) {
       <WebFooter />
     </>
   )
+}
+
+const PUBLIC_PREVIEW_COUNT = 6
+
+function CreatorContentSection({
+  content,
+  isAuthenticated,
+  creatorName,
+}: {
+  content: NonNullable<NonNullable<Awaited<ReturnType<typeof fetchCreatorProfile>>>['content']>
+  isAuthenticated: boolean
+  creatorName: string
+}) {
+  const visible = isAuthenticated ? content : content.slice(0, PUBLIC_PREVIEW_COUNT)
+  const remaining = content.length - visible.length
+
+  return (
+    <section style={{ marginBottom: 80 }}>
+      <h2
+        className="ch-display"
+        style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 24 }}
+      >
+        Recent chapters
+      </h2>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: 32,
+        }}
+      >
+        {visible.map((c) => (
+          <ContentCard key={c.id} content={c} />
+        ))}
+      </div>
+      {!isAuthenticated && remaining > 0 && (
+        <GuestGate
+          mode="redact"
+          isAuthenticated={false}
+          contextLabel={`See all ${String(content.length)} stories from ${creatorName}`}
+          reason="Sign in to browse the full library — past trips, posts, and upcoming experiences."
+          ctaLabel="Sign in to see all"
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 32,
+              marginTop: 24,
+            }}
+          >
+            {content.slice(PUBLIC_PREVIEW_COUNT, PUBLIC_PREVIEW_COUNT + 6).map((c) => (
+              <ContentCard key={c.id} content={c} />
+            ))}
+          </div>
+        </GuestGate>
+      )}
+    </section>
+  )
+}
+
+function TrustChip({ label, emphasised }: { label: string; emphasised?: boolean }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '6px 12px',
+        borderRadius: 999,
+        background: emphasised === true ? 'var(--primary-tint)' : 'var(--surface)',
+        color: emphasised === true ? 'var(--primary-deep)' : 'var(--ink-soft)',
+        border: '1px solid var(--hairline)',
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {emphasised === true && (
+        <span aria-hidden style={{ fontSize: 11, lineHeight: 1 }}>✓</span>
+      )}
+      {label}
+    </span>
+  )
+}
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${String(Math.round(n / 1000))}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

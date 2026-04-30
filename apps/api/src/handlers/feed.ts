@@ -17,6 +17,7 @@ import {
   getDayTrips,
   getWeekendGetaways,
   getPostsFeed,
+  getSitemapEntries,
   type HeroTab,
 } from '../services/feed.service.js'
 import { postsFeedQuerySchema } from '@creatorhub/shared'
@@ -188,4 +189,15 @@ export async function handleUpdateUserCity(c: Context): Promise<Response> {
 
   const city = await updateUserCity(userId, city_id)
   return c.json({ success: true, data: city })
+}
+
+// ─── GET /api/v1/feed/sitemap ────────────────────────────────────
+// Public, unauthenticated. Returns id/slug/updated_at for every
+// public+published content row + every creator with a username, so the
+// web app can emit a dynamic sitemap.xml. Cached aggressively (1h) at
+// the CDN edge — sitemap freshness doesn't matter at minute granularity.
+export async function handleSitemapEntries(c: Context): Promise<Response> {
+  const entries = await getSitemapEntries()
+  c.header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+  return c.json({ success: true, data: { entries } })
 }

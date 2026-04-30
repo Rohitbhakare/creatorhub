@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { ScheduledDate } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
+import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 
 interface BookCtaProps {
   contentId: string
+  contentTitle?: string
   contentType: 'post' | 'itinerary' | 'experience' | 'event'
   priceInPaisa: number
   isFree: boolean
@@ -25,6 +27,7 @@ interface BookCtaProps {
  */
 export function BookCta({
   contentId,
+  contentTitle,
   contentType,
   priceInPaisa,
   isFree,
@@ -32,19 +35,15 @@ export function BookCta({
   isAuthenticated,
 }: BookCtaProps) {
   const router = useRouter()
+  const { openSignInModal } = useSignInModal()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [selectedDateId, setSelectedDateId] = useState<string | undefined>(
     scheduledDates.find((d) => d.status === 'open')?.id,
   )
 
-  function handleBook() {
-    if (!isAuthenticated) {
-      router.push(`/signin?next=/booking?content=${contentId}`)
-      return
-    }
+  function startHold() {
     setError(null)
-
     startTransition(async () => {
       try {
         const res = await fetch('/api/booking/start', {
@@ -75,6 +74,25 @@ export function BookCta({
         setError('Network error — please try again')
       }
     })
+  }
+
+  function handleBook() {
+    if (!isAuthenticated) {
+      const truncated = contentTitle && contentTitle.length > 36
+        ? `${contentTitle.slice(0, 35)}…`
+        : contentTitle
+      openSignInModal({
+        contextLabel: truncated
+          ? `Book “${truncated}” — ${formatPrice(priceInPaisa, isFree)}`
+          : `Book — ${formatPrice(priceInPaisa, isFree)}`,
+        reason: 'Sign in to hold your seat. Cancellable up to 24 h before.',
+        onSuccess: () => {
+          startHold()
+        },
+      })
+      return
+    }
+    startHold()
   }
 
   const ctaLabel = isFree

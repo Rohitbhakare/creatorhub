@@ -1,11 +1,12 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 
 interface LikeButtonProps {
   contentId: string
+  contentTitle?: string
   initialLiked?: boolean
   initialCount?: number
   isAuthenticated: boolean
@@ -13,38 +14,51 @@ interface LikeButtonProps {
 
 export function LikeButton({
   contentId,
+  contentTitle,
   initialLiked = false,
   initialCount = 0,
   isAuthenticated,
 }: LikeButtonProps) {
-  const router = useRouter()
+  const { openSignInModal } = useSignInModal()
   const reduced = useReducedMotion()
   const [liked, setLiked] = useState(initialLiked)
   const [count, setCount] = useState(initialCount)
   const [pending, startTransition] = useTransition()
 
-  function handleClick() {
-    if (!isAuthenticated) {
-      router.push(`/signin?next=${window.location.pathname}`)
-      return
-    }
-    const next = !liked
-    setLiked(next)
-    setCount((c) => Math.max(0, c + (next ? 1 : -1)))
+  function doLike(target: boolean) {
+    setLiked(target)
+    setCount((c) => Math.max(0, c + (target ? 1 : -1)))
     startTransition(async () => {
       try {
         const res = await fetch('/api/social/like', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ contentId, like: next }),
+          body: JSON.stringify({ contentId, like: target }),
         })
         if (!res.ok) throw new Error('like-failed')
       } catch {
-        setLiked(!next)
-        setCount((c) => Math.max(0, c + (next ? -1 : 1)))
+        setLiked(!target)
+        setCount((c) => Math.max(0, c + (target ? -1 : 1)))
       }
     })
+  }
+
+  function handleClick() {
+    if (!isAuthenticated) {
+      const truncated = contentTitle && contentTitle.length > 40
+        ? `${contentTitle.slice(0, 39)}…`
+        : contentTitle
+      openSignInModal({
+        contextLabel: truncated ? `Like “${truncated}”` : 'Like this story',
+        reason: 'Likes signal what travellers love — they shape what gets surfaced.',
+        onSuccess: () => {
+          doLike(true)
+        },
+      })
+      return
+    }
+    doLike(!liked)
   }
 
   return (

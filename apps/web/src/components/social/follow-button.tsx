@@ -1,34 +1,37 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 
 interface FollowButtonProps {
   creatorId: string
+  /** Display name used in the contextual sign-in modal copy. */
+  creatorName?: string
   initialFollowing?: boolean
+  /** Initial follower count — shown beside the label. */
+  initialFollowerCount?: number
   isAuthenticated: boolean
 }
 
 export function FollowButton({
   creatorId,
+  creatorName,
   initialFollowing = false,
+  initialFollowerCount = 0,
   isAuthenticated,
 }: FollowButtonProps) {
-  const router = useRouter()
+  const { openSignInModal } = useSignInModal()
   const reduced = useReducedMotion()
   const [following, setFollowing] = useState(initialFollowing)
+  const [count, setCount] = useState(initialFollowerCount)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [hover, setHover] = useState(false)
 
-  function handleClick() {
-    if (!isAuthenticated) {
-      router.push(`/signin?next=${window.location.pathname}`)
-      return
-    }
-    const next = !following
-    setFollowing(next)
+  function doFollow(target: boolean) {
+    setFollowing(target)
+    setCount((c) => Math.max(0, c + (target ? 1 : -1)))
     setError(null)
     startTransition(async () => {
       try {
@@ -36,14 +39,29 @@ export function FollowButton({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ creatorId, follow: next }),
+          body: JSON.stringify({ creatorId, follow: target }),
         })
         if (!res.ok) throw new Error('follow-failed')
       } catch {
-        setFollowing(!next)
+        setFollowing(!target)
+        setCount((c) => Math.max(0, c + (target ? -1 : 1)))
         setError('Try again')
       }
     })
+  }
+
+  function handleClick() {
+    if (!isAuthenticated) {
+      openSignInModal({
+        contextLabel: creatorName ? `Follow ${creatorName}` : 'Follow this creator',
+        reason: 'Get their new stories in your feed and notifications.',
+        onSuccess: () => {
+          doFollow(true)
+        },
+      })
+      return
+    }
+    doFollow(!following)
   }
 
   const label = !following ? 'Follow' : hover ? 'Unfollow' : 'Following ✓'
@@ -80,6 +98,19 @@ export function FollowButton({
       }}
     >
       {label}
+      {count > 0 && (
+        <span
+          aria-label={`${String(count)} followers`}
+          style={{
+            marginLeft: 8,
+            fontSize: 12,
+            opacity: 0.85,
+            fontWeight: 500,
+          }}
+        >
+          · {formatCount(count)}
+        </span>
+      )}
       {error && (
         <span style={{ marginLeft: 8, color: 'var(--danger)', fontSize: 11 }} role="alert">
           {error}
@@ -87,4 +118,11 @@ export function FollowButton({
       )}
     </motion.button>
   )
+}
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${String(Math.round(n / 1000))}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
 }

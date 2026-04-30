@@ -2,52 +2,65 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 
 interface SaveButtonProps {
   contentId: string
+  /** Title used in the contextual sign-in modal copy. */
+  contentTitle?: string
   initialSaved?: boolean
+  /** Initial save count from the server — shown to authed + guest users. */
+  initialCount?: number
   isAuthenticated: boolean
-  /** When false, click leads to /signin?next=… */
-  signInHref?: string
 }
 
 export function SaveButton({
   contentId,
+  contentTitle,
   initialSaved = false,
+  initialCount = 0,
   isAuthenticated,
-  signInHref,
 }: SaveButtonProps) {
   const reduced = useReducedMotion()
   const [saved, setSaved] = useState(initialSaved)
+  const [count, setCount] = useState(initialCount)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const { openSignInModal } = useSignInModal()
 
-  function handleClick() {
-    if (!isAuthenticated) {
-      router.push(signInHref ?? `/signin?next=/content/${contentId}`)
-      return
-    }
-
-    const next = !saved
-    setSaved(next) // optimistic
+  function doSave(targetState: boolean) {
+    setSaved(targetState)
+    setCount((c) => Math.max(0, c + (targetState ? 1 : -1)))
     setError(null)
-
     startTransition(async () => {
       try {
         const res = await fetch('/api/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ contentId, save: next }),
+          body: JSON.stringify({ contentId, save: targetState }),
         })
         if (!res.ok) throw new Error('save-failed')
       } catch {
-        setSaved(!next) // revert
+        setSaved(!targetState)
+        setCount((c) => Math.max(0, c + (targetState ? -1 : 1)))
         setError('Could not save — try again')
       }
     })
+  }
+
+  function handleClick() {
+    if (!isAuthenticated) {
+      openSignInModal({
+        contextLabel: contentTitle ? `Save “${truncate(contentTitle)}”` : 'Save this story',
+        reason: "We'll keep it in your library so you can read or book it later.",
+        onSuccess: () => {
+          doSave(true)
+        },
+      })
+      return
+    }
+    doSave(!saved)
   }
 
   return (
@@ -84,6 +97,19 @@ export function SaveButton({
         </svg>
       </motion.span>
       <span>{saved ? 'Saved' : 'Save'}</span>
+      {count > 0 && (
+        <span
+          aria-label={`${String(count)} saves`}
+          style={{
+            fontSize: 12.5,
+            color: saved ? 'var(--primary-deep)' : 'var(--ink-muted)',
+            fontWeight: 500,
+            marginLeft: 2,
+          }}
+        >
+          · {formatCount(count)}
+        </span>
+      )}
       {error && (
         <span
           role="alert"
@@ -101,4 +127,15 @@ export function SaveButton({
       )}
     </button>
   )
+}
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${String(Math.round(n / 1000))}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
+}
+
+function truncate(s: string, max = 40): string {
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s
 }

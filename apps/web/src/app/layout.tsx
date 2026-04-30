@@ -4,6 +4,7 @@ import { getTheme, getCoralHue } from '@/lib/theme'
 import { RouteFocus } from '@/components/a11y/route-focus'
 import { CommandPalette } from '@/components/discover/command-palette'
 import { RouteProgress } from '@/components/ui/route-progress'
+import { SignInModalProvider } from '@/components/auth/sign-in-modal-provider'
 import { Suspense } from 'react'
 import './globals.css'
 
@@ -86,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <RouteProgress />
         </Suspense>
         <CommandPalette />
-        {children}
+        <SignInModalProvider>{children}</SignInModalProvider>
       </body>
     </html>
   )

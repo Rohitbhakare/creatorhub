@@ -1279,3 +1279,74 @@ export async function getEditorsPicks(): Promise<FeedContentItem[]> {
   if (error) throw new AppError('db-error', 500, 'Failed to load editor picks')
   return enrichItems((data ?? []) as Array<{ user_id: string; [k: string]: unknown }>)
 }
+
+// ─── getSitemapEntries ───────────────────────────────────────────
+// SEO indexation. Returns a flat list of every public+published content
+// page and every active creator mini-site so the web app can emit a
+// dynamic sitemap.xml. Capped at 50k entries (Google's per-sitemap limit
+// is 50k URLs / 50MB; we partition later if we ever exceed that).
+
+export interface SitemapEntry {
+  kind: 'content' | 'creator'
+  id: string
+  slug: string | null
+  vertical: string | null
+  username: string | null
+  updatedAt: string
+}
+
+export async function getSitemapEntries(): Promise<SitemapEntry[]> {
+  // Content rows — pull just the columns the sitemap needs. Slug column
+  // may not exist yet (migration 031 not deployed) so we ask for it
+  // optionally and tolerate the missing-column error.
+  let contentRows: Array<Record<string, unknown>> = []
+  {
+    const { data, error } = await supabase
+      .from('content')
+      .select('id, title, vertical, updated_at, published_at')
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .is('deleted_at', null)
+      .order('published_at', { ascending: false })
+      .limit(40_000)
+    if (error) throw new AppError('db-error', 500, 'Failed to read content for sitemap')
+    contentRows = data ?? []
+  }
+
+  // Creator rows — only users marked as creators with a username.
+  // `vertical` lives on user_active_verticals (join table); we default to
+  // 'travel' below since that's the sitemap fallback for the URL pattern.
+  const { data: creatorRows, error: creatorErr } = await supabase
+    .from('users')
+    .select('id, username, updated_at, is_creator')
+    .eq('is_creator', true)
+    .not('username', 'is', null)
+    .limit(10_000)
+  if (creatorErr) throw new AppError('db-error', 500, 'Failed to read creators for sitemap')
+
+  const out: SitemapEntry[] = []
+  for (const row of contentRows) {
+    out.push({
+      kind: 'content',
+      id: row.id as string,
+      slug: null, // populated post-migration-031
+      vertical: (row.vertical as string | null) ?? null,
+      username: null,
+      updatedAt:
+        ((row.updated_at as string | null) ?? (row.published_at as string | null) ?? new Date().toISOString()),
+    })
+  }
+  for (const row of creatorRows ?? []) {
+    const username = row.username as string | null
+    if (!username) continue
+    out.push({
+      kind: 'creator',
+      id: row.id as string,
+      slug: null,
+      vertical: 'travel',
+      username,
+      updatedAt: (row.updated_at as string | null) ?? new Date().toISOString(),
+    })
+  }
+  return out
+}
