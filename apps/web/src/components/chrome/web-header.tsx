@@ -317,6 +317,27 @@ export function WebHeader({
               >
                 For creators
               </Link>
+              {/* Publish for guests — routes through signup so they create
+                  an account first, then land on /publish to start a draft. */}
+              <Link
+                href="/signup?next=/publish"
+                className="ch-btn ch-btn-ink"
+                style={{ padding: '8px 14px 8px 12px', fontSize: 13 }}
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  aria-hidden
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span className="ch-hide-on-mobile">Publish</span>
+              </Link>
               <Link
                 href="/signin"
                 className="ch-btn ch-btn-ghost ch-hide-on-mobile"
