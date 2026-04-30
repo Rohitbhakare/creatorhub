@@ -57,6 +57,7 @@ cors → rateLimit → logger → authenticate|optionalAuthenticate → validate
 - **Query = SQL:** parameterized statements via Supabase client — never string concat
 - **Money = paisa:** all amounts are BIGINT integers — never float or decimal
 - **Errors = AppError:** always throw `AppError`, never raw `Error` in services
+- **UUID PK default:** new tables use `DEFAULT gen_uuid_v7()` (defined in migration 032) **unless** the row's creation timestamp is sensitive — financial (bookings, payments, payouts, refunds), KYC/PII, DPDPA submissions, password reset tokens, and admin user records stay on `gen_random_uuid()` (v4). The migration's header comment lists the v4-locked tables explicitly.
 
 ## Running Locally
 
