@@ -123,7 +123,7 @@
 
 | Epic | Name | Status | Tasks | Tests | Lint | Type | Review Gate | API Boot | DB | Flutter | Commit |
 |------|------|--------|-------|-------|------|------|-------------|----------|----|---------| -------|
-| E5.0 | Web Foundation (chrome + primitives + motion + a11y + CSRF) | `DONE` | 10/10 | `[x]` 135 web tests (+43 new: primitives, layout, csrf, robots, toast) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[ ]` pending |
+| E5.0 | Web Foundation (chrome + primitives + motion + a11y + CSRF) | `DONE` | 10/10 | `[x]` 135 web tests (+43 new: primitives, layout, csrf, robots, toast) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `0495c06` |
 | E5.1 | Home Feed v3 (W3 — chapter hero + bento + right-rail dock) | `NOT STARTED` | 0/11 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
 | E5.2 | Discover + Search (W4 — Cmd+K + 13-filter drawer) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
 | E5.3 | Reader / Detail (Magazine + Compact, parallax, drop-caps, spot save) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |

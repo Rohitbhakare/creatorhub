@@ -36,7 +36,7 @@
 - [-] Screenshots at 5 breakpoints — N/A for E5.0 (no screen rewrites; chrome polish is sub-pixel)
 - [x] tracking.md updated
 - [x] Master TRACKING.md updated
-- [ ] Commit + push to `dev` (final step below)
+- [x] Commit + push to `dev` — `0495c06` pushed to origin/dev
 
 ---
 
