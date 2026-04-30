@@ -4,9 +4,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import type { ConfirmationResult } from 'firebase/auth'
+import { reportClientError } from '@/lib/report-client-error'
 import {
   isFirebaseConfigured,
   sendPhoneOtp,
+  // verifyPhoneOtp + signInWithGoogle imported below; helper for reporting
+  // browser errors to the SSR log so the file-tail monitor catches them.
   signInWithGoogle,
   verifyPhoneOtp,
 } from '@/lib/firebase-client'
@@ -49,6 +52,7 @@ export function SignInForm({ next }: SignInFormProps) {
           setConfirmation(c)
           setMode('otp')
         } catch (err) {
+          reportClientError('signin:sendPhoneOtp', err)
           setError(friendly(err) || 'Could not send code — try again')
         }
       })
@@ -73,6 +77,7 @@ export function SignInForm({ next }: SignInFormProps) {
           : `dev-stub-${otp}-${phone.replace(/\D/g, '')}`
         await postSignin(idToken, next, router, setError)
       } catch (err) {
+        reportClientError('signin:verifyPhoneOtp', err)
         setError(friendly(err) || 'Invalid code — try again')
       }
     })
@@ -85,6 +90,7 @@ export function SignInForm({ next }: SignInFormProps) {
         const idToken = await signInWithGoogle()
         await postSignin(idToken, next, router, setError)
       } catch (err) {
+        reportClientError('signin:google', err)
         setError(friendly(err) || 'Google sign-in failed')
       }
     })
@@ -258,8 +264,23 @@ function friendly(err: unknown): string | null {
     const code = String((err as { code: unknown }).code)
     if (code.includes('too-many-requests')) return 'Too many attempts — wait a minute'
     if (code.includes('invalid-verification')) return 'That code looks wrong'
+    if (code.includes('invalid-phone-number')) return 'That phone number looks wrong'
+    if (code.includes('missing-phone-number')) return 'Enter a phone number first'
+    if (code.includes('quota-exceeded')) return 'Daily SMS limit hit — try again tomorrow'
+    if (code.includes('captcha-check-failed')) return 'reCAPTCHA failed — refresh and retry'
+    if (code.includes('billing-not-enabled')) return 'Phone sign-in is misconfigured (billing) — use Google instead'
+    if (code.includes('operation-not-allowed')) return 'Phone sign-in is disabled — use Google instead'
+    if (code.includes('app-not-authorized')) return 'This domain isn’t authorised — try the deployed URL or use Google'
+    if (code.includes('api-key-not-valid')) return 'Auth misconfigured (API key) — please contact support'
     if (code.includes('popup-closed')) return 'Google sign-in cancelled'
+    if (code.includes('popup-blocked')) return 'Pop-up blocked — allow pop-ups and retry'
     if (code.includes('network')) return 'Network error — please retry'
+    // Last-ditch: surface the raw Firebase code so the user (and us in
+    // logs) can act on it instead of seeing a generic message.
+    if (code.startsWith('auth/')) return `Sign-in error: ${code}`
+  }
+  if (err instanceof Error && err.message) {
+    return err.message
   }
   return null
 }

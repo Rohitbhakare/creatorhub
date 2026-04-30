@@ -9,6 +9,7 @@ import {
   sendPhoneOtp,
   verifyPhoneOtp,
 } from '@/lib/firebase-client'
+import { reportClientError } from '@/lib/report-client-error'
 
 interface Props {
   contextLabel: string
@@ -80,6 +81,7 @@ export function SignInModal({ contextLabel, reason, onClose, onSuccess }: Props)
         const token = await signInWithGoogle()
         await completeSession(token)
       } catch (err) {
+        reportClientError('signin-modal:google', err)
         setError(friendly(err) ?? 'Could not sign in with Google')
       }
     })
@@ -97,6 +99,7 @@ export function SignInModal({ contextLabel, reason, onClose, onSuccess }: Props)
         confirmationRef.current = result.confirmation
         setPhoneStep('enter-otp')
       } catch (err) {
+        reportClientError('signin-modal:sendPhoneOtp', err)
         setError(friendly(err) ?? 'Could not send OTP')
       }
     })
@@ -115,6 +118,7 @@ export function SignInModal({ contextLabel, reason, onClose, onSuccess }: Props)
         const token = await verifyPhoneOtp(confirmation, otp.trim())
         await completeSession(token)
       } catch (err) {
+        reportClientError('signin-modal:verifyPhoneOtp', err)
         setError(friendly(err) ?? 'Invalid OTP')
       }
     })
