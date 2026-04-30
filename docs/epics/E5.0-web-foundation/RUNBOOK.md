@@ -60,7 +60,19 @@ Idempotent. Only touches the `dd000000-*` UUID range. Production data untouched.
 
 ## B. Deploy verification — needs a staging environment
 
-### B1. Verify production CSP doesn't break Razorpay / Firebase / Mapbox
+### B1. (DONE 2026-05-01) — production CSP audit completed
+
+`pnpm build && pnpm start` was run; headers captured via `curl -I`. Findings:
+
+- ✅ All 7 production headers ship: CSP, X-Frame-Options=DENY, X-Content-Type-Options=nosniff, Referrer-Policy=strict-origin-when-cross-origin, HSTS (2 years + preload), Permissions-Policy, X-DNS-Prefetch-Control.
+- ✅ CSRF cookie (`ch_csrf`) minted with `Secure; SameSite=Lax`.
+- ✅ CSP origins cover all currently-installed third-party scripts: Firebase (`firebaseapp.com`, `gstatic.com`), Google (`accounts.google.com`, `apis.google.com`), Razorpay (`checkout.razorpay.com`), reCAPTCHA (`google.com`).
+- ⚠️ **Deploy-time gotcha:** `connect-src` includes the literal `http://localhost:3001` because the prod build inherits `API_BASE_URL` from env at build time. **Set `API_BASE_URL=https://<your-prod-api>` in the deploy env** (Fly.io secrets, Vercel env, etc.) before building for prod, or browsers will refuse to connect to the real API.
+- ⏳ Mapbox + PostHog not yet in CSP because not yet installed. Their owner epics (E5.3 reader for Mapbox, future analytics pack for PostHog) will add the origins when those deps land.
+
+Old smoke-test instructions kept below for re-verification after prod deploy.
+
+### B1-original. Verify production CSP doesn't break Razorpay / Firebase / Mapbox
 **Why:** [next.config.ts:39-41](apps/web/next.config.ts) ships a strict CSP **only in production**. Dev hides it behind `if (isDev) return []`. Three known origins must be in `script-src` and `frame-src` for auth + payments to work — easy to miss one.
 
 **How:**
