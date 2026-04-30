@@ -61,7 +61,7 @@ export function extractContentId(segment: string): string | null {
   const tail = value.slice(-36)
   if (UUID_RE.test(tail)) return tail.toLowerCase()
   const m = value.match(UUID_RE)
-  if (m) return m[0]!.toLowerCase()
+  if (m && m[0]) return m[0].toLowerCase()
   // No UUID — pass through as a slug lookup. API resolves either form.
   return value
 }

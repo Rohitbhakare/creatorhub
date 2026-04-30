@@ -9,6 +9,7 @@ import { SectionRail } from '@/components/content/section-rail'
 import { HeroFeature } from '@/components/content/hero-feature'
 import { BentoMosaic } from '@/components/content/bento-mosaic'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
+import { FeedChipRail } from '@/components/feed/feed-chip-rail'
 import { getSession } from '@/lib/session'
 import { fetchPopularCities, fetchQuestSummary, getHomeFeedSections } from '@/lib/api'
 import { contentSlugId } from '@/lib/slug'
@@ -33,20 +34,6 @@ interface Props {
     city?: string
   }>
 }
-
-const SCOPES = [
-  { id: 'near-you' as const, label: 'Near you' },
-  { id: 'following' as const, label: 'Following' },
-  { id: 'all' as const, label: 'All' },
-]
-
-const FILTERS: { id: string; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'post', label: 'Posts' },
-  { id: 'itinerary', label: 'Itineraries' },
-  { id: 'experience', label: 'Experiences' },
-  { id: 'event', label: 'Events' },
-]
 
 const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -185,90 +172,12 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
         </section>
 
-        {/* Sticky chip rail */}
-        <div
-          style={{
-            position: 'sticky',
-            top: 72,
-            zIndex: 20,
-            background: 'color-mix(in srgb, var(--bg) 92%, transparent)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid var(--hairline)',
-            marginTop: 8,
-          }}
-        >
-          <div
-            className="ch-container ch-chip-rail-pad"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              overflowX: 'auto',
-            }}
-          >
-            <div style={{ display: 'flex', gap: 4, flex: '0 0 auto' }}>
-              {SCOPES.map((s) => {
-                const guestDisabled = isGuest && s.id === 'following'
-                const isActive = scope === s.id && !guestDisabled
-                const href = guestDisabled
-                  ? '/signin?next=/'
-                  : `/?scope=${s.id}${type !== undefined ? `&type=${type}` : ''}`
-                return (
-                  <Link
-                    key={s.id}
-                    href={href}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive
-                        ? 'white'
-                        : guestDisabled
-                          ? 'var(--ink-faint)'
-                          : 'var(--ink-soft)',
-                      background: isActive ? 'var(--ink)' : 'transparent',
-                      textDecoration: 'none',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {s.label}
-                    {guestDisabled && (
-                      <span style={{ marginLeft: 4, fontSize: 11 }}>· sign in</span>
-                    )}
-                  </Link>
-                )
-              })}
-            </div>
-            <div
-              style={{ width: 1, height: 22, background: 'var(--hairline)', flex: '0 0 auto' }}
-            />
-            <div style={{ display: 'flex', gap: 4, flex: '1 1 auto', overflowX: 'auto' }}>
-              {FILTERS.map((f) => {
-                const isActive = (type ?? 'all') === f.id
-                const queryType = f.id === 'all' ? '' : `&type=${f.id}`
-                return (
-                  <Link
-                    key={f.id}
-                    href={`/?scope=${scope}${queryType}`}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? 'var(--primary-deep)' : 'var(--ink-soft)',
-                      background: isActive ? 'var(--primary-tint)' : 'transparent',
-                      textDecoration: 'none',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {f.label}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </div>
+        <FeedChipRail
+          scope={scope}
+          type={type}
+          isGuest={isGuest}
+          {...(city ? { preserve: { city } } : {})}
+        />
 
         <div
           className="ch-container ch-page-grid"
