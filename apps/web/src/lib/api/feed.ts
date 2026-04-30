@@ -150,6 +150,52 @@ export async function getHomeFeedSections(opts: {
   return sections
 }
 
+// Map of section ids (used in /discover?section=...) → API endpoint name.
+// Mirrors what getHomeFeedSections wires up — keep them in sync. We also
+// resolve the user-visible label so the discover page can render a tight
+// "Showing: X" header instead of the generic search hero.
+const SECTION_TO_ENDPOINT: Record<
+  string,
+  { endpoint: string; label: string; sliceTo?: 'post' | 'trip' }
+> = {
+  'hot-near-you': { endpoint: 'hot-near-you', label: 'Hot near you' },
+  'for-you-trips': { endpoint: 'for-you', label: 'Picked for you', sliceTo: 'trip' },
+  stories: { endpoint: 'for-you', label: 'Stories worth your morning coffee', sliceTo: 'post' },
+  handpicked: { endpoint: 'editors-picks', label: 'Handpicked for you' },
+  'this-weekend': { endpoint: 'this-weekend', label: 'This weekend' },
+  'from-city': { endpoint: 'trips-from-city', label: 'Trips from your city' },
+  'day-trips': { endpoint: 'day-trips', label: 'Day trips' },
+  'weekend-getaways': { endpoint: 'weekend-getaways', label: 'Weekend getaways' },
+  posts: { endpoint: 'posts', label: 'Trending posts' },
+  events: { endpoint: 'upcoming-events', label: 'Upcoming events' },
+}
+
+export interface FeedSectionResult {
+  id: string
+  label: string
+  items: ContentCard[]
+}
+
+/**
+ * Fetch the contents of a single feed section by id — the same data that
+ * appears under that rail on the home feed. Used by the /discover?section=…
+ * "See all" landing pages.
+ */
+export async function fetchFeedSection(
+  id: string,
+  opts: { city?: string } = {},
+): Promise<FeedSectionResult | null> {
+  const def = SECTION_TO_ENDPOINT[id]
+  if (!def) return null
+  const params: Record<string, string | undefined> = {}
+  if (opts.city) params.city = opts.city
+  const items = await fetchSection(def.endpoint, params)
+  let filtered = items
+  if (def.sliceTo === 'post') filtered = items.filter((i) => i.type === 'post')
+  else if (def.sliceTo === 'trip') filtered = items.filter((i) => i.type !== 'post')
+  return { id, label: def.label, items: filtered }
+}
+
 export async function getFollowingFeed(): Promise<ContentCard[]> {
   try {
     const data = await apiFetch<unknown>(`/api/v1/feed/following`, {

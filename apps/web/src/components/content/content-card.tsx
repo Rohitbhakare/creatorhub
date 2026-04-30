@@ -154,27 +154,92 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
           </p>
         )}
 
+        {/* Tag chips — small, max 2 to keep the card calm. */}
+        {content.tags && content.tags.length > 0 && !isCompact && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+            {content.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontSize: 11,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: 'var(--surface-alt)',
+                  color: 'var(--ink-soft)',
+                  fontWeight: 500,
+                }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Creator strip with avatar — always visible, gives faces to the feed. */}
+        {content.creator && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 6,
+            }}
+          >
+            <CardAvatar
+              name={content.creator.displayName}
+              url={content.creator.avatarUrl}
+              size={24}
+            />
+            <span
+              style={{
+                fontSize: 12.5,
+                color: 'var(--ink)',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                minWidth: 0,
+              }}
+            >
+              {content.creator.displayName}
+            </span>
+            {content.creator.isVerified && (
+              <span
+                aria-label="Verified"
+                title="Verified creator"
+                style={{ color: 'var(--primary)', fontSize: 12, lineHeight: 1 }}
+              >
+                ✓
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Meta row: city · duration · rating · save count */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 8,
             fontSize: 12,
             color: 'var(--ink-muted)',
             marginTop: 4,
+            flexWrap: 'wrap',
           }}
         >
-          {content.creator && <span>{content.creator.displayName}</span>}
           {content.city && (
-            <>
-              <span aria-hidden>·</span>
-              <span>{content.city}</span>
-            </>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              <span aria-hidden style={{ color: 'var(--primary)' }}>●</span>
+              {content.city}
+            </span>
           )}
-          {content.durationDays && (
+          {content.durationDays != null && content.durationDays > 0 && (
             <>
               <span aria-hidden>·</span>
-              <span>{content.durationDays}d</span>
+              <span>
+                {content.durationDays}
+                {content.durationDays === 1 ? ' day' : ' days'}
+              </span>
             </>
           )}
           {content.rating != null && (
@@ -183,8 +248,57 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
               <span>★ {content.rating.toFixed(1)}</span>
             </>
           )}
+          {content.saveCount != null && content.saveCount > 0 && (
+            <>
+              <span aria-hidden>·</span>
+              <span>
+                {formatCount(content.saveCount)} saved
+              </span>
+            </>
+          )}
         </div>
       </div>
     </Link>
+  )
+}
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${String(Math.round(n / 1000))}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
+}
+
+function CardAvatar({ name, url, size }: { name: string; url: string | null; size: number }) {
+  const initials = name
+    .split(' ')
+    .map((s) => s[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 999,
+        background: url ? 'transparent' : 'linear-gradient(135deg, #d4b896, #a07c5a)',
+        backgroundImage: url ? `url(${url})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: 'white',
+        display: 'grid',
+        placeItems: 'center',
+        fontFamily: 'var(--font-serif)',
+        fontWeight: 600,
+        fontSize: size * 0.42,
+        flex: '0 0 auto',
+        overflow: 'hidden',
+      }}
+    >
+      {url ? '' : initials || '?'}
+    </div>
   )
 }
