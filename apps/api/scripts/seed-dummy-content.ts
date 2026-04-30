@@ -309,7 +309,7 @@ const seeds: { creator: number; data: Seed }[] = [
       description: 'The walks I do for friends visiting from abroad.',
       body:
         'Jama Masjid steps at 5 a.m. The first muezzin\'s call. The pigeons rise over the dome. Walk down to Karim\'s — they don\'t open for breakfast, but Al-Jawahar across the street does. Order the nihari and a kulcha. Walk to Khari Baoli (the spice market) by 6:30, before the trucks arrive. By 8 you are at Daryaganj for a chai at the press club gates. By 9, the city has turned.',
-      cover: 'photo-1592635196078-9bc24abc2dc8',
+      cover: 'photo-1602216056096-3b40cc0c9944',
     },
   },
   {
@@ -387,7 +387,7 @@ const seeds: { creator: number; data: Seed }[] = [
       description: 'Skip the official walk. Get lost in Mandvi-ni-pol on a Tuesday morning.',
       body:
         'The official walks take you through the same six houses. Beautiful, sure. But the magic is the unmaintained ones, the ones where four families share a courtyard and an old chabutra. A Tuesday morning, when the kids are at school and the grandmothers are stringing flowers. Ask one of them if you can sit on the chabutra steps. They will say yes and bring you a glass of water.',
-      cover: 'photo-1582553081924-b94ac5fad2bc',
+      cover: 'photo-1626621341517-bbf3d9990a23',
     },
   },
 
@@ -477,7 +477,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Old Delhi heritage walks — a 5-walk circuit',
       description: 'Five mornings, five neighbourhoods. Each walk 3 hours, all on foot.',
-      cover: 'photo-1592635196078-9bc24abc2dc8',
+      cover: 'photo-1602216056096-3b40cc0c9944',
       durationDays: 5,
       days: [
         { dayNumber: 1, title: 'Walk 1 — Chandni Chowk dawn', description: 'Jama Masjid sunrise. Karim\'s lane. Khari Baoli.' },
@@ -536,7 +536,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.chennai,
       title: 'Tamil temple food trail — 5 days',
       description: 'Madurai, Kumbakonam, Thanjavur, Chettinad. Filter coffee included.',
-      cover: 'photo-1535850836387-0f9dd0a90c66',
+      cover: 'photo-1606491956689-2ea866880c84',
       durationDays: 5,
       pricing: 'paid',
       pricePaisa: 24900,
@@ -583,7 +583,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.hyderabad,
       title: 'Hyderabad food deep-dive — 3 days',
       description: 'Mehboob ki Mehndi, Charminar Irani, Paradise vs Bawarchi.',
-      cover: 'photo-1631898039984-fd027bbb0bf6',
+      cover: 'photo-1599661046289-e31897846e41',
       durationDays: 3,
       days: [
         { dayNumber: 1, title: 'Old city circuit', description: 'Charminar bangles. Nimrah chai. Madina lunch.' },
@@ -617,7 +617,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.chennai,
       title: 'Pondicherry kitchen tour — 4 hours, 3 homes',
       description: 'A French quarter walk that ends in three Tamil-Creole kitchens.',
-      cover: 'photo-1631898039984-fd027bbb0bf6',
+      cover: 'photo-1599661046289-e31897846e41',
       pricePaisa: 180000,
       durationMinutes: 240,
       meetingArea: 'Auroville Bakery, White Town, Pondicherry',
@@ -633,7 +633,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Old Delhi heritage walk — 3 hours, 11 lanes',
       description: 'A walk through gullies most Delhiites have never seen.',
-      cover: 'photo-1592635196078-9bc24abc2dc8',
+      cover: 'photo-1602216056096-3b40cc0c9944',
       pricePaisa: 120000,
       durationMinutes: 180,
       meetingArea: 'Jama Masjid Gate 3, Old Delhi',
@@ -731,7 +731,7 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Sufi qawwali at Nizamuddin — group attend',
       description: 'Thursday evening dargah qawwali. We meet at 5:30 p.m. at the entrance.',
-      cover: 'photo-1582553081924-b94ac5fad2bc',
+      cover: 'photo-1626621341517-bbf3d9990a23',
       venue: 'Hazrat Nizamuddin Dargah',
       venueAddress: 'Nizamuddin West, New Delhi',
       startsInDays: 3,
