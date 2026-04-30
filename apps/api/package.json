@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "openapi:drift": "tsx scripts/check-openapi-drift.ts"
+    "openapi:drift": "tsx scripts/check-openapi-drift.ts",
+    "migrate": "tsx --env-file=.env scripts/migrate.ts",
+    "migrate:status": "tsx --env-file=.env scripts/migrate.ts -- --status",
+    "migrate:dry-run": "tsx --env-file=.env scripts/migrate.ts -- --dry-run"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
@@ -19,12 +22,14 @@
     "firebase-admin": "^13.0.0",
     "hono": "^4.7.0",
     "jose": "^6.2.2",
+    "pg": "^8.20.0",
     "posthog-node": "^5.30.3",
     "razorpay": "^2.9.6",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.20.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "vitest": "^3.0.0"

@@ -65,3 +65,24 @@ cors → rateLimit → logger → authenticate|optionalAuthenticate → validate
 cp .env.example .env  # fill in values
 pnpm dev              # starts on localhost:3000
 ```
+
+## Database migrations
+
+Migrations live in `src/db/migrations/`, named `NNN_<slug>.sql`. The runner script applies anything not yet recorded in the `_migrations` tracking table, in numeric filename order. Each file applies inside its own transaction.
+
+```bash
+# Setup (one time):
+#   1. Set DATABASE_URL in .env (Supabase dashboard → Settings → Database
+#      → Connection string → "Direct connection" or "Session pooler").
+#   2. If the live DB already has tables 001..N applied (it does), bootstrap:
+pnpm --filter api migrate -- --mark-applied 023   # records 001..023 as applied without running them
+
+# Day-to-day:
+pnpm --filter api migrate            # apply all pending
+pnpm --filter api migrate:status     # list applied vs pending
+pnpm --filter api migrate:dry-run    # preview without applying
+```
+
+DO NOT use the transaction-mode pooler (port 6543) for the runner — DDL doesn't work reliably through it. The direct connection (db.&lt;ref&gt;.supabase.co:5432) and the session-mode pooler are both fine.
+
+The runner is idempotent: re-running a fully-deployed DB is a no-op. It also detects checksum drift — editing an already-applied file emits a warning so you don't silently corrupt schema state.
