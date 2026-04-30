@@ -1,3 +1,4 @@
-tests/bdd/.features-gen
-test-results
 playwright-report
+test-results
+tests/bdd/.features-gen
+tests/walkthrough-shots

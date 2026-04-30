@@ -245,7 +245,15 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
 
 /**
  * Public variant — for landing/mini-site/content pages where guest browsing
- * is expected. Returns null on 404 instead of throwing.
+ * is expected. Returns null on 404, 429, and 5xx so the calling RSC can
+ * render a graceful empty/skeleton state instead of crashing the whole
+ * page render with a "Server Components render" error.
+ *
+ * Why 429 here specifically? A traffic burst (social share spike, scraper)
+ * causes our upstream rate-limiter to start refusing requests. If those
+ * 429s propagate as exceptions through transformContentDetail → page →
+ * Suspense, the user sees the error.tsx fallback. Returning null means the
+ * page renders with empty content rails — degraded but never broken.
  */
 export async function apiFetchPublic<T>(
   path: string,
@@ -254,7 +262,14 @@ export async function apiFetchPublic<T>(
   try {
     return await apiFetch<T>(path, { ...opts, skipAuth: true })
   } catch (err) {
-    if (err instanceof AppError && err.status === 404) return null
+    if (
+      err instanceof AppError &&
+      (err.status === 404 ||
+        err.status === 429 ||
+        (err.status >= 500 && err.status < 600))
+    ) {
+      return null
+    }
     throw err
   }
 }
