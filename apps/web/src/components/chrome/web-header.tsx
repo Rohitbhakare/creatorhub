@@ -293,32 +293,11 @@ export function WebHeader({
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </Link>
-              <Link
-                href="/discover"
-                className="ch-hide-on-mobile"
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'var(--ink-soft)',
-                  textDecoration: 'none',
-                }}
-              >
-                Browse
-              </Link>
-              <Link
-                href="/creators"
-                className="ch-hide-on-mobile"
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'var(--ink-soft)',
-                  textDecoration: 'none',
-                }}
-              >
-                For creators
-              </Link>
               {/* Publish for guests — routes through signup so they create
-                  an account first, then land on /publish to start a draft. */}
+                  an account first, then land on /publish to start a draft.
+                  Note: removed the "Browse" + "For creators" text links —
+                  the search icon already covers /discover, and the Publish
+                  button signals the creator path on its own. */}
               <Link
                 href="/signup?next=/publish"
                 className="ch-btn ch-btn-ink"
