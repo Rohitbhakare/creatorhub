@@ -14,7 +14,7 @@ describe('LikeButton', () => {
     const btn = screen.getByRole('button', { name: 'Like' })
     expect(btn).toHaveAttribute('aria-pressed', 'false')
     // No count number shown
-    expect(btn.textContent?.match(/\d+/)).toBeNull()
+    expect(btn.textContent).not.toMatch(/\d+/)
   })
 
   it('renders count beside the heart when initialCount > 0', () => {

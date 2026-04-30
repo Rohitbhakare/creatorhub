@@ -86,7 +86,9 @@ describe('FeedChipRail', () => {
     // The "All" chip in the type rail (second occurrence — first is the
     // scope All). Use getAllByRole + last() to pick the type-rail one.
     const allChips = screen.getAllByRole('button', { name: 'All' })
-    await user.click(allChips[allChips.length - 1]!)
+    const lastAll = allChips[allChips.length - 1]
+    if (!lastAll) throw new Error('expected at least one All chip')
+    await user.click(lastAll)
 
     // No type=… in the URL when "All" is selected
     expect(mockPush).toHaveBeenCalledWith(

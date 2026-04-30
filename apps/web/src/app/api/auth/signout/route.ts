@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { apiFetch } from '@/lib/api-client'
-import { destroySession, getRefreshToken } from '@/lib/session'
+import { getRefreshToken } from '@/lib/session'
 import { logger } from '@/lib/logger'
 
 export async function POST() {
@@ -22,6 +22,11 @@ export async function POST() {
     }
   }
 
-  await destroySession()
-  return NextResponse.json({ success: true })
+  // Drop session cookies on the response (same Next 15 reason as signin).
+  const res = NextResponse.json({ success: true })
+  for (const name of ['ch_session', 'ch_access', 'ch_refresh']) {
+    res.cookies.delete(name)
+  }
+  log.info('session:destroyed')
+  return res
 }

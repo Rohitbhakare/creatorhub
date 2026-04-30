@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { apiFetch } from '@/lib/api-client'
-import { createSession } from '@/lib/session'
+import { buildSessionCookies } from '@/lib/session'
 import { logger } from '@/lib/logger'
 import { AppError } from '@/lib/errors'
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       retries: 0,
     })
 
-    await createSession(
+    const sessionCookies = await buildSessionCookies(
       {
         userId: result.user.id,
         username: result.user.username,
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     )
 
     // Onboarding gate: a user is "complete" when they've picked at least 2
-    // travel sub-categories and a home city. The API returns these fields on
+    // sub-categories and a home city. The API returns these fields on
     // /auth/register; older deploys that don't will fall back to true so we
     // don't trap existing users in onboarding.
     const subCats = result.user.travel_sub_categories ?? []
@@ -101,10 +101,14 @@ export async function POST(req: NextRequest) {
       (subCats.length >= 2 && Boolean(result.user.city_id))
 
     log.info(
-      { userId: result.user.id, onboardingComplete },
+      { userId: result.user.id, onboardingComplete, cookieNames: sessionCookies.map((c) => c.name) },
       'auth-signin:ok',
     )
-    return NextResponse.json({
+
+    // Attach Set-Cookie headers directly to this response so they survive
+    // back to the browser. cookies().set() in route handlers doesn't always
+    // round-trip in Next.js 15.
+    const res = NextResponse.json({
       user: {
         id: result.user.id,
         username: result.user.username,
@@ -113,6 +117,10 @@ export async function POST(req: NextRequest) {
       },
       onboardingComplete,
     })
+    for (const c of sessionCookies) {
+      res.cookies.set(c.name, c.value, c.options)
+    }
+    return res
   } catch (err) {
     const e = err instanceof AppError ? err : AppError.upstream()
     log.error({ err: e.toJSON() }, 'auth-signin:failed')

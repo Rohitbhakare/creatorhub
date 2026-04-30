@@ -82,12 +82,12 @@ describe('DiscoverFilters', () => {
     // Two comboboxes are visible: the always-on Sort + the popover City.
     const dialog = screen.getByRole('dialog', { name: 'Filters' })
     const cityDropdown = dialog.querySelector('select')
-    expect(cityDropdown).not.toBeNull()
+    if (!cityDropdown) throw new Error('city dropdown not found in popover')
     // Default + 2 cities = 3 options inside the popover dropdown.
-    expect(cityDropdown!.querySelectorAll('option')).toHaveLength(3)
-    expect(cityDropdown!.querySelector('option[value=""]')!.textContent).toBe(
-      'Anywhere in India',
-    )
+    expect(cityDropdown.querySelectorAll('option')).toHaveLength(3)
+    const defaultOpt = cityDropdown.querySelector('option[value=""]')
+    if (!defaultOpt) throw new Error('default city option missing')
+    expect(defaultOpt.textContent).toBe('Anywhere in India')
   })
 
   it('renders 5 price preset chips', async () => {

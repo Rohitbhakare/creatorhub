@@ -5,7 +5,7 @@
  * the real app uses (sign-in modal context) so interactive components
  * that call useSignInModal() don't blow up in isolation.
  */
-import { render, type RenderOptions } from '@testing-library/react'
+import { render, type RenderOptions, type RenderResult } from '@testing-library/react'
 import { SignInModalProvider } from '@/components/auth/sign-in-modal-provider'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -20,7 +20,7 @@ function AllProviders({ children }: ProvidersProps) {
 export function renderWithProviders(
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>,
-) {
+): RenderResult {
   return render(ui, { wrapper: AllProviders, ...options })
 }
 
