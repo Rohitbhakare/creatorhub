@@ -3,7 +3,8 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 
-export type MoodId = 'slow' | 'high' | 'food' | 'sunrise' | 'art'
+
+import type { MoodId } from './mood-types'
 
 interface Mood {
   id: MoodId
@@ -20,7 +21,6 @@ const MOODS: Mood[] = [
   { id: 'art', label: 'Art & craft', desc: 'Studios, weavers, ateliers, residencies', Icon: BrushIcon },
 ]
 
-const VALID_MOODS = new Set<string>(MOODS.map((m) => m.id))
 
 /**
  * v3 mood selector — 5 chips that re-rank the feed below by lifestyle
@@ -150,10 +150,6 @@ export function MoodSelector({ activeMood }: { activeMood?: MoodId | null }) {
 }
 
 /** Validate a `?mood=` query param. Returns null if not a known mood. */
-export function parseMoodParam(raw: string | undefined | null): MoodId | null {
-  if (!raw || !VALID_MOODS.has(raw)) return null
-  return raw as MoodId
-}
 
 // ─── Icons (hand-rolled, monochrome, theme-aware via currentColor) ───
 function LeafIcon({ size = 24 }: { size?: number }) {
