@@ -24,7 +24,7 @@
 | T6 | v3 chrome polish | `[x]` | signin / signup / forgot-password pages now share the v3 chrome — coral mono kicker (uppercase, 0.22em letter-spacing) + display H1 with italic accent + `clamp(28px, 4vw, 36px)` sizing + descriptive lede paragraph. |
 | T7 | Edge cases | `[x]` | Forgot-password copy reworded to be explicit about generic responses ("we won't confirm whether the email exists"). Email tab signup vs signin mode toggled via `intent` prop. Password strength meter only renders in signup mode. |
 | T8 | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 5 deviations + 3 follow-ups documented. |
-| T9 | Pre-commit + screenshots + commit | `[ ]` | |
+| T9 | Pre-commit + screenshots + commit | `[x]` | All gates green. 20 PNGs captured. Committed as `ef575d0` and pushed to `origin/dev`. |
 
 ---
 
@@ -41,7 +41,7 @@
 - [x] Screenshots × 5 breakpoints × 4 routes — 20 PNGs captured
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `ef575d0`
 
 ---
 
