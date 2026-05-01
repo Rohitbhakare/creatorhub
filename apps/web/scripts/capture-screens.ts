@@ -46,8 +46,33 @@ async function main(): Promise<void> {
           await ctx.close()
           continue
         }
+        // Disable animations + force everything visible so framer-motion's
+        // `whileInView` opacity:0 doesn't blank below-the-fold sections in
+        // a fullPage capture (Playwright doesn't scroll, so IntersectionObserver
+        // never fires, and `<ScrollReveal>` content stays at opacity:0 forever).
         await page.addStyleTag({
-          content: `*, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }`,
+          content: `
+            *, *::before, *::after {
+              animation-duration: 0s !important;
+              transition-duration: 0s !important;
+            }
+            /* framer-motion's initial='hidden' applies inline opacity:0;
+               override with !important so all sections capture filled. */
+            [style*="opacity: 0"] { opacity: 1 !important; }
+          `,
+        })
+        // Programmatically scroll top-to-bottom so any IntersectionObserver
+        // animations (like ScrollReveal) fire before the snapshot — belt-
+        // and-braces alongside the CSS override above.
+        await page.evaluate(async () => {
+          const total = document.documentElement.scrollHeight
+          const step = window.innerHeight
+          for (let y = 0; y <= total; y += step) {
+            window.scrollTo(0, y)
+            await new Promise((r) => setTimeout(r, 80))
+          }
+          window.scrollTo(0, 0)
+          await new Promise((r) => setTimeout(r, 200))
         })
         const out = `${OUT_DIR}/${route.slug}-${bp.name}.png`
         await page.screenshot({ path: out, fullPage: true })
