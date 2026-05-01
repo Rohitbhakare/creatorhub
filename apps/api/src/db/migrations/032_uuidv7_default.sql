@@ -79,34 +79,71 @@ COMMENT ON FUNCTION gen_uuid_v7() IS
 -- Each ALTER is metadata-only — it changes how future INSERTs without an
 -- explicit `id` resolve. Existing rows are not touched. Foreign keys are
 -- unaffected (still uuid → uuid).
+--
+-- Tables are wrapped in DO blocks to skip gracefully if they don't exist
+-- (in case migrations ran out of order or were partially applied).
 
--- Content domain (high write volume, public, time-ordered listings)
-ALTER TABLE content        ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE content_media  ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE itinerary_days ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE itinerary_spots ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+DO $$
+BEGIN
+  -- Content domain (high write volume, public, time-ordered listings)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'content') THEN
+    ALTER TABLE content ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'content_media') THEN
+    ALTER TABLE content_media ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'itinerary_days') THEN
+    ALTER TABLE itinerary_days ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'itinerary_spots') THEN
+    ALTER TABLE itinerary_spots ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
 
--- Social (high write volume, time-ordered)
-ALTER TABLE comments     ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE saved_lists  ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE shares       ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE studio_alerts ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  -- Social (high write volume, time-ordered)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'comments') THEN
+    ALTER TABLE comments ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'saved_lists') THEN
+    ALTER TABLE saved_lists ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'shares') THEN
+    ALTER TABLE shares ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'studio_alerts') THEN
+    ALTER TABLE studio_alerts ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
 
--- Audit / analytics / notifications (textbook append-only + time-ordered)
-ALTER TABLE audit_events     ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE analytics_events ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE notifications    ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE search_queries   ALTER COLUMN id SET DEFAULT gen_uuid_v7();
-ALTER TABLE admin_audit_log  ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  -- Audit / analytics / notifications (textbook append-only + time-ordered)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_events') THEN
+    ALTER TABLE audit_events ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'analytics_events') THEN
+    ALTER TABLE analytics_events ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications') THEN
+    ALTER TABLE notifications ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'search_queries') THEN
+    ALTER TABLE search_queries ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'admin_audit_log') THEN
+    ALTER TABLE admin_audit_log ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
 
--- Webhook event log (append-only, time-ordered)
-ALTER TABLE razorpay_webhook_events ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  -- Webhook event log (append-only, time-ordered)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'razorpay_webhook_events') THEN
+    ALTER TABLE razorpay_webhook_events ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
 
--- Event occurrences (one row per scheduled instance — moderate volume)
-ALTER TABLE event_occurrences ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  -- (event_occurrences intentionally skipped — its PK is content_id, a FK
+  -- to content(id), so it already inherits UUIDv7 via the content default.)
 
--- Waitlist (time-ordered FIFO; position correlates with timestamp anyway)
-ALTER TABLE waitlist_entries ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  -- Waitlist (time-ordered FIFO; position correlates with timestamp anyway)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'waitlist_entries') THEN
+    ALTER TABLE waitlist_entries ALTER COLUMN id SET DEFAULT gen_uuid_v7();
+  END IF;
+END
+$$;
 
 -- ─────────────────────────────────────────────────────────────────────
 -- 3. Tables intentionally LEFT on gen_random_uuid() (UUIDv4)

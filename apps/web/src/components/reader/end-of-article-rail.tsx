@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ContentCard } from '@/components/content/content-card'
+import { FollowButton } from '@/components/social/follow-button'
 import type { ContentCard as ContentCardModel } from '@/lib/api/types'
 import { apiFetchPublic } from '@/lib/api-client'
 import { listOf, transformContentCard } from '@/lib/api/transforms'
@@ -9,12 +10,13 @@ interface Props {
   currentContentId: string
   creatorId: string
   creatorDisplayName: string
-  creatorVertical: string
   creatorUsername: string
   /** City slug for the "Discover more in {city}" rail. */
   city?: string | null
   /** Show the join-CreatorHub panel — true for guests only. */
   showJoinPanel: boolean
+  /** Whether the viewer is signed in — required by the inline Follow button. */
+  isAuthenticated: boolean
 }
 
 const REVALIDATE = 300
@@ -29,10 +31,10 @@ export async function EndOfArticleRail({
   currentContentId,
   creatorId,
   creatorDisplayName,
-  creatorVertical,
   creatorUsername,
   city,
   showJoinPanel,
+  isAuthenticated,
 }: Props) {
   const [moreFromCreator, moreInCity] = await Promise.all([
     fetchCreatorContent(creatorId, currentContentId),
@@ -66,18 +68,34 @@ export async function EndOfArticleRail({
               flexWrap: 'wrap',
             }}
           >
-            <h2
-              className="ch-display"
+            <div
               style={{
-                fontSize: 'clamp(20px, 2.6vw, 26px)',
-                color: 'var(--ink)',
-                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                flexWrap: 'wrap',
               }}
             >
-              More from {creatorDisplayName}
-            </h2>
+              <h2
+                className="ch-display"
+                style={{
+                  fontSize: 'clamp(20px, 2.6vw, 26px)',
+                  color: 'var(--ink)',
+                  margin: 0,
+                }}
+              >
+                More from {creatorDisplayName}
+              </h2>
+              <FollowButton
+                creatorId={creatorId}
+                creatorName={creatorDisplayName}
+                isAuthenticated={isAuthenticated}
+                size="sm"
+                hideCount
+              />
+            </div>
             <Link
-              href={`/${creatorVertical}/${creatorUsername}`}
+              href={`/u/${creatorUsername}`}
               style={{
                 fontSize: 13,
                 fontWeight: 600,

@@ -43,6 +43,17 @@ export function contentSlugId(
 }
 
 /**
+ * Canonical URL for a creator's mini-site. Username is unique across the
+ * platform, so the URL doesn't depend on the creator's vertical (which can
+ * change as a creator branches into new niches). Old `/travel/<username>`
+ * and `/stories/<username>` URLs are 301-redirected to this form by the
+ * edge middleware.
+ */
+export function creatorUrl(username: string): string {
+  return `/u/${encodeURIComponent(username)}`
+}
+
+/**
  * Given any [id] param — bare UUID, slug-prefixed UUID, or pure slug —
  * return the lookup key for the API. Prefers a UUID when one is present
  * (most reliable). Falls back to the raw segment so the API can resolve

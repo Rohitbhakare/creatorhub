@@ -406,6 +406,10 @@ export const discoverFiltersQuerySchema = z.object({
   sort: z.enum(DISCOVER_SORTS).optional(),
   cursor: cursorSchema,
   limit: limitSchema,
+  // Cheap "how many would match?" probe used by the web filter sheet's
+  // "Show {N} results" footer. Server short-circuits the SELECT to a
+  // count-only call so we don't pay for the full result rows.
+  count_only: z.coerce.boolean().optional(),
 })
 
 // ─── Discover: destination resolve (Google Places fallback) ─

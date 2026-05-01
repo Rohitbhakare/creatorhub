@@ -10,7 +10,7 @@
 -- Capacity check: held + confirmed seats must be ≤ capacity. Itinerary
 -- (digital good) intents skip the capacity check entirely.
 
-CREATE TABLE booking_intents (
+CREATE TABLE IF NOT EXISTS booking_intents (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id              uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content_id           uuid NOT NULL REFERENCES content(id) ON DELETE CASCADE,
@@ -34,14 +34,14 @@ CREATE TABLE booking_intents (
 );
 
 -- Held-only partial indexes — we only ever scan held rows for capacity.
-CREATE INDEX booking_intents_scheduled_date_held_idx
+CREATE INDEX IF NOT EXISTS booking_intents_scheduled_date_held_idx
   ON booking_intents (scheduled_date_id) WHERE state = 'held';
 
-CREATE INDEX booking_intents_event_occurrence_held_idx
+CREATE INDEX IF NOT EXISTS booking_intents_event_occurrence_held_idx
   ON booking_intents (event_occurrence_id) WHERE state = 'held';
 
-CREATE INDEX booking_intents_expires_held_idx
+CREATE INDEX IF NOT EXISTS booking_intents_expires_held_idx
   ON booking_intents (expires_at) WHERE state = 'held';
 
-CREATE INDEX booking_intents_user_idx
+CREATE INDEX IF NOT EXISTS booking_intents_user_idx
   ON booking_intents (user_id);

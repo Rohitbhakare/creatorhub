@@ -12,6 +12,10 @@ interface FollowButtonProps {
   /** Initial follower count — shown beside the label. */
   initialFollowerCount?: number
   isAuthenticated: boolean
+  /** 'md' (default) for the profile page; 'sm' for inline use beside an avatar. */
+  size?: 'md' | 'sm'
+  /** Hide the follower count tail. Useful in compact rails where the count is shown elsewhere. */
+  hideCount?: boolean
 }
 
 export function FollowButton({
@@ -20,6 +24,8 @@ export function FollowButton({
   initialFollowing = false,
   initialFollowerCount = 0,
   isAuthenticated,
+  size = 'md',
+  hideCount = false,
 }: FollowButtonProps) {
   const { openSignInModal } = useSignInModal()
   const reduced = useReducedMotion()
@@ -80,10 +86,10 @@ export function FollowButton({
       aria-pressed={following}
       {...(reduced ? {} : { whileTap: { scale: 0.97 } })}
       style={{
-        padding: '10px 18px',
+        padding: size === 'sm' ? '6px 12px' : '10px 18px',
         borderRadius: 999,
         fontWeight: 600,
-        fontSize: 13.5,
+        fontSize: size === 'sm' ? 12 : 13.5,
         border: 0,
         cursor: 'pointer',
         fontFamily: 'inherit',
@@ -98,12 +104,12 @@ export function FollowButton({
       }}
     >
       {label}
-      {count > 0 && (
+      {!hideCount && count > 0 && (
         <span
           aria-label={`${String(count)} followers`}
           style={{
             marginLeft: 8,
-            fontSize: 12,
+            fontSize: size === 'sm' ? 11 : 12,
             opacity: 0.85,
             fontWeight: 500,
           }}

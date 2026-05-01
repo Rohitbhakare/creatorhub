@@ -8,7 +8,7 @@ export const contentType = 'image/png'
 export const alt = 'CreatorHub creator profile'
 
 interface Props {
-  params: Promise<{ vertical: string; username: string }>
+  params: Promise<{ username: string }>
 }
 
 /**

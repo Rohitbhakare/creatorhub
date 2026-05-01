@@ -5,7 +5,7 @@
 -- a single FIFO entry per opening with a 24h WhatsApp + push nudge. There
 -- is no auto-rebooking — the buyer must come back and pay.
 
-CREATE TABLE waitlist_entries (
+CREATE TABLE IF NOT EXISTS waitlist_entries (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id              uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content_id           uuid NOT NULL REFERENCES content(id) ON DELETE CASCADE,
@@ -24,22 +24,22 @@ CREATE TABLE waitlist_entries (
 );
 
 -- Idempotency: same user joins each opening at most once.
-CREATE UNIQUE INDEX waitlist_unique_user_scheduled_date
+CREATE UNIQUE INDEX IF NOT EXISTS waitlist_unique_user_scheduled_date
   ON waitlist_entries (user_id, scheduled_date_id)
   WHERE scheduled_date_id IS NOT NULL;
 
-CREATE UNIQUE INDEX waitlist_unique_user_event_occurrence
+CREATE UNIQUE INDEX IF NOT EXISTS waitlist_unique_user_event_occurrence
   ON waitlist_entries (user_id, event_occurrence_id)
   WHERE event_occurrence_id IS NOT NULL;
 
 -- Active waitlist lookups by opening (FIFO ordering by created_at).
-CREATE INDEX waitlist_scheduled_date_active_idx
+CREATE INDEX IF NOT EXISTS waitlist_scheduled_date_active_idx
   ON waitlist_entries (scheduled_date_id, created_at)
   WHERE notified_at IS NULL AND scheduled_date_id IS NOT NULL;
 
-CREATE INDEX waitlist_event_occurrence_active_idx
+CREATE INDEX IF NOT EXISTS waitlist_event_occurrence_active_idx
   ON waitlist_entries (event_occurrence_id, created_at)
   WHERE notified_at IS NULL AND event_occurrence_id IS NOT NULL;
 
 -- "My waitlist" lookups.
-CREATE INDEX waitlist_user_idx ON waitlist_entries (user_id);
+CREATE INDEX IF NOT EXISTS waitlist_user_idx ON waitlist_entries (user_id);

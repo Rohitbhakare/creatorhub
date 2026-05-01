@@ -91,10 +91,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           ]
         }
         if (entry.username) {
-          const vertical = entry.vertical ?? 'travel'
           return [
             {
-              url: `${BASE_URL}/${vertical}/${entry.username}`,
+              url: `${BASE_URL}/u/${entry.username}`,
               lastModified,
               changeFrequency: 'weekly' as const,
               priority: 0.6,
