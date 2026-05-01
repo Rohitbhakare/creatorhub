@@ -29,7 +29,7 @@ Decision 2 lets authors compose with images / tables / YouTube embeds, but the r
 | T7  | iframe live preview | `[x]` | New `/preview/[draftId]/page.tsx` — owner-gated (404 if not author), renders body via `<MarkdownBody mode="magazine">`. Wizard's BodyStep mounts `<PreviewIframe>` with `sandbox="allow-same-origin allow-scripts"` once a draftId exists; `?v=<savedAt>` reload-token refreshes after every autosave. |
 | T8  | Edge cases | `[x]` | `beforeunload` warning added — fires only when `dirtyRef.current` is true. Cover MIME validation client-side via the new `<CoverCrop>` allowlist. KYC gate already server-side; wizard surfaces 403 detail inline (existing). 8MB rejection toast in cover crop. |
 | T9  | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 5 deviations + 5 follow-ups documented. |
-| T10 | Pre-commit + screenshots + commit | `[ ]` | |
+| T10 | Pre-commit + screenshots + commit | `[x]` | All gates green (web 334/334, lint/typecheck clean). Screenshots deferred to authed-session QA — `/publish/*` 307s for guests. Committed as `737e944` and pushed to `origin/dev`. |
 
 ---
 
@@ -46,7 +46,7 @@ Decision 2 lets authors compose with images / tables / YouTube embeds, but the r
 - [ ] Screenshots — auth-gated routes; capture deferred to authed-session QA pass
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `737e944`
 
 ---
 
