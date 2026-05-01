@@ -7,6 +7,7 @@ import {
   handleListContent,
   handleGetContentCounts,
 } from '../handlers/studio.js'
+import { handleStudioPayoutsPdf } from '../handlers/studio-payouts-pdf.js'
 
 const studio = new Hono()
 
@@ -21,5 +22,8 @@ studio.get('/stats', authenticate, handleGetStats)
 // query: status, type, cursor, limit
 studio.get('/content/counts', authenticate, handleGetContentCounts)
 studio.get('/content', authenticate, handleListContent)
+
+// ─── Payouts PDF (E5.7 T4) ───────────────────────────────────────
+studio.get('/payouts.pdf', authenticate, handleStudioPayoutsPdf)
 
 export default studio

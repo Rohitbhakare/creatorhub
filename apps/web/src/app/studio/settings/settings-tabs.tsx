@@ -273,6 +273,30 @@ function PrivacyTab() {
           setTagApproval((t) => !t)
         }}
       />
+
+      {/* Blocked accounts (E5.7 T7) — v3 WEB-PROF-FR-081 surfaces the
+          block-list inside the privacy tab. The full management UI ships
+          with SEC-FR-008; this section is the entry point. */}
+      <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 28, marginBottom: 8, color: 'var(--ink)' }}>
+        Blocked accounts
+      </h3>
+      <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 12, lineHeight: 1.55 }}>
+        Block someone to prevent them from following you, seeing your private posts, or
+        commenting. Blocks are silent — the other person isn&rsquo;t notified.
+      </p>
+      <p
+        style={{
+          fontSize: 12.5,
+          color: 'var(--ink-soft)',
+          padding: '10px 14px',
+          background: 'var(--surface-alt)',
+          borderRadius: 'var(--radius-md)',
+          margin: 0,
+        }}
+      >
+        You haven&rsquo;t blocked anyone yet. Use the menu on a profile to block.
+      </p>
+
       <hr className="ch-divider" style={{ margin: '32px 0' }} />
       <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--danger)' }}>
         Danger zone

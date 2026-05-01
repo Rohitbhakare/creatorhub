@@ -44,21 +44,28 @@ export default async function KycEntryPage() {
         <main>
           <span
             style={{
-              fontFamily: 'var(--font-mono)',
+              fontFamily: 'var(--font-mono, var(--font-sans))',
               fontSize: 11,
               fontWeight: 700,
-              letterSpacing: '0.18em',
+              letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              color: 'var(--ink-muted)',
+              color: 'var(--primary)',
             }}
           >
             Studio · KYC
           </span>
           <h1
             className="ch-display"
-            style={{ fontSize: 'clamp(32px, 4vw, 44px)', color: 'var(--ink)', margin: '8px 0 16px' }}
+            style={{
+              fontSize: 'clamp(32px, 4vw, 44px)',
+              color: 'var(--ink)',
+              margin: '8px 0 16px',
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+            }}
           >
-            Verify your identity
+            Verify your <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>identity</em>.
           </h1>
           <p
             style={{

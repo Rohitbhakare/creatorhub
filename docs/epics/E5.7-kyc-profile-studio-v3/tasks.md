@@ -1,0 +1,16 @@
+# E5.7 — Tasks
+
+> 10 tasks. Decisions locked: hand-rolled SVG sparkline, client-side CSV blob, server-side `pdfkit` PDF, drawer + page co-exist, DigiLocker deferred.
+
+| ID | Task | Files touched (new in **bold**) |
+|----|------|--------------------------------|
+| T1 | Audit (done in plan §1) — confirm `fetchStudioMetrics().earningsTrend` shape, payouts page row structure, settings tabs, /you sections | — |
+| T2 | `<EarningsSparkline>` — pure SVG, 30 data points → polyline + area fill below, hover tooltip, accessible `<title>`/`<desc>`. ~50 LOC. | **`apps/web/src/components/studio/earnings-sparkline.tsx`**, **`earnings-sparkline.test.tsx`**; [apps/web/src/app/studio/page.tsx](apps/web/src/app/studio/page.tsx) |
+| T3 | Payouts CSV export — `<DownloadCsvButton>` + small `csv-export.ts` helper that takes `Row[]` and returns a CSV string with proper escaping. Click → blob URL → download. | **`apps/web/src/lib/studio/csv-export.ts`**, **`csv-export.test.ts`**, **`apps/web/src/components/studio/download-csv-button.tsx`**; [apps/web/src/app/studio/payouts/page.tsx](apps/web/src/app/studio/payouts/page.tsx) |
+| T4 | Payouts PDF export — backend route `GET /api/v1/studio/payouts.pdf` (Hono + pdfkit), returns `application/pdf` with creator's payout ledger. Client `<DownloadPdfButton>` triggers a same-origin GET. | **`apps/api/src/handlers/studio-payouts-pdf.ts`**, **`apps/api/src/lib/payouts-pdf.ts`**, **`payouts-pdf.test.ts`**; [apps/api/src/routes/studio.routes.ts](apps/api/src/routes/studio.routes.ts) (extend); **`apps/web/src/components/studio/download-pdf-button.tsx`**; [apps/web/src/app/studio/payouts/page.tsx](apps/web/src/app/studio/payouts/page.tsx) |
+| T5 | `<BookingsDrawer>` — 420px right drawer, slide-in from `/studio` overview "View bookings" button, focus-trap + Esc close + URL `?bookings=open` for deep-link. Shares the `BookingsList` component with `/studio/bookings` page. | **`apps/web/src/components/studio/bookings-drawer.tsx`**, **`bookings-drawer.test.tsx`**; [apps/web/src/app/studio/page.tsx](apps/web/src/app/studio/page.tsx) (mount drawer) |
+| T6 | Verify notification matrix in settings/notifications tab — confirm per-event × per-channel grid (e.g. New booking × Email/Push/In-app). If missing, add. | [apps/web/src/app/studio/settings/settings-tabs.tsx](apps/web/src/app/studio/settings/settings-tabs.tsx) |
+| T7 | Verify block-list + private-mode in settings/privacy tab. If missing, add. | [apps/web/src/app/studio/settings/settings-tabs.tsx](apps/web/src/app/studio/settings/settings-tabs.tsx) |
+| T8 | v3 chrome polish — `/studio`, `/you`, `/studio/kyc` get coral mono kicker + display H1 with italic accent. Studio dashboard adds "Last 30 days" subtitle below sparkline. | [apps/web/src/app/studio/page.tsx](apps/web/src/app/studio/page.tsx), [apps/web/src/app/you/page.tsx](apps/web/src/app/you/page.tsx), [apps/web/src/app/studio/kyc/page.tsx](apps/web/src/app/studio/kyc/page.tsx) |
+| T9 | 4-step review gate (edge cases → security → architecture → code quality) | [docs/epics/E5.7-kyc-profile-studio-v3/tracking.md](docs/epics/E5.7-kyc-profile-studio-v3/tracking.md) |
+| T10 | Pre-commit gate: typecheck + lint + tests + 5-breakpoint screenshots × 4 routes (/studio, /studio/payouts, /studio/kyc, /you); commit + push to `dev` | — |

@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { StudioSidebar } from '@/components/chrome/studio-sidebar'
+import { EarningsSparkline } from '@/components/studio/earnings-sparkline'
+import { BookingsDrawer } from '@/components/studio/bookings-drawer'
 import { getSession } from '@/lib/session'
-import { fetchStudioMetrics } from '@/lib/api'
+import { fetchStudioMetrics, fetchStudioBookings } from '@/lib/api'
 import { fetchKycStatus } from '@/lib/kyc'
 import { formatPrice } from '@/lib/format'
 
@@ -16,7 +18,11 @@ export default async function StudioPage() {
   const session = await getSession()
   if (!session) redirect('/signin?next=/studio')
 
-  const [metrics, kyc] = await Promise.all([fetchStudioMetrics(), fetchKycStatus()])
+  const [metrics, kyc, bookings] = await Promise.all([
+    fetchStudioMetrics(),
+    fetchKycStatus(),
+    fetchStudioBookings(),
+  ])
   const showKycBanner = kyc.status !== 'approved'
 
   return (
@@ -82,22 +88,35 @@ export default async function StudioPage() {
           <div style={{ marginBottom: 40 }}>
             <span
               style={{
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-mono, var(--font-sans))',
                 fontSize: 11,
                 fontWeight: 700,
-                letterSpacing: '0.18em',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color: 'var(--ink-muted)',
+                color: 'var(--primary)',
               }}
             >
               Studio
             </span>
             <h1
               className="ch-display"
-              style={{ fontSize: 'clamp(32px, 4vw, 44px)', color: 'var(--ink)', marginTop: 8 }}
+              style={{
+                fontSize: 'clamp(32px, 4vw, 44px)',
+                color: 'var(--ink)',
+                marginTop: 8,
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.05,
+              }}
             >
-              Welcome back, {session.displayName.split(' ')[0]}
+              Welcome back,{' '}
+              <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>
+                {session.displayName.split(' ')[0]}
+              </em>
             </h1>
+            <div style={{ marginTop: 14 }}>
+              <BookingsDrawer bookings={bookings} />
+            </div>
           </div>
 
           {metrics ? (
@@ -107,7 +126,7 @@ export default async function StudioPage() {
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                   gap: 16,
-                  marginBottom: 40,
+                  marginBottom: 24,
                 }}
               >
                 <Stat
@@ -122,6 +141,24 @@ export default async function StudioPage() {
                     metrics.followerCount,
                   )}
                 />
+              </div>
+
+              {/* 30-day earnings sparkline (E5.7 T2). */}
+              <div className="ch-card" style={{ padding: 20, marginBottom: 40 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono, var(--font-sans))',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-muted)',
+                    marginBottom: 12,
+                  }}
+                >
+                  Earnings · last 30 days
+                </div>
+                <EarningsSparkline trend={metrics.earningsTrend} />
               </div>
 
               {metrics.recentActivity.length > 0 && (

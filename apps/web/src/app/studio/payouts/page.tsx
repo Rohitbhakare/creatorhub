@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { StudioShell, EmptyState } from '@/components/chrome/studio-shell'
+import { DownloadCsvButton } from '@/components/studio/download-csv-button'
+import { DownloadPdfButton } from '@/components/studio/download-pdf-button'
 import { fetchPayouts } from '@/lib/api'
 import { formatPrice } from '@/lib/format'
 
@@ -36,7 +38,23 @@ export default async function PayoutsPage() {
           body="Your first payout lands 48 hours after the first completed booking. We deduct 17% platform fee, 1% TDS (Sec 194-O), and the buyer's 18% GST goes straight to government."
         />
       ) : (
-        <div className="ch-card" style={{ padding: 0, overflow: 'auto' }}>
+        <>
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              marginBottom: 14,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginRight: 'auto' }}>
+              {String(rows.length)} {rows.length === 1 ? 'row' : 'rows'} · download a copy
+            </span>
+            <DownloadCsvButton rows={rows} />
+            <DownloadPdfButton />
+          </div>
+          <div className="ch-card" style={{ padding: 0, overflow: 'auto' }}>
           <table
             style={{
               width: '100%',
@@ -131,6 +149,7 @@ export default async function PayoutsPage() {
             </tfoot>
           </table>
         </div>
+        </>
       )}
     </StudioShell>
   )
