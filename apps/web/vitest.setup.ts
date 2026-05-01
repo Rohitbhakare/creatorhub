@@ -112,6 +112,21 @@ if (typeof global.fetch === 'undefined') {
   global.fetch = vi.fn()
 }
 
+// jsdom doesn't ship matchMedia. Components that read viewport width
+// (e.g. <FilterSheet> for desktop vs bottom-sheet) call it on mount.
+if (typeof globalThis.matchMedia === 'undefined') {
+  globalThis.matchMedia = (query: string): MediaQueryList => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }) as MediaQueryList
+}
+
 // requestAnimationFrame is needed by framer-motion in jsdom.
 if (typeof globalThis.requestAnimationFrame === 'undefined') {
   globalThis.requestAnimationFrame = (cb: FrameRequestCallback): number => {

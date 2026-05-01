@@ -52,13 +52,13 @@ describe('rankByMood', () => {
       { id: 'd', type: 'event', title: 'Sufi qawwali at the dargah' },
     ]
     const slow = rankByMood(items, 'slow')
-    expect(slow[0]!.id).toBe('a') // matches 'quiet' + 'monsoon' + itinerary type + short
+    expect(slow[0]?.id).toBe('a') // matches 'quiet' + 'monsoon' + itinerary type + short
     const food = rankByMood(items, 'food')
-    expect(food[0]!.id).toBe('b') // matches 'kabab' + post type
+    expect(food[0]?.id).toBe('b') // matches 'kabab' + post type
     const high = rankByMood(items, 'high')
-    expect(high[0]!.id).toBe('c') // matches 'rider' + 'expedition' + 'route' + experience + long
+    expect(high[0]?.id).toBe('c') // matches 'rider' + 'expedition' + 'route' + experience + long
     const art = rankByMood(items, 'art')
-    expect(art[0]!.id).toBe('d') // matches 'qawwali' + event
+    expect(art[0]?.id).toBe('d') // matches 'qawwali' + event
   })
 
   it('keeps items in original order when nothing matches the mood', () => {

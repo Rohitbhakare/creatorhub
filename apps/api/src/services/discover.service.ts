@@ -101,55 +101,40 @@ export interface ResolvedDestination {
  * Algorithmic — no human curation needed.
  */
 export async function getDiscoverThemes(): Promise<DiscoverThemesResult> {
-  const { data, error } = await supabase.rpc('discover_editorial_themes', { p_limit: 6 })
+  const { data: fallback, error: fallbackErr } = await supabase
+    .from('content')
+    .select('sub_category_id, cover_image_url, like_count')
+    .eq('status', 'published')
+    .not('sub_category_id', 'is', null)
+    .order('like_count', { ascending: false })
+    .limit(60)
 
-  if (error) {
-    // Fallback: direct query if RPC not available yet
-    const { data: fallback, error: fallbackErr } = await supabase
-      .from('content')
-      .select('sub_category, cover_image_url, like_count')
-      .eq('status', 'published')
-      .not('sub_category', 'is', null)
-      .order('like_count', { ascending: false })
-      .limit(60)
+  if (fallbackErr) throw fallbackErr
 
-    if (fallbackErr) throw fallbackErr
-
-    // Group by sub_category, pick highest-liked cover image per group
-    const grouped = new Map<string, { count: number; cover: string | null; maxLikes: number }>()
-    for (const row of fallback ?? []) {
-      const sc = row.sub_category as string
-      const existing = grouped.get(sc)
-      if (!existing) {
-        grouped.set(sc, { count: 1, cover: row.cover_image_url, maxLikes: row.like_count ?? 0 })
-      } else {
-        existing.count++
-        if ((row.like_count ?? 0) > existing.maxLikes) {
-          existing.maxLikes = row.like_count ?? 0
-          existing.cover = row.cover_image_url
-        }
+  const grouped = new Map<string, { count: number; cover: string | null; maxLikes: number }>()
+  for (const row of fallback ?? []) {
+    const sc = row.sub_category_id as string
+    const existing = grouped.get(sc)
+    if (!existing) {
+      grouped.set(sc, { count: 1, cover: row.cover_image_url, maxLikes: row.like_count ?? 0 })
+    } else {
+      existing.count++
+      if ((row.like_count ?? 0) > existing.maxLikes) {
+        existing.maxLikes = row.like_count ?? 0
+        existing.cover = row.cover_image_url
       }
     }
-
-    const themes: EditorialTheme[] = [...grouped.entries()]
-      .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 6)
-      .map(([sc, v]) => ({
-        sub_category: sc,
-        display_name: SUBCATEGORY_LABELS[sc] ?? sc.replace(/_/g, ' '),
-        content_count: v.count,
-        cover_image_url: v.cover,
-      }))
-
-    return { themes }
   }
 
-  const themes: EditorialTheme[] = (data ?? []).map((row: Record<string, unknown>) => ({
-    sub_category: row.sub_category as string,
-    display_name: SUBCATEGORY_LABELS[row.sub_category as string] ?? String(row.sub_category).replace(/_/g, ' '),
-    content_count: Number(row.content_count),
-    cover_image_url: (row.cover_image_url as string | null) ?? null,
-  }))
+  const themes: EditorialTheme[] = [...grouped.entries()]
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 6)
+    .map(([sc, v]) => ({
+      sub_category: sc,
+      display_name: SUBCATEGORY_LABELS[sc] ?? sc.replace(/_/g, ' '),
+      content_count: v.count,
+      cover_image_url: v.cover,
+    }))
 
   return { themes }
 }
@@ -605,11 +590,15 @@ export async function searchDiscover(
   }
 
   // ── Phase 2: build the main content query ─────────────────
+  // count_only=1 short-circuits to a head request: no row data, just the
+  // total count. Cheap enough that the web filter sheet can poll it on
+  // every chip toggle (debounced to 250ms).
+  const countOnly = filters.count_only === true
   let q = supabase
     .from('content')
     .select(
       'id, type, title, vertical, pricing_model, price_paisa, like_count, comment_count, duration_minutes, starting_city_id, cover_image_url, published_at, user_id',
-      { count: 'exact' },
+      countOnly ? { count: 'exact', head: true } : { count: 'exact' },
     )
     .eq('status', 'published')
     .eq('visibility', 'public')
@@ -732,6 +721,10 @@ export async function searchDiscover(
 
   const { data, error, count } = await q
   if (error) throw new AppError('db-error', 500, 'Discover search failed')
+
+  if (countOnly) {
+    return { items: [], next_cursor: null, total_count: count ?? 0 }
+  }
 
   const rows = (data ?? []) as DiscoverResultsItem[]
   let next_cursor: string | null = null
