@@ -130,7 +130,7 @@
 | E5.4 | Booking (dual-month calendar + 4-step wizard chrome + SSE seat stream + Razorpay + confetti + .ics) | `DONE` (Lighthouse + axe + Razorpay e2e pending) | 11/11 | `[x]` 310 web (+25 new) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A (no migrations needed) | `[-]` N/A | `[x]` `2704555` |
 | E5.5 | Publishing Wizard (TipTap editor + 2:1 cover crop + drag-reorder + 5-state autosave + iframe preview) | `DONE` (axe + screenshots pending) | 10/10 | `[x]` 334 web (+24 new) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `737e944` |
 | E5.6 | Auth + Onboarding (3-tab signup: email+password / phone OTP / Google + magic-link reset + 200-particle welcome burst) | `DONE` (axe + Lighthouse pending) | 9/9 | `[x]` 334 web (8 existing signin tests updated for tabs) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `ef575d0` |
-| E5.7 | KYC + Profile + Studio (sparkline + payouts CSV/PDF + bookings drawer + chrome polish) | `DONE` (axe + screenshots pending) | 10/10 | `[x]` 352 web (+18 new) + 1009/1010 api | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[ ]` pending |
+| E5.7 | KYC + Profile + Studio (sparkline + payouts CSV/PDF + bookings drawer + chrome polish) | `DONE` (axe + screenshots pending) | 10/10 | `[x]` 352 web (+18 new) + 1009/1010 api | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `9af4c1c` |
 | E5.8 | Gamification + Notif/Saved/Social + Web Push | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
 
 ---

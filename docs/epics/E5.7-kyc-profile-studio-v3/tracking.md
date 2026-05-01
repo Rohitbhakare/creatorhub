@@ -31,7 +31,7 @@
 | T7 | Privacy toggles verify | `[x]` | Existing tab had visibility / comments / tag-approval / danger-zone. Added **Blocked accounts** section with placeholder copy + entry-point hint. Wiring to SEC-FR-008's actual block endpoint is a future task. |
 | T8 | v3 chrome polish | `[x]` | Coral kicker (var(--primary), 0.22em) + display H1 with italic accent on `/studio`, `/you`, `/studio/kyc`. /you splits first/last name and italicises the last. |
 | T9 | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 5 deviations + 4 follow-ups documented. |
-| T10 | Pre-commit + screenshots + commit | `[ ]` | |
+| T10 | Pre-commit + screenshots + commit | `[x]` | All gates green. Screenshots deferred (auth-gated routes). Committed as `9af4c1c` and pushed to `origin/dev`. |
 
 ---
 
@@ -49,7 +49,7 @@
 - [ ] Screenshots — auth-gated routes; deferred to authed-session QA pass
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `9af4c1c`
 
 ---
 
