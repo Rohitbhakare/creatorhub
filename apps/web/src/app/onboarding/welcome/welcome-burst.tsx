@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useMemo } from 'react'
 
-const PARTICLE_COUNT = 80
+const PARTICLE_COUNT = 200 // E5.6 T5 — bumped from 80 per FR-022
 const COLORS = ['#E15A41', '#D97B1A', '#1D9E75', '#185FA5', '#B9401E']
 
 interface Particle {

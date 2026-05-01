@@ -30,23 +30,46 @@ export default async function SignUpPage({ searchParams }: Props) {
         }}
       >
         <div className="ch-card" style={{ width: '100%', maxWidth: 460, padding: 36 }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-mono, var(--font-sans))',
+              fontSize: 11,
+              color: 'var(--primary)',
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              margin: 0,
+              marginBottom: 10,
+            }}
+          >
+            Create account
+          </p>
           <h1
             className="ch-display"
-            style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 8 }}
+            style={{
+              fontSize: 'clamp(28px, 4vw, 36px)',
+              color: 'var(--ink)',
+              margin: 0,
+              marginBottom: 8,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+            }}
           >
-            Join CreatorHub
+            Join <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>CreatorHub</em>.
           </h1>
           <p
             style={{
               fontSize: 14,
               color: 'var(--ink-muted)',
               lineHeight: 1.5,
+              margin: 0,
               marginBottom: 28,
             }}
           >
-            Save the work you love, follow the creators behind it, book what calls. We&rsquo;ll text a one-time code.
+            Save the work you love, follow the creators behind it, book what calls.
           </p>
-          <SignInForm next={nextSafe} />
+          <SignInForm next={nextSafe} intent="signup" />
           <div
             style={{
               marginTop: 24,

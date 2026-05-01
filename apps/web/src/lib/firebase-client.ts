@@ -4,7 +4,9 @@ import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app'
 import {
   GoogleAuthProvider,
   RecaptchaVerifier,
+  createUserWithEmailAndPassword,
   getAuth,
+  signInWithEmailAndPassword,
   signInWithPhoneNumber,
   signInWithPopup,
   sendPasswordResetEmail,
@@ -106,4 +108,27 @@ export async function sendPasswordReset(email: string): Promise<void> {
   const auth = getFirebaseAuth()
   if (!auth) throw new Error('Firebase not configured')
   await sendPasswordResetEmail(auth, email)
+}
+
+/**
+ * E5.6 T3 — email+password sign-in. Returns Firebase ID token on success
+ * which the caller passes to `/api/auth/signin` for session cookie exchange.
+ */
+export async function signInWithEmail(email: string, password: string): Promise<string> {
+  const auth = getFirebaseAuth()
+  if (!auth) throw new Error('Firebase not configured')
+  const cred = await signInWithEmailAndPassword(auth, email, password)
+  return cred.user.getIdToken()
+}
+
+/**
+ * E5.6 T3 — email+password account creation. Same return contract as
+ * `signInWithEmail` so the caller wires both into the same `/api/auth/signin`
+ * handshake.
+ */
+export async function signUpWithEmail(email: string, password: string): Promise<string> {
+  const auth = getFirebaseAuth()
+  if (!auth) throw new Error('Firebase not configured')
+  const cred = await createUserWithEmailAndPassword(auth, email, password)
+  return cred.user.getIdToken()
 }

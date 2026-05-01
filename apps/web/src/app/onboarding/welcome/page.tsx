@@ -65,9 +65,18 @@ export default async function WelcomePage() {
             Your feed is ready — chapters, itineraries, and live experiences from creators who
             match your moods.
           </p>
-          <a href="/feed" className="ch-btn ch-btn-primary" style={{ padding: '14px 28px' }}>
-            Open my feed
-          </a>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href="/onboarding/sub-categories"
+              className="ch-btn ch-btn-primary"
+              style={{ padding: '14px 28px' }}
+            >
+              Pick a few interests
+            </a>
+            <a href="/feed" className="ch-btn ch-btn-ghost" style={{ padding: '14px 28px' }}>
+              Skip — open my feed
+            </a>
+          </div>
         </div>
       </main>
     </>

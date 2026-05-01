@@ -37,17 +37,40 @@ export default async function SignInPage({ searchParams }: Props) {
             padding: 36,
           }}
         >
+          <p
+            style={{
+              fontFamily: 'var(--font-mono, var(--font-sans))',
+              fontSize: 11,
+              color: 'var(--primary)',
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              margin: 0,
+              marginBottom: 10,
+            }}
+          >
+            Sign in
+          </p>
           <h1
             className="ch-display"
-            style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 8 }}
+            style={{
+              fontSize: 'clamp(28px, 4vw, 36px)',
+              color: 'var(--ink)',
+              margin: 0,
+              marginBottom: 8,
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+            }}
           >
-            Welcome back
+            Welcome <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>back</em>.
           </h1>
           <p
             style={{
               fontSize: 14,
               color: 'var(--ink-muted)',
               lineHeight: 1.5,
+              margin: 0,
               marginBottom: 28,
             }}
           >

@@ -24,6 +24,8 @@ vi.mock('@/lib/firebase-client', () => ({
   sendPhoneOtp: vi.fn(),
   verifyPhoneOtp: vi.fn(),
   signInWithGoogle: vi.fn(),
+  signInWithEmail: vi.fn(),
+  signUpWithEmail: vi.fn(),
 }))
 
 // Stub the client-error pipe — we don't care about it ringing during tests.
@@ -48,21 +50,19 @@ describe('SignInForm', () => {
     )
   })
 
-  it('renders Continue-with-Google + Send-code + Forgot-password by default', () => {
+  it('renders the 3-tab bar with Email selected by default + Forgot-password link', () => {
     render(<SignInForm next="/feed" />)
-    expect(
-      screen.getByRole('button', { name: /Continue with Google/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Send code/i })).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /Forgot password/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByLabelText(/Phone/i)).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Email' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Phone' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Google' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Forgot password/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
   })
 
   it('rejects an obviously bad phone number before talking to Firebase', async () => {
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
     fireEvent.change(screen.getByLabelText(/Phone/i), {
       target: { value: '12345' },
     })
@@ -87,6 +87,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
 
     // Set the phone value via fireEvent.change rather than user.type —
     // user.type on controlled inputs in jsdom occasionally drops keypresses
@@ -148,6 +149,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
     fireEvent.change(screen.getByLabelText(/Phone/i), {
       target: { value: '+919876543210' },
     })
@@ -180,6 +182,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
     fireEvent.change(screen.getByLabelText(/Phone/i), {
       target: { value: '+919876543210' },
     })
@@ -205,6 +208,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
     fireEvent.change(screen.getByLabelText(/Phone/i), {
       target: { value: '+919876543210' },
     })
@@ -224,6 +228,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Google' }))
     await user.click(
       screen.getByRole('button', { name: /Continue with Google/i }),
     )
@@ -253,6 +258,7 @@ describe('SignInForm', () => {
 
     const user = userEvent.setup()
     render(<SignInForm next="/feed" />)
+    await user.click(screen.getByRole('tab', { name: 'Phone' }))
     fireEvent.change(screen.getByLabelText(/Phone/i), {
       target: { value: '+919876543210' },
     })

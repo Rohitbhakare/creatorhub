@@ -10,14 +10,19 @@ import {
   sendPhoneOtp,
   // verifyPhoneOtp + signInWithGoogle imported below; helper for reporting
   // browser errors to the SSR log so the file-tail monitor catches them.
+  signInWithEmail,
   signInWithGoogle,
+  signUpWithEmail,
   verifyPhoneOtp,
 } from '@/lib/firebase-client'
 
+type Tab = 'email' | 'phone' | 'google'
 type Mode = 'phone' | 'otp'
 
 interface SignInFormProps {
   next: string
+  /** Renders signup-mode copy + creates an account on the email tab. Default 'signin'. */
+  intent?: 'signin' | 'signup'
 }
 
 /**
@@ -27,15 +32,51 @@ interface SignInFormProps {
  * exercise the cookie/session path without a Firebase project. The stub
  * token will be rejected by the API in production.
  */
-export function SignInForm({ next }: SignInFormProps) {
+export function SignInForm({ next, intent = 'signin' }: SignInFormProps) {
   const router = useRouter()
   const fbReady = isFirebaseConfigured()
+  const [tab, setTab] = useState<Tab>('email')
   const [mode, setMode] = useState<Mode>('phone')
   const [phone, setPhone] = useState('+91 ')
   const [otp, setOtp] = useState('')
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  function submitEmail(e: React.SyntheticEvent): void {
+    e.preventDefault()
+    setError(null)
+    if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 254) {
+      setError('Enter a valid email')
+      return
+    }
+    if (intent === 'signup' && !isStrongPassword(password)) {
+      setError('Use 8+ chars with at least 1 letter and 1 number')
+      return
+    }
+    if (!fbReady) {
+      // Dev stub — same shape the OTP path uses.
+      const stub = `dev-stub-email-${email}`
+      startTransition(async () => {
+        await postSignin(stub, next, router, setError)
+      })
+      return
+    }
+    startTransition(async () => {
+      try {
+        const idToken =
+          intent === 'signup'
+            ? await signUpWithEmail(email, password)
+            : await signInWithEmail(email, password)
+        await postSignin(idToken, next, router, setError)
+      } catch (err) {
+        reportClientError(`signin:email:${intent}`, err)
+        setError(friendly(err) || 'Could not sign in')
+      }
+    })
+  }
 
   function sendOtp(e: React.SyntheticEvent) {
     e.preventDefault()
@@ -99,61 +140,122 @@ export function SignInForm({ next }: SignInFormProps) {
   if (mode === 'phone') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {fbReady && (
-          <>
+        {/* Tab bar — Email / Phone / Google (E5.6 T2) */}
+        <AuthTabs
+          active={tab}
+          onChange={(t) => {
+            setError(null)
+            setTab(t)
+          }}
+        />
+
+        {tab === 'email' && (
+          <form onSubmit={submitEmail} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              autoComplete={intent === 'signup' ? 'email' : 'username'}
+              value={email}
+              onChange={setEmail}
+              placeholder="you@email.com"
+            />
+            <Field
+              label="Password"
+              name="password"
+              type="password"
+              autoComplete={intent === 'signup' ? 'new-password' : 'current-password'}
+              value={password}
+              onChange={setPassword}
+              placeholder={intent === 'signup' ? 'At least 8 characters' : 'Your password'}
+            />
+            {intent === 'signup' && password.length > 0 && (
+              <PasswordStrength password={password} />
+            )}
+            <button
+              type="submit"
+              className="ch-btn ch-btn-primary"
+              style={{ padding: '14px 20px' }}
+              disabled={pending}
+            >
+              {intent === 'signup' ? 'Create account' : 'Sign in'}
+            </button>
+            {error && <FormError message={error} />}
+            <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
+              By continuing you agree to our{' '}
+              <Link href="/terms" style={{ color: 'var(--ink-soft)' }}>
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" style={{ color: 'var(--ink-soft)' }}>
+                Privacy
+              </Link>
+              .
+            </p>
+            {fbReady && intent === 'signin' && (
+              <div style={{ textAlign: 'center', fontSize: 12, marginTop: 4 }}>
+                <Link
+                  href="/forgot-password"
+                  style={{ color: 'var(--ink-muted)', textDecoration: 'none' }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+          </form>
+        )}
+
+        {tab === 'phone' && (
+          <form onSubmit={sendOtp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Field
+              label="Phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={setPhone}
+              placeholder="+91 9876543210"
+            />
+            <button
+              type="submit"
+              className="ch-btn ch-btn-primary"
+              style={{ padding: '14px 20px' }}
+              disabled={pending}
+            >
+              Send code
+            </button>
+            {error && <FormError message={error} />}
+            <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
+              By continuing you agree to our{' '}
+              <Link href="/terms" style={{ color: 'var(--ink-soft)' }}>
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" style={{ color: 'var(--ink-soft)' }}>
+                Privacy
+              </Link>
+              .
+            </p>
+          </form>
+        )}
+
+        {tab === 'google' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button
               type="button"
               onClick={handleGoogle}
-              disabled={pending}
+              disabled={pending || !fbReady}
               className="ch-btn ch-btn-ghost"
               style={{ padding: '14px 20px', fontWeight: 600 }}
             >
-              <GoogleGlyph /> Continue with Google
+              <GoogleGlyph /> {pending ? 'Signing in…' : 'Continue with Google'}
             </button>
-            <Divider />
-          </>
-        )}
-
-        <form onSubmit={sendOtp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Field
-            label="Phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={setPhone}
-            placeholder="+91 9876543210"
-          />
-          <button
-            type="submit"
-            className="ch-btn ch-btn-primary"
-            style={{ padding: '14px 20px' }}
-            disabled={pending}
-          >
-            Send code
-          </button>
-          {error && <FormError message={error} />}
-          <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
-            By continuing you agree to our{' '}
-            <Link href="/terms" style={{ color: 'var(--ink-soft)' }}>
-              Terms
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" style={{ color: 'var(--ink-soft)' }}>
-              Privacy
-            </Link>
-            .
-          </p>
-        </form>
-
-        {fbReady && (
-          <div style={{ textAlign: 'center', fontSize: 12, marginTop: 4 }}>
-            <Link
-              href="/forgot-password"
-              style={{ color: 'var(--ink-muted)', textDecoration: 'none' }}
-            >
-              Forgot password?
-            </Link>
+            {error && <FormError message={error} />}
+            {!fbReady && (
+              <p style={{ fontSize: 12, color: 'var(--ink-muted)', textAlign: 'center' }}>
+                Google sign-in needs Firebase configured.
+              </p>
+            )}
           </div>
         )}
 
@@ -168,7 +270,7 @@ export function SignInForm({ next }: SignInFormProps) {
               borderRadius: 'var(--radius-md)',
             }}
           >
-            Dev mode — Firebase not configured. Any phone + 6-digit code will reach the API.
+            Dev mode — Firebase not configured. Form submissions hit the dev-stub path.
           </p>
         )}
       </div>
@@ -352,15 +454,6 @@ function FormError({ message }: { message: string }) {
   )
 }
 
-function Divider() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--ink-muted)' }}>
-      <hr className="ch-divider" style={{ flex: 1 }} />
-      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em' }}>OR</span>
-      <hr className="ch-divider" style={{ flex: 1 }} />
-    </div>
-  )
-}
 
 function GoogleGlyph() {
   return (
@@ -382,6 +475,108 @@ function GoogleGlyph() {
         d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.6l6.3 5.2C41.4 35.9 44 30.4 44 24c0-1.3-.1-2.4-.4-3.5z"
       />
     </svg>
+  )
+}
+
+function isStrongPassword(p: string): boolean {
+  if (p.length < 8) return false
+  if (!/[A-Za-z]/.test(p)) return false
+  if (!/\d/.test(p)) return false
+  return true
+}
+
+function passwordStrengthScore(p: string): { score: 0 | 1 | 2 | 3 | 4; label: string } {
+  let score: 0 | 1 | 2 | 3 | 4 = 0
+  if (p.length >= 8) score = 1
+  if (/[A-Za-z]/.test(p) && /\d/.test(p) && p.length >= 8) score = 2
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p) && /\d/.test(p) && p.length >= 10) score = 3
+  if (/[^A-Za-z0-9]/.test(p) && p.length >= 12) score = 4
+  const labels = ['Too short', 'Weak', 'OK', 'Good', 'Strong']
+  return { score, label: labels[score] ?? '' }
+}
+
+function PasswordStrength({ password }: { password: string }) {
+  const { score, label } = passwordStrengthScore(password)
+  const colors = ['var(--ink-muted)', 'var(--danger)', '#C68A1A', '#1D9E75', '#1D9E75'] as const
+  return (
+    <div aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        style={{
+          flex: 1,
+          height: 3,
+          background: 'var(--surface-alt)',
+          borderRadius: 999,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${String(score * 25)}%`,
+            height: '100%',
+            background: colors[score],
+            transition: 'width 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+      <span style={{ fontSize: 11, color: colors[score], fontWeight: 600 }}>{label}</span>
+    </div>
+  )
+}
+
+interface AuthTabsProps {
+  active: Tab
+  onChange: (tab: Tab) => void
+}
+
+function AuthTabs({ active, onChange }: AuthTabsProps) {
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'email', label: 'Email' },
+    { id: 'phone', label: 'Phone' },
+    { id: 'google', label: 'Google' },
+  ]
+  return (
+    <div
+      role="tablist"
+      aria-label="Sign-in method"
+      style={{
+        display: 'flex',
+        gap: 6,
+        padding: 4,
+        background: 'var(--surface-alt)',
+        borderRadius: 999,
+      }}
+    >
+      {tabs.map((t) => {
+        const isActive = active === t.id
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => {
+              onChange(t.id)
+            }}
+            style={{
+              flex: 1,
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: 'none',
+              background: isActive ? 'var(--surface)' : 'transparent',
+              color: isActive ? 'var(--ink)' : 'var(--ink-muted)',
+              fontWeight: isActive ? 700 : 500,
+              fontSize: 13,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+              transition: 'background 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            {t.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
