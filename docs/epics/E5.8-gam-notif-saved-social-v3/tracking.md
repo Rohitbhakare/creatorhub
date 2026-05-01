@@ -1,8 +1,8 @@
 # E5.8 — Tracking
 
-> **Status:** `IN PROGRESS`
-> **Branch:** `dev`
-> **Started:** 2026-05-01
+> **Status:** `DONE` (axe + screenshots pending)
+> **Branch:** `dev` · **Commit:** `95b9d0d`
+> **Started:** 2026-05-01 · **Completed:** 2026-05-01
 > **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
 
 ## Locked decisions
@@ -20,7 +20,7 @@
 | T2 | `<ShareButton>` 4-icon fallback | `[x]` | Replaced popup chrome (4-tile WhatsApp/X/Telegram/Email + separate Copy row) with v3 4-icon row (WhatsApp/X/Facebook/Copy) using inline SVG glyphs. Copy-to-clipboard surfaces as the fourth tile with `Copied ✓` flash. |
 | T3 | v3 chrome polish (3 routes) | `[x]` | `/quests`, `/notifications`, `/saved` all carry coral mono kicker (var(--primary), 0.22em, 700) + display H1 with italic accent. Matches E5.6/E5.7 pattern. |
 | T4 | 4-step review gate | `[x]` | See review gate section below. |
-| T5 | Pre-commit + commit | `[ ]` | In progress. |
+| T5 | Pre-commit + commit | `[x]` | Commit `95b9d0d` — 8 files / +379/-64. Master TRACKING.md row flipped to DONE. |
 
 ---
 
@@ -34,8 +34,8 @@
 - [x] Bundle delta — documented below
 - [x] Coral usage audited — kicker = allow-list spot 2; italic H1 word = spot 3
 - [x] tracking.md filled in
-- [ ] Master TRACKING.md updated
-- [ ] Commit + push to `dev`
+- [x] Master TRACKING.md updated — E5.8 row flipped to DONE with commit ref `95b9d0d`
+- [x] Commit + push to `dev` — see commit `95b9d0d`
 
 ---
 
