@@ -33,11 +33,33 @@ export default async function SavedPage() {
     <>
       <WebHeader session={session} active="saved" />
       <main id="main-content" style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 32px 80px' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-mono, var(--font-sans))',
+            fontSize: 11,
+            color: 'var(--primary)',
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            margin: 0,
+            marginBottom: 10,
+          }}
+        >
+          Your library
+        </p>
         <h1
           className="ch-display"
-          style={{ fontSize: 'clamp(32px, 4vw, 44px)', color: 'var(--ink)', marginBottom: 24 }}
+          style={{
+            fontSize: 'clamp(32px, 4vw, 44px)',
+            color: 'var(--ink)',
+            margin: 0,
+            marginBottom: 24,
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.05,
+          }}
         >
-          Saved chapters
+          Saved <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>chapters</em>.
         </h1>
         {items.length === 0 ? (
           <div

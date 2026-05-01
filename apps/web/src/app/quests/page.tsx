@@ -38,21 +38,28 @@ export default async function QuestsPage({ searchParams }: Props) {
       <main id="main-content" style={{ maxWidth: 1080, margin: '0 auto', padding: '40px 32px 80px' }}>
         <span
           style={{
-            fontFamily: 'var(--font-mono)',
+            fontFamily: 'var(--font-mono, var(--font-sans))',
             fontSize: 11,
             fontWeight: 700,
-            letterSpacing: '0.18em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'var(--ink-muted)',
+            color: 'var(--primary)',
           }}
         >
           Today
         </span>
         <h1
           className="ch-display"
-          style={{ fontSize: 'clamp(36px, 5vw, 56px)', color: 'var(--ink)', margin: '8px 0 32px' }}
+          style={{
+            fontSize: 'clamp(36px, 5vw, 56px)',
+            color: 'var(--ink)',
+            margin: '8px 0 32px',
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.05,
+          }}
         >
-          Quests &amp; achievements
+          Quests &amp; <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>achievements</em>
         </h1>
 
         {quests && (
