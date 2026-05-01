@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import {
   dataUrlToBlob,
@@ -9,6 +9,10 @@ import {
   uploadToStorage,
 } from '@/lib/firebase-storage'
 import { MarkdownBody } from '@/components/reader/markdown-body'
+import { AutosavePill, type AutosaveState } from '@/components/publish/autosave-pill'
+import { TipTapEditor } from '@/components/publish/tiptap-editor'
+import { CoverCrop } from '@/components/publish/cover-crop'
+import { PreviewIframe } from '@/components/publish/preview-iframe'
 
 type PublishType = 'post' | 'itinerary' | 'experience' | 'event'
 type Step = 'cover' | 'details' | 'body' | 'spots' | 'review'
@@ -47,6 +51,19 @@ const TYPE_LABELS: Record<PublishType, string> = {
   event: 'Event',
 }
 
+function autosaveState(
+  pending: boolean,
+  savedAt: Date | null,
+  error: string | null,
+  draftId: string | null,
+): AutosaveState {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return 'offline'
+  if (pending) return 'saving'
+  if (error) return 'error'
+  if (savedAt || draftId) return 'saved'
+  return 'idle'
+}
+
 export function PublishWizard({ type }: { type: PublishType }) {
   const router = useRouter()
   const steps = STEP_FOR_TYPE[type]
@@ -82,6 +99,20 @@ export function PublishWizard({ type }: { type: PublishType }) {
       clearInterval(id)
     }
   }, [data, save])
+
+  // Warn on tab-close / navigation when there are unsaved changes (E5.5 T8).
+  // Modern browsers honour `preventDefault()` alone; legacy required setting
+  // `returnValue` too — that's deprecated and we omit it.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent): void => {
+      if (!dirtyRef.current) return
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => {
+      window.removeEventListener('beforeunload', handler)
+    }
+  }, [])
 
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
     setData((p) => ({ ...p, [key]: value }))
@@ -212,12 +243,13 @@ export function PublishWizard({ type }: { type: PublishType }) {
             {data.title.trim() || `Untitled ${TYPE_LABELS[type]}`}
           </h1>
         </div>
-        <div
-          style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}
-          aria-live="polite"
-        >
-          {pending ? 'Saving…' : savedAt ? `Saved · ${savedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : draftId ? 'Saved' : 'Unsaved'}
-        </div>
+        <AutosavePill
+          state={autosaveState(pending, savedAt, error, draftId)}
+          savedAt={savedAt}
+          onRetry={() => {
+            void save(false)
+          }}
+        />
       </header>
 
       <ProgressRail steps={steps} active={step} />
@@ -241,7 +273,16 @@ export function PublishWizard({ type }: { type: PublishType }) {
               />
             )}
             {step === 'details' && <DetailsStep data={data} update={update} type={type} />}
-            {step === 'body' && <BodyStep value={data.body} onChange={(v) => { update('body', v) }} />}
+            {step === 'body' && (
+              <BodyStep
+                value={data.body}
+                onChange={(v) => {
+                  update('body', v)
+                }}
+                draftId={draftId}
+                refreshToken={savedAt?.getTime() ?? 0}
+              />
+            )}
             {step === 'spots' && <SpotsStep spots={data.spots} update={(spots) => { update('spots', spots) }} />}
             {step === 'review' && <ReviewStep data={data} type={type} />}
           </motion.div>
@@ -298,85 +339,102 @@ export function PublishWizard({ type }: { type: PublishType }) {
   )
 }
 
+const STEP_LABELS: Record<Step, string> = {
+  cover: 'Cover',
+  details: 'Details',
+  body: 'Body',
+  spots: 'Spots',
+  review: 'Review',
+}
+
 function ProgressRail({ steps, active }: { steps: Step[]; active: Step }) {
   const idx = steps.indexOf(active)
   return (
-    <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', gap: 4 }}>
-      {steps.map((s, i) => (
-        <li
-          key={s}
-          aria-current={i === idx ? 'step' : undefined}
-          style={{
-            flex: 1,
-            height: 6,
-            borderRadius: 999,
-            background: i <= idx ? 'var(--primary)' : 'var(--surface-alt)',
-            transition: 'background 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        />
-      ))}
-    </ol>
+    <nav aria-label="Publish steps">
+      <ol
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          flexWrap: 'wrap',
+        }}
+      >
+        {steps.map((s, i) => {
+          const isActive = i === idx
+          const isDone = i < idx
+          return (
+            <li
+              key={s}
+              aria-current={isActive ? 'step' : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flex: '0 0 auto',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 999,
+                  background: isActive
+                    ? 'var(--ink)'
+                    : isDone
+                      ? '#1D9E75'
+                      : 'var(--surface-alt)',
+                  color: isActive || isDone ? 'white' : 'var(--ink-muted)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontFamily: 'var(--font-mono, var(--font-sans))',
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {isDone ? '✓' : i + 1}
+              </span>
+              <span
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--ink)' : 'var(--ink-muted)',
+                }}
+              >
+                {STEP_LABELS[s]}
+              </span>
+              {i < steps.length - 1 && (
+                <div
+                  aria-hidden
+                  style={{
+                    width: 60,
+                    height: 1,
+                    background: 'var(--hairline)',
+                    marginInline: 4,
+                  }}
+                />
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
 }
 
 function CoverStep({ value, onChange }: { value: string; onChange: (dataUrl: string) => void }) {
-  const [error, setError] = useState<string | null>(null)
-  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (!f) return
-    if (f.size > 8 * 1024 * 1024) {
-      setError('Cover must be under 8 MB')
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = () => {
-      const r = reader.result
-      if (typeof r === 'string') {
-        onChange(r)
-        setError(null)
-      }
-    }
-    reader.readAsDataURL(f)
-  }
   return (
     <div>
       <h2 className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 8 }}>
         Cover image
       </h2>
       <p style={{ fontSize: 14, color: 'var(--ink-muted)', marginBottom: 20 }}>
-        2:1 aspect works best. JPG, PNG, or WebP up to 8 MB.
+        Upload, then drag to position and scroll to zoom. We crop to 2:1 (1600 × 800).
       </p>
-      <label
-        style={{
-          display: 'block',
-          aspectRatio: '2/1',
-          borderRadius: 'var(--radius-lg)',
-          border: `2px dashed ${value ? 'var(--primary)' : 'var(--hairline-strong)'}`,
-          background: value ? 'transparent' : 'var(--surface-alt)',
-          cursor: 'pointer',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onFile} style={{ display: 'none' }} />
-        {value ? (
-          <img src={value} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'grid',
-              placeItems: 'center',
-              color: 'var(--ink-muted)',
-              fontSize: 14,
-            }}
-          >
-            Click to upload — or drag & drop
-          </div>
-        )}
-      </label>
-      {error && <p style={{ color: 'var(--danger)', fontSize: 13, marginTop: 10 }}>{error}</p>}
+      <CoverCrop value={value} onChange={onChange} />
     </div>
   )
 }
@@ -500,7 +558,17 @@ function DetailsStep({
   )
 }
 
-function BodyStep({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function BodyStep({
+  value,
+  onChange,
+  draftId,
+  refreshToken,
+}: {
+  value: string
+  onChange: (v: string) => void
+  draftId: string | null
+  refreshToken: number
+}) {
   const [tab, setTab] = useState<'edit' | 'preview'>('edit')
   return (
     <div>
@@ -542,27 +610,12 @@ function BodyStep({ value, onChange }: { value: string; onChange: (v: string) =>
         ))}
       </div>
       {tab === 'edit' ? (
-        <textarea
-          value={value}
-          onChange={(e) => {
-            onChange(e.target.value)
-          }}
-          rows={18}
-          placeholder="We left at sunrise. The Mumbai-Pune highway empties at 5 a.m., and that's the road's secret…"
-          style={{
-            width: '100%',
-            padding: 16,
-            fontSize: 16,
-            lineHeight: 1.7,
-            fontFamily: 'var(--font-serif)',
-            color: 'var(--ink)',
-            background: 'var(--surface)',
-            border: '1.5px solid var(--hairline-strong)',
-            borderRadius: 'var(--radius-md)',
-            resize: 'vertical',
-            minHeight: 360,
-          }}
-        />
+        <TipTapEditor value={value} onChange={onChange} />
+      ) : draftId ? (
+        // Real iframe preview against the actual reader components — gated
+        // by the wizard having run at least one autosave (so a draftId
+        // exists). E5.5 T7.
+        <PreviewIframe draftId={draftId} refreshToken={refreshToken} height={600} />
       ) : (
         <div
           style={{
@@ -573,6 +626,10 @@ function BodyStep({ value, onChange }: { value: string; onChange: (v: string) =>
             maxWidth: 720,
           }}
         >
+          <p style={{ color: 'var(--ink-muted)', marginBottom: 12 }}>
+            Save the draft once to enable the live preview. In the meantime, here's a
+            markdown render:
+          </p>
           {value.trim() ? (
             <MarkdownBody body={value} />
           ) : (
@@ -643,64 +700,159 @@ function SpotsStep({
         ))}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {spots
-          .map((s, i) => ({ s, i }))
-          .filter(({ s }) => s.dayNumber === day)
-          .map(({ s, i }) => (
-            <div
-              key={i}
-              className="ch-card"
-              style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
-              <input
-                value={s.name}
-                onChange={(e) => {
-                  patch(i, 'name', e.target.value)
-                }}
-                placeholder="Spot name (e.g. Diveagar Beach)"
-                style={inputStyle}
-              />
-              <textarea
-                value={s.description}
-                onChange={(e) => {
-                  patch(i, 'description', e.target.value)
-                }}
-                placeholder="Why stop here?"
-                rows={2}
-                style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  removeAt(i)
-                }}
-                style={{
-                  alignSelf: 'flex-start',
-                  background: 'transparent',
-                  border: 0,
-                  color: 'var(--danger)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+      {/* Drag-reorder via framer-motion Reorder.Group; only the spots
+          for the active day participate. Reordering rewrites their
+          orderIndex; spots in other days are unaffected. (E5.5 T5) */}
+      {(() => {
+        const activeSpots = spots.filter((s) => s.dayNumber === day)
+        const otherSpots = spots.filter((s) => s.dayNumber !== day)
 
-        <button
-          type="button"
-          onClick={addSpot}
-          className="ch-btn ch-btn-ghost"
-          style={{ alignSelf: 'flex-start' }}
-        >
-          + Add stop to Day {String(day)}
-        </button>
-      </div>
+        const handleReorder = (next: Spot[]): void => {
+          const renumbered = next.map((s, i) => ({ ...s, orderIndex: i }))
+          update([...otherSpots, ...renumbered])
+        }
+
+        const moveBy = (spot: Spot, delta: number): void => {
+          const idx = activeSpots.indexOf(spot)
+          const target = idx + delta
+          if (target < 0 || target >= activeSpots.length) return
+          const next = [...activeSpots]
+          next.splice(idx, 1)
+          next.splice(target, 0, spot)
+          handleReorder(next)
+        }
+
+        return (
+          <Reorder.Group
+            axis="y"
+            values={activeSpots}
+            onReorder={handleReorder}
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            {activeSpots.map((s) => {
+              const idxInWhole = spots.indexOf(s)
+              return (
+                <Reorder.Item
+                  key={`${String(s.dayNumber)}-${String(s.orderIndex)}-${s.name}`}
+                  value={s}
+                  className="ch-card"
+                  style={{
+                    padding: 16,
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'flex-start',
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    title="Drag to reorder"
+                    style={{
+                      cursor: 'grab',
+                      color: 'var(--ink-muted)',
+                      fontSize: 18,
+                      lineHeight: 1,
+                      paddingTop: 4,
+                      userSelect: 'none',
+                    }}
+                  >
+                    ⠿
+                  </span>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input
+                      value={s.name}
+                      onChange={(e) => {
+                        patch(idxInWhole, 'name', e.target.value)
+                      }}
+                      placeholder="Spot name (e.g. Diveagar Beach)"
+                      style={inputStyle}
+                      aria-label="Spot name"
+                    />
+                    <textarea
+                      value={s.description}
+                      onChange={(e) => {
+                        patch(idxInWhole, 'description', e.target.value)
+                      }}
+                      placeholder="Why stop here?"
+                      rows={2}
+                      style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }}
+                      aria-label="Spot description"
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          moveBy(s, -1)
+                        }}
+                        aria-label="Move spot up"
+                        style={miniBtn}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          moveBy(s, 1)
+                        }}
+                        aria-label="Move spot down"
+                        style={miniBtn}
+                      >
+                        ↓
+                      </button>
+                      <div style={{ flex: 1 }} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          removeAt(idxInWhole)
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 0,
+                          color: 'var(--danger)',
+                          fontSize: 12,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </Reorder.Item>
+              )
+            })}
+          </Reorder.Group>
+        )
+      })()}
+
+      <button
+        type="button"
+        onClick={addSpot}
+        className="ch-btn ch-btn-ghost"
+        style={{ marginTop: 12, alignSelf: 'flex-start' }}
+      >
+        + Add stop to Day {String(day)}
+      </button>
     </div>
   )
 }
+
+const miniBtn = {
+  width: 28,
+  height: 28,
+  borderRadius: 6,
+  border: '1px solid var(--hairline)',
+  background: 'var(--surface)',
+  color: 'var(--ink)',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: 13,
+} as const
 
 function ReviewStep({ data, type }: { data: FormData; type: PublishType }) {
   const checks: { ok: boolean; label: string }[] = [

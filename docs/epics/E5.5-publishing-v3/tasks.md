@@ -1,0 +1,16 @@
+# E5.5 — Tasks
+
+> 10 tasks. Decisions locked: keep 5 steps + restyle, full TipTap (starter-kit + link + image + table + collab cursor + youtube), in-place 2:1 cover crop, real iframe preview at `/preview/[draftId]`.
+
+| ID | Task | Files touched (new in **bold**) |
+|----|------|--------------------------------|
+| T1 | Audit existing publish wizard surface — verify autosave path, KYC gate on paid publish, draft restoration, cover MIME validation, beforeunload warning. Document gaps in [tracking.md](tracking.md#api-audit-t1). | — (read-only) |
+| T2 | Wizard chrome restyle — keep 5 steps, restyle stepper rail to v3 chrome (matches `pack-w-publish.jsx` lines 464–544 — horizontal at top with check-marks). | [apps/web/src/app/publish/[type]/publish-wizard.tsx](apps/web/src/app/publish/[type]/publish-wizard.tsx) |
+| T3 | TipTap editor — install `@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-link` + `@tiptap/extension-image` + `@tiptap/extension-table` + `@tiptap/extension-collaboration-cursor` + `@tiptap/extension-youtube`. Build `<TipTapEditor>` with a toolbar; lazy-load via `dynamic()`. Markdown roundtrip helper (`tiptap-markdown.ts`). Replace the `<textarea>` in BodyStep. | **`apps/web/src/components/publish/tiptap-editor.tsx`**, **`apps/web/src/components/publish/tiptap-editor-impl.tsx`** (lazy chunk), **`apps/web/src/lib/publish/tiptap-markdown.ts`**, **`tiptap-markdown.test.ts`** |
+| T4 | 2:1 cover crop — hand-rolled in-place pan/zoom inside a fixed 2:1 mask. Output 1600×800 JPEG via canvas. Replaces the current direct-upload-on-pick. | **`apps/web/src/components/publish/cover-crop.tsx`**, **`cover-crop.test.tsx`**; [apps/web/src/app/publish/[type]/publish-wizard.tsx](apps/web/src/app/publish/[type]/publish-wizard.tsx) (CoverStep) |
+| T5 | Drag-reorder spots — framer-motion `Reorder.Group` with explicit drag handle + keyboard arrow-key fallback (Up/Down moves item by 1 in the list). | **`apps/web/src/components/publish/spots-reorder.tsx`**, **`spots-reorder.test.tsx`**; [apps/web/src/app/publish/[type]/publish-wizard.tsx](apps/web/src/app/publish/[type]/publish-wizard.tsx) (SpotsStep) |
+| T6 | 5-state autosave indicator — Idle / Saving… / Saved {n}s ago / Error · retry / Offline pill, top of wizard. | **`apps/web/src/components/publish/autosave-pill.tsx`**, **`autosave-pill.test.tsx`**; wizard wires the state |
+| T7 | iframe live preview — new `/preview/[draftId]/page.tsx` (owner-gated, server-rendered via existing reader components with `?preview=1` flag). Wizard mounts an `<iframe>` of this URL in a sidecar pane; auto-refreshes on autosave. | **`apps/web/src/app/preview/[draftId]/page.tsx`**, **`apps/web/src/components/publish/preview-iframe.tsx`** |
+| T8 | Edge cases — beforeunload warning (verify), MIME validation, 8MB rejection toast, KYC gate surfacing on paid publish failure. | [apps/web/src/app/publish/[type]/publish-wizard.tsx](apps/web/src/app/publish/[type]/publish-wizard.tsx) |
+| T9 | 4-step review gate (edge cases → security → architecture → code quality) | [docs/epics/E5.5-publishing-v3/tracking.md](docs/epics/E5.5-publishing-v3/tracking.md) |
+| T10 | Pre-commit + 5-breakpoint screenshots × 4 content types × 5 steps; commit + push to `dev` | — |
