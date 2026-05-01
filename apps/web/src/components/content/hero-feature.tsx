@@ -160,42 +160,49 @@ export function HeroFeature({
 
       <div
         style={{
-          padding: '28px 28px',
+          padding: '32px 32px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           background: 'var(--surface)',
+          gap: 20,
         }}
       >
         <div>
-          {kicker && (
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-muted)',
-                display: 'block',
-                marginBottom: 10,
-              }}
-            >
-              {kicker}
-            </span>
-          )}
+          {/* Kicker — always shows. Falls back to type + city if no explicit
+              kicker was passed. Keeps the right panel from feeling empty. */}
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--primary)',
+              display: 'block',
+              marginBottom: 14,
+            }}
+          >
+            {kicker ?? defaultKicker(content)}
+          </span>
           <h3
             className="ch-display"
-            style={{ fontSize: 26, color: 'var(--ink)', lineHeight: 1.15, marginBottom: 12 }}
+            style={{
+              fontSize: 'clamp(22px, 2.4vw, 28px)',
+              color: 'var(--ink)',
+              lineHeight: 1.12,
+              marginBottom: 14,
+              letterSpacing: '-0.015em',
+            }}
           >
             {content.title}
           </h3>
-          {summary && (
+          {summary ? (
             <p
               style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: 17,
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 color: 'var(--ink-soft)',
                 fontStyle: 'italic',
                 fontWeight: 400,
@@ -208,30 +215,188 @@ export function HeroFeature({
             >
               &ldquo;{summary}&rdquo;
             </p>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 24, alignItems: 'center' }}>
-          <span
-            className="ch-btn ch-btn-ink"
-            style={{ padding: '12px 18px', fontSize: 13.5, flex: '0 0 auto' }}
-          >
-            {primaryCta ?? 'Read this →'}
-          </span>
-          {!content.isFree && content.priceInPaisa > 0 && (
-            <span
+          ) : (
+            // No summary in DB — show a structured editorial line so the
+            // right panel still has body copy. WHAT this content is + WHY
+            // it's here (featured/curated).
+            <p
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 18,
-                color: 'var(--ink)',
-                marginLeft: 'auto',
+                fontSize: 16,
+                lineHeight: 1.55,
+                color: 'var(--ink-soft)',
+                margin: 0,
               }}
             >
-              {formatPrice(content.priceInPaisa, content.isFree)}
-            </span>
+              {fallbackBlurb(content)}
+            </p>
           )}
+
+          {/* Meta row — duration, distance, rating, save count. Only shows
+              what we have data for; renders nothing on empty rather than a
+              ghost row. */}
+          {hasMetaStats(content) && (
+            <div
+              style={{
+                marginTop: 18,
+                display: 'flex',
+                gap: 16,
+                flexWrap: 'wrap',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                color: 'var(--ink-muted)',
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+              }}
+            >
+              {content.durationDays != null && content.durationDays > 0 && (
+                <span>
+                  <strong style={{ color: 'var(--ink)' }}>{String(content.durationDays)}</strong>{' '}
+                  {content.durationDays === 1 ? 'day' : 'days'}
+                </span>
+              )}
+              {content.distanceKm != null && content.distanceKm > 0 && (
+                <span>
+                  <strong style={{ color: 'var(--ink)' }}>{String(content.distanceKm)}</strong> km
+                </span>
+              )}
+              {content.rating != null && (
+                <span>
+                  <strong style={{ color: 'var(--ink)' }}>★ {content.rating.toFixed(1)}</strong>
+                </span>
+              )}
+              {content.saveCount != null && content.saveCount > 0 && (
+                <span>
+                  <strong style={{ color: 'var(--ink)' }}>{String(content.saveCount)}</strong>{' '}
+                  saves
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom row — byline + price + primary CTA. Always renders the
+            byline if we have a creator, so the right panel always has a
+            human signal. */}
+        <div>
+          {content.creator && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: 16,
+                paddingBottom: 16,
+                borderBottom: '1px solid var(--hairline)',
+              }}
+            >
+              <Avatar
+                name={content.creator.displayName}
+                url={content.creator.avatarUrl ?? null}
+                size={32}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>
+                  {content.creator.displayName}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                  {bylineSecondary(content)}
+                </div>
+              </div>
+              {!content.isFree && content.priceInPaisa > 0 && (
+                <div
+                  style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 17,
+                    color: 'var(--ink)',
+                    fontWeight: 600,
+                  }}
+                >
+                  {formatPrice(content.priceInPaisa, content.isFree)}
+                </div>
+              )}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span
+              className="ch-btn ch-btn-ink"
+              style={{ padding: '12px 20px', fontSize: 13.5, flex: '0 0 auto' }}
+            >
+              {primaryCta ?? readCta(content)}
+            </span>
+            <span
+              className="ch-btn ch-btn-ghost"
+              style={{ padding: '12px 16px', fontSize: 13.5, flex: '0 0 auto' }}
+              aria-hidden
+            >
+              <BookmarkIcon /> Save
+            </span>
+          </div>
         </div>
       </div>
     </Link>
+  )
+}
+
+function defaultKicker(c: ContentCardModel): string {
+  const parts: string[] = []
+  parts.push(typeLabel(c.type).toUpperCase())
+  if (c.city) parts.push(c.city.toUpperCase())
+  if (c.isFree) parts.push('FREE')
+  return parts.join(' · ')
+}
+
+function fallbackBlurb(c: ContentCardModel): string {
+  const type = typeLabel(c.type).toLowerCase()
+  if (c.city && c.durationDays != null && c.durationDays > 0) {
+    const dayWord = c.durationDays === 1 ? 'day' : 'days'
+    return `A ${String(c.durationDays)}-${dayWord.replace(/s$/, '')} ${type} from ${c.city}, hand-picked by the editors this week.`
+  }
+  if (c.city) {
+    return `A ${type} from ${c.city}, hand-picked by the editors this week.`
+  }
+  return `A ${type} hand-picked by the editors this week.`
+}
+
+function hasMetaStats(c: ContentCardModel): boolean {
+  return (
+    (c.durationDays != null && c.durationDays > 0) ||
+    (c.distanceKm != null && c.distanceKm > 0) ||
+    c.rating != null ||
+    (c.saveCount != null && c.saveCount > 0)
+  )
+}
+
+function bylineSecondary(c: ContentCardModel): string {
+  const parts: string[] = []
+  if (c.tags && c.tags.length > 0) {
+    parts.push(c.tags.slice(0, 2).map((t) => `#${t}`).join(' '))
+  } else if (c.viewCount != null && c.viewCount > 0) {
+    parts.push(`${formatCount(c.viewCount)} reads`)
+  } else {
+    parts.push('Creator on CreatorHub')
+  }
+  return parts.join(' · ')
+}
+
+function readCta(c: ContentCardModel): string {
+  if (c.type === 'experience') return 'Book this →'
+  if (c.type === 'event') return 'See details →'
+  return 'Read this →'
+}
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
+  if (n < 1_000_000) return `${String(Math.round(n / 1000))}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
+}
+
+function BookmarkIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
   )
 }
 
