@@ -297,6 +297,34 @@ body {
   border: 0;
 }
 
+/* Reader (E5.3) — drop-cap on first paragraph + magazine pull-quote.
+ * Both are gated by `mode="magazine"` in <MarkdownBody>; in compact mode
+ * we don't render these classes at all. */
+.ch-dropcap-host::first-letter {
+  font-family: var(--font-serif);
+  font-size: 76px;
+  line-height: 0.85;
+  font-weight: 600;
+  color: var(--primary);
+  float: left;
+  margin: 4px 10px 0 0;
+}
+
+.ch-pull-quote {
+  margin: 36px 0;
+  padding: 24px 28px;
+  border-left: 3px solid var(--primary);
+  background: var(--primary-tint);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--primary-deep);
+  letter-spacing: -0.005em;
+}
+
 @keyframes ch-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -820,8 +848,8 @@ body {
  * its own scope so its photo sizing rules don't fight `.ch-hero-photo`. */
 .ch-chapter-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  min-height: 460px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 360px;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-xl);

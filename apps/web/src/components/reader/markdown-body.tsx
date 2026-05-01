@@ -1,7 +1,10 @@
 import { Fragment } from 'react'
+import type { ReaderMode } from '@/lib/reader-mode'
 
 interface MarkdownBodyProps {
   body: string
+  /** Reader mode — controls drop-cap + pull-quote decorations (E5.3 T3/T4). */
+  mode?: ReaderMode
 }
 
 /**
@@ -15,9 +18,33 @@ interface MarkdownBodyProps {
  * so user-supplied bodies cannot inject markup. (DOMPurify would be overkill
  * for this surface; we'd rather not give markdown the chance to embed HTML
  * at all.)
+ *
+ * **E5.3 T3/T4 decorations** — gated by `mode`:
+ * - Magazine: first paragraph gets a `.ch-dropcap-host` wrapper (CSS
+ *   `::first-letter` does the 76px coral capital). Blockquotes render
+ *   with the v3 pull-quote treatment (3px coral left-border + tint bg +
+ *   italic display font).
+ * - Compact: no drop-cap; blockquote is plain italic with no decoration.
  */
-export function MarkdownBody({ body }: MarkdownBodyProps) {
+export function MarkdownBody({ body, mode = 'magazine' }: MarkdownBodyProps) {
   const blocks = body.split(/\n{2,}/)
+  const isMagazine = mode === 'magazine'
+  let firstParagraphIndex = -1
+  if (isMagazine) {
+    for (let i = 0; i < blocks.length; i++) {
+      const t = (blocks[i] ?? '').trimStart()
+      if (
+        t &&
+        !t.startsWith('#') &&
+        !t.startsWith('>') &&
+        !t.startsWith('-') &&
+        !t.startsWith(':::')
+      ) {
+        firstParagraphIndex = i
+        break
+      }
+    }
+  }
 
   return (
     <div style={{ color: 'var(--ink)' }}>
@@ -69,25 +96,38 @@ export function MarkdownBody({ body }: MarkdownBodyProps) {
           )
         }
         if (trimmed.startsWith('> ')) {
-          return (
+          return isMagazine ? (
+            <aside
+              key={i}
+              className="ch-pull-quote"
+              role="note"
+            >
+              {renderInline(trimmed.slice(2))}
+            </aside>
+          ) : (
             <blockquote
               key={i}
               style={{
                 fontStyle: 'italic',
-                borderLeft: '2px solid var(--primary)',
-                paddingLeft: 20,
-                margin: '24px 0',
+                margin: '20px 0',
                 color: 'var(--ink-soft)',
-                fontSize: 22,
-                lineHeight: 1.5,
+                fontSize: 18,
+                lineHeight: 1.6,
+                paddingLeft: 0,
+                borderLeft: 'none',
               }}
             >
               {renderInline(trimmed.slice(2))}
             </blockquote>
           )
         }
+        const isDropCapHost = i === firstParagraphIndex
         return (
-          <p key={i} style={{ margin: '16px 0', lineHeight: 1.7, fontSize: 18 }}>
+          <p
+            key={i}
+            className={isDropCapHost ? 'ch-dropcap-host' : undefined}
+            style={{ margin: '16px 0', lineHeight: 1.7, fontSize: 18 }}
+          >
             {renderInline(block)}
           </p>
         )

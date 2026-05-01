@@ -38,7 +38,7 @@ export function HeroFeature({
       href={target}
       style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
         gap: 0,
         borderRadius: 'var(--radius-xl)',
         overflow: 'hidden',
@@ -47,7 +47,7 @@ export function HeroFeature({
         boxShadow: 'var(--shadow-md)',
         textDecoration: 'none',
         color: 'inherit',
-        minHeight: 420,
+        minHeight: 360,
       }}
       className="ch-hero-feature"
     >
@@ -55,7 +55,7 @@ export function HeroFeature({
         className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}
         style={{
           position: 'relative',
-          minHeight: 420,
+          minHeight: 360,
           borderRadius: 0,
           overflow: 'hidden',
         }}

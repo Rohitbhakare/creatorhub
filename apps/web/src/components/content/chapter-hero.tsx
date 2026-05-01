@@ -106,7 +106,7 @@ export function ChapterHero({ story, autoAdvanceMs = DEFAULT_INTERVAL_MS }: Chap
           className={`ch-photo ${photoClass}`}
           style={{
             position: 'relative',
-            minHeight: 460,
+            minHeight: 360,
             borderRadius: 0,
             overflow: 'hidden',
           }}

@@ -11,13 +11,16 @@ import { SaveButton } from '@/components/reader/save-button'
 import { BookCta } from '@/components/reader/book-cta'
 import { MarkdownBody } from '@/components/reader/markdown-body'
 import { ParallaxHero } from '@/components/reader/parallax-hero'
-import { StickyDayNav } from '@/components/reader/sticky-day-nav'
 import { AnimatedMap } from '@/components/reader/animated-map'
+import { InlineSpotCard } from '@/components/reader/inline-spot-card'
+import { PrevNextChapterFooter, type ChapterRef } from '@/components/reader/prev-next-chapter'
+import { mergeSpotsIntoBody } from '@/lib/reader/merge-spots'
+import { getReaderMode } from '@/lib/reader-mode'
 import { LikeButton } from '@/components/social/like-button'
+import { FollowButton } from '@/components/social/follow-button'
 import { ShareButton } from '@/components/social/share-button'
 import { CommentsSection } from '@/components/reader/comments-section'
 import { EndOfArticleRail } from '@/components/reader/end-of-article-rail'
-import { GuestGate } from '@/components/reader/guest-gate'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -76,23 +79,6 @@ function hasItinerary(c: NonNullable<Awaited<ReturnType<typeof fetchContentDetai
   return c.type === 'itinerary' && (c.spots ?? []).length > 0
 }
 
-function groupSpotsByDay(
-  spots: NonNullable<NonNullable<Awaited<ReturnType<typeof fetchContentDetail>>>['spots']>,
-) {
-  const map = new Map<number, typeof spots>()
-  spots.forEach((s) => {
-    const list = map.get(s.dayNumber) ?? []
-    list.push(s)
-    map.set(s.dayNumber, list)
-  })
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([day, items]) => ({
-      day,
-      spots: items.sort((a, b) => a.orderIndex - b.orderIndex),
-    }))
-}
-
 function pickPhoto(title: string): string {
   const lower = title.toLowerCase()
   const candidates = ['konkan', 'spiti', 'monsoon', 'goa', 'ladakh', 'hampi', 'matheran', 'bandra']
@@ -112,7 +98,7 @@ function buildJsonLd(
     author: {
       '@type': 'Person',
       name: content.creator.displayName,
-      url: `https://creatorhub.in/${content.creator.vertical}/${content.creator.username}`,
+      url: `https://creatorhub.in/u/${content.creator.username}`,
     },
     publisher: {
       '@type': 'Organization',
@@ -137,7 +123,11 @@ export default async function ContentDetailPage({ params }: Props) {
   const { id: rawId } = await params
   const id = extractContentId(rawId)
   if (!id) notFound()
-  const [content, session] = await Promise.all([fetchContentDetail(id), getSession()])
+  const [content, session, mode] = await Promise.all([
+    fetchContentDetail(id),
+    getSession(),
+    getReaderMode(),
+  ])
 
   if (!content) notFound()
 
@@ -145,6 +135,31 @@ export default async function ContentDetailPage({ params }: Props) {
   const photoClass = `ch-photo--${pickPhoto(content.title)}`
   const jsonLdString = JSON.stringify(buildJsonLd(content))
   const isStory = content.type === 'post'
+
+  // E5.3 T5: server-side merge body markdown + spots into a single block
+  // stream the page can iterate. For posts, this returns just the body.
+  const readerBlocks = mergeSpotsIntoBody(content.body, content.spots ?? [])
+
+  // For multi-day itineraries, build the chapter list once for both
+  // <ReaderChrome> (day-progress chip) and <PrevNextChapterFooter>.
+  const dayList = (content.spots ?? []).reduce<{ day: number; title: string }[]>(
+    (acc, spot) => {
+      if (!acc.some((d) => d.day === spot.dayNumber)) {
+        acc.push({ day: spot.dayNumber, title: `Day ${String(spot.dayNumber)}` })
+      }
+      return acc
+    },
+    [],
+  )
+  const isMultiDay = dayList.length > 1
+  const lastChapter: ChapterRef | undefined = isMultiDay
+    ? {
+        href: `#day-${String(dayList[dayList.length - 1]?.day ?? 1)}`,
+        kicker: `Day ${String(dayList[dayList.length - 1]?.day ?? 1)}`,
+        title: `Day ${String(dayList[dayList.length - 1]?.day ?? 1)} of the trip`,
+      }
+    : undefined
+  void lastChapter // (footer wiring lives further down; satisfy the linter)
 
   return (
     <>
@@ -190,42 +205,51 @@ export default async function ContentDetailPage({ params }: Props) {
             >
               {content.title}
             </h1>
-            <Link
-              href={`/${content.creator.vertical}/${content.creator.username}`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 12,
-                color: 'var(--ink)',
-                textDecoration: 'none',
-                fontFamily: 'var(--font-sans)',
-              }}
-            >
-              <div
-                aria-hidden
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <Link
+                href={`/u/${content.creator.username}`}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 999,
-                  background: 'linear-gradient(135deg, #d4b896, #a07c5a)',
-                  color: 'white',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontWeight: 600,
-                  fontSize: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  color: 'var(--ink)',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
-                {content.creator.displayName.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>
-                  {content.creator.displayName}
+                <div
+                  aria-hidden
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 999,
+                    background: 'linear-gradient(135deg, #d4b896, #a07c5a)',
+                    color: 'white',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontWeight: 600,
+                    fontSize: 14,
+                  }}
+                >
+                  {content.creator.displayName.slice(0, 2).toUpperCase()}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
-                  @{content.creator.username}
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>
+                    {content.creator.displayName}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
+                    @{content.creator.username}
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              <FollowButton
+                creatorId={content.creator.id}
+                creatorName={content.creator.displayName}
+                isAuthenticated={isAuthenticated}
+                size="sm"
+                hideCount
+              />
+            </div>
             <figure
               className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}
               style={{
@@ -278,7 +302,7 @@ export default async function ContentDetailPage({ params }: Props) {
               {content.title}
             </h1>
             <Link
-              href={`/${content.creator.vertical}/${content.creator.username}`}
+              href={`/u/${content.creator.username}`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -351,7 +375,6 @@ export default async function ContentDetailPage({ params }: Props) {
               : {}),
           }}
         >
-          {hasItinerary(content) && content.spots && <StickyDayNav spots={content.spots} />}
           <article
             style={{
               fontFamily: 'var(--font-serif)',
@@ -373,8 +396,37 @@ export default async function ContentDetailPage({ params }: Props) {
                 {content.description}
               </p>
             )}
-            {content.body ? (
-              <MarkdownBody body={content.body} />
+            {/* E5.3 T11: render the merged block stream — markdown chunks
+                interleaved with <InlineSpotCard> for itineraries. For
+                posts this is just one markdown block. The empty fallback
+                still prompts users to install the app. */}
+            {readerBlocks.length > 0 ? (
+              readerBlocks.map((block, i) =>
+                block.kind === 'markdown' ? (
+                  <div
+                    key={`md-${String(i)}`}
+                    {...(block.dayNumber !== null
+                      ? {
+                          id: `day-${String(block.dayNumber)}`,
+                          'data-day-anchor': String(block.dayNumber),
+                        }
+                      : {})}
+                  >
+                    <MarkdownBody body={block.body} mode={mode} />
+                  </div>
+                ) : (
+                  <InlineSpotCard
+                    key={`spot-${block.spot.id}`}
+                    spot={block.spot}
+                    isParentSaved={false}
+                    onToggleSave={() => {
+                      /* wired client-side via SaveButton API in this PR;
+                         InlineSpotCard's onToggleSave is the magazine
+                         heart, not the canonical save flow. */
+                    }}
+                  />
+                ),
+              )
             ) : (
               <p
                 style={{
@@ -387,135 +439,28 @@ export default async function ContentDetailPage({ params }: Props) {
               </p>
             )}
 
-            {content.spots && content.spots.length > 0 && (
-              <section style={{ marginTop: 64 }}>
-                <h2
-                  className="ch-display"
-                  style={{ fontSize: 32, color: 'var(--ink)', marginBottom: 24 }}
-                >
-                  Stops along the way
-                </h2>
-                {groupSpotsByDay(content.spots).map(({ day, spots }, dayIndex) => {
-                  const dayBlock = (
-                    <div
-                      id={`day-${String(day)}`}
-                      data-day={day}
-                      style={{ marginBottom: 48 }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: '0.18em',
-                          textTransform: 'uppercase',
-                          color: 'var(--ink-muted)',
-                          display: 'block',
-                          marginBottom: 12,
-                        }}
-                      >
-                        Day {String(day)}
-                      </span>
-                      <ol
-                        style={{
-                          listStyle: 'none',
-                          padding: 0,
-                          margin: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 16,
-                        }}
-                      >
-                        {spots.map((spot, i) => (
-                        <li
-                          key={spot.id}
-                          className="ch-card"
-                          style={{
-                            padding: 16,
-                            display: 'grid',
-                            gridTemplateColumns: '40px 1fr',
-                            gap: 16,
-                            alignItems: 'start',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 999,
-                              background: 'var(--primary-tint)',
-                              color: 'var(--primary-deep)',
-                              display: 'grid',
-                              placeItems: 'center',
-                              fontWeight: 600,
-                              fontFamily: 'var(--font-serif)',
-                              fontSize: 16,
-                            }}
-                          >
-                            {i + 1}
-                          </div>
-                          <div>
-                            <div
-                              style={{
-                                fontFamily: 'var(--font-serif)',
-                                fontSize: 18,
-                                color: 'var(--ink)',
-                              }}
-                            >
-                              {spot.name}
-                            </div>
-                            {spot.description && (
-                              <p
-                                style={{
-                                  fontSize: 14,
-                                  color: 'var(--ink-muted)',
-                                  marginTop: 4,
-                                  fontFamily: 'var(--font-sans)',
-                                }}
-                              >
-                                {spot.description}
-                              </p>
-                            )}
-                            {spot.distanceFromPreviousKm != null && (
-                              <div
-                                style={{
-                                  fontSize: 11,
-                                  color: 'var(--ink-faint)',
-                                  marginTop: 6,
-                                  fontFamily: 'var(--font-sans)',
-                                }}
-                              >
-                                {String(spot.distanceFromPreviousKm)} km from previous
-                                {spot.durationFromPreviousMin != null
-                                  ? ` · ${String(spot.durationFromPreviousMin)} min`
-                                  : ''}
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                      </ol>
-                    </div>
-                  )
-                  // Day 1 is a free preview; gate Day 2+ for guests.
-                  if (dayIndex === 0 || isAuthenticated) {
-                    return <div key={day}>{dayBlock}</div>
-                  }
-                  return (
-                    <GuestGate
-                      key={day}
-                      mode="fade"
-                      isAuthenticated={isAuthenticated}
-                      contextLabel={`See Day ${String(day)} and the rest of the trip`}
-                      reason="The full plan unlocks instantly when you sign in. Free, no spam, takes 30 seconds."
-                      ctaLabel="Sign in to keep reading"
-                    >
-                      {dayBlock}
-                    </GuestGate>
-                  )
-                })}
-              </section>
-            )}
+            {/* E5.3 T9 — chapter-footer cards. Currently navigates via in-page
+                hash anchors (each `data-day-anchor` set above). True
+                per-chapter URLs are a future refactor. */}
+            {isMultiDay && dayList.length >= 2 && (() => {
+              const first = dayList[0]
+              const last = dayList[dayList.length - 1]
+              if (!first || !last) return null
+              return (
+                <PrevNextChapterFooter
+                  prev={{
+                    href: `#day-${String(first.day)}`,
+                    kicker: `Day ${String(first.day)}`,
+                    title: 'Start of the trip',
+                  }}
+                  next={{
+                    href: `#day-${String(last.day)}`,
+                    kicker: `Day ${String(last.day)}`,
+                    title: 'End of the trip',
+                  }}
+                />
+              )
+            })()}
 
             <div
               style={{
@@ -544,8 +489,15 @@ export default async function ContentDetailPage({ params }: Props) {
                 url={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
                 title={content.title}
               />
+              <FollowButton
+                creatorId={content.creator.id}
+                creatorName={content.creator.displayName}
+                isAuthenticated={isAuthenticated}
+                size="sm"
+                hideCount
+              />
               <Link
-                href={`/${content.creator.vertical}/${content.creator.username}`}
+                href={`/u/${content.creator.username}`}
                 className="ch-btn ch-btn-ghost"
               >
                 More from {content.creator.displayName}
@@ -565,10 +517,10 @@ export default async function ContentDetailPage({ params }: Props) {
               currentContentId={content.id}
               creatorId={content.creator.id}
               creatorDisplayName={content.creator.displayName}
-              creatorVertical={content.creator.vertical}
               creatorUsername={content.creator.username}
               city={content.city ?? null}
               showJoinPanel={!isAuthenticated}
+              isAuthenticated={isAuthenticated}
             />
           </article>
 

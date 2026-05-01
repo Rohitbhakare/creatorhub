@@ -19,7 +19,7 @@ export function ParallaxHero({ photoClass, imageUrl, children }: ParallaxHeroPro
   const reduced = useReducedMotion()
   const { scrollY } = useScroll()
   const y = useTransform(scrollY, [0, 600], [0, 180])
-  const opacity = useTransform(scrollY, [0, 400, 700], [1, 1, 0.6])
+  const opacity = useTransform(scrollY, [0, 400, 700], [1, 0.85, 0.4])
 
   const bgClass = imageUrl ? '' : photoClass
 
@@ -29,8 +29,8 @@ export function ParallaxHero({ photoClass, imageUrl, children }: ParallaxHeroPro
         className={`ch-photo ${bgClass}`}
         style={{
           position: 'relative',
-          height: '70vh',
-          minHeight: 480,
+          height: '85vh',
+          minHeight: 540,
           borderRadius: 0,
           backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
           backgroundSize: 'cover',

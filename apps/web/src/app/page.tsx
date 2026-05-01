@@ -157,12 +157,16 @@ export default async function HomePage({ searchParams }: Props) {
         />
 
         {/* Hero — chapter rotator if a featured itinerary is available; else
-            fall back to the existing single-story HeroFeature. */}
+            fall back to the existing single-story HeroFeature. Both share
+            the same 1640px max-width so the hero doesn't spill on wide
+            displays (HeroFeature has no internal width gate of its own). */}
         {chapterStory ? (
           <ChapterHero story={chapterStory} />
         ) : allItems[0] ? (
           <ScrollReveal>
-            <HeroFeature content={allItems[0]} />
+            <section style={{ maxWidth: 1640, margin: '0 auto', padding: '0 32px' }}>
+              <HeroFeature content={allItems[0]} />
+            </section>
           </ScrollReveal>
         ) : null}
 

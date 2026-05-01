@@ -112,6 +112,32 @@ if (typeof global.fetch === 'undefined') {
   global.fetch = vi.fn()
 }
 
+// jsdom doesn't ship IntersectionObserver. Components that scroll-spy
+// (e.g. <ReaderChrome> tracking the active day section) call it on mount.
+if (typeof globalThis.IntersectionObserver === 'undefined') {
+  class IO {
+    constructor() {
+      // no-op
+    }
+    observe(): void {
+      // no-op
+    }
+    unobserve(): void {
+      // no-op
+    }
+    disconnect(): void {
+      // no-op
+    }
+    takeRecords(): IntersectionObserverEntry[] {
+      return []
+    }
+    readonly root: Element | null = null
+    readonly rootMargin: string = ''
+    readonly thresholds: readonly number[] = []
+  }
+  globalThis.IntersectionObserver = IO as unknown as typeof IntersectionObserver
+}
+
 // jsdom doesn't ship matchMedia. Components that read viewport width
 // (e.g. <FilterSheet> for desktop vs bottom-sheet) call it on mount.
 if (typeof globalThis.matchMedia === 'undefined') {
