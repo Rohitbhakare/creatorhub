@@ -125,7 +125,7 @@
 |------|------|--------|-------|-------|------|------|-------------|----------|----|---------| -------|
 | E5.0 | Web Foundation (chrome + primitives + motion + a11y + CSRF) | `DONE` | 10/10 | `[x]` 163 web tests (+71 new: primitives 31, layout 8, csrf 18, motion 14, middleware 14, robots 3, toast 4) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `0495c06`+`9be8ad4` |
 | E5.1 | Home Feed v3 (W3 — single-col magazine: chapter hero + quest strip + moods + bento + map placeholder + spotlight + continue) | `DONE` (Lighthouse + screenshots pending) | 14/14 | `[x]` 206 web tests (+45 new) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[ ]` pending |
-| E5.2 | Discover + Search (W4 — sidebar + 3-col masonry + 13-filter drawer + Cmd+K) | `DONE` (Lighthouse + axe pending) | 13/13 | `[x]` 258 web tests (+43 new) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[ ]` pending |
+| E5.2 | Discover + Search (W4 — sidebar + 3-col masonry + 13-filter drawer + Cmd+K) | `DONE` (Lighthouse + axe pending) | 13/13 | `[x]` 258 web tests (+43 new) | `[x]` | `[x]` | `[x]` self-review (4 dims) | `[x]` | `[-]` N/A | `[-]` N/A | `[x]` `636096a` |
 | E5.3 | Reader / Detail (Magazine + Compact, parallax, drop-caps, spot save) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
 | E5.4 | Booking (4-step desktop wizard + Razorpay desktop hosted page) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |
 | E5.5 | Publishing Wizard (TipTap editor + crop + reorder + autosave) | `NOT STARTED` | 0/0 | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[ ]` | `[-]` N/A | `[-]` N/A | `[ ]` |

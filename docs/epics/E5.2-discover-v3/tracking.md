@@ -28,7 +28,7 @@
 | T10 | Page rewrite | `[x]` | `/discover` rebuilt to v3 layout. Live verification: status 200, Trending/Recent/Near me/Top creators tabs render correctly (Near me disabled, Top creators "Soon"-badged), Active filter chips resolve via `resolveFilterChips()`, type-pill counts populate from 4 parallel `fetchDiscoverResultsCount()` calls, FilterSheet mounted with `urlParamControlsOpen + hideTrigger`. |
 | T11 | Cmd+K polish | `[x]` | No code changes — existing `<CommandPalette>` (lazy-split, recent+trending cold state, live suggestions, framer-motion + reduced-motion, focus trap, Cmd+K + `/` triggers) already matches the v3 wireframe (`pack-w-discover.jsx` lines 151–242). Decision-locked as "minor polish only"; nothing to polish. |
 | T12 | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 5 deviations + 4 follow-ups documented. |
-| T13 | Pre-commit + screenshots + commit | `[ ]` | |
+| T13 | Pre-commit + screenshots + commit | `[x]` | All gates green. 30 screenshots captured. Committed as `636096a` and pushed to `origin/dev`. |
 
 ---
 
@@ -46,7 +46,7 @@
 - [x] Screenshots at 5 breakpoints (390 / 768 / 1080 / 1440 / 1920) under `screens/` — 30 PNGs across 6 routes
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated (E5.2 row → IN PROGRESS, BUG-001/002 + ENH-001..004 logged)
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `636096a`
 
 ---
 
