@@ -28,7 +28,7 @@
 | T10 | `<ParallaxHero>` 70→85vh + fade | `[x]` | Height 70vh → 85vh, minHeight 480 → 540, alpha-fade strengthened `[1,1,0.6]` → `[1,0.85,0.4]` for stronger title-area legibility at scroll-end. Reduced-motion still freezes. |
 | T11 | Page rewrite | `[x]` | Surgical edits to `app/content/[id]/page.tsx`: dropped `<StickyDayNav>` import + usage, dropped `<GuestGate>` per-day reveal + `groupSpotsByDay` helper, replaced standalone Stops section with `mergeSpotsIntoBody()` interleaved blocks, added `<PrevNextChapterFooter>` for multi-day, threads `mode` from `getReaderMode()` into `<MarkdownBody>`. Live verified: `/content/{itin}` 200, `/content/{post}` 200, drop-cap renders on post (`ch-dropcap-host` in HTML). Lint + typecheck + 51 reader tests all green. **Regression filed:** paid-itinerary per-day paywall reveal lost — see ENH-002 below. |
 | T12 | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 4 deviations + 4 follow-up bugs/enhancements documented. |
-| T13 | Pre-commit + screenshots + commit | `[ ]` | |
+| T13 | Pre-commit + screenshots + commit | `[x]` | All gates green. 20 screenshots captured. Committed as `e5c3da4` and pushed to `origin/dev`. |
 
 ---
 
@@ -46,7 +46,7 @@
 - [x] Screenshots at 5 breakpoints × 4 content types under `screens/` — 20 PNGs (magazine mode only; compact mode doesn't have a different layout for posts/experiences/events without seeded body)
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated (E5.3 row + BUG-001 + ENH-001..004 + CLEANUP-001 logged)
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `e5c3da4`
 
 ---
 
