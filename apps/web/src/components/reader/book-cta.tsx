@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react'
 import type { ScheduledDate } from '@/lib/api/types'
 import { formatPrice } from '@/lib/format'
 import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
+import { DualMonthCalendar } from '@/components/booking/dual-month-calendar'
 
 interface BookCtaProps {
   contentId: string
@@ -126,52 +127,54 @@ export function BookCta({
 
       {scheduledDates.length > 0 && (
         <div>
-          <label
-            htmlFor="date-select"
+          <div
             style={{
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--ink-muted)',
-              display: 'block',
-              marginBottom: 6,
+              marginBottom: 8,
             }}
           >
             Pick a date
-          </label>
-          <select
-            id="date-select"
-            value={selectedDateId ?? ''}
-            onChange={(e) => {
-              setSelectedDateId(e.target.value || undefined)
+          </div>
+          <DualMonthCalendar
+            singleMonth
+            scheduledDates={scheduledDates.map((d) => ({
+              id: d.id,
+              startsAt: d.startsAt,
+              capacity: d.capacity,
+              seatsBooked:
+                d.status === 'open' && d.capacity - d.seatsBooked - d.seatsHeld > 0
+                  ? d.seatsBooked + d.seatsHeld
+                  : d.capacity,
+            }))}
+            onPick={(dateId) => {
+              setSelectedDateId(dateId)
             }}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--hairline-strong)',
-              background: 'var(--surface)',
-              fontSize: 14,
-              color: 'var(--ink)',
-            }}
-          >
-            <option value="">Select…</option>
-            {scheduledDates.map((d) => {
-              const dt = new Date(d.startsAt).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })
-              const seatsLeft = d.capacity - d.seatsBooked - d.seatsHeld
-              const soldOut = d.status !== 'open' || seatsLeft <= 0
-              return (
-                <option key={d.id} value={d.id} disabled={soldOut}>
-                  {dt} {soldOut ? '· Sold out' : seatsLeft <= 3 ? `· ${String(seatsLeft)} left` : ''}
-                </option>
-              )
-            })}
-          </select>
+          />
+          {selectedDateId && (
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 12.5,
+                color: 'var(--ink-soft)',
+                textAlign: 'center',
+              }}
+            >
+              <strong style={{ color: 'var(--ink)' }}>
+                {new Date(
+                  scheduledDates.find((d) => d.id === selectedDateId)?.startsAt ?? '',
+                ).toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
+              </strong>{' '}
+              selected
+            </div>
+          )}
         </div>
       )}
 

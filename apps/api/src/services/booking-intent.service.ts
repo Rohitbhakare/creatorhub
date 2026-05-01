@@ -58,7 +58,7 @@ function rowToIntent(row: Row): BookingIntent {
  * Counts confirmed bookings + currently-held intents against capacity.
  * Itinerary purchases never call this — they're digital goods with no scarcity.
  */
-async function remainingCapacityForScheduledDate(
+export async function remainingCapacityForScheduledDate(
   scheduledDateId: string,
 ): Promise<{ capacity: number; remaining: number }> {
   const { data: sd, error } = await supabase

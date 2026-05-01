@@ -134,6 +134,6 @@ describe('BookCta', () => {
         isAuthenticated={true}
       />,
     )
-    expect(screen.getByLabelText('Pick a date')).toBeInTheDocument()
+    expect(screen.getByText('Pick a date')).toBeInTheDocument()
   })
 })

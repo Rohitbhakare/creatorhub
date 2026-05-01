@@ -23,6 +23,7 @@ import {
 
 export * from './types'
 export * from './feed'
+export * from './discover'
 
 // ───────── Public surface (guest-friendly) ─────────
 
@@ -53,7 +54,13 @@ export async function fetchContentDetail(contentId: string): Promise<ContentDeta
  * endpoint which returns `{ cities: [{ city_id, name, state, content_count }] }`
  * ordered by content_count desc.
  */
-export async function fetchPopularCities(): Promise<{ name: string; count: number }[]> {
+export interface PopularCity {
+  id: string | null
+  name: string
+  count: number
+}
+
+export async function fetchPopularCities(): Promise<PopularCity[]> {
   try {
     const data = await apiFetchPublic<{ cities?: unknown[] }>(`/api/v1/discover/cities`, {
       next: { revalidate: 3600, tags: ['cities'] },
@@ -62,11 +69,20 @@ export async function fetchPopularCities(): Promise<{ name: string; count: numbe
     return rows
       .map((c) => {
         if (typeof c !== 'object' || c === null) return null
-        const r = c as { name?: string; content_count?: number; count?: number }
+        const r = c as {
+          city_id?: string
+          name?: string
+          content_count?: number
+          count?: number
+        }
         if (!r.name) return null
-        return { name: r.name, count: r.content_count ?? r.count ?? 0 }
+        return {
+          id: typeof r.city_id === 'string' ? r.city_id : null,
+          name: r.name,
+          count: r.content_count ?? r.count ?? 0,
+        }
       })
-      .filter((c): c is { name: string; count: number } => c !== null)
+      .filter((c): c is PopularCity => c !== null)
   } catch {
     return []
   }
@@ -80,6 +96,22 @@ export async function fetchMyBookings(): Promise<Booking[]> {
     return listOf(data, transformBooking)
   } catch {
     return []
+  }
+}
+
+/**
+ * Fetch a single booking by id (for the confirmation page, E5.4 T6).
+ * 401 + 404 paths return null so the page can map them to redirect/notFound().
+ */
+export async function fetchBookingById(id: string): Promise<Booking | null> {
+  try {
+    const raw = await apiFetch<unknown>(`/api/v1/bookings/${encodeURIComponent(id)}`, {
+      next: { revalidate: 0 },
+    })
+    if (!raw) return null
+    return transformBooking(raw as Parameters<typeof transformBooking>[0])
+  } catch {
+    return null
   }
 }
 

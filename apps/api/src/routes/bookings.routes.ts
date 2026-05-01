@@ -11,9 +11,17 @@ import {
   handleCancelByCreator,
   handleGetRefundStatus,
 } from '../handlers/refunds.js'
+import { handleSeatStream } from '../handlers/bookings-seat-stream.js'
+import { handleBookingIcs } from '../handlers/bookings-ics.js'
 import { authenticate } from '../middleware/authenticate.js'
 
 const bookingsRoutes = new Hono()
+
+// ── Seat-availability SSE stream — public-readable, no PII (E5.4 T4) ──
+bookingsRoutes.get('/seats/:dateId/stream', handleSeatStream)
+
+// ── .ics calendar export (E5.4 T8) — auth-gated via existing getBooking ownership check ──
+bookingsRoutes.get('/:id/ics', authenticate, handleBookingIcs)
 
 // ── Create booking + Razorpay order ─────────────────────────────
 bookingsRoutes.post('/', authenticate, handleCreateBooking)

@@ -162,16 +162,19 @@ export function BookingWizard({ intent }: { intent: IntentDetail }) {
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '220px minmax(0, 1fr) 320px',
-        gap: 40,
-        alignItems: 'start',
-      }}
-    >
-      <nav aria-label="Booking steps" style={{ position: 'sticky', top: 96 }}>
-        <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div>
+      {/* Horizontal stepper at top — v3 W-K1 lines 13–34. */}
+      <nav aria-label="Booking steps" style={{ marginBottom: 28 }}>
+        <ol
+          style={{
+            listStyle: 'none',
+            padding: 0,
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
           {STEPS.map((s, i) => {
             const isActive = step === s.id
             const isDone = i < stepIdx
@@ -181,58 +184,80 @@ export function BookingWizard({ intent }: { intent: IntentDetail }) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isActive ? 'var(--primary-tint)' : 'transparent',
-                  color: isActive ? 'var(--primary-deep)' : isDone ? 'var(--ink)' : 'var(--ink-muted)',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: 13.5,
+                  gap: 8,
+                  flex: i < STEPS.length - 1 ? '0 0 auto' : '0 0 auto',
                 }}
               >
                 <span
                   aria-hidden
                   style={{
-                    width: 22,
-                    height: 22,
+                    width: 26,
+                    height: 26,
                     borderRadius: 999,
-                    border: `1.5px solid ${isActive || isDone ? 'var(--primary)' : 'var(--hairline-strong)'}`,
-                    background: isDone ? 'var(--primary)' : 'transparent',
-                    color: isDone ? 'white' : 'inherit',
+                    background: isActive
+                      ? 'var(--ink)'
+                      : isDone
+                        ? '#1D9E75'
+                        : 'var(--surface-alt)',
+                    color: isActive || isDone ? 'white' : 'var(--ink-muted)',
                     display: 'grid',
                     placeItems: 'center',
-                    fontSize: 11,
+                    fontFamily: 'var(--font-mono, var(--font-sans))',
+                    fontSize: 12,
                     fontWeight: 700,
                   }}
                 >
                   {isDone ? '✓' : i + 1}
                 </span>
-                {s.label}
+                <span
+                  style={{
+                    fontSize: 13.5,
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? 'var(--ink)' : 'var(--ink-muted)',
+                  }}
+                >
+                  {s.label}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <div
+                    aria-hidden
+                    style={{
+                      width: 80,
+                      height: 1,
+                      background: 'var(--hairline)',
+                      marginInline: 6,
+                    }}
+                  />
+                )}
               </li>
             )
           })}
+          <li
+            aria-live="polite"
+            style={{
+              marginLeft: 'auto',
+              fontSize: 12,
+              color: 'var(--ink-muted)',
+            }}
+          >
+            Hold expires in{' '}
+            <strong style={{ color: holdRemaining < 60_000 ? 'var(--danger)' : 'var(--ink)' }}>
+              {Math.floor(holdRemaining / 60_000)}:
+              {String(Math.floor((holdRemaining % 60_000) / 1000)).padStart(2, '0')}
+            </strong>
+          </li>
         </ol>
-        <div
-          style={{
-            marginTop: 24,
-            padding: 12,
-            background: 'var(--surface-alt)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 11,
-            color: 'var(--ink-muted)',
-            textAlign: 'center',
-          }}
-          aria-live="polite"
-        >
-          Hold expires in{' '}
-          <strong style={{ color: holdRemaining < 60_000 ? 'var(--danger)' : 'var(--ink)' }}>
-            {Math.floor(holdRemaining / 60_000)}:
-            {String(Math.floor((holdRemaining % 60_000) / 1000)).padStart(2, '0')}
-          </strong>
-        </div>
       </nav>
 
-      <div className="ch-card" style={{ padding: 36, minHeight: 480 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) 360px',
+          gap: 40,
+          alignItems: 'start',
+        }}
+      >
+        <div className="ch-card" style={{ padding: 36, minHeight: 480 }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -414,32 +439,33 @@ export function BookingWizard({ intent }: { intent: IntentDetail }) {
         )}
       </div>
 
-      <aside style={{ position: 'sticky', top: 96 }}>
-        <div className="ch-card" style={{ padding: 24 }}>
-          <h3
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-muted)',
-              marginBottom: 14,
-            }}
-          >
-            Booking summary
-          </h3>
-          <PriceRow label="Base" value={formatPrice(intent.pricing.base_paisa)} />
-          <PriceRow label={`Platform fee`} value={formatPrice(intent.pricing.platform_fee_paisa)} />
-          <PriceRow label="GST 18%" value={formatPrice(intent.pricing.gst_paisa)} />
-          <hr className="ch-divider" style={{ margin: '12px 0' }} />
-          <PriceRow
-            label="Total"
-            value={formatPrice(intent.pricing.total_paisa)}
-            emphasized
-          />
-        </div>
-      </aside>
+        <aside style={{ position: 'sticky', top: 96 }}>
+          <div className="ch-card" style={{ padding: 24 }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted)',
+                marginBottom: 14,
+              }}
+            >
+              Booking summary
+            </h3>
+            <PriceRow label="Base" value={formatPrice(intent.pricing.base_paisa)} />
+            <PriceRow label={`Platform fee`} value={formatPrice(intent.pricing.platform_fee_paisa)} />
+            <PriceRow label="GST 18%" value={formatPrice(intent.pricing.gst_paisa)} />
+            <hr className="ch-divider" style={{ margin: '12px 0' }} />
+            <PriceRow
+              label="Total"
+              value={formatPrice(intent.pricing.total_paisa)}
+              emphasized
+            />
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }
