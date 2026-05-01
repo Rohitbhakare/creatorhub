@@ -119,10 +119,15 @@ describe('SaveButton', () => {
     )
   })
 
-  it('reverts optimistic flip when the API rejects', async () => {
+  it('reverts optimistic flip when the API rejects + dispatches an error toast', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValueOnce(
       new Response(null, { status: 500 }),
     )
+    const toastSpy = vi.fn()
+    window.addEventListener('ch-toast', (e) => {
+      const detail = (e as CustomEvent<{ tone?: string; message?: string }>).detail
+      toastSpy(detail)
+    })
     const user = userEvent.setup()
     renderWithProviders(
       <SaveButton
@@ -134,10 +139,16 @@ describe('SaveButton', () => {
     )
     await user.click(screen.getByRole('button', { name: /Save/i }))
 
-    // After the failed roundtrip, state reverts
+    // After the failed roundtrip, state reverts.
     await waitFor(() => {
       expect(screen.getByText('Save')).toBeInTheDocument()
     })
-    expect(screen.getByRole('alert')).toHaveTextContent(/Could not save/)
+    // Toast event was dispatched on the DOM event bus that <ToastRegion>
+    // listens to. We only assert the contract here — visual rendering
+    // is covered by toast-region's own tests.
+    expect(toastSpy).toHaveBeenCalled()
+    const detail = toastSpy.mock.calls[0]?.[0] as { tone?: string; message?: string }
+    expect(detail.tone).toBe('error')
+    expect(detail.message).toMatch(/Could not save/)
   })
 })

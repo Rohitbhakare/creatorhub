@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState, useTransition } from 'react'
 import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
+import { pushToast } from '@/components/ui/toast-region'
 
 interface SaveButtonProps {
   contentId: string
@@ -25,13 +26,11 @@ export function SaveButton({
   const [saved, setSaved] = useState(initialSaved)
   const [count, setCount] = useState(initialCount)
   const [pending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
   const { openSignInModal } = useSignInModal()
 
   function doSave(targetState: boolean) {
     setSaved(targetState)
     setCount((c) => Math.max(0, c + (targetState ? 1 : -1)))
-    setError(null)
     startTransition(async () => {
       try {
         const res = await fetch('/api/save', {
@@ -44,7 +43,7 @@ export function SaveButton({
       } catch {
         setSaved(!targetState)
         setCount((c) => Math.max(0, c + (targetState ? -1 : 1)))
-        setError('Could not save — try again')
+        pushToast({ tone: 'error', message: 'Could not save — try again' })
       }
     })
   }
@@ -108,21 +107,6 @@ export function SaveButton({
           }}
         >
           · {formatCount(count)}
-        </span>
-      )}
-      {error && (
-        <span
-          role="alert"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            fontSize: 11,
-            color: 'var(--danger)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {error}
         </span>
       )}
     </button>
