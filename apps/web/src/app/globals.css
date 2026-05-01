@@ -478,6 +478,29 @@ body {
   .ch-hero-feature-grid > .ch-hero-photo { min-height: 280px !important; aspect-ratio: 4/3; }
 }
 
+/* Chapter hero (E5.1) — same 1.3fr/1fr split as the standard hero, with
+ * its own scope so its photo sizing rules don't fight `.ch-hero-photo`. */
+.ch-chapter-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  min-height: 460px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+@media (max-width: 767px) {
+  .ch-chapter-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .ch-chapter-hero > :first-child {
+    min-height: 280px !important;
+    aspect-ratio: 4 / 3;
+  }
+}
+
 /* Bento mosaic — 4-col / 2-row on desktop, 2-col on tablet, 1-col on mobile. */
 .ch-bento-grid {
   display: grid;

@@ -1,6 +1,7 @@
 import { apiFetch, apiFetchPublic } from '../api-client'
-import type { ContentCard, FeedSection } from './types'
+import type { ContentCard, ContentDetail, FeedSection, ItinerarySpot } from './types'
 import { listOf, transformContentCard } from './transforms'
+import { fetchContentDetail } from './index'
 
 const REVALIDATE_FEED_SECONDS = 60
 
@@ -262,4 +263,43 @@ export async function searchDiscover(params: DiscoverParams): Promise<{
   } catch {
     return { items: [], total: 0 }
   }
+}
+
+// ─── Chapter-hero story (E5.1) ──────────────────────────────────────
+// v3 magazine home opens with a hero that cycles through ONE itinerary's
+// days as "chapters" (Konkan in 4 quiet days, etc). The data is the first
+// handpicked itinerary that has at least 3 spots. We grab the section
+// list, find a matching item, then `fetchContentDetail` to pull spots.
+//
+// Returns null when no eligible itinerary exists — the home page falls
+// back to the static <HeroFeature> in that case.
+
+const MIN_CHAPTERS = 3
+
+export interface ChapterStory {
+  content: ContentDetail
+  chapters: ItinerarySpot[]
+}
+
+export async function getFeaturedChapterStory(opts: {
+  city?: string
+} = {}): Promise<ChapterStory | null> {
+  // Reuse the existing handpicked-feed endpoint — it's already cached at
+  // 60s and is the closest signal to "editorial featured".
+  const items = await fetchSection('handpicked', { city: opts.city })
+
+  for (const item of items) {
+    if (item.type !== 'itinerary') continue
+    const detail = await fetchContentDetail(item.id)
+    const spots = detail?.spots ?? []
+    if (spots.length < MIN_CHAPTERS) continue
+    // Sort by (dayNumber, orderIndex) so chapters render in narrative order.
+    const ordered = [...spots].sort((a, b) => {
+      if (a.dayNumber !== b.dayNumber) return a.dayNumber - b.dayNumber
+      return a.orderIndex - b.orderIndex
+    })
+    if (!detail) continue
+    return { content: detail, chapters: ordered.slice(0, 6) }
+  }
+  return null
 }
