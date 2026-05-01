@@ -5,11 +5,16 @@ import { formatPrice } from '@/lib/format'
 import { contentSlugId } from '@/lib/slug'
 
 interface BentoMosaicProps {
-  /** Up to 5 items used in this layout: 1 large feature + 1 tall + 3 small. */
+  /**
+   * Up to 8 items. Top mosaic (4 items: 1 large feature + 1 tall + 2 small)
+   * + optional bottom row of 4 cards below. v3 magazine layout.
+   */
   items: ContentCardModel[]
   kicker?: string
   title?: string
   seeAllHref?: string
+  /** Optional total-count for the "Browse all N →" link. Falls back to "Browse all →". */
+  seeAllCount?: number
 }
 
 /**
@@ -21,10 +26,11 @@ interface BentoMosaicProps {
  *   │               │      │ SMALL│
  *   └───────────────┴──────┴──────┘
  */
-export function BentoMosaic({ items, kicker, title, seeAllHref }: BentoMosaicProps) {
+export function BentoMosaic({ items, kicker, title, seeAllHref, seeAllCount }: BentoMosaicProps) {
   if (items.length === 0) return null
 
   const [feature, tall, small1, small2] = [items[0], items[1], items[2], items[3]]
+  const bottomRow = items.slice(4, 8)
 
   return (
     <section style={{ marginTop: 56 }}>
@@ -81,7 +87,7 @@ export function BentoMosaic({ items, kicker, title, seeAllHref }: BentoMosaicPro
                 paddingBottom: 2,
               }}
             >
-              Browse all →
+              {seeAllCount != null ? `Browse all ${String(seeAllCount)} →` : 'Browse all →'}
             </Link>
           )}
         </header>
@@ -107,7 +113,74 @@ export function BentoMosaic({ items, kicker, title, seeAllHref }: BentoMosaicPro
         {small1 && <BentoTile content={small1} placement="small" />}
         {small2 && <BentoTile content={small2} placement="small" />}
       </div>
+
+      {bottomRow.length > 0 && (
+        <div className="ch-bento-bottom-row">
+          {bottomRow.map((item) => (
+            <BentoBottomCard key={item.id} content={item} />
+          ))}
+        </div>
+      )}
     </section>
+  )
+}
+
+/**
+ * Card-style tile for the bento bottom row — photo on top, text below.
+ * Distinct from BentoTile (which is full-bleed photo with overlay text)
+ * because v3's bottom row reads as a 4-card hand-off into the section
+ * rails below it — softer, scannable.
+ */
+function BentoBottomCard({ content }: { content: ContentCardModel }) {
+  const photoClass = pickPhoto(content)
+  return (
+    <Link
+      href={`/content/${contentSlugId(content.title, content.id, content.slug)}`}
+      className="ch-bento-bottom-card"
+    >
+      <div
+        className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}
+        style={{ position: 'relative', height: 150, borderRadius: 0 }}
+      >
+        {content.coverImageUrl && (
+          <Image
+            src={content.coverImageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1080px) 50vw, 290px"
+            style={{ objectFit: 'cover' }}
+            unoptimized={isExternalUnoptimized(content.coverImageUrl)}
+          />
+        )}
+        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2 }}>
+          <span className="ch-pill ch-pill-glass">{typeLabel(content.type)}</span>
+        </div>
+      </div>
+      <div style={{ padding: '14px 14px 16px' }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 15,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            lineHeight: 1.3,
+            marginBottom: 6,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {content.title}
+        </div>
+        {content.creator && (
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+            {content.creator.displayName}
+            {content.priceInPaisa > 0 ? ` · ${formatPrice(content.priceInPaisa, content.isFree)}` : ''}
+          </div>
+        )}
+      </div>
+    </Link>
   )
 }
 

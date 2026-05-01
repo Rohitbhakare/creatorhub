@@ -478,6 +478,90 @@ body {
   .ch-hero-feature-grid > .ch-hero-photo { min-height: 280px !important; aspect-ratio: 4/3; }
 }
 
+/* Section rail with scroll arrows (E5.1) — arrows hover-revealed on
+ * pointer-fine devices only; touch users get gesture-only scroll. */
+.ch-rail {
+  position: relative;
+  margin: 0 calc(var(--ch-page-pad, 0px) * -1);
+}
+.ch-rail__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(min(280px, 80vw), 320px);
+  gap: clamp(16px, 2.5vw, 24px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 4px;
+  outline: none;
+}
+.ch-rail__track:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+.ch-rail__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-md);
+  display: none;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink);
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+  pointer-events: none;
+}
+.ch-rail__arrow--prev { left: 8px; }
+.ch-rail__arrow--next { right: 8px; }
+@media (hover: hover) and (pointer: fine) and (min-width: 1080px) {
+  .ch-rail__arrow { display: grid; }
+  .ch-rail:hover .ch-rail__arrow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Keep arrows visible while focused too — keyboard users. */
+  .ch-rail:focus-within .ch-rail__arrow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Bento bottom row (E5.1) — 4 cards on desktop, 2x2 on tablet, 1-col on mobile. */
+.ch-bento-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+@media (max-width: 1079px) {
+  .ch-bento-bottom-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 639px) {
+  .ch-bento-bottom-row { grid-template-columns: 1fr; }
+}
+.ch-bento-bottom-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 180ms;
+}
+.ch-bento-bottom-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(20, 20, 30, 0.08);
+}
+
 /* Mood selector (E5.1) — 5 chips on desktop, 3-2 split on tablet, 1-col on mobile. */
 .ch-mood-grid {
   display: grid;

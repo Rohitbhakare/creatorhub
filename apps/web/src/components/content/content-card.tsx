@@ -6,7 +6,15 @@ import { contentSlugId } from '@/lib/slug'
 
 interface ContentCardProps {
   content: ContentCardModel
-  variant?: 'default' | 'wide' | 'compact'
+  /**
+   * Visual variant. SRS WEB-FEED-FR-028 spec uses `grid` / `horizontal` /
+   * `featured`; the in-repo names predate that spec. Aliases:
+   *   - `grid`       → `default`  (vertical card, photo on top)
+   *   - `horizontal` → `wide`     (photo left, text right)
+   *   - `featured`   → `default` + `hero=true` (larger photo + title)
+   *   - `compact`    → in-repo only, smaller grid
+   */
+  variant?: 'default' | 'wide' | 'compact' | 'grid' | 'horizontal' | 'featured'
   /** When true, render hero photo at 16:9 aspect for editorial sections. */
   hero?: boolean
 }
@@ -66,9 +74,17 @@ function isExternalUnoptimized(url: string): boolean {
 }
 
 export function ContentCard({ content, variant = 'default', hero = false }: ContentCardProps) {
+  // Map SRS aliases onto the in-repo variant set.
+  const aliased: 'default' | 'wide' | 'compact' = (() => {
+    if (variant === 'grid') return 'default'
+    if (variant === 'horizontal') return 'wide'
+    if (variant === 'featured') return 'default'
+    return variant
+  })()
+  const heroEffective = hero || variant === 'featured'
   const photoClass = pickPhoto(content)
-  const isCompact = variant === 'compact'
-  const photoHeight = hero ? 280 : isCompact ? 140 : 200
+  const isCompact = aliased === 'compact'
+  const photoHeight = heroEffective ? 280 : isCompact ? 140 : 200
 
   return (
     <Link
@@ -124,7 +140,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
         <h3
           className="ch-display"
           style={{
-            fontSize: hero ? 22 : 17,
+            fontSize: heroEffective ? 22 : 17,
             lineHeight: 1.25,
             color: 'var(--ink)',
             margin: 0,
