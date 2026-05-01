@@ -2,7 +2,7 @@
 
 > Single source of truth for sprint progress.
 > Detail lives in `docs/epics/<epic-id>/tracking.md` — this file is the summary dashboard.
-> Last updated: 2026-04-26 (Detail+Wizard+Booking+Studio+Post-editor bundled redesign — 5 surfaces redesigned-as-one-system; 4 backend additions: booking_intents 10-min hold, waitlist_entries, studio alert priority engine, reviews summary; paid events unlock + buyer cancellation + DD-032 spot covers; markdown post editor)
+> Last updated: 2026-05-01 — **M2.5 Web v3 Parity series complete (E5.0 → E5.8 all DONE)**: 9 epics rebuilding `apps/web/` against v3 wireframes + 97 SRS v1.5 web FRs · canonical `/u/<username>` creator URL · idempotent migrations 028/029/032. Series-wide axe + Lighthouse + screenshot sweep pending.
 
 ---
 
@@ -23,8 +23,9 @@
 
 ## Current Sprint
 
-**Milestone:** M2 — Public MVP + Payouts — **COMPLETE**
-**Focus:** All planned epics (E0.1 through E3.1 + E2.12) are DONE and committed to `dev` branch.
+**Milestone:** M2.5 — Web v3 Parity — **COMPLETE** (axe + Lighthouse + screenshots sweep pending across the 9 epics)
+**Prior:** M2 — Public MVP + Payouts — COMPLETE (E0.1 through E3.1 + E2.12)
+**Focus:** All M2.5 epics (E5.0 → E5.8) are DONE and committed to `dev`. Next: series-wide quality sweep, then operator-deploy of migrations 024–032 and external-creds checklist (Razorpay / WhatsApp / SendGrid / Google Places) for App Store submission.
 
 **M2 completion summary:**
 1. `[x]` E2.1 Scheduled Experiences — 53 API tests passing

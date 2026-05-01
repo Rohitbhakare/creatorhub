@@ -55,3 +55,11 @@ lcov.info
 .firebase/
 firebase-debug.log
 firestore-debug.log
+
+# ─── Supabase ────────────────────────────────────────────────
+# CLI version cache + local-stack temp files — runtime noise, not source.
+supabase/.temp/
+
+# ─── Claude Code ─────────────────────────────────────────────
+# Per-session runtime locks — recreated on demand.
+.claude/scheduled_tasks.lock

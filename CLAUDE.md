@@ -151,14 +151,17 @@ Read `.claude/instructions/precommit.md` for the full step-by-step checklist.
 
 ## Current Sprint
 
-**Phase:** Discover Monochrome Redesign (v1.4) shipped — pre-public-MVP polish
-**Done:** All M0–M3 epics + Travel-Only Launch (v1.3, FEED/REDESIGN-001) +
-Discover monochrome home (v1.4, E1.10): search-first editorial layout, 12-tile
-Browse grid (4 active + 8 SOON), algorithmic Handpicked collections rail,
-Explore-by-city chips, rotating top-search placeholder, shared `InitialAvatar`
-replacing 8-color palette violations, coral locked to 5 places (was 8).
-Migrations 024–027 written.
-**Next:** Operator deploy of migrations 024–027 → manual smoke test → SRS v1.4
-gate → external creds (Razorpay, WhatsApp, SendGrid, Google Places) → App Store.
-**Tracking:** `docs/epics/TRACKING.md` · SRS deltas: `docs/00_SRS/v1.3/srs-v1.3-delta.md`,
-`docs/00_SRS/v1.4/srs-v1.4-delta.md` · Latest epic: `docs/epics/E1.10-discover-monochrome/`
+**Phase:** M2.5 Web v3 Parity — **COMPLETE** (axe + Lighthouse + screenshots sweep pending across the series)
+**Done:** All M0–M3 epics + Travel-Only Launch (v1.3) + Discover Monochrome (v1.4, E1.10) +
+**M2.5 Web v3 Parity (E5.0 → E5.8 all DONE)** rebuilding `apps/web/` to match v3
+wireframes against 97 SRS v1.5 web FRs: foundation primitives + motion library +
+CSRF (E5.0) · magazine home (E5.1) · 13-filter discover + Cmd+K (E5.2) · Magazine +
+Compact reader (E5.3) · 4-step booking + SSE + Razorpay + .ics (E5.4) · TipTap
+publishing wizard (E5.5) · 3-tab auth + onboarding (E5.6) · KYC + Profile +
+Studio (E5.7) · gam/notif/saved/social polish + 4-icon share (E5.8). Web Push
+(FR-085) + Share-as-image OG (FR-048) deferred to M2.
+**Next:**
+1. Series-wide quality sweep — `axe-core` on touched routes, Lighthouse mobile profile, 5-breakpoint screenshots into each epic's `screens/` folder.
+2. Launch blocker chain — operator deploy of migrations 024–032 → manual smoke → external creds (Razorpay, WhatsApp, SendGrid, Google Places) → App Store submission.
+**Tracking:** `docs/epics/TRACKING.md` · SRS: v1.2 + deltas v1.3, v1.4, v1.5 (web) ·
+Latest epic: `docs/epics/E5.8-gam-notif-saved-social-v3/`
