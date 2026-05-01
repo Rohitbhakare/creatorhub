@@ -81,7 +81,7 @@ describe('DiscoverSidebar', () => {
     expect(href).toContain('type=self_paced_itinerary')
   })
 
-  it('marks the active vibe pill with aria-pressed=true', () => {
+  it('marks the active vibe pill with aria-current=true (link semantic)', () => {
     render(
       <DiscoverSidebar
         activeType="all"
@@ -92,8 +92,8 @@ describe('DiscoverSidebar', () => {
         baseParams={{ vibe: 'Slow travel' }}
       />,
     )
-    expect(screen.getByText('Slow travel')).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('Konkan')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Slow travel')).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByText('Konkan')).not.toHaveAttribute('aria-current')
   })
 
   it('clicking the active vibe drops it', () => {
@@ -122,8 +122,8 @@ describe('DiscoverSidebar', () => {
         baseParams={{ distance_km: '100' }}
       />,
     )
-    expect(screen.getByText('100 km')).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('25 km')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('100 km')).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByText('25 km')).not.toHaveAttribute('aria-current')
   })
 
   it('"Any" distance corresponds to no distance_km param', () => {
@@ -137,7 +137,7 @@ describe('DiscoverSidebar', () => {
         baseParams={{}}
       />,
     )
-    expect(screen.getByText('Any')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Any')).toHaveAttribute('aria-current', 'true')
   })
 
   it('"+ More filters" link writes ?filters=open', () => {

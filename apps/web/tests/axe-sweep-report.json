@@ -1,0 +1,779 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/discover",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/discover/results",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/discover/results?q=spiti",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/creators",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/content/dd000000-2000-2000-2000-000000000001",
+    "status": 500,
+    "violations": [
+      {
+        "id": "document-title",
+        "impact": "serious",
+        "tags": [
+          "cat.text-alternatives",
+          "wcag2a",
+          "wcag242",
+          "TTv5",
+          "TT12.a",
+          "EN-301-549",
+          "EN-9.2.4.2",
+          "ACT",
+          "RGAAv4",
+          "RGAA-8.5.1"
+        ],
+        "description": "Ensure each HTML document contains a non-empty <title> element",
+        "help": "Documents must have <title> element to aid in navigation",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/document-title?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "doc-has-title",
+                "data": null,
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Document does not have a non-empty <title> element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<html>",
+            "target": [
+              "html"
+            ],
+            "failureSummary": "Fix any of the following:\n  Document does not have a non-empty <title> element"
+          }
+        ]
+      },
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "tags": [
+          "cat.language",
+          "wcag2a",
+          "wcag311",
+          "TTv5",
+          "TT11.a",
+          "EN-301-549",
+          "EN-9.3.1.1",
+          "ACT",
+          "RGAAv4",
+          "RGAA-8.3.1"
+        ],
+        "description": "Ensure every HTML document has a lang attribute",
+        "help": "<html> element must have a lang attribute",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/html-has-lang?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "has-lang",
+                "data": {
+                  "messageKey": "noLang"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "The <html> element does not have a lang attribute"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<html>",
+            "target": [
+              "html"
+            ],
+            "failureSummary": "Fix any of the following:\n  The <html> element does not have a lang attribute"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/u/priyasharma",
+    "status": 500,
+    "violations": [
+      {
+        "id": "document-title",
+        "impact": "serious",
+        "tags": [
+          "cat.text-alternatives",
+          "wcag2a",
+          "wcag242",
+          "TTv5",
+          "TT12.a",
+          "EN-301-549",
+          "EN-9.2.4.2",
+          "ACT",
+          "RGAAv4",
+          "RGAA-8.5.1"
+        ],
+        "description": "Ensure each HTML document contains a non-empty <title> element",
+        "help": "Documents must have <title> element to aid in navigation",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/document-title?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "doc-has-title",
+                "data": null,
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Document does not have a non-empty <title> element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<html>",
+            "target": [
+              "html"
+            ],
+            "failureSummary": "Fix any of the following:\n  Document does not have a non-empty <title> element"
+          }
+        ]
+      },
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "tags": [
+          "cat.language",
+          "wcag2a",
+          "wcag311",
+          "TTv5",
+          "TT11.a",
+          "EN-301-549",
+          "EN-9.3.1.1",
+          "ACT",
+          "RGAAv4",
+          "RGAA-8.3.1"
+        ],
+        "description": "Ensure every HTML document has a lang attribute",
+        "help": "<html> element must have a lang attribute",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/html-has-lang?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "has-lang",
+                "data": {
+                  "messageKey": "noLang"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "The <html> element does not have a lang attribute"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<html>",
+            "target": [
+              "html"
+            ],
+            "failureSummary": "Fix any of the following:\n  The <html> element does not have a lang attribute"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/signin",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/signup",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/forgot-password",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/onboarding/welcome",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/onboarding/city",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/onboarding/sub-categories",
+    "status": 200,
+    "violations": []
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#ffffff",
+                  "contrastRatio": 2.94,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"text-sm mb-10\" style=\"color:#9C9689\">Last updated: January 2026</p>",
+            "target": [
+              ".mb-10"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#f2eee8",
+                  "contrastRatio": 2.54,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: These Terms of Service are a placeholder and will be finalized with legal review before the public launch of CreatorHub.</p>",
+                    "target": [
+                      ".mt-4"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: These Terms of Service are a placeholder and will be finalized with legal review before the public launch of CreatorHub.</p>",
+            "target": [
+              ".mt-4"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "target-size",
+        "impact": "serious",
+        "tags": [
+          "cat.sensory-and-visual-cues",
+          "wcag22aa",
+          "wcag258"
+        ],
+        "description": "Ensure touch targets have sufficient size and space",
+        "help": "All touch targets must be 24px large, or leave sufficient space",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/target-size?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 132.9,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+                    "target": [
+                      ".text-2xl"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+            "target": [
+              ".ch-skip-link"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          },
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 75.5,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+                    "target": [
+                      ".ch-skip-link"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+            "target": [
+              ".text-2xl"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#ffffff",
+                  "contrastRatio": 2.94,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"text-sm mb-10\" style=\"color:#9C9689\">Last updated: January 2026</p>",
+            "target": [
+              ".mb-10"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#f2eee8",
+                  "contrastRatio": 2.54,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: This Privacy Policy is a placeholder and will be finalized with legal review and compliance with the Digital Personal Data Protection Act, 2023 before public launch.</p>",
+                    "target": [
+                      ".mt-4"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: This Privacy Policy is a placeholder and will be finalized with legal review and compliance with the Digital Personal Data Protection Act, 2023 before public launch.</p>",
+            "target": [
+              ".mt-4"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "target-size",
+        "impact": "serious",
+        "tags": [
+          "cat.sensory-and-visual-cues",
+          "wcag22aa",
+          "wcag258"
+        ],
+        "description": "Ensure touch targets have sufficient size and space",
+        "help": "All touch targets must be 24px large, or leave sufficient space",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/target-size?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 132.9,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+                    "target": [
+                      ".text-2xl"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+            "target": [
+              ".ch-skip-link"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          },
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 75.5,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+                    "target": [
+                      ".ch-skip-link"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+            "target": [
+              ".text-2xl"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/community-guidelines",
+    "status": 200,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#ffffff",
+                  "contrastRatio": 2.94,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"text-sm mb-10\" style=\"color:#9C9689\">Last updated: January 2026</p>",
+            "target": [
+              ".text-sm.mb-10"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.94 (foreground color: #9c9689, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#9c9689",
+                  "bgColor": "#f2eee8",
+                  "contrastRatio": 2.54,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: These Community Guidelines are a placeholder and will be expanded before the public launch of CreatorHub.</p>",
+                    "target": [
+                      ".mt-4"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<p class=\"mt-4 text-sm p-4 rounded-xl\" style=\"background-color:#F2EEE8;color:#9C9689\">Note: These Community Guidelines are a placeholder and will be expanded before the public launch of CreatorHub.</p>",
+            "target": [
+              ".mt-4"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.54 (foreground color: #9c9689, background color: #f2eee8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "target-size",
+        "impact": "serious",
+        "tags": [
+          "cat.sensory-and-visual-cues",
+          "wcag22aa",
+          "wcag258"
+        ],
+        "description": "Ensure touch targets have sufficient size and space",
+        "help": "All touch targets must be 24px large, or leave sufficient space",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/target-size?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 132.9,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+                    "target": [
+                      ".text-2xl"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+            "target": [
+              ".ch-skip-link"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (132.9px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          },
+          {
+            "any": [
+              {
+                "id": "target-size",
+                "data": {
+                  "minSize": 24,
+                  "width": 75.5,
+                  "height": 18
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)"
+              },
+              {
+                "id": "target-offset",
+                "data": {
+                  "closestOffset": 18,
+                  "minOffset": 24
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<a href=\"#main-content\" class=\"ch-skip-link\">Skip to main content</a>",
+                    "target": [
+                      ".ch-skip-link"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"font-serif text-2xl font-bold\" style=\"color:#2C2823\" href=\"/\">CreatorHub</a>",
+            "target": [
+              ".text-2xl"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (75.5px by 18px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 18px instead of at least 24px."
+          }
+        ]
+      }
+    ]
+  }
+]

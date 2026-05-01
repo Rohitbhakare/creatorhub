@@ -153,7 +153,7 @@ export function DiscoverSidebar({
             <Link
               key={tag}
               href={href}
-              aria-pressed={isActive}
+              aria-current={isActive ? 'true' : undefined}
               style={{
                 padding: '6px 11px',
                 borderRadius: 999,
@@ -190,7 +190,7 @@ export function DiscoverSidebar({
             <Link
               key={band.label}
               href={href}
-              aria-pressed={isActive}
+              aria-current={isActive ? 'true' : undefined}
               style={{
                 padding: '6px 11px',
                 borderRadius: 999,
