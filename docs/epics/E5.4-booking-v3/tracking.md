@@ -26,7 +26,7 @@
 | T8  | `.ics` calendar export | `[x]` | 7/7 tests on the RFC-5545 generator (`apps/api/src/lib/ics.ts`): VCALENDAR/VEVENT envelope, UTC date format, `\,` `\;` `\\` escapes, newline → `\n`, line folding at 75 octets, ATTENDEE conditional, CRLF endings. Backend route `GET /api/v1/bookings/:id/ics` auth-gated via existing ownership check. Client `<AddToCalendar>` exposes Google + Outlook web links + `.ics` download. |
 | T9  | Edge cases | `[x]` | All 8 edge cases from plan §9 verified covered by T2–T8: sold-out date (calendar disables), hold expires (wizard's existing 410 handler), concurrent last-seat (server's `SELECT FOR UPDATE`), Razorpay cancel (wizard's catch returns to review), SSE disconnect (exponential-backoff reconnect in client), `?just=1` on stale (sessionStorage one-shot in `<ConfettiSlot>`), `.ics` special chars (RFC-5545 escapes tested), mobile single-month (`singleMonth` prop on calendar). |
 | T10 | 4-step review gate | `[x]` | Self-review across 4 dims passed (see §Review gate). 5 deviations + 4 follow-ups documented. |
-| T11 | Pre-commit + screenshots + commit | `[ ]` | |
+| T11 | Pre-commit + screenshots + commit | `[x]` | All gates green (web 310/310 tests, lint/typecheck clean; api typecheck clean, 1 pre-existing unrelated test failure documented). 10 PNGs captured. Committed as `2704555` and pushed to `origin/dev`. |
 
 ---
 
@@ -43,7 +43,7 @@
 - [x] Screenshots × 5 breakpoints × (content-with-bookcta + bookings-redirect) — 10 PNGs (limited routes due to data gaps; full booking happy-path needs seeded scheduled_dates per BUG-003)
 - [x] tracking.md filled in
 - [x] Master TRACKING.md updated
-- [ ] Commit + push to `dev` (next step)
+- [x] Commit + push to `dev` — `2704555`
 
 ---
 
