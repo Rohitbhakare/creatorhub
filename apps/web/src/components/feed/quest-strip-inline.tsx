@@ -33,7 +33,7 @@ export function QuestStripInline({ summary, streakWindow = 7 }: QuestStripInline
   return (
     <section
       aria-label="Today's quests"
-      style={{ maxWidth: 1240, margin: '24px auto 0', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '24px auto 0', padding: '0 32px' }}
     >
       <div className="ch-quest-strip">
         {/* Level + XP */}

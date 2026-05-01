@@ -14,7 +14,7 @@ import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { FeedChipRail } from '@/components/feed/feed-chip-rail'
 import { QuestStripInline } from '@/components/feed/quest-strip-inline'
 import { MoodSelector } from '@/components/feed/mood-selector'
-import { parseMoodParam, type MoodId } from '@/components/feed/mood-types'
+import { parseMoodParam, rankByMood, type MoodId } from '@/components/feed/mood-types'
 import { PostsFeedColumn } from '@/components/feed/posts-feed-column'
 import { getSession } from '@/lib/session'
 import {
@@ -101,19 +101,23 @@ export default async function HomePage({ searchParams }: Props) {
     getFeaturedChapterStory(city ? { city } : {}),
   ])
 
+  // Mood filtering is currently client-side: same data, page reranks by
+  // mood-keyword overlap. Server-side ranking is filed as E5.1/ENH-001;
+  // when the API accepts ?mood=, this rerank can be removed.
   const filteredSections = mood
-    ? // Mood filtering is currently client-routed: same data, page just
-      // re-fetches with the mood param. Server-side mood ranking belongs
-      // in a follow-up `?mood=` API parameter on /feed/sections.
-      sections
+    ? sections.map((s) => ({ ...s, items: rankByMood(s.items, mood) }))
     : sections
 
-  const allItems = filteredSections.flatMap((s) => s.items)
+  const allItemsRaw = filteredSections.flatMap((s) => s.items)
+  const allItems = mood ? rankByMood(allItemsRaw, mood) : allItemsRaw
 
-  // Bento takes 8 items, prefer ones with covers
-  const bentoCandidates = allItems
-    .filter((c) => c.id !== chapterStory?.content.id)
-    .sort((a, b) => Number(b.coverImageUrl !== null) - Number(a.coverImageUrl !== null))
+  // Bento takes 8 items. With a mood active we honor the mood ranking;
+  // without one we still prefer items with covers (visual quality).
+  const bentoCandidates = mood
+    ? allItems.filter((c) => c.id !== chapterStory?.content.id)
+    : allItems
+        .filter((c) => c.id !== chapterStory?.content.id)
+        .sort((a, b) => Number(b.coverImageUrl !== null) - Number(a.coverImageUrl !== null))
   const bentoItems = bentoCandidates.slice(0, 8)
   const bentoIds = new Set(bentoItems.map((c) => c.id))
 
@@ -177,16 +181,16 @@ export default async function HomePage({ searchParams }: Props) {
         {/* Magazine bento — 8-tile asymmetric mosaic + bottom row. */}
         {bentoItems.length > 0 && (
           <ScrollReveal>
-            <section style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}>
+            <section style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}>
               <BentoMosaic
                 items={bentoItems}
-                kicker={mood ? `Curated for your mood` : 'Curated for your weekend'}
+                kicker={mood ? `Tuned for ${moodLabel(mood)}` : 'Curated for your weekend'}
                 title={
                   headlineCity
                     ? `Stories from ${headlineCity}, this week`
                     : 'Stories this week'
                 }
-                seeAllHref="/discover"
+                seeAllHref={mood ? `/discover?mood=${mood}` : '/discover'}
                 {...(allItems.length > 8 ? { seeAllCount: allItems.length } : {})}
               />
             </section>
@@ -223,7 +227,7 @@ export default async function HomePage({ searchParams }: Props) {
 
         {/* Editorial section rails — the 11-section feed. */}
         {remainingSections.length > 0 && (
-          <section style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}>
+          <section style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}>
             {remainingSections.slice(0, 11).map((section) => (
               <ScrollReveal key={section.id}>
                 <SectionRail section={section} />
@@ -257,4 +261,19 @@ export default async function HomePage({ searchParams }: Props) {
       <WebFooter />
     </>
   )
+}
+
+function moodLabel(mood: MoodId): string {
+  switch (mood) {
+    case 'slow':
+      return 'slow weekends'
+    case 'high':
+      return 'high-octane plans'
+    case 'food':
+      return 'food trails'
+    case 'sunrise':
+      return 'sunrise people'
+    case 'art':
+      return 'art & craft'
+  }
 }

@@ -53,7 +53,7 @@ export function MapStrip({ cities, fromCityName }: MapStripProps) {
   return (
     <section
       aria-label="Map of nearby destinations"
-      style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}
     >
       <div className="ch-map-strip">
         <svg

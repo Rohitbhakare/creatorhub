@@ -33,7 +33,7 @@ export function ContinueReadingRail({ items }: ContinueReadingRailProps) {
   return (
     <section
       aria-label="Continue reading"
-      style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}
     >
       <header
         style={{

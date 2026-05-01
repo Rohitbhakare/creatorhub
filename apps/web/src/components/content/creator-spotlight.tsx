@@ -52,7 +52,7 @@ export function CreatorSpotlight({ creator, featuredContent }: CreatorSpotlightP
   return (
     <section
       aria-label="Creator spotlight"
-      style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}
     >
       <header
         style={{

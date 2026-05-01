@@ -53,7 +53,7 @@ export function MoodSelector({ activeMood }: { activeMood?: MoodId | null }) {
   return (
     <section
       aria-label="Mood selector"
-      style={{ maxWidth: 1240, margin: '40px auto 0', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}
     >
       <div
         style={{

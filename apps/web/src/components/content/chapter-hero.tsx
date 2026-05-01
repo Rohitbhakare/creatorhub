@@ -92,7 +92,7 @@ export function ChapterHero({ story, autoAdvanceMs = DEFAULT_INTERVAL_MS }: Chap
 
   return (
     <section
-      style={{ maxWidth: 1240, margin: '0 auto', padding: '0 32px' }}
+      style={{ maxWidth: 1640, margin: '0 auto', padding: '0 32px' }}
       onMouseEnter={() => {
         setPaused(true)
       }}
