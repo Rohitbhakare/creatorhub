@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchKycStatus, type KycStatus } from '@/lib/kyc'
 
@@ -28,20 +27,7 @@ export default async function KycEntryPage() {
 
   return (
     <>
-      <div
-        style={{
-          maxWidth: 1240,
-          margin: '0 auto',
-          padding: '32px 32px 80px',
-          display: 'grid',
-          gridTemplateColumns: '220px minmax(0, 1fr)',
-          gap: 40,
-          alignItems: 'start',
-        }}
-      >
-        <StudioSidebar active="kyc" />
-
-        <main>
+      <main>
           <span
             style={{
               fontFamily: 'var(--font-mono, var(--font-sans))',
@@ -145,8 +131,7 @@ export default async function KycEntryPage() {
               </Link>
             </>
           )}
-        </main>
-      </div>
+      </main>
     </>
   )
 }

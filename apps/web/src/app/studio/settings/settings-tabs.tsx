@@ -92,6 +92,48 @@ function SectionSub({ children }: { children: React.ReactNode }) {
 
 function AccountTab({ session }: { session: { displayName: string; username: string } }) {
   const [pending, startTransition] = useTransition()
+  const [displayName, setDisplayName] = useState(session.displayName)
+  const [username, setUsername] = useState(session.username)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileMsg, setProfileMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  const dirty =
+    displayName.trim() !== session.displayName.trim() ||
+    username.trim().toLowerCase() !== session.username.trim().toLowerCase()
+
+  async function saveProfile() {
+    if (!dirty) return
+    setSavingProfile(true)
+    setProfileMsg(null)
+    try {
+      const res = await fetch('/api/v1/users/me', {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          display_name: displayName.trim(),
+          username: username.trim().toLowerCase(),
+        }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { detail?: string; message?: string }
+        setProfileMsg({
+          kind: 'err',
+          text: body.detail ?? body.message ?? `Save failed (${String(res.status)})`,
+        })
+      } else {
+        setProfileMsg({ kind: 'ok', text: 'Saved.' })
+      }
+    } catch (e) {
+      setProfileMsg({
+        kind: 'err',
+        text: (e as { message?: string }).message ?? 'Network error. Try again.',
+      })
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
   function signOutEverywhere() {
     startTransition(async () => {
       try {
@@ -102,12 +144,65 @@ function AccountTab({ session }: { session: { displayName: string; username: str
       }
     })
   }
+
   return (
     <>
       <SectionTitle>Account</SectionTitle>
       <SectionSub>Display name and username are shared across web and mobile.</SectionSub>
-      <DataRow label="Display name" value={session.displayName} />
-      <DataRow label="Username" value={`@${session.username}`} />
+      <FieldRow
+        label="Display name"
+        hint="The name on your posts, profile, and creator card."
+      >
+        <input
+          type="text"
+          value={displayName}
+          onChange={(e) => {
+            setDisplayName(e.target.value)
+          }}
+          maxLength={60}
+          style={fieldInputStyle}
+        />
+      </FieldRow>
+      <FieldRow
+        label="Username"
+        hint="Your @handle. Lowercase letters and numbers only, 3–20 chars."
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ color: 'var(--ink-muted)', fontSize: 14 }}>@</span>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))
+            }}
+            minLength={3}
+            maxLength={20}
+            style={fieldInputStyle}
+          />
+        </div>
+      </FieldRow>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={saveProfile}
+          disabled={!dirty || savingProfile}
+          className="ch-btn ch-btn-primary"
+        >
+          {savingProfile ? 'Saving…' : 'Save changes'}
+        </button>
+        {profileMsg && (
+          <span
+            role="status"
+            aria-live="polite"
+            style={{
+              fontSize: 13,
+              color: profileMsg.kind === 'ok' ? 'var(--success)' : 'var(--danger)',
+            }}
+          >
+            {profileMsg.text}
+          </span>
+        )}
+      </div>
       <hr className="ch-divider" style={{ margin: '24px 0' }} />
       <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--ink)' }}>
         Sign out everywhere
@@ -126,6 +221,48 @@ function AccountTab({ session }: { session: { displayName: string; username: str
         {pending ? 'Signing out…' : 'Sign out everywhere'}
       </button>
     </>
+  )
+}
+
+const fieldInputStyle: React.CSSProperties = {
+  flex: 1,
+  padding: '10px 12px',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid var(--hairline-strong)',
+  background: 'var(--surface)',
+  color: 'var(--ink)',
+  fontSize: 14,
+  fontFamily: 'inherit',
+  minWidth: 200,
+}
+
+function FieldRow({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label
+        style={{
+          display: 'block',
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </label>
+      {hint && (
+        <p style={{ fontSize: 12, color: 'var(--ink-muted)', margin: '0 0 6px' }}>{hint}</p>
+      )}
+      {children}
+    </div>
   )
 }
 

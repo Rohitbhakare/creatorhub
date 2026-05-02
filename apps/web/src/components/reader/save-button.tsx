@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 import { pushToast } from '@/components/ui/toast-region'
 
@@ -27,6 +27,25 @@ export function SaveButton({
   const [count, setCount] = useState(initialCount)
   const [pending, startTransition] = useTransition()
   const { openSignInModal } = useSignInModal()
+
+  // Sync to server-provided props when they actually change. Without this,
+  // a sibling action (Like / Follow / Comment) that triggers revalidation
+  // would refresh the parent props but useState would keep the stale local
+  // value — caught in the 2026-05-02 bug bash as "Save count reverts after
+  // Like click". The ref + comparison only re-syncs when props move, so
+  // the in-flight optimistic update isn't clobbered by a no-op re-render.
+  const prevInitialSavedRef = useRef(initialSaved)
+  const prevInitialCountRef = useRef(initialCount)
+  useEffect(() => {
+    if (initialSaved !== prevInitialSavedRef.current) {
+      setSaved(initialSaved)
+      prevInitialSavedRef.current = initialSaved
+    }
+    if (initialCount !== prevInitialCountRef.current) {
+      setCount(initialCount)
+      prevInitialCountRef.current = initialCount
+    }
+  }, [initialSaved, initialCount])
 
   function doSave(targetState: boolean) {
     setSaved(targetState)

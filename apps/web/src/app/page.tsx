@@ -104,9 +104,20 @@ export default async function HomePage({ searchParams }: Props) {
   // Mood filtering is currently client-side: same data, page reranks by
   // mood-keyword overlap. Server-side ranking is filed as E5.1/ENH-001;
   // when the API accepts ?mood=, this rerank can be removed.
-  const filteredSections = mood
+  const moodFilteredSections = mood
     ? sections.map((s) => ({ ...s, items: rankByMood(s.items, mood) }))
     : sections
+
+  // Type filtering — when the user picks a specific content-type chip
+  // (Itineraries / Experiences / Events) we filter every section's items
+  // to that type and drop sections that empty out. 'all' and 'post' are
+  // handled elsewhere ('post' has its own dedicated PostsFeedColumn branch).
+  const filteredSections =
+    type && type !== 'all' && type !== 'post'
+      ? moodFilteredSections
+          .map((s) => ({ ...s, items: s.items.filter((i) => i.type === type) }))
+          .filter((s) => s.items.length > 0)
+      : moodFilteredSections
 
   const allItemsRaw = filteredSections.flatMap((s) => s.items)
   const allItems = mood ? rankByMood(allItemsRaw, mood) : allItemsRaw

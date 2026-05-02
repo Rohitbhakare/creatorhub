@@ -267,7 +267,7 @@ export default async function ContentDetailPage({ params }: Props) {
             />
           </header>
         ) : (
-          <ParallaxHero photoClass={photoClass}>
+          <ParallaxHero photoClass={photoClass} imageUrl={content.coverImageUrl}>
           <div
             style={{
               position: 'absolute',

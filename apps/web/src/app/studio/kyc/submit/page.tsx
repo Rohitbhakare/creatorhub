@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { getSession } from '@/lib/session'
 import { fetchKycStatus } from '@/lib/kyc'
 import { KycWizard } from './kyc-wizard'
@@ -22,23 +21,8 @@ export default async function KycSubmitPage() {
   void session
 
   return (
-    <>
-      <div
-        style={{
-          maxWidth: 1240,
-          margin: '0 auto',
-          padding: '32px 32px 80px',
-          display: 'grid',
-          gridTemplateColumns: '220px minmax(0, 1fr)',
-          gap: 40,
-          alignItems: 'start',
-        }}
-      >
-        <StudioSidebar active="kyc" />
-        <main>
-          <KycWizard isResubmit={kyc.status === 'rejected'} />
-        </main>
-      </div>
-    </>
+    <main>
+      <KycWizard isResubmit={kyc.status === 'rejected'} />
+    </main>
   )
 }

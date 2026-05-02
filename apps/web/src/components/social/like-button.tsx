@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useSignInModal } from '@/components/auth/sign-in-modal-provider'
 
 interface LikeButtonProps {
@@ -24,6 +24,21 @@ export function LikeButton({
   const [liked, setLiked] = useState(initialLiked)
   const [count, setCount] = useState(initialCount)
   const [pending, startTransition] = useTransition()
+
+  // Sync local state when server-provided props change (sibling action
+  // triggers revalidation). See save-button.tsx for the rationale.
+  const prevInitialLikedRef = useRef(initialLiked)
+  const prevInitialCountRef = useRef(initialCount)
+  useEffect(() => {
+    if (initialLiked !== prevInitialLikedRef.current) {
+      setLiked(initialLiked)
+      prevInitialLikedRef.current = initialLiked
+    }
+    if (initialCount !== prevInitialCountRef.current) {
+      setCount(initialCount)
+      prevInitialCountRef.current = initialCount
+    }
+  }, [initialLiked, initialCount])
 
   function doLike(target: boolean) {
     setLiked(target)

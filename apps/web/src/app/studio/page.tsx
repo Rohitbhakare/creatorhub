@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { StudioSidebar } from '@/components/chrome/studio-sidebar'
 import { EarningsSparkline } from '@/components/studio/earnings-sparkline'
 import { BookingsDrawer } from '@/components/studio/bookings-drawer'
 import { getSession } from '@/lib/session'
@@ -27,20 +26,7 @@ export default async function StudioPage() {
 
   return (
     <>
-      <div
-        style={{
-          maxWidth: 1240,
-          margin: '0 auto',
-          padding: '32px 32px 80px',
-          display: 'grid',
-          gridTemplateColumns: '220px minmax(0, 1fr)',
-          gap: 40,
-          alignItems: 'start',
-        }}
-      >
-        <StudioSidebar active="overview" />
-
-        <main>
+      <main>
           {showKycBanner && (
             <Link
               href="/studio/kyc"
@@ -211,8 +197,7 @@ export default async function StudioPage() {
               </Link>
             </div>
           )}
-        </main>
-      </div>
+      </main>
     </>
   )
 }

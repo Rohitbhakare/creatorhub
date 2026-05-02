@@ -211,6 +211,8 @@ interface ExperienceSeed {
   subCategory: TravelSubCategory
   title: string
   description: string
+  /** Long-form markdown — what to expect, who it's for, what to bring. */
+  body: string
   cover: string
   pricePaisa: number
   durationMinutes: number
@@ -227,6 +229,8 @@ interface EventSeed {
   subCategory: TravelSubCategory | StoriesSubCategory
   title: string
   description: string
+  /** Long-form markdown — agenda, format, what to expect. */
+  body: string
   cover: string
   venue: string
   venueAddress: string
@@ -828,6 +832,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Sunrise trek to Triund — beginner friendly',
       description: 'Night trek from McLeodganj. Chai at the top as the sun rises over the Dhauladhar.',
+      body:
+        '## What you\'ll do\n\nWe meet at McLeodganj at 1 a.m., walk the 9 km to Triund through the night, summit by 5:30 a.m., and watch the Dhauladhar light up at sunrise. Hot chai + parathas at the top. Descent at our own pace, back in McLeodganj by 11 a.m.\n\n## Who this is for\n\nFirst-time trekkers and weekend walkers. If you can do a 90-minute uphill walk on flat terrain, you can do this. Pace is unhurried — we stop, we breathe, we talk about the mountains.\n\n## What to bring\n\nWarm layers (it gets to 4°C at the top), headlamp, water bottle (1.5L+), sturdy shoes (hiking boots ideal, sneakers OK if you have grip). Dinner before 11 p.m. recommended. Skip alcohol on the day.\n\n## Group size + safety\n\nMax 12 trekkers per departure. Two certified mountain guides. Headlamps + emergency kit on every trek. Cancellation policy: full refund up to 7 days before; 50% within 7 days; weather-cancellation = full refund or rebook.',
       cover: 'photo-1551632811-561732d1e306',
       pricePaisa: 250000,
       durationMinutes: 600,
@@ -845,6 +851,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.chennai,
       title: 'Pondicherry kitchen tour — 4 hours, 3 homes',
       description: 'A French quarter walk that ends in three Tamil-Creole kitchens.',
+      body:
+        '## What we eat, where, and why\n\nFour hours, three Pondicherry homes, one slow afternoon. We start at Auroville Bakery for a coffee that resets your palate, then walk the White Town quarter explaining how the French left more than the architecture — they left a way of cooking too.\n\n**House 1 — Mariammal\'s kitchen.** Tamil-Creole grandmother. We sit on her veranda; she makes meen kuzhambu (Pondicherry-style fish curry) while telling you why coconut oil + ghee is the actual local trick.\n\n**House 2 — Auroville organic.** Soumya runs an Auroville-rooted kitchen. Beetroot poriyal, ragi roti, and a 30-minute conversation about why Auroville agriculture is more interesting than its yoga.\n\n**House 3 — Tantra Café family.** Their grandmother + grandkids cook a chai-and-laddoo close. We sit in the courtyard, you ask the questions, they answer in Tamil with English translation.\n\n## What to bring\n\nAn appetite. Modest clothing (covered shoulders + knees for the homes). Cash for the optional ingredient bag (₹500 per head, totally optional). Notebook if you write recipes.\n\n## Capacity + cancellation\n\nMax 8 per tour. Full refund up to 48 hours before. Vegetarian-friendly (advise on booking).',
       cover: 'photo-1599661046289-e31897846e41',
       pricePaisa: 180000,
       durationMinutes: 240,
@@ -862,6 +870,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Old Delhi heritage walk — 3 hours, 11 lanes',
       description: 'A walk through gullies most Delhiites have never seen.',
+      body:
+        '## The route\n\nThree hours. Eleven lanes. We start at Jama Masjid Gate 3, walk Karim\'s lane (no eating yet — we save that), turn into Suiwalan, cross the Mughal era haveli district, and end at Khari Baoli\'s wholesale corner. You\'ll have walked through 350 years of layered Delhi by the time we stop.\n\n## What you\'ll see\n\n- Mughal merchant havelis from 1680\n- Two functioning chotta-Sufi shrines on backstreets\n- The actual narrow gullies where Ghalib walked\n- Three separate trades — silver, attar (perfume), wholesale spice\n- One quiet corner where the Yamuna used to be visible\n\n## What you\'ll eat\n\nThree stops on the route — chai at a 90-year-old corner, kulfi at the Aminabad cousin shop, and a hot kulcha at the lane-end. ₹150 total budget; tucked into the ticket.\n\n## Walk vs. tour\n\nThis isn\'t a "fact-dump" tour. It\'s a walk where someone who\'s lived here points at things and tells you the story. Bring questions. Wear closed shoes (lanes are slippery). Modest clothing for the dargah stops.\n\n## Capacity + cancellation\n\nMax 15 per walk. Cancel up to 24 hours before for a full refund.',
       cover: 'photo-1602216056096-3b40cc0c9944',
       pricePaisa: 120000,
       durationMinutes: 180,
@@ -879,6 +889,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.mumbai,
       title: 'Solo trip planning workshop — Mumbai',
       description: '4-hour weekend workshop. Build your first solo trip in real time.',
+      body:
+        '## Why this exists\n\nI\'ve done 24 solo trips across India. Every time someone asks me how I plan, I send them three articles and a few apps. This workshop is the actual conversation — four hours, a destination of your choice, and you walk out with a real bookable trip.\n\n## What we\'ll do\n\n**Hour 1.** Pick a destination together. We rule out the bad-fit ones, narrow to two, and commit to one.\n\n**Hour 2.** Skeleton itinerary. Days, not hours. Stays, not Airbnbs. We use my actual booking-decision framework.\n\n**Hour 3.** Logistics — transport, money, safety. The single most-asked question is "is it safe" and the honest answer is "logistics-heavy not danger-heavy" — we work through both.\n\n**Hour 4.** Solo-mode mindset. Eating alone. Talking to strangers. The 80/20 of solo-travel social skills. Coffee + cake.\n\n## Who this is for\n\nFirst-time solo travellers. Doesn\'t matter your age or where you\'re going. If you\'ve been planning a trip for 6 months and never booked it, this is for you.\n\n## What to bring\n\nA laptop or notebook. Your destination shortlist (or come without — we\'ll narrow together). Comfortable clothes. ₹200 cash for coffee + cake.',
       cover: 'photo-1502786129293-79981df4e689',
       pricePaisa: 200000,
       durationMinutes: 240,
@@ -896,6 +908,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.srinagar,
       title: 'Ladakh dark-sky photography night',
       description: '6-hour night session at Hanle. Equipment guidance, post-processing tutorial.',
+      body:
+        '## The night\n\n6 hours. Hanle, the world\'s newest designated dark-sky reserve. We meet at 8 p.m., set up tripods at 9, shoot the Milky Way until 1 a.m., post-process together until 2.\n\n## What you\'ll learn\n\n- Astro-photography settings: 25s · f/1.8 · ISO 3200, why and when to deviate\n- The 500 rule (and why I ignore it now)\n- Composition with the Milky Way arch\n- Stacking — single-shot vs. 30-frame stacked, when to use which\n- Lightroom/Darktable basics for raw astro files\n\n## What to bring\n\n- Camera with manual mode (DSLR / mirrorless / phone with manual app all OK)\n- Wide fast prime ideal (24mm f/1.4 or 14mm f/1.8). Kit lens works for learning.\n- Tripod (sturdy — not the carbon ultralight)\n- Spare batteries (cold drains them — keep in your jacket)\n- Layers (it gets to -5°C at 4500m)\n- Headlamp with red-light mode (preserves night vision)\n\n## Pre-requisites\n\nYou must already be acclimatised to Ladakh altitude. We don\'t bring beginners straight up — book a separate Leh acclimatisation day before this.\n\n## Cancellation\n\nFull refund 14 days out. 50% within 14. Weather (cloud cover) cancellation = full reschedule for the next new-moon night.',
       cover: 'photo-1506905925346-21bda4d32df4',
       pricePaisa: 450000,
       durationMinutes: 360,
@@ -913,6 +927,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.bengaluru,
       title: 'Coffee plantation morning — Chikmagalur',
       description: '3-hour estate walk + cupping session at a 4th-generation farm.',
+      body:
+        '## What we do\n\nThree hours. A working coffee estate that\'s been in Anil\'s family since 1947. We start at the seedling nursery, walk through the cherry-bearing arabica blocks, cross to the robusta side, end at the cupping table where we taste 4 roasts blind.\n\n## What you\'ll learn\n\n- The arabica/robusta difference, told properly\n- Why most "estate tours" are bullshit (and what makes ours different)\n- How a coffee gets from the cherry to your cup — actual six-stage process\n- Cupping protocol (how professionals score coffees)\n- The honest answer to "is decaf bad for you"\n\n## What\'s included\n\n- 3-hour walk + tasting\n- 200g of estate-roasted arabica to take home\n- Plantation breakfast (idli + filter coffee + estate honey)\n\n## Logistics\n\nMeet at Chikmagalur main bus stand at 7 a.m. Transport to the estate (15 min) included. Wear closed shoes (the plantation is muddy in the morning). Arrive caffeinated.\n\n## Capacity\n\nMax 12 per session. Friday/Saturday/Sunday departures. Cancel up to 48h before for full refund.',
       cover: 'photo-1559329007-40df8a9345d8',
       pricePaisa: 150000,
       durationMinutes: 180,
@@ -932,6 +948,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.mumbai,
       title: 'Monsoon photo walk · Bandra',
       description: 'A free 2-hour walk through wet Bandra. Bring a waterproof bag.',
+      body:
+        '## What this is\n\nA two-hour photo walk through Bandra during peak monsoon. Free, casual, low-stakes. We meet at Bandstand promenade, walk Mount Mary lanes, end at Carter Road for chai and photo-sharing.\n\n## What to bring\n\n- A camera you\'re happy to risk in light rain (phone is fine — most of us bring phones)\n- A small dry-bag or zip-lock for the camera\n- Closed shoes — the lanes get slippery\n- A poncho > umbrella (umbrella in monsoon Mumbai = fight with the wind)\n\n## Format\n\nUnstructured. We walk together but you stop where you want. After 2 hours we settle at Carter Road, swap photos, and trade Lightroom tips informally.\n\n## RSVP\n\nFree event, RSVP only so we know how big the group is. Cancel if you can\'t make it (someone on waitlist will appreciate).',
       cover: 'photo-1599661046289-e31897846e41',
       venue: 'Bandstand promenade',
       venueAddress: 'Bandra West, Mumbai',
@@ -949,6 +967,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.bengaluru,
       title: 'Bangalore filter coffee meetup · 5 cafés in 1 morning',
       description: 'A free walk-tour. Buy your own coffee, share notes, swap recommendations.',
+      body:
+        '## The route\n\nFive Bangalore filter-coffee institutions in one morning. We walk between them when we can, take auto when the lanes don\'t cooperate. 7 a.m. to 10 a.m.\n\n**Stop 1.** Brahmin\'s Coffee Bar, Shankarapuram — opens 7. The classic; foam-on-decoction perfectly balanced.\n\n**Stop 2.** CTR (Central Tiffin Room), Malleshwaram — coffee + a benne masala dosa for the buffer.\n\n**Stop 3.** Veena Stores, Malleshwaram — 100m down the road. Different coffee technique entirely.\n\n**Stop 4.** Vidyarthi Bhavan, Gandhi Bazaar — by far the most-photographed; the queue is part of the experience.\n\n**Stop 5.** Asha Sweets — the wildcard. Decaf-style, more chicory.\n\n## Format\n\nFree event. Buy your own coffee at each stop (~₹40 each = ₹200 total). RSVP so we keep the group walkable (max 25).',
       cover: 'photo-1495474472287-4d71bcdd2085',
       venue: 'Brahmin\'s Coffee Bar, Shankarapuram',
       venueAddress: '15 Ranga Rao Road, Shankarapuram, Bengaluru',
@@ -966,6 +986,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Sufi qawwali at Nizamuddin — group attend',
       description: 'Thursday evening dargah qawwali. We meet at 5:30 p.m. at the entrance.',
+      body:
+        '## The qawwali\n\nThursday evening at Hazrat Nizamuddin Auliya Dargah is the longest-running open-air sufi qawwali in Delhi. The Nizami brothers — direct descendants of the dargah\'s original musicians — sing for two hours. Free entry.\n\n## What we do\n\nMeet at 5:30 p.m. at the dargah\'s east gate. We walk the gully together (it\'s easy to get lost the first time), find a spot near the qawwals, and sit. Qawwali starts around 6.\n\n## What to wear\n\nCover your head (scarf, dupatta, or any cap). Cover your shoulders + knees. Remove shoes before entering. ₹20 in cash for the shoe-keeper. Bring a small rupee donation for the qawwals if you can.\n\n## Etiquette\n\nDon\'t take flash photos. Quiet phones. Stand for the salaam at the start. Don\'t leave during a particular phrase the qawwals call out — the local crowd notices.\n\n## RSVP cap\n\nMax 20. Free, but RSVP so I can find you near the gate.',
       cover: 'photo-1626621341517-bbf3d9990a23',
       venue: 'Hazrat Nizamuddin Dargah',
       venueAddress: 'Nizamuddin West, New Delhi',
@@ -983,6 +1005,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.mumbai,
       title: 'Sunday slow brunch · Bandra',
       description: 'A monthly slow brunch for travel writers. Bring a story to share.',
+      body:
+        '## The format\n\nMonthly. Sunday. 11 a.m. to 3 p.m. The Pantry, Kala Ghoda. We sit, we eat, we read each other\'s travel writing. No PowerPoints, no panels, no networking-speak. Just food and stories.\n\n## What you bring\n\nOne piece of travel writing. Yours. Anything from 200 words to 2,000 — we\'ll only have time for ~6 readings so prepare for the possibility you read aloud.\n\n## Who comes\n\nMix of working travel writers, journalists, people who keep a Substack, and a few who just write in their notebooks. Everyone\'s welcome. We\'ve had a pediatrician who writes the best Konkan-coast travel essays I\'ve read.\n\n## What\'s included\n\n- Brunch (₹950 per head — covers food + drinks)\n- A copy of one favourite-piece I\'m reading that month\n\n## Cap\n\n18 seats. Pre-payment required (helps me commit to the venue).',
       cover: 'photo-1564507592333-c60657eea523',
       venue: 'The Pantry',
       venueAddress: 'Kala Ghoda, Fort, Mumbai',
@@ -1000,6 +1024,8 @@ const seeds: { creator: number; data: Seed }[] = [
       city: C.delhi,
       title: 'Kedarkantha winter trek meetup',
       description: 'Group sign-up evening. Plan the Dec 2026 expedition together.',
+      body:
+        '## What this is\n\nA pre-trek meetup for people who\'ve signed up — or are thinking about signing up — for the Dec 2026 Kedarkantha winter trek. We meet, we plan, we figure out who\'s sharing transport from Dehradun, who\'s bringing what gear.\n\n## What we cover\n\n- Itinerary walkthrough (5 days, Sankri → Juda ka Talab → Kedarkantha base → summit → descent)\n- Gear list (the ten things people forget; the five things you don\'t need)\n- Fitness baseline (be honest about your level — we\'ll calibrate as a group)\n- Logistics — Dehradun ↔ Sankri taxi sharing, food, who\'s done it before\n- Q&A with two people who\'ve done it twice\n\n## What to bring\n\nNothing. A notebook if you want. Beer\'s on me.\n\n## Format\n\n2 hours. Antisocial in HKV — back patio. Casual.',
       cover: 'photo-1551632811-561732d1e306',
       venue: 'Antisocial Hauz Khas Village',
       venueAddress: 'Hauz Khas Village, New Delhi',

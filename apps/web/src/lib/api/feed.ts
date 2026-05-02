@@ -40,6 +40,13 @@ export async function getHomeFeedSections(opts: {
   const city = opts.city
   const scope = opts.scope ?? 'near-you'
 
+  // The lead "personalised" section swaps endpoint based on the active scope
+  // chip so the feed actually changes when the user toggles Near-you /
+  // Following / All. Without this, scope was a label-only chip — caught in
+  // the 2026-05-02 bug bash as "Home tabs don't filter".
+  const leadEndpoint =
+    scope === 'near-you' ? 'near-you' : scope === 'following' ? 'following' : 'for-you'
+
   const [
     forYou,
     hotNearYou,
@@ -51,7 +58,7 @@ export async function getHomeFeedSections(opts: {
     dayTrips,
     weekendGetaways,
   ] = await Promise.all([
-    fetchSection('for-you'),
+    fetchSection(leadEndpoint, { city }),
     fetchSection('hot-near-you', { city }),
     fetchSection('editors-picks'),
     fetchSection('this-weekend', { city }),
