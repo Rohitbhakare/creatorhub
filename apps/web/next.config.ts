@@ -1,6 +1,17 @@
 import type { NextConfig } from 'next'
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const isDev = process.env.NODE_ENV !== 'production'
+
+/**
+ * Bundle analyzer wrapper. Run `ANALYZE=true pnpm build` to produce
+ * `.next/analyze/{client,nodejs,edge}.html` treemaps so we can answer
+ * "what's in main-app.js" in 30 seconds. No effect on regular builds.
+ */
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: false,
+})
 
 /**
  * Security headers + perf knobs.
@@ -94,4 +105,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default bundleAnalyzer(nextConfig)

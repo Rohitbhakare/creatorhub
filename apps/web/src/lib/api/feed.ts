@@ -291,21 +291,29 @@ export interface ChapterStory {
 export async function getFeaturedChapterStory(opts: {
   city?: string
 } = {}): Promise<ChapterStory | null> {
-  // Reuse the existing handpicked-feed endpoint — it's already cached at
-  // 60s and is the closest signal to "editorial featured".
+  // Reuse the existing handpicked-feed endpoint — already cached at 60s and
+  // the closest signal to "editorial featured".
   const items = await fetchSection('handpicked', { city: opts.city })
 
-  for (const item of items) {
-    if (item.type !== 'itinerary') continue
-    const detail = await fetchContentDetail(item.id)
+  // Cap the candidate pool — handpicked usually returns ~6, no need to
+  // fetch detail for more than that. Also avoids hammering /content/:id
+  // when an editor curates a long handpicked list.
+  const candidates = items.filter((i) => i.type === 'itinerary').slice(0, 6)
+  if (candidates.length === 0) return null
+
+  // Fetch all candidate details in parallel. Was a serial loop pre-2026-05-02
+  // perf pass — single-itinerary detail fetches are ~700-900ms in dev, so a
+  // 4-candidate serial walk meant 3-4s of blocking before the home page could
+  // paint the hero. Parallel collapses to the slowest single fetch.
+  const details = await Promise.all(candidates.map((c) => fetchContentDetail(c.id)))
+
+  for (const detail of details) {
     const spots = detail?.spots ?? []
-    if (spots.length < MIN_CHAPTERS) continue
-    // Sort by (dayNumber, orderIndex) so chapters render in narrative order.
+    if (!detail || spots.length < MIN_CHAPTERS) continue
     const ordered = [...spots].sort((a, b) => {
       if (a.dayNumber !== b.dayNumber) return a.dayNumber - b.dayNumber
       return a.orderIndex - b.orderIndex
     })
-    if (!detail) continue
     return { content: detail, chapters: ordered.slice(0, 6) }
   }
   return null

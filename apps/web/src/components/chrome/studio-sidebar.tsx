@@ -21,7 +21,7 @@ const NAV_ITEMS = [
  * sometimes unclickable" and "active-highlight inconsistent between pages").
  */
 export function StudioSidebar() {
-  const pathname = usePathname() ?? ''
+  const pathname = usePathname()
   // Match longest prefix first so /studio/kyc/submit lights up "kyc", not the
   // /studio root. Items are sorted by descending href length internally.
   const sortedByDepth = [...NAV_ITEMS].sort((a, b) => b.href.length - a.href.length)

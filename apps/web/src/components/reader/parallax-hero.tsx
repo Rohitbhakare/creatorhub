@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import Image from 'next/image'
 import { useRef, type ReactNode } from 'react'
 
 interface ParallaxHeroProps {
@@ -13,6 +14,12 @@ interface ParallaxHeroProps {
  * Full-bleed 70vh hero with depth-of-field parallax (image translates Y at
  * 0.3× scroll, content stays put). Falls back to a static hero when the user
  * prefers reduced motion (WEB-MOTION-FR-105).
+ *
+ * The hero image renders through `<Image priority>` so the browser preloads
+ * it as part of the LCP graph — was previously a CSS `background-image:
+ * url(...)` which the browser doesn't preload, causing a visible pop-in
+ * flagged in the 2026-05-02 perf pass. The CSS-painted gradient class
+ * (`ch-photo--konkan` etc.) still serves as the no-image fallback.
  */
 export function ParallaxHero({ photoClass, imageUrl, children }: ParallaxHeroProps) {
   const ref = useRef<HTMLDivElement>(null)
@@ -32,11 +39,21 @@ export function ParallaxHero({ photoClass, imageUrl, children }: ParallaxHeroPro
           height: '85vh',
           minHeight: 540,
           borderRadius: 0,
-          backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          overflow: 'hidden',
         }}
       >
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover' }}
+            unoptimized={isExternalUnoptimized(imageUrl)}
+            priority
+            aria-hidden
+          />
+        )}
         <div className="ch-photo-overlay" />
         {children}
       </section>
@@ -65,15 +82,41 @@ export function ParallaxHero({ photoClass, imageUrl, children }: ParallaxHeroPro
           opacity,
           borderRadius: 0,
           willChange: 'transform',
-          backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          overflow: 'hidden',
         }}
         aria-hidden
       >
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover' }}
+            unoptimized={isExternalUnoptimized(imageUrl)}
+            priority
+          />
+        )}
         <div className="ch-photo-overlay" />
       </motion.div>
       <div style={{ position: 'relative', zIndex: 1, height: '100%' }}>{children}</div>
     </section>
   )
+}
+
+/** See chapter-hero.tsx — same shared helper. */
+function isExternalUnoptimized(url: string): boolean {
+  try {
+    const u = new URL(url)
+    if (
+      u.host.endsWith('googleusercontent.com') ||
+      u.host.endsWith('cloudfront.net') ||
+      u.host.endsWith('razorpay.com')
+    ) {
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
 }

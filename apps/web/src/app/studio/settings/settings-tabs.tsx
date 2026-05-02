@@ -184,7 +184,9 @@ function AccountTab({ session }: { session: { displayName: string; username: str
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
         <button
           type="button"
-          onClick={saveProfile}
+          onClick={() => {
+            void saveProfile()
+          }}
           disabled={!dirty || savingProfile}
           className="ch-btn ch-btn-primary"
         >
@@ -450,23 +452,6 @@ function PrivacyTab() {
         Delete my account
       </button>
     </>
-  )
-}
-
-function DataRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '12px 0',
-        borderBottom: '1px solid var(--hairline)',
-        fontSize: 14,
-      }}
-    >
-      <span style={{ color: 'var(--ink-muted)' }}>{label}</span>
-      <span style={{ color: 'var(--ink)', fontWeight: 500 }}>{value}</span>
-    </div>
   )
 }
 

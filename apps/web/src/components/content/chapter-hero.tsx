@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { InitialAvatar } from '@/components/ui/initial-avatar'
@@ -101,17 +102,42 @@ export function ChapterHero({ story, autoAdvanceMs = DEFAULT_INTERVAL_MS }: Chap
       }}
     >
       <div className="ch-chapter-hero">
-        {/* Photo side */}
+        {/* Photo side. We render an <Image priority> when the content has
+         * a real cover so the browser preloads it (LCP candidate on /).
+         * Falls back to the CSS-painted gradient class when no cover URL —
+         * keeps brand-new creators' chapters from rendering visually empty. */}
         <div
-          className={`ch-photo ${photoClass}`}
+          className={`ch-photo ${story.content.coverImageUrl ? '' : photoClass}`}
           style={{
             position: 'relative',
             minHeight: 360,
             borderRadius: 0,
             overflow: 'hidden',
           }}
-          aria-hidden
         >
+          {story.content.coverImageUrl && (
+            <Image
+              src={story.content.coverImageUrl}
+              alt=""
+              fill
+              sizes="(max-width: 1080px) 100vw, 720px"
+              style={{ objectFit: 'cover' }}
+              unoptimized={isExternalUnoptimized(story.content.coverImageUrl)}
+              priority
+              aria-hidden
+            />
+          )}
+          {/* Gradient overlay so white text/labels stay legible regardless
+           * of cover image. Sits on top of the Image, below content. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 100%)',
+            }}
+          />
           <div
             style={{
               position: 'absolute',
@@ -312,4 +338,26 @@ function pickPhoto(title: string): string {
   const candidates = ['konkan', 'spiti', 'monsoon', 'goa', 'ladakh', 'hampi', 'matheran', 'bandra']
   for (const c of candidates) if (lower.includes(c)) return c
   return 'konkan'
+}
+
+/**
+ * Mirror of the same helper in hero-feature.tsx — bypass next/image's
+ * domain-bound optimizer for hosts that already serve transformed assets
+ * (Google CDN, CloudFront, Razorpay) so we don't double-pay or hit a
+ * "URL not whitelisted in next.config" wall.
+ */
+function isExternalUnoptimized(url: string): boolean {
+  try {
+    const u = new URL(url)
+    if (
+      u.host.endsWith('googleusercontent.com') ||
+      u.host.endsWith('cloudfront.net') ||
+      u.host.endsWith('razorpay.com')
+    ) {
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
 }

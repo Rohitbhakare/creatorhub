@@ -126,7 +126,10 @@ export function MapStrip({ cities, fromCityName }: MapStripProps) {
                 </span>
               )}
               <span>{p.name}</span>
-              <span style={{ opacity: 0.7, fontWeight: 500 }}>· {String(p.count)}</span>
+              {/* No opacity — dimming white text via opacity dropped contrast
+               * to 3.18:1 (axe failure). The "·" separator already gives the
+               * count a softer visual weight; keep the text fully white for AA. */}
+              <span style={{ fontWeight: 500 }}>· {String(p.count)}</span>
             </span>
             <span aria-hidden className="ch-map-pin__tail" />
           </Link>

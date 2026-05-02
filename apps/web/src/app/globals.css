@@ -680,10 +680,15 @@ body > main {
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
 }
 .ch-map-pin--hot .ch-map-pin__bubble {
-  background: var(--primary);
+  /* Use the AA-safe coral so the bubble's white "Bengaluru · 5" label hits
+   * 4.5:1 contrast (M2.5/A11Y-001 fix — caught the missed pin in the perf
+   * pass axe sweep). */
+  background: var(--primary-text-bg, var(--primary));
   color: white;
 }
-.ch-map-pin--hot .ch-map-pin__tail { border-top-color: var(--primary); }
+.ch-map-pin--hot .ch-map-pin__tail {
+  border-top-color: var(--primary-text-bg, var(--primary));
+}
 
 /* Section rail with scroll arrows (E5.1) — arrows hover-revealed on
  * pointer-fine devices only; touch users get gesture-only scroll. */

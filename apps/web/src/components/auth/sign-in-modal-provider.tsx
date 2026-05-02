@@ -1,7 +1,23 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { SignInModal } from './sign-in-modal'
+import {
+  createContext,
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
+
+// Lazy-loaded modal body — keeps the auth UI (form + framer-motion +
+// Firebase phone provider hooks) out of the initial route bundle for every
+// page. Same pattern the command palette uses (command-palette.tsx). The
+// chunk only loads after the first openSignInModal() call.
+const SignInModal = lazy(() =>
+  import('./sign-in-modal').then((m) => ({ default: m.SignInModal })),
+)
 
 export interface SignInRequest {
   /** Short label of the action being attempted, e.g. "Save “Konkan”", "Like", "Follow Aarav". */
@@ -72,18 +88,24 @@ export function SignInModalProvider({ children }: ProviderProps) {
     <SignInModalContext.Provider value={value}>
       {children}
       {request && (
-        <SignInModal
-          contextLabel={request.contextLabel}
-          {...(request.reason !== undefined ? { reason: request.reason } : {})}
-          onClose={close}
-          onSuccess={() => {
-            const cb = request.onSuccess
-            close()
-            // Defer the callback so the modal is fully unmounted first —
-            // avoids race conditions in optimistic UI updates.
-            if (cb) setTimeout(cb, 30)
-          }}
-        />
+        // Suspense fallback is `null` because the modal opens via user gesture
+        // (button click) — a brief no-paint while the chunk loads is fine and
+        // matches Cmd+K palette UX. Network is usually warm enough that the
+        // user sees the modal in well under a frame.
+        <Suspense fallback={null}>
+          <SignInModal
+            contextLabel={request.contextLabel}
+            {...(request.reason !== undefined ? { reason: request.reason } : {})}
+            onClose={close}
+            onSuccess={() => {
+              const cb = request.onSuccess
+              close()
+              // Defer the callback so the modal is fully unmounted first —
+              // avoids race conditions in optimistic UI updates.
+              if (cb) setTimeout(cb, 30)
+            }}
+          />
+        </Suspense>
       )}
     </SignInModalContext.Provider>
   )
