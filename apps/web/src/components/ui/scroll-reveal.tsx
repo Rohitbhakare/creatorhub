@@ -19,10 +19,20 @@ interface ScrollRevealProps {
 }
 
 /**
- * Wraps children in a `whileInView` reveal — used for editorial sections
- * and grid items (WEB-MOTION-FR-102). Respects `prefers-reduced-motion`:
- * skips transform, keeps a soft opacity fade so layout shifts are still
- * cushioned (WEB-MOTION-FR-105).
+ * Scroll-triggered reveal wrapper (WEB-MOTION-FR-102).
+ *
+ * Renders content at the "visible" state on SSR (no `initial="hidden"`) so
+ * the page is never blank when JS fails, IntersectionObserver doesn't fire,
+ * or the agent is a non-scrolling crawler (E5.1/BUG-001). The reveal
+ * animation only fires on subsequent scrolls into view via `whileInView` —
+ * effectively a no-op for elements that are already in view at mount, which
+ * is exactly the desired behaviour: content above the fold doesn't fade in,
+ * content below the fold gets the fade as the user scrolls.
+ *
+ * Tradeoff: lose the staggered hero-entrance animation that ran on first
+ * page load. Hero content now appears statically. Net win: no blank page
+ * for SEO crawlers, social-card preview generators, screenshot scripts,
+ * users with broken JS, or anyone whose IntersectionObserver glitches.
  */
 export function ScrollReveal({
   children,
@@ -37,7 +47,7 @@ export function ScrollReveal({
 
   return (
     <Component
-      initial="hidden"
+      initial={false}
       whileInView="visible"
       viewport={{ once: true, amount: threshold }}
       transition={{
