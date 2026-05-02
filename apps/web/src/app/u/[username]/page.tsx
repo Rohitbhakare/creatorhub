@@ -79,11 +79,15 @@ export default async function CreatorMiniSitePage({ params }: Props) {
       <script type="application/ld+json">{jsonLd}</script>
 
       <main>
+        {/* Hero: full-bleed cover with a subtle fade to content. The cover
+            doubles as the brand photo when no `coverUrl` is set — uses a
+            gradient class so a brand-new creator's profile still looks
+            curated, not bare. */}
         <section
           className={creator.coverUrl ? '' : 'ch-photo ch-photo--konkan'}
           style={{
             position: 'relative',
-            height: 220,
+            height: 'clamp(220px, 32vw, 360px)',
             overflow: 'hidden',
           }}
         >
@@ -98,6 +102,16 @@ export default async function CreatorMiniSitePage({ params }: Props) {
               unoptimized
             />
           ) : null}
+          {/* Fade-to-bg gradient — replaces the abrupt cover→avatar cut. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(180deg, rgba(0,0,0,0) 50%, color-mix(in srgb, var(--bg) 90%, transparent) 100%)',
+            }}
+          />
         </section>
 
         <div
@@ -107,22 +121,25 @@ export default async function CreatorMiniSitePage({ params }: Props) {
             padding: '0 32px',
           }}
         >
-          {/* Avatar + identity + actions — single row, compact */}
+          {/* Avatar — own row, dramatically positioned half-over-cover.
+              Removed the previous "avatar + name on the same flex row"
+              pattern which let the avatar visually overlap the name when
+              the cover image was bright (caught 2026-05-02 QA). */}
           <div
             style={{
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'flex-end',
               gap: 20,
-              marginTop: -48,
-              marginBottom: 18,
+              marginTop: 'clamp(-72px, -8vw, -48px)',
               flexWrap: 'wrap',
             }}
           >
             <div
               aria-hidden
               style={{
-                width: 96,
-                height: 96,
+                width: 'clamp(112px, 14vw, 144px)',
+                height: 'clamp(112px, 14vw, 144px)',
                 borderRadius: 999,
                 background: creator.avatarUrl
                   ? 'var(--bg-muted)'
@@ -132,8 +149,8 @@ export default async function CreatorMiniSitePage({ params }: Props) {
                 placeItems: 'center',
                 fontFamily: 'var(--font-serif)',
                 fontWeight: 600,
-                fontSize: 32,
-                border: '4px solid var(--surface)',
+                fontSize: 'clamp(38px, 4vw, 48px)',
+                border: '5px solid var(--surface)',
                 boxShadow: 'var(--shadow-lg)',
                 flex: '0 0 auto',
                 overflow: 'hidden',
@@ -145,7 +162,7 @@ export default async function CreatorMiniSitePage({ params }: Props) {
                   src={creator.avatarUrl}
                   alt=""
                   fill
-                  sizes="96px"
+                  sizes="(max-width: 720px) 112px, 144px"
                   style={{ objectFit: 'cover' }}
                   unoptimized
                 />
@@ -153,23 +170,7 @@ export default async function CreatorMiniSitePage({ params }: Props) {
                 initials
               )}
             </div>
-            <div style={{ flex: '1 1 220px', paddingBottom: 4 }}>
-              <h1
-                className="ch-display"
-                style={{
-                  fontSize: 'clamp(26px, 3vw, 34px)',
-                  color: 'var(--ink)',
-                  marginBottom: 2,
-                  lineHeight: 1.1,
-                }}
-              >
-                {creator.displayName}
-              </h1>
-              <div style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-                @{creator.username} · {creator.vertical}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingBottom: 4 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingBottom: 8 }}>
               <FollowButton
                 creatorId={creator.id}
                 creatorName={creator.displayName}
@@ -186,23 +187,70 @@ export default async function CreatorMiniSitePage({ params }: Props) {
             </div>
           </div>
 
-          {/* Single-line meta row — trust + stats together. Replaces the big
-              stats cards, since "0 chapters / 0 followers" looked like an
-              error state on a fresh profile. */}
+          {/* Identity row — name and handle sit below the avatar so the
+              cover image can never overlap the H1 again. */}
+          <div style={{ marginTop: 18 }}>
+            <h1
+              className="ch-display"
+              style={{
+                fontSize: 'clamp(32px, 4.4vw, 48px)',
+                color: 'var(--ink)',
+                margin: 0,
+                lineHeight: 1.05,
+                letterSpacing: '-0.02em',
+                fontWeight: 600,
+              }}
+            >
+              {creator.displayName}
+            </h1>
+            <div
+              style={{
+                fontSize: 14,
+                color: 'var(--ink-muted)',
+                marginTop: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ fontWeight: 500, color: 'var(--ink-soft)' }}>
+                @{creator.username}
+              </span>
+              <span aria-hidden>·</span>
+              <span style={{ textTransform: 'capitalize' }}>{creator.vertical}</span>
+            </div>
+          </div>
+
+          {/* Trust + stats row. We hide zero-value stats so a brand-new
+              profile doesn't read as "0 chapters / 0 followers" (looked
+              like an error on the v3 mini-site). */}
           <div
             style={{
               display: 'flex',
               gap: 8,
               flexWrap: 'wrap',
               alignItems: 'center',
-              marginBottom: 22,
+              marginTop: 18,
+              marginBottom: 24,
             }}
           >
             <TrustChip label="KYC verified" emphasised />
             <TrustChip label="Refund guaranteed" />
-            <span style={{ width: 1, height: 18, background: 'var(--hairline)' }} aria-hidden />
-            <MetaPill label="Chapters" value={String(creator.contentCount)} />
-            <MetaPill label="Followers" value={formatCount(creator.followerCount)} />
+            {(creator.contentCount > 0 ||
+              creator.followerCount > 0 ||
+              creator.averageRating != null) && (
+              <span
+                style={{ width: 1, height: 18, background: 'var(--hairline)' }}
+                aria-hidden
+              />
+            )}
+            {creator.contentCount > 0 && (
+              <MetaPill label="Chapters" value={String(creator.contentCount)} />
+            )}
+            {creator.followerCount > 0 && (
+              <MetaPill label="Followers" value={formatCount(creator.followerCount)} />
+            )}
             {creator.averageRating != null && (
               <MetaPill label="Rating" value={`★ ${creator.averageRating.toFixed(1)}`} />
             )}
@@ -211,11 +259,11 @@ export default async function CreatorMiniSitePage({ params }: Props) {
           {creator.bio && (
             <p
               style={{
-                fontSize: 16,
+                fontSize: 17,
                 color: 'var(--ink-soft)',
                 lineHeight: 1.55,
                 maxWidth: 720,
-                marginBottom: 28,
+                marginBottom: 36,
                 fontFamily: 'var(--font-serif)',
               }}
             >
@@ -320,55 +368,160 @@ function EmptyState({
 }) {
   const hasLinks = Boolean(links?.instagram ?? links?.youtube ?? links?.website)
 
+  // Tease what *kind* of content this creator will publish — gives the
+  // visitor reason to hit follow even with zero published chapters.
+  const upcomingTeases =
+    vertical === 'travel'
+      ? [
+          { kicker: 'Long-form', title: 'Trips', sub: 'Multi-day plans with stops + stays' },
+          { kicker: 'Short-form', title: 'Posts', sub: 'Photos and notes from the road' },
+          { kicker: 'Live', title: 'Experiences', sub: 'Walks, workshops, host-led plans' },
+        ]
+      : [
+          { kicker: 'Long-form', title: 'Essays', sub: 'Photo + narrative pieces' },
+          { kicker: 'Short-form', title: 'Posts', sub: 'Quick stories from the field' },
+          { kicker: 'Live', title: 'Events', sub: 'Meetups + reading nights' },
+        ]
+
   return (
     <section style={{ marginBottom: 80 }}>
       <div
-        className="ch-card"
         style={{
-          padding: 28,
-          display: 'grid',
-          gap: 16,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 14,
         }}
       >
-        <div>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--primary-tint)',
+            color: 'var(--primary-deep)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span aria-hidden style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+          New voice
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
+          {creatorName} just joined CreatorHub
+        </span>
+      </div>
+      <h2
+        className="ch-display"
+        style={{
+          fontSize: 'clamp(24px, 3vw, 30px)',
+          color: 'var(--ink)',
+          margin: '0 0 10px',
+          letterSpacing: '-0.01em',
+          fontWeight: 600,
+        }}
+      >
+        First chapter, coming soon.
+      </h2>
+      <p
+        style={{
+          fontSize: 15,
+          color: 'var(--ink-soft)',
+          lineHeight: 1.55,
+          maxWidth: 580,
+          marginBottom: 28,
+        }}
+      >
+        Follow now to get the moment they publish — usually within a week of joining.
+        We&rsquo;ll only ping you for new posts, never for stuff you didn&rsquo;t ask for.
+      </p>
+
+      {/* Teaser cards — what this creator can/will publish. Three small
+          cards instead of one giant empty card. */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 14,
+          marginBottom: hasLinks ? 32 : 16,
+        }}
+      >
+        {upcomingTeases.map((t) => (
+          <div
+            key={t.title}
+            className="ch-card"
+            style={{ padding: 18, display: 'grid', gap: 4 }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted)',
+              }}
+            >
+              {t.kicker}
+            </span>
+            <span
+              className="ch-display"
+              style={{ fontSize: 18, color: 'var(--ink)', fontWeight: 600 }}
+            >
+              {t.title}
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
+              {t.sub}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {hasLinks && (
+        <>
           <p
             style={{
-              fontSize: 11,
               fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
               color: 'var(--ink-muted)',
-              marginBottom: 6,
-              fontWeight: 700,
+              margin: '0 0 10px',
             }}
           >
-            Coming soon
+            Find {creatorName.split(' ')[0]} on
           </p>
-          <h2
-            className="ch-display"
-            style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 6 }}
-          >
-            {creatorName} hasn’t published their first chapter yet
-          </h2>
-          <p style={{ fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
-            Hit follow above to be notified the moment they publish their first{' '}
-            {vertical === 'travel' ? 'trip, post, or live experience' : 'story'}.
-          </p>
-        </div>
-        {hasLinks && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
             {links?.instagram && (
               <SocialPill href={`https://instagram.com/${links.instagram}`} label="Instagram" />
             )}
             {links?.youtube && <SocialPill href={links.youtube} label="YouTube" />}
             {links?.website && <SocialPill href={links.website} label="Website" />}
           </div>
-        )}
-      </div>
-      <div style={{ marginTop: 24, textAlign: 'center' }}>
+        </>
+      )}
+
+      <div
+        style={{
+          paddingTop: 20,
+          borderTop: '1px solid var(--hairline)',
+          textAlign: 'center',
+        }}
+      >
         <Link
           href="/discover"
-          style={{ fontSize: 13, color: 'var(--ink-muted)', textDecoration: 'underline' }}
+          style={{
+            fontSize: 13,
+            color: 'var(--ink-soft)',
+            textDecoration: 'none',
+            fontWeight: 500,
+          }}
         >
           Discover other creators →
         </Link>
