@@ -158,6 +158,22 @@ body > main {
   border-radius: var(--radius-sm);
 }
 
+/* Headings receive programmatic .focus() from <RouteFocus> on every client
+ * navigation so screen readers announce the new page (WEB-A11Y-FR-109). The
+ * browser's :focus-visible heuristic incorrectly inferred this as keyboard
+ * focus and painted the coral ring around every page title — caught in the
+ * 2026-05-02 round-2 QA as "permanent box border on Discover heading".
+ * Headings aren't interactive, so suppressing the ring entirely is correct;
+ * the SR announcement still fires. */
+h1:focus,
+h2:focus,
+h3:focus,
+h4:focus,
+h5:focus,
+h6:focus {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -128,10 +128,6 @@ export default async function TermsPage() {
               For questions about these Terms, please contact us at{' '}
               <span style={{ color: 'var(--ink)' }}>legal@creatorhub.in</span>.
             </p>
-            <p className="mt-4 text-sm p-4 rounded-xl" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--ink-soft)' }}>
-              Note: These Terms of Service are a placeholder and will be finalized with legal review
-              before the public launch of CreatorHub.
-            </p>
           </section>
         </div>
       </main>

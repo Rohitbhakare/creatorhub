@@ -129,10 +129,6 @@ export default async function PrivacyPage() {
               For privacy-related queries, contact our Data Protection Officer at{' '}
               <span style={{ color: 'var(--ink)' }}>privacy@creatorhub.in</span>.
             </p>
-            <p className="mt-4 text-sm p-4 rounded-xl" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--ink-soft)' }}>
-              Note: This Privacy Policy is a placeholder and will be finalized with legal review and
-              compliance with the Digital Personal Data Protection Act, 2023 before public launch.
-            </p>
           </section>
         </div>
       </main>

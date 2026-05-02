@@ -628,19 +628,36 @@ export async function searchDiscover(
     q = q.in('starting_city_id', cityIds)
   }
 
-  // Distance from user — bounded city set
-  if (
-    filters.distance_km &&
-    typeof filters.user_lat === 'number' &&
-    typeof filters.user_lng === 'number'
-  ) {
-    const cityIds = await citiesWithinDistance(
-      filters.user_lat,
-      filters.user_lng,
-      filters.distance_km,
-    )
-    if (!cityIds.length) return { items: [], next_cursor: null, total_count: 0 }
-    q = q.in('starting_city_id', cityIds)
+  // Distance filter — anchored to the user's geolocation when supplied,
+  // else falls back to the `starting_city_id` if set (typical case: the
+  // session city). Without either anchor the chip is a no-op — round-2
+  // QA caught the "Within 25 km" pill displaying without the result count
+  // changing, because the web never sends user_lat/user_lng.
+  if (filters.distance_km) {
+    let anchorLat: number | null = null
+    let anchorLng: number | null = null
+    if (
+      typeof filters.user_lat === 'number' &&
+      typeof filters.user_lng === 'number'
+    ) {
+      anchorLat = filters.user_lat
+      anchorLng = filters.user_lng
+    } else if (filters.starting_city_id) {
+      const { data: row } = await supabase
+        .from('cities')
+        .select('lat, lng')
+        .eq('id', filters.starting_city_id)
+        .maybeSingle()
+      if (row && typeof row.lat === 'number' && typeof row.lng === 'number') {
+        anchorLat = row.lat as number
+        anchorLng = row.lng as number
+      }
+    }
+    if (anchorLat !== null && anchorLng !== null) {
+      const cityIds = await citiesWithinDistance(anchorLat, anchorLng, filters.distance_km)
+      if (!cityIds.length) return { items: [], next_cursor: null, total_count: 0 }
+      q = q.in('starting_city_id', cityIds)
+    }
   }
 
   // Duration buckets — OR of ranges

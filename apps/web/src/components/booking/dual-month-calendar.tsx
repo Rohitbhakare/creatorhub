@@ -261,27 +261,34 @@ function MonthGrid({ month, todayKey, datesByYmd, now, focusedKey, setFocusedKey
               style={{
                 aspectRatio: '1 / 1',
                 borderRadius: 'var(--radius-sm, 6px)',
-                border: 'none',
+                // Stronger visual distinction for bookable dates (round-2 QA
+                // caught users not realising only specific Saturdays were
+                // available — the surface-alt fill blended with the page).
+                // Available now gets a coral-tinted ring + filled pill;
+                // unavailable stays plain. Selected gets a fully-coral fill.
+                border: isAvailable
+                  ? `1.5px solid ${isFocused ? 'var(--primary-deep)' : 'var(--primary-text-bg, var(--primary))'}`
+                  : '1.5px solid transparent',
                 background: isAvailable
                   ? isFocused
-                    ? 'var(--primary-tint)'
-                    : 'var(--surface-alt)'
+                    ? 'var(--primary-text-bg, var(--primary))'
+                    : 'var(--primary-tint)'
                   : 'transparent',
                 color: isAvailable
                   ? isFocused
-                    ? 'var(--primary-deep)'
-                    : 'var(--ink)'
+                    ? 'white'
+                    : 'var(--primary-deep)'
                   : isSoldOut
                     ? 'var(--ink-muted)'
                     : 'var(--ink-faint, var(--ink-muted))',
                 fontSize: 13,
-                fontWeight: isToday ? 700 : 500,
+                fontWeight: isAvailable ? 700 : isToday ? 700 : 500,
                 cursor: isAvailable ? 'pointer' : 'not-allowed',
                 position: 'relative',
                 fontFamily: 'inherit',
-                outline: isFocused ? '2px solid var(--primary)' : 'none',
-                outlineOffset: 0,
+                outline: 'none',
                 textDecoration: isSoldOut ? 'line-through' : 'none',
+                transition: 'background 140ms, color 140ms, border-color 140ms',
               }}
             >
               {cell.getDate()}

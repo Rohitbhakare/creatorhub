@@ -120,8 +120,16 @@ export function CommandPaletteImpl({ open, onClose }: CommandPaletteImplProps) {
     if (e.key === 'Escape') {
       e.preventDefault()
       close()
-    } else if (e.key === 'Enter' && q.trim().length >= 2) {
-      go(q.trim())
+    } else if (e.key === 'Enter') {
+      // Always preventDefault on Enter — even when the query is too short.
+      // Without this, Enter bubbles past the modal and can trigger whatever
+      // <Link> in the chrome had keyboard focus before the palette opened
+      // (round-2 QA caught Enter landing on the notifications bell). Submit
+      // only fires when the query is long enough; short queries are absorbed.
+      e.preventDefault()
+      if (q.trim().length >= 2) {
+        go(q.trim())
+      }
     }
   }
 

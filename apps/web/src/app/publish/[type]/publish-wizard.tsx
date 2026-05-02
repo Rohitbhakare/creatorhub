@@ -54,12 +54,12 @@ const TYPE_LABELS: Record<PublishType, string> = {
 function autosaveState(
   pending: boolean,
   savedAt: Date | null,
-  error: string | null,
+  saveError: string | null,
   draftId: string | null,
 ): AutosaveState {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return 'offline'
   if (pending) return 'saving'
-  if (error) return 'error'
+  if (saveError) return 'error'
   if (savedAt || draftId) return 'saved'
   return 'idle'
 }
@@ -82,7 +82,14 @@ export function PublishWizard({ type }: { type: PublishType }) {
   })
   const [draftId, setDraftId] = useState<string | null>(null)
   const [savedAt, setSavedAt] = useState<Date | null>(null)
+  // Two separate error channels: `error` is inline validation/UI feedback
+  // ("Add a cover photo", "Title needs at least 4 characters") shown next
+  // to the relevant field. `saveError` is a real autosave/publish failure
+  // and drives the AutosavePill into its 'error' / "Save failed · Retry"
+  // state. Conflating them caused the pill to read "Save failed" the moment
+  // the user clicked Next on an empty cover step (round-2 QA bug).
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const dirtyRef = useRef(false)
 
@@ -120,6 +127,7 @@ export function PublishWizard({ type }: { type: PublishType }) {
   }
 
   async function save(publish: boolean): Promise<{ ok: boolean; draftId?: string }> {
+    setSaveError(null)
     let coverUrl = data.coverUrl
     if (data.coverDataUrl && !data.coverUrl && isStorageConfigured()) {
       try {
@@ -131,7 +139,7 @@ export function PublishWizard({ type }: { type: PublishType }) {
         })
         update('coverUrl', coverUrl)
       } catch {
-        setError('Could not upload cover — try again')
+        setSaveError('Could not upload cover — try again')
         return { ok: false }
       }
     }
@@ -156,7 +164,7 @@ export function PublishWizard({ type }: { type: PublishType }) {
     })
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { detail?: string } | null
-      setError(body?.detail ?? 'Save failed')
+      setSaveError(body?.detail ?? 'Save failed')
       return { ok: false }
     }
     const result = (await res.json()) as { draftId: string }
@@ -244,7 +252,7 @@ export function PublishWizard({ type }: { type: PublishType }) {
           </h1>
         </div>
         <AutosavePill
-          state={autosaveState(pending, savedAt, error, draftId)}
+          state={autosaveState(pending, savedAt, saveError, draftId)}
           savedAt={savedAt}
           onRetry={() => {
             void save(false)

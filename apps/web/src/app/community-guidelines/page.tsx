@@ -136,10 +136,6 @@ export default async function CommunityGuidelinesPage() {
               If you have questions about these guidelines or need to report a violation, contact us
               at <span style={{ color: 'var(--ink)' }}>safety@creatorhub.in</span>.
             </p>
-            <p className="mt-4 text-sm p-4 rounded-xl" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--ink-soft)' }}>
-              Note: These Community Guidelines are a placeholder and will be expanded before the
-              public launch of CreatorHub.
-            </p>
           </section>
         </div>
       </main>

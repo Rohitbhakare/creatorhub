@@ -61,7 +61,11 @@ export function BookCta({
           return
         }
         if (res.status === 401) {
-          router.push(`/signin?next=/booking?content=${contentId}`)
+          // Send the user back to the content page after sign-in (where the
+          // booking CTA lives). Pre-2026-05-02 round-2 fix this pointed at
+          // `/booking?content=<id>` which doesn't match any route — after
+          // signin the user landed on home with a stale `?next=` param.
+          router.push(`/signin?next=${encodeURIComponent(`/content/${contentId}`)}`)
           return
         }
         if (!res.ok) {
@@ -69,8 +73,12 @@ export function BookCta({
           setError(body?.detail ?? 'Could not start booking — try again')
           return
         }
-        const { intentId } = (await res.json()) as { intentId: string }
-        router.push(`/booking/${intentId}`)
+        const json = (await res.json()) as { intentId?: string }
+        if (!json.intentId) {
+          setError('Booking start returned no intent — try again')
+          return
+        }
+        router.push(`/booking/${json.intentId}`)
       } catch {
         setError('Network error — please try again')
       }

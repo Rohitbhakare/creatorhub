@@ -138,18 +138,13 @@ export default async function KycEntryPage() {
 
 function KycStatusCard({ status }: { status: KycStatus }) {
   const meta = describe(status)
-  return (
-    <div
-      className="ch-card"
-      role="status"
-      aria-live="polite"
-      style={{
-        padding: 24,
-        borderColor: meta.borderColor,
-        background: meta.bg,
-        maxWidth: 640,
-      }}
-    >
+  // The card surfaces the most prominent CTA on /studio/kyc — when the user
+  // hasn't started or got rejected, clicking the whole card should jump them
+  // into the wizard. Round-2 QA caught users clicking the card and nothing
+  // happening because it was a non-interactive <div>.
+  const actionable = status.status === 'not_started' || status.status === 'rejected'
+  const inner = (
+    <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div
           aria-hidden
@@ -176,6 +171,19 @@ function KycStatusCard({ status }: { status: KycStatus }) {
             {meta.subtitle}
           </div>
         </div>
+        {actionable && (
+          <span
+            aria-hidden
+            style={{
+              marginLeft: 'auto',
+              fontSize: 22,
+              color: meta.iconFg,
+              fontWeight: 700,
+            }}
+          >
+            →
+          </span>
+        )}
       </div>
       {status.rejectionReason && (
         <div
@@ -196,6 +204,41 @@ function KycStatusCard({ status }: { status: KycStatus }) {
           Submitted {new Date(status.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
         </div>
       )}
+    </>
+  )
+  const sharedStyle = {
+    padding: 24,
+    borderColor: meta.borderColor,
+    background: meta.bg,
+    maxWidth: 640,
+    display: 'block',
+    textDecoration: 'none',
+    color: 'inherit',
+  } as const
+  if (actionable) {
+    return (
+      <Link
+        href="/studio/kyc/submit"
+        className="ch-card"
+        aria-label={`${meta.title}. ${meta.subtitle} Click to start.`}
+        style={{
+          ...sharedStyle,
+          cursor: 'pointer',
+          transition: 'box-shadow 180ms, transform 180ms',
+        }}
+      >
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <div
+      className="ch-card"
+      role="status"
+      aria-live="polite"
+      style={sharedStyle}
+    >
+      {inner}
     </div>
   )
 }

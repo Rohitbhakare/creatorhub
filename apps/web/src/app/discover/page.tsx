@@ -51,6 +51,13 @@ interface Props {
     starting_city_id?: string
     sort?: string
     filters?: string
+    sub_category_id?: string
+    time_window?: string
+    duration_buckets?: string
+    budget_buckets?: string
+    seasons?: string
+    difficulties?: string
+    group_sizes?: string
   }>
 }
 
@@ -63,6 +70,15 @@ const TYPE_ALLOWED: readonly string[] = [
 ]
 
 /** Maps a flat URL param bag to the typed filter shape `fetchDiscoverResults` accepts. */
+/** Parse a CSV URL param value into a non-empty string array. */
+function csvParam(v: string | undefined): string[] {
+  if (!v) return []
+  return v
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+}
+
 function paramsToFilters(p: Record<string, string>): DiscoverResultsFilters {
   const out: DiscoverResultsFilters = {
     sort: SORT_ALLOWED.includes(p.sort ?? '') ? (p.sort as DiscoverSort) : 'trending',
@@ -71,6 +87,7 @@ function paramsToFilters(p: Record<string, string>): DiscoverResultsFilters {
   if (p.type && TYPE_ALLOWED.includes(p.type)) {
     out.type = p.type as NonNullable<DiscoverResultsFilters['type']>
   }
+  if (p.sub_category_id) out.subCategoryId = p.sub_category_id
   if (p.starting_city_id) out.startingCityId = p.starting_city_id
   if (p.distance_km) {
     const km = parseInt(p.distance_km, 10)
@@ -78,6 +95,26 @@ function paramsToFilters(p: Record<string, string>): DiscoverResultsFilters {
       out.distanceKm = km
     }
   }
+  if (p.time_window) {
+    out.timeWindow = p.time_window as NonNullable<DiscoverResultsFilters['timeWindow']>
+  }
+  // The "More filters" sheet writes budget/season/difficulty/duration/group as
+  // CSV. Round-2 QA caught these being silently dropped here — the URL had
+  // them but the page didn't read them, so the API call was never filtered.
+  const durations = csvParam(p.duration_buckets)
+  if (durations.length > 0) {
+    out.durationBuckets = durations as NonNullable<DiscoverResultsFilters['durationBuckets']>
+  }
+  const budgets = csvParam(p.budget_buckets)
+  if (budgets.length > 0) {
+    out.budgetBuckets = budgets as NonNullable<DiscoverResultsFilters['budgetBuckets']>
+  }
+  const seasons = csvParam(p.seasons)
+  if (seasons.length > 0) out.seasons = seasons
+  const difficulties = csvParam(p.difficulties)
+  if (difficulties.length > 0) out.difficulties = difficulties
+  const groups = csvParam(p.group_sizes)
+  if (groups.length > 0) out.groupSizes = groups
   return out
 }
 
@@ -202,6 +239,13 @@ export default async function DiscoverPage({ searchParams }: Props) {
   if (sp.distance_km) baseParams.distance_km = sp.distance_km
   if (sp.starting_city_id) baseParams.starting_city_id = sp.starting_city_id
   if (sp.sort) baseParams.sort = sp.sort
+  if (sp.sub_category_id) baseParams.sub_category_id = sp.sub_category_id
+  if (sp.time_window) baseParams.time_window = sp.time_window
+  if (sp.duration_buckets) baseParams.duration_buckets = sp.duration_buckets
+  if (sp.budget_buckets) baseParams.budget_buckets = sp.budget_buckets
+  if (sp.seasons) baseParams.seasons = sp.seasons
+  if (sp.difficulties) baseParams.difficulties = sp.difficulties
+  if (sp.group_sizes) baseParams.group_sizes = sp.group_sizes
 
   const filters = paramsToFilters(baseParams)
   const activeType: DiscoverType =
