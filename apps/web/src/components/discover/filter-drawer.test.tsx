@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test-helpers'
 import { FilterSheet } from './filter-sheet'
+import { FilterSheetProvider } from './filter-sheet-context'
 
 const mockReplace = vi.fn()
 const mockPush = vi.fn()
@@ -19,7 +20,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => urlParams,
 }))
 
-describe('FilterSheet — URL-driven open (E5.2 T7)', () => {
+describe('FilterSheet — context-driven open (post E5.2/PERF-fix)', () => {
   beforeEach(() => {
     mockReplace.mockClear()
     mockPush.mockClear()
@@ -27,21 +28,32 @@ describe('FilterSheet — URL-driven open (E5.2 T7)', () => {
   })
 
   it('hideTrigger removes the in-component "Filters" button', () => {
-    render(<FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />)
+    render(
+      <FilterSheetProvider>
+        <FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />
+      </FilterSheetProvider>,
+    )
     expect(screen.queryByRole('button', { name: /^Filters$/i })).not.toBeInTheDocument()
   })
 
-  it('opens the dialog when ?filters=open is in the URL', async () => {
-    urlParams = new URLSearchParams('filters=open')
-    render(<FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />)
+  it('opens the dialog when initialOpen=true (deep-link from ?filters=open)', async () => {
+    render(
+      <FilterSheetProvider initialOpen>
+        <FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />
+      </FilterSheetProvider>,
+    )
     await waitFor(() => {
       expect(screen.getByRole('dialog', { name: 'Filters' })).toBeInTheDocument()
     })
   })
 
-  it('strips ?filters=open when the close button is clicked', async () => {
+  it('strips stale ?filters=open from URL when close button is clicked', async () => {
     urlParams = new URLSearchParams('filters=open')
-    render(<FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />)
+    render(
+      <FilterSheetProvider initialOpen>
+        <FilterSheet subCategories={[]} hideTrigger urlParamControlsOpen />
+      </FilterSheetProvider>,
+    )
     const close = await screen.findByLabelText('Close filters')
     close.click()
     await waitFor(() => {
@@ -49,7 +61,7 @@ describe('FilterSheet — URL-driven open (E5.2 T7)', () => {
     })
   })
 
-  it('does not auto-open without the urlParamControlsOpen flag', () => {
+  it('does not auto-open without urlParamControlsOpen + initialOpen', () => {
     urlParams = new URLSearchParams('filters=open')
     render(<FilterSheet subCategories={[]} hideTrigger />)
     expect(screen.queryByRole('dialog', { name: 'Filters' })).not.toBeInTheDocument()

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MoreFiltersButton } from './more-filters-button'
 
 /**
  * 240px sticky filter rail on `/discover` (E5.2 T3).
@@ -210,18 +211,7 @@ export function DiscoverSidebar({
         })}
       </div>
 
-      <Link
-        href={buildHref(baseParams, { filters: 'open' })}
-        style={{
-          display: 'block',
-          fontSize: 12.5,
-          color: 'var(--primary-text-bg)',
-          fontWeight: 600,
-          textDecoration: 'none',
-        }}
-      >
-        + More filters
-      </Link>
+      <MoreFiltersButton />
     </aside>
   )
 }

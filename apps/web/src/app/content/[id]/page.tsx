@@ -358,9 +358,14 @@ export default async function ContentDetailPage({ params }: Props) {
         )}
 
         <div
-          className={isStory ? '' : hasItinerary(content) ? 'ch-reader-grid' : 'ch-page-grid'}
+          // ch-page-grid (1fr + 296px) for everything that has an aside (itinerary,
+          // experience, event). The 3-column ch-reader-grid template was for a
+          // future ReaderChrome day-nav integration that hasn't shipped — using
+          // it now leaves the article squeezed into a 200px gutter because only
+          // 2 children render (article + aside).
+          className={isStory ? '' : 'ch-page-grid'}
           style={{
-            maxWidth: isStory ? 760 : 1640,
+            maxWidth: isStory ? 760 : 1240,
             margin: '0 auto',
             padding: isStory
               ? 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px) 80px'
@@ -415,15 +420,15 @@ export default async function ContentDetailPage({ params }: Props) {
                     <MarkdownBody body={block.body} mode={mode} />
                   </div>
                 ) : (
+                  // onToggleSave intentionally omitted — server component can't
+                  // serialize a function across the RSC boundary. The magazine
+                  // heart on InlineSpotCard is the visual save microinteraction
+                  // (E5.3/ENH-004 — wire to /api/save in a small client wrapper
+                  // when spot-level save persistence lands).
                   <InlineSpotCard
                     key={`spot-${block.spot.id}`}
                     spot={block.spot}
                     isParentSaved={false}
-                    onToggleSave={() => {
-                      /* wired client-side via SaveButton API in this PR;
-                         InlineSpotCard's onToggleSave is the magazine
-                         heart, not the canonical save flow. */
-                    }}
                   />
                 ),
               )

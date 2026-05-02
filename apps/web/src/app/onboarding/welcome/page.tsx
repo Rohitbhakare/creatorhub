@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { WebHeader } from '@/components/chrome/web-header'
 import { getSession } from '@/lib/session'
@@ -66,16 +67,16 @@ export default async function WelcomePage() {
             match your moods.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
+            <Link
               href="/onboarding/sub-categories"
               className="ch-btn ch-btn-primary"
               style={{ padding: '14px 28px' }}
             >
               Pick a few interests
-            </a>
-            <a href="/feed" className="ch-btn ch-btn-ghost" style={{ padding: '14px 28px' }}>
+            </Link>
+            <Link href="/feed" className="ch-btn ch-btn-ghost" style={{ padding: '14px 28px' }}>
               Skip — open my feed
-            </a>
+            </Link>
           </div>
         </div>
       </main>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 type Tab = 'account' | 'payout' | 'notifications' | 'privacy'
 
@@ -138,9 +139,9 @@ function PayoutTab() {
       </SectionSub>
       <p style={{ fontSize: 14, color: 'var(--ink-muted)' }}>
         Payout details are managed during KYC. To update them, head to{' '}
-        <a href="/studio/kyc" style={{ color: 'var(--primary-deep)', fontWeight: 600 }}>
+        <Link href="/studio/kyc" style={{ color: 'var(--primary-deep)', fontWeight: 600 }}>
           Studio · KYC
-        </a>{' '}
+        </Link>{' '}
         and re-submit.
       </p>
     </>

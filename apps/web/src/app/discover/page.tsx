@@ -10,6 +10,7 @@ import { DiscoverGrid } from '@/components/discover/discover-grid'
 import { DiscoverSortTabs, type SortTabId } from '@/components/discover/discover-sort-tabs'
 import { FilterChipBar } from '@/components/discover/filter-chip-bar'
 import { FilterSheet } from '@/components/discover/filter-sheet'
+import { FilterSheetProvider } from '@/components/discover/filter-sheet-context'
 import { resolveFilterChips } from '@/components/discover/filter-chip-resolver'
 import { HandpickedCollectionsRail } from '@/components/discover/handpicked-collections-rail'
 import { TopCreatorsRail } from '@/components/discover/top-creators-rail'
@@ -288,63 +289,67 @@ export default async function DiscoverPage({ searchParams }: Props) {
           cityHeadline={cityHeadline}
         />
 
-        <div
-          style={{
-            maxWidth: 1640,
-            margin: '32px auto 0',
-            padding: '0 32px',
-            display: 'grid',
-            gridTemplateColumns: '240px 1fr',
-            gap: 28,
-          }}
-          className="ch-discover-shell"
-        >
-          <DiscoverSidebar
-            activeType={activeType}
-            activeVibe={sp.vibe ?? null}
-            activeDistanceKm={activeDistanceKm}
-            vibeTags={vibeTags}
-            typeCounts={typeCounts}
-            baseParams={baseParams}
-          />
-
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 16,
-                gap: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <DiscoverSortTabs
-                activeSort={activeSort}
-                baseParams={baseParams}
-                sessionCityId={null /* SessionPayload.cityId not surfaced yet */}
-              />
-              <span style={{ fontSize: 12.5, color: 'var(--ink-muted)' }}>
-                Showing <strong style={{ color: 'var(--ink)' }}>{gridResult.items.length}</strong>{' '}
-                of {gridResult.totalCount ?? typeCounts.all}
-              </span>
-            </div>
-
-            {activeFilterChips.length > 0 && (
-              <FilterChipBar params={baseParams} chips={activeFilterChips} />
-            )}
-
-            <DiscoverGrid
-              items={gridResult.items}
-              totalCount={gridResult.totalCount}
-              loadMoreHref={loadMoreHref}
-              clearFiltersHref="/discover"
+        <FilterSheetProvider initialOpen={sp.filters === 'open'}>
+          <div
+            style={{
+              maxWidth: 1640,
+              margin: '32px auto 0',
+              padding: '0 32px',
+              display: 'grid',
+              gridTemplateColumns: '240px 1fr',
+              gap: 28,
+            }}
+            className="ch-discover-shell"
+          >
+            <DiscoverSidebar
+              activeType={activeType}
+              activeVibe={sp.vibe ?? null}
+              activeDistanceKm={activeDistanceKm}
+              vibeTags={vibeTags}
+              typeCounts={typeCounts}
+              baseParams={baseParams}
             />
-          </div>
-        </div>
 
-        {/* URL-controlled drawer — sidebar's "+ More filters" toggles via ?filters=open */}
-        <FilterSheet subCategories={subCategories} urlParamControlsOpen hideTrigger />
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                  gap: 12,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <DiscoverSortTabs
+                  activeSort={activeSort}
+                  baseParams={baseParams}
+                  sessionCityId={null /* SessionPayload.cityId not surfaced yet */}
+                />
+                <span style={{ fontSize: 12.5, color: 'var(--ink-muted)' }}>
+                  Showing <strong style={{ color: 'var(--ink)' }}>{gridResult.items.length}</strong>{' '}
+                  of {gridResult.totalCount ?? typeCounts.all}
+                </span>
+              </div>
+
+              {activeFilterChips.length > 0 && (
+                <FilterChipBar params={baseParams} chips={activeFilterChips} />
+              )}
+
+              <DiscoverGrid
+                items={gridResult.items}
+                totalCount={gridResult.totalCount}
+                loadMoreHref={loadMoreHref}
+                clearFiltersHref="/discover"
+              />
+            </div>
+          </div>
+
+          {/* Context-controlled drawer — sidebar's "+ More filters" button toggles via React state.
+            * Pure client toggle: no URL change, no RSC re-render. The `?filters=open` deep-link
+            * still works on first paint via initialOpen above. */}
+          <FilterSheet subCategories={subCategories} urlParamControlsOpen hideTrigger />
+        </FilterSheetProvider>
 
         <div style={{ maxWidth: 1640, margin: '60px auto 0', padding: '0 32px 80px' }}>
           <HandpickedCollectionsRail collections={collections} />

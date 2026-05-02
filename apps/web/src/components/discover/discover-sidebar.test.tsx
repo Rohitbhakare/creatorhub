@@ -140,7 +140,7 @@ describe('DiscoverSidebar', () => {
     expect(screen.getByText('Any')).toHaveAttribute('aria-current', 'true')
   })
 
-  it('"+ More filters" link writes ?filters=open', () => {
+  it('"+ More filters" renders as a button (no URL navigation — context-driven open)', () => {
     render(
       <DiscoverSidebar
         activeType="all"
@@ -151,9 +151,8 @@ describe('DiscoverSidebar', () => {
         baseParams={{}}
       />,
     )
-    expect(screen.getByText('+ More filters').closest('a')).toHaveAttribute(
-      'href',
-      '/discover?filters=open',
-    )
+    const btn = screen.getByText('+ More filters').closest('button')
+    expect(btn).not.toBeNull()
+    expect(btn).toHaveAttribute('type', 'button')
   })
 })

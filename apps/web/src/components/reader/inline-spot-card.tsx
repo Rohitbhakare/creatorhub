@@ -12,8 +12,14 @@ interface Props {
    * (Spot-level saves aren't supported by the API today — see E5.3/ENH-001.)
    */
   isParentSaved: boolean
-  /** Server Action — toggles the parent content's save state. */
-  onToggleSave: () => void | Promise<void>
+  /**
+   * Optional Server Action — toggles the parent content's save state. When
+   * omitted, the heart still animates (visual feedback) but the save flow
+   * is a no-op. Pages that need real save behaviour wire it through; the
+   * default unwired path keeps server-component callsites RSC-serializable
+   * (server components can't pass functions to client components).
+   */
+  onToggleSave?: () => void | Promise<void>
 }
 
 /**
@@ -37,7 +43,7 @@ export function InlineSpotCard({ spot, isParentSaved, onToggleSave }: Props) {
         setSavingPulse(false)
       }, 600)
     }
-    void onToggleSave()
+    if (onToggleSave) void onToggleSave()
   }
 
   return (

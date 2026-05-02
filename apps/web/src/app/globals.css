@@ -136,6 +136,15 @@ body {
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.5;
+  /* Sticky-footer pattern: body is a flex column, <main> grows to fill any
+   * remaining space, so <WebFooter> always lives at the viewport bottom on
+   * short pages (empty /saved, /bookings, error states, sign-out splash). */
+  display: flex;
+  flex-direction: column;
+}
+
+body > main {
+  flex: 1 0 auto;
 }
 
 ::selection {

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import type { SubCategoryRow } from '@/lib/api/discover'
+import { useFilterSheet } from './filter-sheet-context'
 
 interface Props {
   subCategories: SubCategoryRow[]
@@ -151,16 +152,21 @@ export function FilterSheet({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [open, setOpen] = useState(false)
-
-  // URL-driven open: when the v3 sidebar's "+ More filters" link writes
-  // `?filters=open`, the sheet picks that up and shows itself. Closing
-  // strips the param so back-navigation doesn't re-open it.
-  useEffect(() => {
-    if (!urlParamControlsOpen) return
-    const wantsOpen = searchParams.get('filters') === 'open'
-    if (wantsOpen && !open) setOpen(true)
-  }, [searchParams, urlParamControlsOpen, open])
+  // When the sheet is provider-controlled (urlParamControlsOpen=true on
+  // /discover), open state lives in FilterSheetContext — pure client state,
+  // no URL round-trip, no RSC re-render. Falls back to local state for
+  // standalone usage (e.g. /discover/results which mounts its own trigger).
+  const ctx = useFilterSheet()
+  const [localOpen, setLocalOpen] = useState(false)
+  const open = urlParamControlsOpen ? ctx.isOpen : localOpen
+  const setOpen = (next: boolean): void => {
+    if (urlParamControlsOpen) {
+      if (next) ctx.open()
+      else ctx.close()
+    } else {
+      setLocalOpen(next)
+    }
+  }
   const [pending, startTransition] = useTransition()
   const [state, setState] = useState<SheetState>(() => readState(new URLSearchParams()))
   const [previewCount, setPreviewCount] = useState<number | null>(null)
@@ -215,6 +221,9 @@ export function FilterSheet({
 
   const closeSheet = (): void => {
     setOpen(false)
+    // Strip stale `?filters=open` if it's still in the URL (e.g. from a
+    // deep-link). Only matters once after first paint — subsequent toggles
+    // are pure client state.
     if (urlParamControlsOpen && searchParams.get('filters') === 'open') {
       const next = new URLSearchParams(searchParams.toString())
       next.delete('filters')
@@ -230,8 +239,8 @@ export function FilterSheet({
     next.delete('filters')
     startTransition(() => {
       router.push(`${pathname}?${next.toString()}`, { scroll: false })
-      setOpen(false)
     })
+    setOpen(false)
   }
 
   const clearAll = (): void => {

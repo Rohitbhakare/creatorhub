@@ -103,8 +103,101 @@ export async function getById(
     throw new AppError('not-found', 404, 'Creator not found')
   }
 
+  // Type-specific extras — needed by the web reader. The web expects:
+  //   - self_paced_itinerary → flat `spots[]` (with day info attached)
+  //   - scheduled_experience → `scheduled_dates[]` + `meeting_point`
+  //   - event → `event_occurrence`
+  // Without these the reader renders a placeholder body and falls back to
+  // ch-page-grid (no day-nav, no map). Web's transformContentDetail reads
+  // `raw.spots` and `raw.scheduled_dates` directly.
+  let spots: Record<string, unknown>[] = []
+  let scheduledDates: Record<string, unknown>[] = []
+
+  const contentType = content.type as string
+  if (contentType === 'self_paced_itinerary') {
+    const { data: days } = await supabase
+      .from('itinerary_days')
+      .select('id, day_number, title, description, total_distance_km, estimated_hours')
+      .eq('content_id', contentId)
+      .order('day_number', { ascending: true })
+    const dayList = days ?? []
+    if (dayList.length > 0) {
+      const dayIds = dayList.map((d) => d.id as string)
+      const { data: spotRows } = await supabase
+        .from('itinerary_spots')
+        .select(
+          'id, itinerary_day_id, spot_order, name, category, thumbnail_url, creator_note, duration_minutes, stop_type, is_free_preview, point',
+        )
+        .in('itinerary_day_id', dayIds)
+        .order('spot_order', { ascending: true })
+      const dayById = new Map<string, (typeof dayList)[number]>()
+      for (const d of dayList) dayById.set(d.id as string, d)
+      spots = (spotRows ?? []).map((sp) => {
+        const day = dayById.get(sp.itinerary_day_id as string)
+        // Decode PostGIS geography(point) `0101000020E6100000…` hex into
+        // separate lat/lng for the web map. The point column is returned as
+        // an EWKB hex string by Supabase JS — we parse the doubles out.
+        const { lat, lng } = decodePointHex(sp.point as string | null)
+        return {
+          id: sp.id,
+          spot_order: sp.spot_order,
+          day_number: day?.day_number ?? null,
+          day_title: day?.title ?? null,
+          name: sp.name,
+          category: sp.category,
+          thumbnail_url: sp.thumbnail_url,
+          creator_note: sp.creator_note,
+          duration_minutes: sp.duration_minutes,
+          stop_type: sp.stop_type,
+          is_free_preview: sp.is_free_preview,
+          lat,
+          lng,
+        }
+      })
+    }
+  } else if (contentType === 'scheduled_experience') {
+    const today = new Date().toISOString().slice(0, 10)
+    const { data: dates } = await supabase
+      .from('scheduled_dates')
+      .select('id, start_date, end_date, capacity, spots_booked, is_active')
+      .eq('content_id', contentId)
+      .eq('is_active', true)
+      .gte('start_date', today)
+      .order('start_date', { ascending: true })
+      .limit(20)
+    scheduledDates = (dates ?? []).map((d) => ({
+      id: d.id,
+      start_date: d.start_date,
+      end_date: d.end_date,
+      capacity: d.capacity,
+      spots_booked: d.spots_booked,
+      is_active: d.is_active,
+    }))
+  }
+
+  // Itineraries can also have scheduled departure dates (E5.4/BUG-001 fix).
+  if (contentType === 'self_paced_itinerary') {
+    const today = new Date().toISOString().slice(0, 10)
+    const { data: dates } = await supabase
+      .from('scheduled_dates')
+      .select('id, start_date, end_date, capacity, spots_booked, is_active')
+      .eq('content_id', contentId)
+      .eq('is_active', true)
+      .gte('start_date', today)
+      .order('start_date', { ascending: true })
+      .limit(20)
+    scheduledDates = (dates ?? []).map((d) => ({
+      id: d.id,
+      start_date: d.start_date,
+      end_date: d.end_date,
+      capacity: d.capacity,
+      spots_booked: d.spots_booked,
+      is_active: d.is_active,
+    }))
+  }
+
   return {
-    content,
+    content: { ...content, spots, scheduled_dates: scheduledDates },
     media: media ?? [],
     creator: {
       id: creator.id as string,
@@ -112,6 +205,29 @@ export async function getById(
       username: (creator.username as string) ?? null,
       avatar_url: (creator.avatar_url as string) ?? null,
     },
+  }
+}
+
+/**
+ * Decodes a PostGIS `geography(POINT, 4326)` value returned by Supabase JS as
+ * an EWKB hex string. Layout:
+ *   bytes 0      — endianness (01 = little)
+ *   bytes 1-4    — type (01000020 with SRID flag)
+ *   bytes 5-8    — SRID (E6100000 = 4326 LE)
+ *   bytes 9-16   — X coordinate (longitude) as float64 LE
+ *   bytes 17-24  — Y coordinate (latitude) as float64 LE
+ * Returns 0,0 if the input is null or malformed.
+ */
+function decodePointHex(hex: string | null): { lat: number; lng: number } {
+  if (!hex || hex.length < 50) return { lat: 0, lng: 0 }
+  try {
+    const buf = Buffer.from(hex, 'hex')
+    // Skip endianness(1) + type(4) + srid(4) = 9 bytes header.
+    const lng = buf.readDoubleLE(9)
+    const lat = buf.readDoubleLE(17)
+    return { lat, lng }
+  } catch {
+    return { lat: 0, lng: 0 }
   }
 }
 

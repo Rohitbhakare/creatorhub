@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { WebHeader } from '@/components/chrome/web-header'
 import { getSession } from '@/lib/session'
@@ -77,9 +78,9 @@ export default async function BookingPage({ params }: Props) {
             <p style={{ fontSize: 14, color: 'var(--ink-muted)', marginBottom: 24 }}>
               That booking hold has timed out. Head back to the trip and start a new one.
             </p>
-            <a href="/feed" className="ch-btn ch-btn-primary">
+            <Link href="/feed" className="ch-btn ch-btn-primary">
               Back to feed
-            </a>
+            </Link>
           </div>
         </main>
       </>
