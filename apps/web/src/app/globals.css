@@ -219,6 +219,10 @@ body {
 
 .ch-brand em {
   font-style: italic;
+  /* Explicit weight (parent is 600 but axe doesn't always read inherited
+   * font-weight) — at 700 + 22px the brand mark qualifies as WCAG large
+   * bold text, where 3:1 contrast suffices. Lets coral stay coral. */
+  font-weight: 700;
   color: var(--primary);
 }
 
@@ -381,14 +385,22 @@ body {
   backdrop-filter: blur(8px);
 }
 
-/* Skip-link — visible on focus only */
+/* Skip-link — visible on focus only.
+ * Uses the canonical "sr-only" pattern (clip + clip-path) instead of
+ * left: -9999px because axe-core's target-size rule respects clipped
+ * elements as effectively hidden — older offscreen-via-position-absolute
+ * still left a measurable bounding box and got flagged. */
 .ch-skip-link {
   position: absolute;
-  left: -9999px;
-  top: auto;
   width: 1px;
   height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
   z-index: 999;
 }
 
@@ -398,6 +410,11 @@ body {
   top: 12px;
   width: auto;
   height: auto;
+  margin: 0;
+  clip: auto;
+  clip-path: none;
+  overflow: visible;
+  white-space: normal;
   background: var(--ink);
   color: var(--surface);
   padding: 10px 16px;

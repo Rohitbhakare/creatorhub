@@ -8,27 +8,31 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-linen)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
       <header
         className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: '#E5E0D7' }}
+        style={{ borderColor: 'var(--hairline)' }}
       >
-        <Link href="/" className="font-serif text-2xl font-bold" style={{ color: '#2C2823' }}>
+        <Link
+          href="/"
+          className="font-serif text-2xl font-bold inline-block"
+          style={{ color: 'var(--ink)', padding: '4px 6px', margin: '-4px -6px' }}
+        >
           CreatorHub
         </Link>
       </header>
 
       <main id="main-content" className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-4xl font-bold mb-2" style={{ color: '#2C2823' }}>
+        <h1 className="font-serif text-4xl font-bold mb-2" style={{ color: 'var(--ink)' }}>
           Terms of Service
         </h1>
-        <p className="text-sm mb-10" style={{ color: '#9C9689' }}>
+        <p className="text-sm mb-10" style={{ color: 'var(--ink-soft)' }}>
           Last updated: January 2026
         </p>
 
-        <div className="space-y-8 text-base leading-relaxed" style={{ color: '#6B6660' }}>
+        <div className="space-y-8 text-base leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               1. Acceptance of Terms
             </h2>
             <p>
@@ -39,7 +43,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               2. Description of Service
             </h2>
             <p>
@@ -50,7 +54,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               3. User Accounts
             </h2>
             <p>
@@ -61,7 +65,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               4. Creator Content
             </h2>
             <p>
@@ -72,7 +76,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               5. Payments and Fees
             </h2>
             <p>
@@ -83,7 +87,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               6. Prohibited Conduct
             </h2>
             <p>
@@ -94,7 +98,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               7. Limitation of Liability
             </h2>
             <p>
@@ -105,7 +109,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               8. Governing Law
             </h2>
             <p>
@@ -115,7 +119,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               9. Changes to Terms
             </h2>
             <p>
@@ -126,14 +130,14 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: '#2C2823' }}>
+            <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--ink)' }}>
               10. Contact
             </h2>
             <p>
               For questions about these Terms, please contact us at{' '}
-              <span style={{ color: '#2C2823' }}>legal@creatorhub.in</span>.
+              <span style={{ color: 'var(--ink)' }}>legal@creatorhub.in</span>.
             </p>
-            <p className="mt-4 text-sm p-4 rounded-xl" style={{ backgroundColor: '#F2EEE8', color: '#9C9689' }}>
+            <p className="mt-4 text-sm p-4 rounded-xl" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--ink-soft)' }}>
               Note: These Terms of Service are a placeholder and will be finalized with legal review
               before the public launch of CreatorHub.
             </p>
@@ -141,8 +145,8 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <footer className="py-6 px-6 mt-8 border-t" style={{ borderColor: '#E5E0D7' }}>
-        <div className="flex justify-center gap-4 text-xs" style={{ color: '#9C9689' }}>
+      <footer className="py-6 px-6 mt-8 border-t" style={{ borderColor: 'var(--hairline)' }}>
+        <div className="flex justify-center gap-4 text-xs" style={{ color: 'var(--ink-soft)' }}>
           <Link href="/" className="hover:underline">Home</Link>
           <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
           <Link href="/community-guidelines" className="hover:underline">Community Guidelines</Link>
