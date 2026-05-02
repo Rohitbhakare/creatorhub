@@ -68,7 +68,7 @@ export function CreatorSpotlight({ creator, featuredContent }: CreatorSpotlightP
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
@@ -87,7 +87,7 @@ export function CreatorSpotlight({ creator, featuredContent }: CreatorSpotlightP
             }}
           >
             From the people you{' '}
-            <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>follow</em>
+            <em style={{ fontStyle: 'italic', color: 'var(--primary-text-bg)' }}>follow</em>
           </h2>
         </div>
       </header>

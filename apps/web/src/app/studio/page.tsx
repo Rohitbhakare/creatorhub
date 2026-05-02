@@ -93,7 +93,7 @@ export default async function StudioPage() {
                 fontWeight: 700,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color: 'var(--primary)',
+                color: 'var(--primary-text-bg)',
               }}
             >
               Studio
@@ -110,7 +110,7 @@ export default async function StudioPage() {
               }}
             >
               Welcome back,{' '}
-              <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>
+              <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>
                 {session.displayName.split(' ')[0]}
               </em>
             </h1>

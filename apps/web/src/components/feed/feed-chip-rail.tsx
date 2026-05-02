@@ -163,7 +163,7 @@ function chipStyle(opts: {
     borderRadius: 999,
     fontSize: 13,
     fontWeight: active ? 600 : 500,
-    color: active ? activeColor : disabled ? 'var(--ink-faint)' : 'var(--ink-soft)',
+    color: active ? activeColor : disabled ? 'var(--ink-muted)' : 'var(--ink-soft)',
     background: active ? activeBg : 'transparent',
     border: 'none',
     textDecoration: 'none',

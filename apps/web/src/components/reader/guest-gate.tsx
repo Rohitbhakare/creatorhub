@@ -101,7 +101,7 @@ export function GuestGate({
             fontWeight: 700,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
           }}
         >
           Members only · free to join
@@ -141,7 +141,7 @@ export function GuestGate({
         >
           {ctaLabel}
         </button>
-        <span style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4 }}>
+        <span style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 4 }}>
           30 seconds · no spam
         </span>
       </div>

@@ -223,7 +223,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
               <span
                 aria-label="Verified"
                 title="Verified creator"
-                style={{ color: 'var(--primary)', fontSize: 12, lineHeight: 1 }}
+                style={{ color: 'var(--primary-text-bg)', fontSize: 12, lineHeight: 1 }}
               >
                 ✓
               </span>
@@ -245,7 +245,7 @@ export function ContentCard({ content, variant = 'default', hero = false }: Cont
         >
           {content.city && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <span aria-hidden style={{ color: 'var(--primary)' }}>●</span>
+              <span aria-hidden style={{ color: 'var(--primary-text-bg)' }}>●</span>
               {content.city}
             </span>
           )}

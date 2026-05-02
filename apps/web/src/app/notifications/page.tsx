@@ -38,7 +38,7 @@ export default async function NotificationsPage() {
           style={{
             fontFamily: 'var(--font-mono, var(--font-sans))',
             fontSize: 11,
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
             fontWeight: 700,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
@@ -60,7 +60,7 @@ export default async function NotificationsPage() {
             lineHeight: 1.05,
           }}
         >
-          Your <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>notifications</em>.
+          Your <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>notifications</em>.
         </h1>
         {items.length === 0 ? (
           <div

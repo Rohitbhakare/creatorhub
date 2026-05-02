@@ -181,13 +181,13 @@ export function SignInForm({ next, intent = 'signin' }: SignInFormProps) {
               {intent === 'signup' ? 'Create account' : 'Sign in'}
             </button>
             {error && <FormError message={error} />}
-            <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
+            <p style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: 4 }}>
               By continuing you agree to our{' '}
-              <Link href="/terms" style={{ color: 'var(--ink-soft)' }}>
+              <Link href="/terms" style={{ color: 'var(--ink-soft)', textDecoration: 'underline' }}>
                 Terms
               </Link>{' '}
               and{' '}
-              <Link href="/privacy" style={{ color: 'var(--ink-soft)' }}>
+              <Link href="/privacy" style={{ color: 'var(--ink-soft)', textDecoration: 'underline' }}>
                 Privacy
               </Link>
               .
@@ -225,13 +225,13 @@ export function SignInForm({ next, intent = 'signin' }: SignInFormProps) {
               Send code
             </button>
             {error && <FormError message={error} />}
-            <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
+            <p style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: 4 }}>
               By continuing you agree to our{' '}
-              <Link href="/terms" style={{ color: 'var(--ink-soft)' }}>
+              <Link href="/terms" style={{ color: 'var(--ink-soft)', textDecoration: 'underline' }}>
                 Terms
               </Link>{' '}
               and{' '}
-              <Link href="/privacy" style={{ color: 'var(--ink-soft)' }}>
+              <Link href="/privacy" style={{ color: 'var(--ink-soft)', textDecoration: 'underline' }}>
                 Privacy
               </Link>
               .
@@ -263,7 +263,7 @@ export function SignInForm({ next, intent = 'signin' }: SignInFormProps) {
           <p
             style={{
               fontSize: 11,
-              color: 'var(--ink-faint)',
+              color: 'var(--ink-muted)',
               textAlign: 'center',
               padding: '8px 12px',
               border: '1px dashed var(--hairline)',

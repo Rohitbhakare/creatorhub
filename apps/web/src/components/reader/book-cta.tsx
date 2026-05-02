@@ -207,7 +207,7 @@ export function BookCta({
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center' }}>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center' }}>
         Cancellable up to 24 h before · 100% refund guarantee
       </div>
     </div>

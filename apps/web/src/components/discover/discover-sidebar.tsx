@@ -215,7 +215,7 @@ export function DiscoverSidebar({
         style={{
           display: 'block',
           fontSize: 12.5,
-          color: 'var(--primary)',
+          color: 'var(--primary-text-bg)',
           fontWeight: 600,
           textDecoration: 'none',
         }}

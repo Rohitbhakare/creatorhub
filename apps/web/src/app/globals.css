@@ -20,13 +20,17 @@
   --surface-sunk: #ecebe5;
   --ink: #16161a;
   --ink-soft: #3a3a40;
-  --ink-muted: #7a7a82;
+  --ink-muted: #6c6c74;
   --ink-faint: #b4b4ba;
   --hairline: #e8e6e1;
   --hairline-strong: #d8d5ce;
   --primary: #e15a41;
   --primary-deep: #b9401e;
   --primary-tint: #fcebe6;
+  /* M2.5/A11Y-001 — bg variant for white-text-on-coral usages (CTAs, coral
+   * pills). 4.55:1 white text. Sibling token; --primary stays for accents,
+   * focus rings, brand mark. */
+  --primary-text-bg: #c44726;
   --success: #1d9e75;
   --warning: #ba7517;
   --danger: #c2362f;
@@ -58,7 +62,7 @@
   --surface-sunk: #e5e8ee;
   --ink: #0e1116;
   --ink-soft: #353a44;
-  --ink-muted: #6e7683;
+  --ink-muted: #5f6878;
   --ink-faint: #aab0bb;
   --hairline: #e1e4ea;
   --hairline-strong: #ced3db;
@@ -71,7 +75,7 @@
   --surface-sunk: #e7e2d5;
   --ink: #1c1a14;
   --ink-soft: #3e3a30;
-  --ink-muted: #7b7565;
+  --ink-muted: #6c6755;
   --ink-faint: #b2ac9c;
   --hairline: #e2dccb;
   --hairline-strong: #cfc7b2;
@@ -91,6 +95,8 @@
   --primary: #e85a41;
   --primary-deep: #ff8164;
   --primary-tint: #2a1a16;
+  /* M2.5/A11Y-001 — same shift as Paper for dark-mode CTAs. */
+  --primary-text-bg: #c44726;
   --success: #55c79a;
   --warning: #d99b3a;
   --danger: #e46760;
@@ -103,11 +109,16 @@
   --primary: #c9502a;
   --primary-deep: #933410;
   --primary-tint: #f7e4da;
+  /* Terracotta primary already passes 4.5:1 white text — pin text-bg to
+   * match so the CTA / pill stays visually identical to its accents. */
+  --primary-text-bg: #c9502a;
 }
 [data-coral="saffron"] {
   --primary: #d97b1a;
   --primary-deep: #9c5608;
   --primary-tint: #fbecd3;
+  /* Saffron --primary fails white-text contrast; deepen for text-bg only. */
+  --primary-text-bg: #b06108;
 }
 
 html {
@@ -185,7 +196,10 @@ body {
 }
 
 .ch-btn-primary {
-  background: var(--primary);
+  /* M2.5/A11Y-001 — text-bg variant satisfies AA white-text contrast.
+   * Falls back to --primary in coral variants (terracotta) where the
+   * default coral already passes. */
+  background: var(--primary-text-bg, var(--primary));
   color: white;
 }
 .ch-btn-primary:hover {
@@ -219,11 +233,12 @@ body {
 
 .ch-brand em {
   font-style: italic;
-  /* Explicit weight (parent is 600 but axe doesn't always read inherited
-   * font-weight) — at 700 + 22px the brand mark qualifies as WCAG large
-   * bold text, where 3:1 contrast suffices. Lets coral stay coral. */
   font-weight: 700;
-  color: var(--primary);
+  /* M2.5/A11Y-001 — point text-color at the AA-safe variant so the brand
+   * mark passes contrast at any size (footer renders it at 18px which is
+   * 0.5pt short of the WCAG large-bold-text exemption). Same value as the
+   * CTA buttons → visual consistency across coral text/bg surfaces. */
+  color: var(--primary-text-bg, var(--primary));
 }
 
 .ch-display {
@@ -364,7 +379,8 @@ body {
 }
 
 .ch-pill-coral {
-  background: var(--primary);
+  /* M2.5/A11Y-001 — same text-bg variant for white-text-on-coral pills. */
+  background: var(--primary-text-bg, var(--primary));
   color: white;
 }
 

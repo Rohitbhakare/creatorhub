@@ -55,7 +55,7 @@ export default async function DraftPreviewPage({ params, searchParams }: Props) 
         style={{
           fontFamily: 'var(--font-mono, var(--font-sans))',
           fontSize: 11,
-          color: 'var(--primary)',
+          color: 'var(--primary-text-bg)',
           fontWeight: 700,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',

@@ -70,7 +70,7 @@ export function MoodSelector({ activeMood }: { activeMood?: MoodId | null }) {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',

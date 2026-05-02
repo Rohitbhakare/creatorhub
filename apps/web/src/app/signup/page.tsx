@@ -34,7 +34,7 @@ export default async function SignUpPage({ searchParams }: Props) {
             style={{
               fontFamily: 'var(--font-mono, var(--font-sans))',
               fontSize: 11,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
@@ -56,7 +56,7 @@ export default async function SignUpPage({ searchParams }: Props) {
               lineHeight: 1.05,
             }}
           >
-            Join <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>CreatorHub</em>.
+            Join <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>CreatorHub</em>.
           </h1>
           <p
             style={{

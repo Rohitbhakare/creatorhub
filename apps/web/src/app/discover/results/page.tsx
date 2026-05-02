@@ -160,7 +160,7 @@ export default async function DiscoverResultsPage({ searchParams }: Props) {
               {sp.q ? (
                 <>
                   Searching for{' '}
-                  <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>
+                  <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>
                     “{sp.q}”
                   </em>
                 </>

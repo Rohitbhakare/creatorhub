@@ -37,7 +37,7 @@ export default async function CityPickerPage() {
           style={{ fontSize: 'clamp(36px, 5vw, 56px)', color: 'var(--ink)', margin: '12px 0 12px' }}
         >
           Where are you{' '}
-          <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>exploring from?</em>
+          <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>exploring from?</em>
         </h1>
         <p
           style={{

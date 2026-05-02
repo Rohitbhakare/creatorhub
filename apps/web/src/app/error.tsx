@@ -41,7 +41,7 @@ export default function Error({ error, reset }: ErrorProps) {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 11,
-              color: 'var(--ink-faint)',
+              color: 'var(--ink-muted)',
               marginBottom: 24,
             }}
           >

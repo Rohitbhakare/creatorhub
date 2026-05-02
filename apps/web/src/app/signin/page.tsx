@@ -41,7 +41,7 @@ export default async function SignInPage({ searchParams }: Props) {
             style={{
               fontFamily: 'var(--font-mono, var(--font-sans))',
               fontSize: 11,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
@@ -63,7 +63,7 @@ export default async function SignInPage({ searchParams }: Props) {
               lineHeight: 1.05,
             }}
           >
-            Welcome <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>back</em>.
+            Welcome <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>back</em>.
           </h1>
           <p
             style={{

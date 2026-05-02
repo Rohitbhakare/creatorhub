@@ -49,7 +49,7 @@ export default async function KycEntryPage() {
               fontWeight: 700,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
             }}
           >
             Studio · KYC
@@ -65,7 +65,7 @@ export default async function KycEntryPage() {
               lineHeight: 1.05,
             }}
           >
-            Verify your <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>identity</em>.
+            Verify your <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>identity</em>.
           </h1>
           <p
             style={{

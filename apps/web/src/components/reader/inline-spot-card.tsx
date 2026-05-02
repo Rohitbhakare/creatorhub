@@ -79,7 +79,7 @@ export function InlineSpotCard({ spot, isParentSaved, onToggleSave }: Props) {
           style={{
             fontFamily: 'var(--font-mono, var(--font-sans))',
             fontSize: 10,
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
             fontWeight: 700,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',

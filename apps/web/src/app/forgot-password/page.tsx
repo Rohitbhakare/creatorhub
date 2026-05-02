@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
             style={{
               fontFamily: 'var(--font-mono, var(--font-sans))',
               fontSize: 11,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
               lineHeight: 1.05,
             }}
           >
-            Reset your <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>password</em>.
+            Reset your <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>password</em>.
           </h1>
           <p
             style={{

@@ -97,7 +97,7 @@ export function MapStrip({ cities, fromCityName }: MapStripProps) {
               {fromCityName ? (
                 <>
                   Trips from{' '}
-                  <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>{fromCityName}</em>
+                  <em style={{ fontStyle: 'italic', color: 'var(--primary-text-bg)' }}>{fromCityName}</em>
                 </>
               ) : (
                 'Trips by destination'

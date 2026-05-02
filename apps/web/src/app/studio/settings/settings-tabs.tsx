@@ -212,7 +212,7 @@ function NotificationsTab() {
           ))}
         </tbody>
       </table>
-      <p style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 16 }}>
+      <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 16 }}>
         Changes save automatically in production; this view is preview-only until the prefs
         endpoint lands.
       </p>

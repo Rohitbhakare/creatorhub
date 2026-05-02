@@ -159,7 +159,7 @@ export function ForgotForm() {
           {error}
         </div>
       )}
-      <p style={{ fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', marginTop: 4 }}>
+      <p style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: 4 }}>
         3 reset attempts per hour. Tokens expire in 1 hour, single use.
       </p>
     </form>

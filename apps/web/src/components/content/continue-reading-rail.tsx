@@ -48,7 +48,7 @@ export function ContinueReadingRail({ items }: ContinueReadingRailProps) {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
@@ -67,7 +67,7 @@ export function ContinueReadingRail({ items }: ContinueReadingRailProps) {
             }}
           >
             {items.length === 1 ? 'One story' : `${String(items.length)} stories`}{' '}
-            <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>
+            <em style={{ fontStyle: 'italic', color: 'var(--primary-text-bg)' }}>
               {items.length === 1 ? 'half-read' : 'half-read'}
             </em>
           </h2>

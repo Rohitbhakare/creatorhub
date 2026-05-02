@@ -904,7 +904,7 @@ function ReviewStep({ data, type }: { data: FormData; type: PublishType }) {
       <p
         style={{
           fontSize: 12,
-          color: 'var(--ink-faint)',
+          color: 'var(--ink-muted)',
           marginTop: 24,
           lineHeight: 1.5,
           maxWidth: 480,

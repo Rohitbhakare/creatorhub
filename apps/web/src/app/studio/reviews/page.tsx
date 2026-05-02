@@ -68,7 +68,7 @@ export default async function StudioReviewsPage() {
                   style={{
                     fontFamily: 'var(--font-serif)',
                     fontSize: 18,
-                    color: 'var(--primary)',
+                    color: 'var(--primary-text-bg)',
                   }}
                 >
                   {'★'.repeat(r.rating)}

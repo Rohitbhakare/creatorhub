@@ -97,7 +97,7 @@ export function FollowButton({
           ? hover
             ? 'color-mix(in srgb, var(--danger) 12%, var(--surface))'
             : 'var(--surface)'
-          : 'var(--primary)',
+          : 'var(--primary-text-bg, var(--primary))',
         color: following ? (hover ? 'var(--danger)' : 'var(--ink)') : 'white',
         boxShadow: following ? 'inset 0 0 0 1.5px var(--hairline-strong)' : 'none',
         transition: 'all 180ms cubic-bezier(0.22, 1, 0.36, 1)',

@@ -37,7 +37,7 @@ export default async function SavedPage() {
           style={{
             fontFamily: 'var(--font-mono, var(--font-sans))',
             fontSize: 11,
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
             fontWeight: 700,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
@@ -59,7 +59,7 @@ export default async function SavedPage() {
             lineHeight: 1.05,
           }}
         >
-          Saved <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>chapters</em>.
+          Saved <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>chapters</em>.
         </h1>
         {items.length === 0 ? (
           <div

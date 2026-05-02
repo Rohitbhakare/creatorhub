@@ -67,7 +67,7 @@ export default async function SubCategoriesPage() {
           style={{ fontSize: 'clamp(36px, 5vw, 56px)', color: 'var(--ink)', margin: '12px 0 12px' }}
         >
           What kind of travel{' '}
-          <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>calls you?</em>
+          <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>calls you?</em>
         </h1>
         <p
           style={{

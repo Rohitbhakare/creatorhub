@@ -73,7 +73,7 @@ export default async function CreatorsPage() {
                 fontWeight: 700,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'var(--primary)',
+                color: 'var(--primary-text-bg)',
                 display: 'block',
                 marginBottom: 14,
               }}
@@ -91,7 +91,7 @@ export default async function CreatorsPage() {
               }}
             >
               Build your{' '}
-              <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>
+              <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>
                 creator business
               </em>
               .
@@ -181,7 +181,7 @@ export default async function CreatorsPage() {
                       fontSize: 11,
                       fontWeight: 700,
                       letterSpacing: '0.18em',
-                      color: 'var(--primary)',
+                      color: 'var(--primary-text-bg)',
                       marginBottom: 12,
                     }}
                   >
@@ -289,7 +289,7 @@ export default async function CreatorsPage() {
               <p
                 style={{
                   fontSize: 12,
-                  color: 'var(--ink-faint)',
+                  color: 'var(--ink-muted)',
                   marginTop: 12,
                 }}
               >

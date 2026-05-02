@@ -197,7 +197,7 @@ export function SignInModal({ contextLabel, reason, onClose, onSuccess }: Props)
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               marginBottom: 8,
             }}
           >
@@ -415,7 +415,7 @@ function primaryBtnStyle(disabled: boolean): React.CSSProperties {
     width: '100%',
     padding: '11px 16px',
     borderRadius: 10,
-    background: 'var(--primary)',
+    background: 'var(--primary-text-bg, var(--primary))',
     color: 'white',
     border: 'none',
     fontSize: 14,

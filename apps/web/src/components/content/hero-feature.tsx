@@ -178,7 +178,7 @@ export function HeroFeature({
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
               display: 'block',
               marginBottom: 14,
             }}

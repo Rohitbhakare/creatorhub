@@ -172,7 +172,7 @@ export async function EndOfArticleRail({
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: 'var(--primary)',
+              color: 'var(--primary-text-bg)',
             }}
           >
             Join free

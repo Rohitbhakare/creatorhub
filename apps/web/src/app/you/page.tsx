@@ -25,7 +25,7 @@ export default async function YouPage() {
             fontWeight: 700,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
           }}
         >
           Your space
@@ -49,10 +49,10 @@ export default async function YouPage() {
             return head ? (
               <>
                 {head}{' '}
-                <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>{last}</em>
+                <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{last}</em>
               </>
             ) : (
-              <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>{session.displayName}</em>
+              <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{session.displayName}</em>
             )
           })()}
         </h1>

@@ -28,7 +28,7 @@ export function DiscoverHeader({ totalCount, citiesCount, cityHeadline }: Props)
         style={{
           fontFamily: 'var(--font-mono, var(--font-sans))',
           fontSize: 11,
-          color: 'var(--primary)',
+          color: 'var(--primary-text-bg)',
           fontWeight: 700,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
@@ -49,7 +49,7 @@ export function DiscoverHeader({ totalCount, citiesCount, cityHeadline }: Props)
         }}
       >
         Stories worth{' '}
-        <em style={{ fontStyle: 'italic', color: 'var(--primary)' }}>your weekend.</em>
+        <em style={{ fontStyle: 'italic', color: 'var(--primary-text-bg)' }}>your weekend.</em>
       </h1>
       <div
         style={{
@@ -74,7 +74,7 @@ export function DiscoverHeader({ totalCount, citiesCount, cityHeadline }: Props)
         <span aria-hidden>·</span>
         <span
           aria-label="Updated live"
-          style={{ color: 'var(--primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          style={{ color: 'var(--primary-text-bg)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <span
             aria-hidden

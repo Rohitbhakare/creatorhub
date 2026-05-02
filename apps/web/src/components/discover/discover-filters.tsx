@@ -148,7 +148,7 @@ export function DiscoverFilters({
               fontSize: 11,
               padding: '1px 6px',
               borderRadius: 999,
-              background: 'var(--primary)',
+              background: 'var(--primary-text-bg, var(--primary))',
               color: 'white',
               marginLeft: 2,
             }}

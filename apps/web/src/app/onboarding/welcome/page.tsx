@@ -52,7 +52,7 @@ export default async function WelcomePage() {
             }}
           >
             Welcome aboard,{' '}
-            <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>{firstName}</em>.
+            <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{firstName}</em>.
           </h1>
           <p
             style={{

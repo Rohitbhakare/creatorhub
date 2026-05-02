@@ -43,7 +43,7 @@ export default async function QuestsPage({ searchParams }: Props) {
             fontWeight: 700,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'var(--primary)',
+            color: 'var(--primary-text-bg)',
           }}
         >
           Today
@@ -59,7 +59,7 @@ export default async function QuestsPage({ searchParams }: Props) {
             lineHeight: 1.05,
           }}
         >
-          Quests &amp; <em style={{ color: 'var(--primary)', fontStyle: 'italic' }}>achievements</em>
+          Quests &amp; <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>achievements</em>
         </h1>
 
         {quests && (
@@ -80,7 +80,7 @@ export default async function QuestsPage({ searchParams }: Props) {
               </div>
             </Tile>
             <Tile label="Streak">
-              <div className="ch-display" style={{ fontSize: 56, color: 'var(--primary)', lineHeight: 1 }}>
+              <div className="ch-display" style={{ fontSize: 56, color: 'var(--primary-text-bg)', lineHeight: 1 }}>
                 {String(quests.streakDays)}
                 <span style={{ fontSize: 16, color: 'var(--ink-muted)', marginLeft: 6 }}>days</span>
               </div>
@@ -165,7 +165,7 @@ export default async function QuestsPage({ searchParams }: Props) {
                     >
                       +{String(a.xpReward)} XP
                     </span>
-                    {a.unlocked && <span aria-hidden style={{ color: 'var(--primary)' }}>✓</span>}
+                    {a.unlocked && <span aria-hidden style={{ color: 'var(--primary-text-bg)' }}>✓</span>}
                   </div>
                   <h3
                     style={{
