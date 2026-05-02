@@ -1,27 +1,18 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { WebHeader } from '@/components/chrome/web-header'
+import { WebFooter } from '@/components/chrome/web-footer'
+import { getSession } from '@/lib/session'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Read the CreatorHub Terms of Service. These terms govern your use of the CreatorHub platform.',
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const session = await getSession()
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
-      <header
-        className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: 'var(--hairline)' }}
-      >
-        <Link
-          href="/"
-          className="font-serif text-2xl font-bold inline-block"
-          style={{ color: 'var(--ink)', padding: '4px 6px', margin: '-4px -6px' }}
-        >
-          CreatorHub
-        </Link>
-      </header>
-
+    <>
+      <WebHeader session={session} />
       <main id="main-content" className="max-w-2xl mx-auto px-6 py-12">
         <h1 className="font-serif text-4xl font-bold mb-2" style={{ color: 'var(--ink)' }}>
           Terms of Service
@@ -145,13 +136,7 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <footer className="py-6 px-6 mt-8 border-t" style={{ borderColor: 'var(--hairline)' }}>
-        <div className="flex justify-center gap-4 text-xs" style={{ color: 'var(--ink-soft)' }}>
-          <Link href="/" className="hover:underline">Home</Link>
-          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-          <Link href="/community-guidelines" className="hover:underline">Community Guidelines</Link>
-        </div>
-      </footer>
-    </div>
+      <WebFooter />
+    </>
   )
 }

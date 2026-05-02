@@ -14,20 +14,11 @@ const COLUMNS = [
   ]},
   { h: 'Creators', items: [
     { label: 'Why CreatorHub', href: '/creators' },
-    { label: 'Earnings', href: '/creators#earnings' },
     { label: 'Get verified', href: '/studio/kyc' },
-    { label: 'Help center', href: '/help' },
-  ]},
-  { h: 'Company', items: [
-    { label: 'About', href: '/about' },
-    { label: 'Press', href: '/press' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Contact', href: '/contact' },
   ]},
   { h: 'Legal', items: [
     { label: 'Terms', href: '/terms' },
     { label: 'Privacy', href: '/privacy' },
-    { label: 'Refunds', href: '/refunds' },
     { label: 'Trust & safety', href: '/community-guidelines' },
   ]},
 ]
@@ -68,10 +59,14 @@ export function WebFooter({ big = false }: WebFooterProps) {
               color: 'var(--ink-soft)',
             }}
           >
-            {['About', 'Help', 'Privacy', 'Terms'].map((label) => (
+            {[
+              { label: 'Privacy', href: '/privacy' },
+              { label: 'Terms', href: '/terms' },
+              { label: 'Community', href: '/community-guidelines' },
+            ].map(({ label, href }) => (
               <Link
                 key={label}
-                href={`/${label.toLowerCase()}`}
+                href={href}
                 style={{ color: 'inherit', textDecoration: 'none' }}
               >
                 {label}

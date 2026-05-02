@@ -23,8 +23,15 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
           ...(text !== undefined ? { text } : {}),
         })
         return
-      } catch {
-        /* user cancelled */
+      } catch (err) {
+        // Web Share API present but failed. AbortError = user cancelled the
+        // native sheet — that's a clean exit, no popup needed. Anything else
+        // (NotAllowedError on non-https, "share() must be called from a user
+        // gesture", browser doesn't support sharing this URL type) means the
+        // native sheet didn't actually open — fall back to the manual popup.
+        const name = (err as { name?: string } | undefined)?.name
+        if (name === 'AbortError') return
+        // Fall through to popup.
       }
     }
     setOpen(true)

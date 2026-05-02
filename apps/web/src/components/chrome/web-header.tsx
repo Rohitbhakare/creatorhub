@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { SessionPayload } from '@/lib/session'
 import { InitialAvatar } from '@/components/ui/initial-avatar'
 import { StreakChip } from '@/components/ui/streak-chip'
+import { SearchTrigger } from './search-trigger'
 
 type Variant = 'auth' | 'logged' | 'guest'
 
@@ -110,11 +111,10 @@ export function WebHeader({
                 flex: '0 0 auto',
               }}
             >
-              {/* Compact search icon — Cmd+K palette is the primary entry. */}
-              <Link
-                href="/discover"
-                aria-label="Search"
-                title="Search (⌘K)"
+              {/* Compact search icon — opens the Cmd+K palette overlay.
+                  Falls back to navigating to /discover when JS is disabled
+                  or for cmd/ctrl/middle-click ("open in new tab"). */}
+              <SearchTrigger
                 style={{
                   width: 38,
                   height: 38,
@@ -129,7 +129,7 @@ export function WebHeader({
                   <circle cx="11" cy="11" r="7" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-              </Link>
+              </SearchTrigger>
               {streak > 0 && (
                 <span className="ch-hide-on-mobile">
                   <StreakChip days={streak} />

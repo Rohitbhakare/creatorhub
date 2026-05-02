@@ -165,14 +165,25 @@ export async function getById(
       .gte('start_date', today)
       .order('start_date', { ascending: true })
       .limit(20)
-    scheduledDates = (dates ?? []).map((d) => ({
-      id: d.id,
-      start_date: d.start_date,
-      end_date: d.end_date,
-      capacity: d.capacity,
-      spots_booked: d.spots_booked,
-      is_active: d.is_active,
-    }))
+    scheduledDates = (dates ?? []).map((d) => {
+      const cap = (d.capacity as number) ?? 0
+      const booked = (d.spots_booked as number) ?? 0
+      const startISO = `${d.start_date as string}T00:00:00.000Z`
+      const endISO = `${d.end_date as string}T23:59:59.999Z`
+      // The web reader's <DualMonthCalendar> + <BookCta> read starts_at/ends_at +
+      // seats_booked/seats_held + computed status — not the underlying DB column
+      // names. Returning those keys here keeps the wire format aligned with the
+      // existing transformScheduledDate (transforms.ts).
+      return {
+        id: d.id,
+        starts_at: startISO,
+        ends_at: endISO,
+        capacity: cap,
+        seats_booked: booked,
+        seats_held: 0,
+        status: !d.is_active ? 'cancelled' : booked >= cap ? 'sold_out' : 'open',
+      }
+    })
   }
 
   // Itineraries can also have scheduled departure dates (E5.4/BUG-001 fix).
@@ -186,14 +197,25 @@ export async function getById(
       .gte('start_date', today)
       .order('start_date', { ascending: true })
       .limit(20)
-    scheduledDates = (dates ?? []).map((d) => ({
-      id: d.id,
-      start_date: d.start_date,
-      end_date: d.end_date,
-      capacity: d.capacity,
-      spots_booked: d.spots_booked,
-      is_active: d.is_active,
-    }))
+    scheduledDates = (dates ?? []).map((d) => {
+      const cap = (d.capacity as number) ?? 0
+      const booked = (d.spots_booked as number) ?? 0
+      const startISO = `${d.start_date as string}T00:00:00.000Z`
+      const endISO = `${d.end_date as string}T23:59:59.999Z`
+      // The web reader's <DualMonthCalendar> + <BookCta> read starts_at/ends_at +
+      // seats_booked/seats_held + computed status — not the underlying DB column
+      // names. Returning those keys here keeps the wire format aligned with the
+      // existing transformScheduledDate (transforms.ts).
+      return {
+        id: d.id,
+        starts_at: startISO,
+        ends_at: endISO,
+        capacity: cap,
+        seats_booked: booked,
+        seats_held: 0,
+        status: !d.is_active ? 'cancelled' : booked >= cap ? 'sold_out' : 'open',
+      }
+    })
   }
 
   return {

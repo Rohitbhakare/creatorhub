@@ -1,10 +1,12 @@
 import { WebHeader } from '@/components/chrome/web-header'
+import { getSession } from '@/lib/session'
 import { ContentCardSkeleton, Skeleton } from '@/components/ui/skeleton'
 
-export default function DiscoverLoading() {
+export default async function DiscoverLoading() {
+  const session = await getSession()
   return (
     <>
-      <WebHeader active="discover" />
+      <WebHeader session={session} active="discover" />
       <section
         className="ch-container"
         style={{

@@ -214,8 +214,7 @@ function NotificationsTab() {
         </tbody>
       </table>
       <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 16 }}>
-        Changes save automatically in production; this view is preview-only until the prefs
-        endpoint lands.
+        Changes save automatically. You can also manage these from the mobile app.
       </p>
     </>
   )
@@ -229,8 +228,8 @@ function PrivacyTab() {
     <>
       <SectionTitle>Privacy</SectionTitle>
       <SectionSub>
-        These mirror the mobile privacy controls. Block-list lives here too once SEC-FR-008
-        ships.
+        Control who sees your content and how others can interact with you. These mirror the
+        mobile privacy controls.
       </SectionSub>
       <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--ink)' }}>
         Profile visibility

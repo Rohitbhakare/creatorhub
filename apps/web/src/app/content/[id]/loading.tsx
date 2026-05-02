@@ -1,9 +1,14 @@
+import { WebHeader } from '@/components/chrome/web-header'
+import { getSession } from '@/lib/session'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export default function ContentDetailLoading() {
+export default async function ContentDetailLoading() {
+  const session = await getSession()
   return (
-    <main className="ch-container" style={{ paddingBlock: '32px 80px' }}>
-      <Skeleton height="70vh" style={{ minHeight: 480, borderRadius: 0, marginInline: -32 }} />
+    <>
+      <WebHeader session={session} />
+      <main className="ch-container" style={{ paddingBlock: '32px 80px' }}>
+        <Skeleton height="70vh" style={{ minHeight: 480, borderRadius: 0, marginInline: -32 }} />
       <div
         className="ch-page-grid"
         style={{ paddingBlock: '48px 0', maxWidth: 1640 }}
@@ -20,5 +25,6 @@ export default function ContentDetailLoading() {
         </aside>
       </div>
     </main>
+    </>
   )
 }

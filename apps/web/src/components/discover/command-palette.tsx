@@ -39,9 +39,17 @@ export function CommandPalette() {
         setOpen(true)
       }
     }
+    // Custom event: lets server-rendered chrome (e.g. the header search icon)
+    // request the palette without re-implementing the open-state plumbing.
+    function onOpenEvent() {
+      setArmed(true)
+      setOpen(true)
+    }
     window.addEventListener('keydown', onKey)
+    window.addEventListener('ch:open-command-palette', onOpenEvent)
     return () => {
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('ch:open-command-palette', onOpenEvent)
     }
   }, [])
 
