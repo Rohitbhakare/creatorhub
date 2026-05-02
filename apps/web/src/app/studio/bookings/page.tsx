@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { StudioShell, EmptyState } from '@/components/chrome/studio-shell'
 import { fetchStudioBookings } from '@/lib/api'
 import { formatPrice } from '@/lib/format'
@@ -28,11 +29,16 @@ export default async function StudioBookingsPage() {
   const items = await fetchStudioBookings()
 
   return (
-    <StudioShell active="bookings" kicker="Studio · Bookings" title="Bookings">
+    <StudioShell kicker="Studio · Bookings" title="Bookings">
       {items.length === 0 ? (
         <EmptyState
           title="No bookings yet"
-          body="When travellers book your experiences, they appear here with traveller details and statuses."
+          body="Bookings appear here once travellers reserve a date on one of your experiences. You'll need at least one published experience or event for bookings to start."
+          cta={
+            <Link href="/publish/experience" className="ch-btn ch-btn-primary">
+              Publish an experience
+            </Link>
+          }
         />
       ) : (
         <div className="ch-card" style={{ padding: 0, overflow: 'hidden' }}>

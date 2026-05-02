@@ -163,6 +163,13 @@ export function PublishWizard({ type }: { type: PublishType }) {
       }),
     })
     if (!res.ok) {
+      // 401 means the session expired mid-edit. The generic "Save failed"
+      // is unhelpful — point the user at sign-in and preserve where they
+      // are so they land back here after auth (E5.6 supports ?next=).
+      if (res.status === 401) {
+        setSaveError(`Sign in to keep your draft — your changes won’t be lost`)
+        return { ok: false }
+      }
       const body = (await res.json().catch(() => null)) as { detail?: string } | null
       setSaveError(body?.detail ?? 'Save failed')
       return { ok: false }

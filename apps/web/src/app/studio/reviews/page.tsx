@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { StudioShell, EmptyState } from '@/components/chrome/studio-shell'
 import { fetchStudioReviews } from '@/lib/api'
 import { ReviewReplyForm } from './review-reply-form'
@@ -20,11 +21,16 @@ export default async function StudioReviewsPage() {
   const items = await fetchStudioReviews()
 
   return (
-    <StudioShell active="reviews" kicker="Studio · Reviews" title="Reviews">
+    <StudioShell kicker="Studio · Reviews" title="Reviews">
       {items.length === 0 ? (
         <EmptyState
           title="No reviews yet"
-          body="Reviews appear after travellers complete a booking. Reply to keep your public response polite — it stays visible forever."
+          body="Reviews show up here after travellers complete one of your bookings — there's a 14-day blind window before both reviews go public, then your reply (if any) is locked in. Until your first booking lands, this stays empty."
+          cta={
+            <Link href="/studio/content" className="ch-btn ch-btn-ink">
+              Manage your content
+            </Link>
+          }
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
