@@ -103,19 +103,23 @@ async function readAccessToken(): Promise<string | null> {
  */
 const REFRESH_ATTEMPTED = Symbol('refresh-attempted')
 
-async function tryRefreshAccessToken(): Promise<string | null> {
+async function tryRefreshAccessToken(): Promise<{
+  token: string | null
+  reason: 'ok' | 'no-jar' | 'already-tried' | 'no-refresh-cookie' | 'refresh-rejected' | 'no-token-in-response' | 'network'
+  status?: number
+}> {
   let jar
   try {
     jar = await cookies()
   } catch {
-    return null
+    return { token: null, reason: 'no-jar' }
   }
   const jarAny = jar as unknown as Record<symbol, boolean>
-  if (jarAny[REFRESH_ATTEMPTED]) return null
+  if (jarAny[REFRESH_ATTEMPTED]) return { token: null, reason: 'already-tried' }
   jarAny[REFRESH_ATTEMPTED] = true
 
   const refreshToken = jar.get('ch_refresh')?.value
-  if (!refreshToken) return null
+  if (!refreshToken) return { token: null, reason: 'no-refresh-cookie' }
 
   try {
     const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
@@ -126,11 +130,11 @@ async function tryRefreshAccessToken(): Promise<string | null> {
       // pile latency onto the original failed request.
       signal: AbortSignal.timeout(3_000),
     })
-    if (!res.ok) return null
+    if (!res.ok) return { token: null, reason: 'refresh-rejected', status: res.status }
     const json = (await res.json()) as { data?: { access_token?: string; refresh_token?: string } }
     const newAccess = json.data?.access_token
     const newRefresh = json.data?.refresh_token
-    if (!newAccess) return null
+    if (!newAccess) return { token: null, reason: 'no-token-in-response' }
 
     const cookieBase = {
       httpOnly: true as const,
@@ -142,9 +146,9 @@ async function tryRefreshAccessToken(): Promise<string | null> {
     if (newRefresh) {
       jar.set('ch_refresh', newRefresh, { ...cookieBase, maxAge: 60 * 60 * 24 * 30 })
     }
-    return newAccess
+    return { token: newAccess, reason: 'ok' }
   } catch {
-    return null
+    return { token: null, reason: 'network' }
   }
 }
 
@@ -286,14 +290,42 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
       // loops). Round-5 fix for the publish flow's "Missing
       // Authorization header" cascade.
       if (res.status === 401 && !skipAuth && attempt === 0) {
-        const newAccess = await tryRefreshAccessToken()
-        if (!newAccess) {
+        const refreshResult = await tryRefreshAccessToken()
+        if (!refreshResult.token) {
           log.warn(
-            { status: 401, durationMs: duration },
+            {
+              status: 401,
+              durationMs: duration,
+              refreshReason: refreshResult.reason,
+              refreshStatus: refreshResult.status,
+            },
             'api:refresh-unavailable',
           )
+          // Half-baked session recovery. If ch_session is alive but
+          // ch_refresh is missing or rejected, the user is stuck —
+          // every API call 401s and there's no path back to auth from
+          // inside the app. Clear the orphan ch_session + ch_access
+          // so the next request hits middleware as unauthenticated and
+          // gets redirected to /signin cleanly. (Round-5 redeploy QA
+          // hit this after a long testing session that crossed the
+          // round-3 SEC-01 auto-signout regression — ch_session
+          // remained but ch_refresh was wiped.)
+          if (
+            refreshResult.reason === 'no-refresh-cookie' ||
+            refreshResult.reason === 'refresh-rejected'
+          ) {
+            try {
+              const jar = await cookies()
+              jar.delete('ch_session')
+              jar.delete('ch_access')
+              jar.delete('ch_refresh')
+            } catch {
+              /* nothing to clean — rely on the 401 propagation below */
+            }
+          }
         }
-        if (newAccess) {
+        if (refreshResult.token) {
+          const newAccess = refreshResult.token
           headers.Authorization = `Bearer ${newAccess}`
           log.info({ attempt }, 'api:refreshed-and-retrying')
           const retryStart = performance.now()
