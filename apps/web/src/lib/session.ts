@@ -16,10 +16,11 @@ const secretKey = new TextEncoder().encode(SESSION_SECRET)
 
 export interface SessionPayload {
   userId: string
-  username: string
-  // Round-5 audit caught a /studio + /you crash chain: the JWT carries
-  // null when a user signed up via OAuth without setting a display name,
-  // but this was typed `string`. Honest type now; callers must guard.
+  // Round-5 audit caught a crash chain: the DB `users.username` column
+  // is `text UNIQUE` (no NOT NULL) and `display_name` is the same — both
+  // null until the user picks them in onboarding. Honest types now;
+  // callers must guard. `userId` is always present (PK).
+  username: string | null
   displayName: string | null
   avatarUrl: string | null
   isCreator: boolean

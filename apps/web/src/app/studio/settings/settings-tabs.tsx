@@ -6,12 +6,13 @@ import Link from 'next/link'
 
 type Tab = 'account' | 'payout' | 'notifications' | 'privacy'
 
-// session.displayName can be null when a user signed up via OAuth without
-// setting one — the type used to lie (`string`) and crashed `.trim()`
-// callers downstream. Honest type now; callers default to '' as needed.
+// session.displayName + session.username can both be null — the DB
+// columns allow it and the JWT carries whatever's in the DB. Round-5
+// audit crashed `.trim()` callers downstream when either was null;
+// honest types now, callers default to '' as needed.
 interface SettingsTabsProps {
   initialTab: Tab
-  session: { displayName: string | null; username: string }
+  session: { displayName: string | null; username: string | null }
 }
 
 const TABS: { id: Tab; label: string }[] = [
@@ -93,17 +94,18 @@ function SectionSub({ children }: { children: React.ReactNode }) {
   )
 }
 
-function AccountTab({ session }: { session: { displayName: string | null; username: string } }) {
+function AccountTab({ session }: { session: { displayName: string | null; username: string | null } }) {
   const initialDisplayName = session.displayName ?? ''
+  const initialUsername = session.username ?? ''
   const [pending, startTransition] = useTransition()
   const [displayName, setDisplayName] = useState(initialDisplayName)
-  const [username, setUsername] = useState(session.username)
+  const [username, setUsername] = useState(initialUsername)
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
   const dirty =
     displayName.trim() !== initialDisplayName.trim() ||
-    username.trim().toLowerCase() !== session.username.trim().toLowerCase()
+    username.trim().toLowerCase() !== initialUsername.trim().toLowerCase()
 
   async function saveProfile() {
     if (!dirty) return

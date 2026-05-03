@@ -97,7 +97,7 @@ export default async function StudioPage() {
             >
               Welcome back,{' '}
               <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>
-                {(session.displayName ?? session.username).split(' ')[0] || 'creator'}
+                {(session.displayName ?? session.username ?? 'creator').split(' ')[0] || 'creator'}
               </em>
             </h1>
             <div style={{ marginTop: 14 }}>

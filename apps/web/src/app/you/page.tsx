@@ -43,10 +43,12 @@ export default async function YouPage() {
           }}
         >
           {(() => {
-            // session.displayName is nullable when a user signed up via
-            // OAuth without setting one — fall back to username (always
-            // present per the JWT) so the H1 never crashes.
-            const name = session.displayName ?? session.username
+            // session.displayName + session.username can both be null
+            // (OAuth users haven't picked names yet, the DB columns
+            // allow null). Fall back to a generic so the H1 never
+            // crashes — Account tab in /studio/settings is where they'll
+            // set these, surfaced as a nudge below.
+            const name = session.displayName ?? session.username ?? 'You'
             const parts = name.split(' ')
             const last = parts.pop() ?? ''
             const head = parts.join(' ')
@@ -65,7 +67,7 @@ export default async function YouPage() {
           <h2 className="ch-display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 12 }}>
             Profile
           </h2>
-          <Row label="Username" value={`@${session.username}`} />
+          <Row label="Username" value={session.username ? `@${session.username}` : 'Not set yet'} />
           <Row label="Creator status" value={session.isCreator ? 'Active' : 'Not yet'} />
           {session.isCreator && session.vertical && (
             <Row label="Vertical" value={session.vertical} />
