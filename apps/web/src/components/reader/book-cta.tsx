@@ -61,23 +61,15 @@ export function BookCta({
           return
         }
         if (res.status === 401) {
-          // Stale-session recovery. The middleware does a presence-only
-          // cookie check (`Boolean(ch_session)`) while `getSession()` does
-          // JWT verification — they disagree when the JWT is expired or
-          // signed with a rotated secret. Without this, the chain becomes
-          // /signin → middleware sees the cookie → /feed → /?next=/content/<id>
-          // and the user lands on home wondering what happened.
-          // Clearing cookies first ensures middleware sees a clean
-          // unauthenticated state and lets /signin render normally. Use
-          // window.location for a hard navigation so React state is also
-          // discarded.
-          await fetch('/api/auth/signout', {
-            method: 'POST',
-            credentials: 'same-origin',
-          }).catch(() => {})
-          if (typeof window !== 'undefined') {
-            window.location.href = `/signin?next=${encodeURIComponent(`/content/${contentId}`)}`
-          }
+          // 401 here is almost always a transient access-token expiry on a
+          // user whose web session is still valid. Round-3 attempted to
+          // recover by calling /api/auth/signout + redirecting to /signin —
+          // that nuked the entire web session for any logged-in user who
+          // hit a stale token (round-4 SEC-01: critical UX + security
+          // regression). Show an inline retry hint instead and let the
+          // user refresh — never silently destroy their session from a
+          // single failed booking call.
+          setError('Couldn’t verify your session for booking. Refresh the page and try again.')
           return
         }
         if (!res.ok) {

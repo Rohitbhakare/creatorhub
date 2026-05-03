@@ -60,6 +60,16 @@ const securityHeaders = [
   },
 ]
 
+// Dev-mode subset of the security headers. CSP + HSTS are excluded
+// because CSP breaks Next's hot-reload websocket and HSTS only makes
+// sense on HTTPS — round-4 SEC-06 noted dev was returning *no* security
+// headers, masking misconfig that should have surfaced in QA. Shipping
+// the cheap, dev-safe ones (X-Frame-Options, X-Content-Type-Options,
+// Referrer-Policy, Permissions-Policy) keeps localhost smokes honest.
+const devSecurityHeaders = securityHeaders.filter(
+  (h) => h.key !== 'Content-Security-Policy' && h.key !== 'Strict-Transport-Security',
+)
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
@@ -94,7 +104,9 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 86400,
   },
   async headers() {
-    if (isDev) return []
+    if (isDev) {
+      return [{ source: '/(.*)', headers: devSecurityHeaders }]
+    }
     return [
       { source: '/(.*)', headers: securityHeaders },
       {

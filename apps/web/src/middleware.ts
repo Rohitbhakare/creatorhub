@@ -105,15 +105,18 @@ export function middleware(req: NextRequest) {
     })
   }
 
-  // Mint the CSRF double-submit cookie if missing. Not httpOnly so client
-  // fetch handlers can read it and echo as `x-csrf-token`. SameSite=Lax
-  // and Secure (in prod) are what stop a cross-site form from carrying it.
+  // CSRF cookie. Our actual defense is Origin-header validation higher up
+  // in this middleware (see isOriginAllowed) — the cookie is a tracking
+  // token only, never read by client JS. Round-4 SEC-03 caught us shipping
+  // it as `httpOnly: false` from an earlier double-submit design that was
+  // never wired up; flipping to `httpOnly: true` removes the JS read
+  // surface (XSS can't exfiltrate it) without weakening the Origin check.
   if (!req.cookies.get(CSRF_COOKIE)) {
     res.cookies.set(CSRF_COOKIE, generateCsrfToken(), {
       maxAge: 60 * 60 * 24 * 30,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      httpOnly: false,
+      httpOnly: true,
       path: '/',
     })
   }

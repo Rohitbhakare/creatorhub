@@ -61,7 +61,30 @@ export async function getById(
   const isUuid =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contentIdOrSlug)
 
-  let query = supabase.from('content').select('*').is('deleted_at', null)
+  // Explicit column list — round-4 SEC-07 caught `select('*')` leaking the
+  // raw `search_vector` tsvector to every public response. Spell out what
+  // we actually return so adding columns to the table never silently
+  // becomes a public API change. Mirrors the columns defined in
+  // migrations 005 + 015 + 031, minus `search_vector` and the
+  // moderation/internal fields that aren't part of the public contract.
+  const PUBLIC_COLUMNS = [
+    'id', 'user_id', 'type', 'vertical',
+    'title', 'description', 'body',
+    'status', 'visibility', 'published_at', 'unpublished_at',
+    'pricing_model', 'price_paisa',
+    'sub_category_id', 'leaf_type', 'tags', 'facets',
+    'vertical_data',
+    'starting_city_id', 'destination_city_ids',
+    'featured',
+    'duration_minutes',
+    'like_count', 'comment_count', 'save_count', 'share_count', 'view_count', 'booking_count',
+    'deleted_at',
+    'created_at', 'updated_at',
+    'cover_image_url',
+    'slug',
+  ].join(', ')
+
+  let query = supabase.from('content').select(PUBLIC_COLUMNS).is('deleted_at', null)
   if (isUuid) {
     query = query.eq('id', contentIdOrSlug)
   } else {
@@ -70,11 +93,16 @@ export async function getById(
     query = query.eq('slug', contentIdOrSlug)
   }
 
-  const { data: content, error } = await query.maybeSingle()
+  const { data: contentRaw, error } = await query.maybeSingle()
 
-  if (error || !content) {
+  if (error || !contentRaw) {
     throw new AppError('not-found', 404, 'Content not found')
   }
+  // Supabase's typed select with a comma-joined column string narrows the
+  // result type to `GenericStringError`-ish — re-cast to ContentRow so the
+  // downstream property accesses (`content.pricing_model`, `content.id`,
+  // etc.) keep their real types without hand-mapping every field.
+  const content = contentRaw as unknown as ContentRow
   const contentId = content.id as string
 
   // Visibility check: non-owners can only see published + public content
@@ -84,6 +112,32 @@ export async function getById(
       throw new AppError('not-found', 404, 'Content not found')
     }
   }
+
+  // Paid-content gate (round-4 SEC-02 — previously the full body markdown,
+  // every spot's creator_note, and detailed schedule/seat data were
+  // returned to anyone hitting /api/v1/content/:id, letting paid
+  // itineraries be scraped for free). Full payload only when:
+  //   (a) the requester is the creator (isOwner above), OR
+  //   (b) the content is free (`pricing_model === 'free'`), OR
+  //   (c) the requester is authed AND has a confirmed booking on this content.
+  // Anything else gets a stripped payload that keeps the marketing-side
+  // fields (title, summary, subtitle, cover, price, scheduled-date list) so
+  // the public detail page still renders, but hides the body markdown and
+  // the per-spot creator notes.
+  const isFree = content.pricing_model === 'free' || (content.price_paisa as number) === 0
+  let hasPurchase = false
+  if (!isOwner && !isFree && requesterId) {
+    const { data: paidBooking } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('content_id', contentId)
+      .eq('user_id', requesterId)
+      .eq('status', 'confirmed')
+      .limit(1)
+      .maybeSingle()
+    hasPurchase = paidBooking != null
+  }
+  const canSeeFullBody = isOwner || isFree || hasPurchase
 
   // Fetch media
   const { data: media } = await supabase
@@ -218,8 +272,29 @@ export async function getById(
     })
   }
 
+  // Apply the paid-content paywall — see SEC-02 note above. We strip the
+  // body markdown and creator_note fields rather than 404 so the listing
+  // chrome (title/summary/cover/price/CTA) still renders, but the actual
+  // paid intellectual property requires a confirmed booking.
+  const gatedContent: ContentRow = canSeeFullBody
+    ? content
+    : { ...content, body: null, body_html: null }
+  const gatedSpots = canSeeFullBody
+    ? spots
+    : spots.map((sp) =>
+        sp.is_free_preview === true
+          ? sp
+          : {
+              ...sp,
+              creator_note: null,
+              // Day numbers + names stay (they're the listing-side preview
+              // already shown in the discover/listing pages); the
+              // creator's note for each non-preview stop is the paid IP.
+            },
+      )
+
   return {
-    content: { ...content, spots, scheduled_dates: scheduledDates },
+    content: { ...gatedContent, spots: gatedSpots, scheduled_dates: scheduledDates },
     media: media ?? [],
     creator: {
       id: creator.id as string,

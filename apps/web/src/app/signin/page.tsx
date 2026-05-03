@@ -14,9 +14,24 @@ interface Props {
   searchParams: Promise<{ next?: string }>
 }
 
+/**
+ * Same-origin path validator for the post-signin redirect target.
+ * Round-4 SEC-04: the original `next.startsWith('/')` check let through
+ * `//evil.com` (protocol-relative) and `/\\evil.com` (backslash-as-slash
+ * in some legacy parsers) — both produce cross-origin redirects after
+ * sign-in, enabling phishing flows. Strict check now: must begin with a
+ * single forward slash followed by a non-slash, non-backslash character.
+ */
+function safeNext(next: string | undefined): string {
+  if (!next) return '/feed'
+  if (!next.startsWith('/')) return '/feed'
+  if (next.startsWith('//') || next.startsWith('/\\')) return '/feed'
+  return next
+}
+
 export default async function SignInPage({ searchParams }: Props) {
   const { next } = await searchParams
-  const nextSafe = next && next.startsWith('/') ? next : '/feed'
+  const nextSafe = safeNext(next)
 
   return (
     <>
