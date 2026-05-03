@@ -163,15 +163,23 @@ export function PublishWizard({ type }: { type: PublishType }) {
       }),
     })
     if (!res.ok) {
-      // 401 means the session expired mid-edit. The generic "Save failed"
-      // is unhelpful — point the user at sign-in and preserve where they
-      // are so they land back here after auth (E5.6 supports ?next=).
+      // 401 means the session expired AND the server-side refresh-on-401
+      // also failed (the refresh token is bad too). Direct the user to
+      // sign in fresh so they don't lose their draft.
       if (res.status === 401) {
-        setSaveError(`Sign in to keep your draft — your changes won’t be lost`)
+        setSaveError(`Session expired — sign in to keep your draft, your changes won’t be lost.`)
         return { ok: false }
       }
+      // Round-5 audit Bug 1: "Save failed" was opaque — the user had no
+      // way to tell network from server error. Surface the upstream
+      // detail when we have one, otherwise hint at the most common cause.
       const body = (await res.json().catch(() => null)) as { detail?: string } | null
-      setSaveError(body?.detail ?? 'Save failed')
+      const detail =
+        body?.detail ??
+        (res.status >= 500
+          ? 'Server hiccup — wait a moment and click Retry.'
+          : `Couldn’t save (HTTP ${String(res.status)}) — check your connection or sign in again.`)
+      setSaveError(detail)
       return { ok: false }
     }
     const result = (await res.json()) as { draftId: string }
@@ -343,7 +351,18 @@ export function PublishWizard({ type }: { type: PublishType }) {
           <button
             type="button"
             onClick={next}
-            disabled={pending}
+            // Round-5 audit Bug 2: previously the Publish button stayed
+            // active even when autosave was 401-failing — clicking it
+            // appeared to do nothing and let users think they'd
+            // published. Block submission whenever there's an unresolved
+            // saveError so the only path forward is to fix the save
+            // (Retry pill or sign back in).
+            disabled={pending || (step === 'review' && saveError !== null)}
+            title={
+              step === 'review' && saveError !== null
+                ? 'Resolve the save error before publishing'
+                : undefined
+            }
             className="ch-btn ch-btn-primary"
           >
             {step === 'review' ? (pending ? 'Publishing…' : 'Publish') : 'Continue'}
@@ -591,8 +610,10 @@ function BodyStep({
         The story
       </h2>
       <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 12 }}>
-        Markdown supported: <code>## heading</code>, <code>**bold**</code>, <code>*italic*</code>,{' '}
-        <code>&gt; pull-quote</code>. Blank line splits paragraphs.
+        Click the toolbar buttons (H2 / H3 / B / I / quote / list) — or type the
+        markdown shortcut at the start of a line followed by a space:{' '}
+        <code>##&nbsp;</code> for a heading, <code>*&nbsp;</code> for a bullet,{' '}
+        <code>&gt;&nbsp;</code> for a quote. Switch to Preview to see the final render.
       </p>
       <div
         role="tablist"

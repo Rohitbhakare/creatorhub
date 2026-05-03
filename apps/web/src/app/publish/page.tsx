@@ -100,6 +100,7 @@ export default async function PublishTypePicker() {
                 key={t.id}
                 href={lockedForKyc ? '/studio/kyc' : t.href}
                 aria-disabled={lockedForKyc}
+                prefetch
                 className="ch-card"
                 style={{
                   padding: 24,
@@ -107,6 +108,14 @@ export default async function PublishTypePicker() {
                   color: 'inherit',
                   position: 'relative',
                   opacity: lockedForKyc ? 0.7 : 1,
+                  cursor: 'pointer',
+                  // Round-5 audit Bug 3: cards looked clickable but
+                  // first-click felt unresponsive in dev (cold-compile of
+                  // the destination route). Explicit cursor + a hover
+                  // border tint give immediate click affordance so the
+                  // user knows the click landed even before navigation
+                  // resolves.
+                  transition: 'border-color 120ms ease-out, transform 120ms ease-out',
                 }}
               >
                 <div className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>

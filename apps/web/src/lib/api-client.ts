@@ -82,6 +82,72 @@ async function readAccessToken(): Promise<string | null> {
   }
 }
 
+/**
+ * Auto-refresh helper. When `apiFetch` gets a 401 from the upstream API,
+ * we try to swap the (likely-expired) `ch_access` cookie for a fresh one
+ * using the longer-lived `ch_refresh` token, then retry the original
+ * request once. Round-5 redeploy QA caught this as the publish-flow
+ * blocker: ch_access is 1h TTL while ch_session is 30d, so any user
+ * testing for >1 hour saw every API call 401 with "Missing Authorization
+ * header" until they signed out and back in.
+ *
+ * Returns the new access token on success, null otherwise. Sets new
+ * ch_access + ch_refresh cookies via `cookies().set()` — which DOES
+ * round-trip in route handler contexts where apiFetch runs (the
+ * documented unreliability in session.ts is for service-layer calls,
+ * not in-handler synchronous mutations).
+ *
+ * Marked with a Symbol on the cookie jar so a single request only ever
+ * tries one refresh — defends against an infinite refresh loop if the
+ * refresh token itself is bad.
+ */
+const REFRESH_ATTEMPTED = Symbol('refresh-attempted')
+
+async function tryRefreshAccessToken(): Promise<string | null> {
+  let jar
+  try {
+    jar = await cookies()
+  } catch {
+    return null
+  }
+  const jarAny = jar as unknown as Record<symbol, boolean>
+  if (jarAny[REFRESH_ATTEMPTED]) return null
+  jarAny[REFRESH_ATTEMPTED] = true
+
+  const refreshToken = jar.get('ch_refresh')?.value
+  if (!refreshToken) return null
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      // Refresh has its own short timeout so a slow upstream doesn't
+      // pile latency onto the original failed request.
+      signal: AbortSignal.timeout(3_000),
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data?: { access_token?: string; refresh_token?: string } }
+    const newAccess = json.data?.access_token
+    const newRefresh = json.data?.refresh_token
+    if (!newAccess) return null
+
+    const cookieBase = {
+      httpOnly: true as const,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/' as const,
+    }
+    jar.set('ch_access', newAccess, { ...cookieBase, maxAge: 60 * 60 })
+    if (newRefresh) {
+      jar.set('ch_refresh', newRefresh, { ...cookieBase, maxAge: 60 * 60 * 24 * 30 })
+    }
+    return newAccess
+  } catch {
+    return null
+  }
+}
+
 function genRequestId(): string {
   // Cryptographically random 16-byte hex — visible in logs + traceable to API.
   const bytes = new Uint8Array(16)
@@ -208,6 +274,61 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
         )
         await delay(backoff)
         continue
+      }
+
+      // 401 with an Authorization-header issue → access token expired.
+      // Try a one-shot refresh + retry independent of the caller's
+      // retry budget (callers like /booking-intents pass retries=0 to
+      // avoid double-holds, but a refresh-retry isn't a duplicate
+      // mutation — it's the same in-flight intent with a freshly-rotated
+      // token). Only fires for authed callers (skipAuth=false) and only
+      // once per request (the symbol on the cookie jar guards against
+      // loops). Round-5 fix for the publish flow's "Missing
+      // Authorization header" cascade.
+      if (res.status === 401 && !skipAuth && attempt === 0) {
+        const newAccess = await tryRefreshAccessToken()
+        if (!newAccess) {
+          log.warn(
+            { status: 401, durationMs: duration },
+            'api:refresh-unavailable',
+          )
+        }
+        if (newAccess) {
+          headers.Authorization = `Bearer ${newAccess}`
+          log.info({ attempt }, 'api:refreshed-and-retrying')
+          const retryStart = performance.now()
+          const retryInit: RequestInit & { next?: FetchOptions['next'] } = {
+            ...fetchInit,
+            headers,
+            signal: AbortSignal.timeout(timeoutMs),
+          }
+          if (serializedBody !== undefined) retryInit.body = serializedBody
+          const retryRes = await fetch(url, retryInit)
+          const retryDuration = Math.round(performance.now() - retryStart)
+          if (retryRes.ok) {
+            const json = (await retryRes.json()) as ApiSuccess<T>
+            log.info(
+              { status: retryRes.status, durationMs: retryDuration, refreshed: true },
+              'api:ok',
+            )
+            return json.data
+          }
+          // Refresh-retry came back non-2xx — fall through to normal
+          // error handling using the retry's status, since it reflects
+          // the post-refresh state.
+          let retryErrBody: ApiErrorBody | null = null
+          try {
+            retryErrBody = unwrapError(await retryRes.json())
+          } catch {
+            /* body wasn't JSON */
+          }
+          throw new AppError({
+            type: retryErrBody?.type ?? 'upstream-failure',
+            status: retryErrBody?.status ?? retryRes.status,
+            detail: retryErrBody?.detail ?? `HTTP ${String(retryRes.status)}`,
+            ...(retryErrBody?.instance !== undefined ? { instance: retryErrBody.instance } : {}),
+          })
+        }
       }
 
       // 404 is "expected missing" — many resources are looked up speculatively
