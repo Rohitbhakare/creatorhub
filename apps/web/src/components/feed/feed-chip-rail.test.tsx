@@ -39,9 +39,11 @@ describe('FeedChipRail', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders Following as a sign-in link when isGuest is true', () => {
+  it('renders Following as a "Follow creators" sign-in link when isGuest is true', () => {
+    // Round-5: guest Following is a CTA (not a disabled chip) so the
+    // label changes from "Following · sign in" to "Follow creators →".
     render(<FeedChipRail scope="near-you" type={undefined} isGuest={true} />)
-    const followingLink = screen.getByRole('link', { name: /Following/i })
+    const followingLink = screen.getByRole('link', { name: /Follow creators/i })
     expect(followingLink).toHaveAttribute('href', '/signin?next=/')
   })
 

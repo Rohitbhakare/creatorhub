@@ -102,7 +102,7 @@ export function DiscoverSortTabs({ activeSort, baseParams, sessionCityId }: Prop
               title={
                 tab.comingSoon === true
                   ? 'Coming soon — sorting by top creators is in our roadmap'
-                  : 'Set your city to use Near me'
+                  : 'Pick your home city in settings to filter by Near me — uses your saved city, never your browser location.'
               }
               style={styleMix}
             >

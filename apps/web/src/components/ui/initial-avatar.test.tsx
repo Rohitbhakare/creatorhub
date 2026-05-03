@@ -18,9 +18,12 @@ describe('InitialAvatar', () => {
     expect(container.textContent).toBe('·')
   })
 
-  it('hides the initials when a profile photo URL is supplied', () => {
+  it('renders initials as an underlay when a photo URL is supplied so they show during image load', () => {
+    // Round-5 audit fix: initials must always render so the avatar circle
+    // is never blank between layout and image-paint. The photo paints on
+    // top via background-image and covers them once loaded.
     const { container } = render(<InitialAvatar name="Saanvi" url="https://x/y.jpg" />)
-    expect(container.textContent).toBe('')
+    expect(container.textContent).toBe('S')
     const div = container.firstChild as HTMLElement
     expect(div.style.backgroundImage).toContain('url(')
   })

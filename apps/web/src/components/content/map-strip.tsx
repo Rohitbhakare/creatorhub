@@ -105,7 +105,7 @@ export function MapStrip({ cities, fromCityName }: MapStripProps) {
             </h2>
           </div>
           <Link href="/discover" className="ch-map-strip__cta">
-            Open full map
+            Browse all destinations
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <polyline points="9 18 15 12 9 6" />
             </svg>

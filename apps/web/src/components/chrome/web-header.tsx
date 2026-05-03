@@ -247,6 +247,8 @@ export function WebHeader({
                 href="/signup?next=/publish"
                 className="ch-btn ch-btn-ink"
                 style={{ padding: '8px 14px 8px 12px', fontSize: 13 }}
+                title="Sign up to publish your first story"
+                aria-label="Sign up to publish your first story"
               >
                 <svg
                   width="13"

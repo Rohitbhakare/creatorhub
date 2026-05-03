@@ -350,12 +350,27 @@ function fallbackBlurb(c: ContentCardModel): string {
   const type = typeLabel(c.type).toLowerCase()
   if (c.city && c.durationDays != null && c.durationDays > 0) {
     const dayWord = c.durationDays === 1 ? 'day' : 'days'
-    return `A ${String(c.durationDays)}-${dayWord.replace(/s$/, '')} ${type} from ${c.city}, hand-picked by the editors this week.`
+    const phrase = `${String(c.durationDays)}-${dayWord.replace(/s$/, '')}`
+    return `${articleFor(phrase)} ${phrase} ${type} from ${c.city}, hand-picked by the editors this week.`
   }
   if (c.city) {
-    return `A ${type} from ${c.city}, hand-picked by the editors this week.`
+    return `${articleFor(type)} ${type} from ${c.city}, hand-picked by the editors this week.`
   }
-  return `A ${type} hand-picked by the editors this week.`
+  return `${articleFor(type)} ${type} hand-picked by the editors this week.`
+}
+
+/**
+ * "A" vs "An" before a noun phrase. Vowel-onset letters and digits get "An";
+ * everything else gets "A". Covers the spoken-vowel digit cases that
+ * matter for trip durations (8/11/18 + the 80-89 / 800-899 ranges) — the
+ * obvious miss being "An 8-day trip" rather than "A 8-day trip".
+ */
+function articleFor(phrase: string): 'A' | 'An' {
+  const trimmed = phrase.trim()
+  const first = trimmed.charAt(0).toLowerCase()
+  if (/[aeiou]/.test(first)) return 'An'
+  if (/^(8|11|18)\b/.test(trimmed)) return 'An'
+  return 'A'
 }
 
 function hasMetaStats(c: ContentCardModel): boolean {

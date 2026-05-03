@@ -468,7 +468,7 @@ const seeds: { creator: number; data: Seed }[] = [
       description: 'Skip the official walk. Get lost in Mandvi-ni-pol on a Tuesday morning.',
       body:
         'The official walks take you through the same six houses. Beautiful, sure. But the magic is the unmaintained ones, the ones where four families share a courtyard and an old chabutra. A Tuesday morning, when the kids are at school and the grandmothers are stringing flowers. Ask one of them if you can sit on the chabutra steps. They will say yes and bring you a glass of water.',
-      cover: 'photo-1626621341517-bbf3d9990a23',
+      cover: 'photo-1604357209793-fca5dca89f97',
     },
   },
 
@@ -988,7 +988,7 @@ const seeds: { creator: number; data: Seed }[] = [
       description: 'Thursday evening dargah qawwali. We meet at 5:30 p.m. at the entrance.',
       body:
         '## The qawwali\n\nThursday evening at Hazrat Nizamuddin Auliya Dargah is the longest-running open-air sufi qawwali in Delhi. The Nizami brothers — direct descendants of the dargah\'s original musicians — sing for two hours. Free entry.\n\n## What we do\n\nMeet at 5:30 p.m. at the dargah\'s east gate. We walk the gully together (it\'s easy to get lost the first time), find a spot near the qawwals, and sit. Qawwali starts around 6.\n\n## What to wear\n\nCover your head (scarf, dupatta, or any cap). Cover your shoulders + knees. Remove shoes before entering. ₹20 in cash for the shoe-keeper. Bring a small rupee donation for the qawwals if you can.\n\n## Etiquette\n\nDon\'t take flash photos. Quiet phones. Stand for the salaam at the start. Don\'t leave during a particular phrase the qawwals call out — the local crowd notices.\n\n## RSVP cap\n\nMax 20. Free, but RSVP so I can find you near the gate.',
-      cover: 'photo-1626621341517-bbf3d9990a23',
+      cover: 'photo-1567427017947-545c5f8d16ad',
       venue: 'Hazrat Nizamuddin Dargah',
       venueAddress: 'Nizamuddin West, New Delhi',
       startsInDays: 3,

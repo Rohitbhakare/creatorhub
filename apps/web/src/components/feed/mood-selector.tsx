@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 
-
+import { pushToast } from '@/components/ui/toast-region'
 import type { MoodId } from './mood-types'
 
 interface Mood {
@@ -39,12 +39,26 @@ export function MoodSelector({ activeMood }: { activeMood?: MoodId | null }) {
 
   function setMood(id: MoodId) {
     const params = new URLSearchParams(search.toString())
-    if (activeMood === id) {
+    const turningOff = activeMood === id
+    if (turningOff) {
       params.delete('mood')
     } else {
       params.set('mood', id)
     }
     const qs = params.toString()
+    // Round-5 audit: the visual active-state (coral border + checkmark +
+    // lift) wasn't reading as "you changed something" for first-time
+    // users. A toast on every mood change makes the rerank explicit
+    // ("Showing slow & quiet picks") and confirms the URL change.
+    const mood = MOODS.find((m) => m.id === id)
+    if (mood) {
+      pushToast({
+        message: turningOff
+          ? 'Showing all picks again'
+          : `Showing ${mood.label.toLowerCase()} picks`,
+        tone: 'info',
+      })
+    }
     startTransition(() => {
       router.push(qs ? `/?${qs}` : '/')
     })

@@ -790,17 +790,14 @@ h6:focus {
   box-shadow: 0 12px 28px rgba(20, 20, 30, 0.08);
 }
 
-/* Mood selector (E5.1) — 5 chips on desktop, 3-2 split on tablet, 1-col on mobile. */
+/* Mood selector (E5.1) — fluid grid that always fills its row.
+   Round-5 audit caught a 3-2 orphan card on tablet (3-col + 5 moods = the
+   second row had 2 cards left-aligned with a gap on the right). Switched
+   to auto-fit / minmax so cards expand to fill. */
 .ch-mood-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
-}
-@media (max-width: 1079px) {
-  .ch-mood-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 639px) {
-  .ch-mood-grid { grid-template-columns: 1fr 1fr; }
 }
 .ch-mood-tile {
   position: relative;
@@ -820,6 +817,7 @@ h6:focus {
 .ch-mood-tile:hover { border-color: var(--hairline-strong); }
 .ch-mood-tile--active {
   border-color: var(--primary);
+  border-width: 2px;
   box-shadow: 0 0 0 3px var(--primary-tint), 0 4px 14px color-mix(in srgb, var(--primary) 18%, transparent);
   transform: translateY(-2px);
 }

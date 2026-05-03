@@ -96,14 +96,25 @@ export function FeedChipRail({ scope, type, isGuest, preserve }: Props) {
             const guestDisabled = isGuest && s.id === 'following'
             const isActive = optimisticScope === s.id && !guestDisabled
             if (guestDisabled) {
+              // Round-5 audit: this used to render as a `disabled` chip
+              // (greyed out, looked like dead content). For guests this
+              // is a real conversion opportunity, not a disabled state —
+              // restyle with a subtle coral underline + arrow so it reads
+              // as a CTA. Same /signin?next=/ href.
               return (
                 <Link
                   key={s.id}
                   href="/signin?next=/"
-                  style={chipStyle({ active: false, disabled: true, kind: 'scope' })}
+                  style={{
+                    ...chipStyle({ active: false, disabled: false, kind: 'scope' }),
+                    color: 'var(--primary-text-bg)',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                    textDecorationThickness: 1.5,
+                  }}
                 >
-                  {s.label}
-                  <span style={{ marginLeft: 4, fontSize: 11 }}>· sign in</span>
+                  Follow creators
+                  <span aria-hidden style={{ marginLeft: 4, fontSize: 12 }}>→</span>
                 </Link>
               )
             }

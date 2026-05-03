@@ -92,6 +92,44 @@ export default async function HomePage({ searchParams }: Props) {
         streak={quests?.streakDays ?? 0}
       />
       <main id="main-content">
+        {/* Round-5 audit: cold visitors landed straight in curated content
+            with no value-prop. One serif line + coral kicker, guests only. */}
+        {isGuest && (
+          <section
+            style={{
+              maxWidth: 720,
+              margin: '24px auto 0',
+              padding: '0 32px',
+              textAlign: 'center',
+            }}
+          >
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--primary-text-bg)',
+                margin: '0 0 8px',
+              }}
+            >
+              CreatorHub
+            </p>
+            <p
+              className="ch-display"
+              style={{
+                fontSize: 'clamp(18px, 2.2vw, 22px)',
+                color: 'var(--ink-soft)',
+                margin: 0,
+                lineHeight: 1.5,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              Discover trips, stories and experiences from India&rsquo;s best independent creators.
+            </p>
+          </section>
+        )}
         <FeedChipRail
           scope={scope}
           type={type}

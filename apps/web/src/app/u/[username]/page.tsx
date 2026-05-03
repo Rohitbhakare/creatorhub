@@ -9,6 +9,8 @@ import { WebFooter } from '@/components/chrome/web-footer'
 import { ContentCard } from '@/components/content/content-card'
 import { FollowButton } from '@/components/social/follow-button'
 import { GuestGate } from '@/components/reader/guest-gate'
+import { InitialAvatar } from '@/components/ui/initial-avatar'
+import { fetchTopCreators } from '@/lib/api/discover'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -70,8 +72,17 @@ export default async function CreatorMiniSitePage({ params }: Props) {
   if (!creator) notFound()
 
   const jsonLd = JSON.stringify(buildJsonLd(creator))
-  const initials = creator.displayName.slice(0, 2).toUpperCase()
   const hasContent = (creator.content ?? []).length > 0
+
+  // Round-5 audit: empty creator profiles were a dead-end for guests. When
+  // there's no published content, fetch a small set of discovery candidates
+  // so the page ends in a "find someone else" rail instead of a black hole.
+  // Excludes the current creator from the result.
+  const discoveryCreators = hasContent
+    ? []
+    : await fetchTopCreators({ limit: 6 })
+        .then((r) => r.creators.filter((c) => c.id !== creator.id).slice(0, 5))
+        .catch(() => [])
 
   return (
     <>
@@ -135,41 +146,23 @@ export default async function CreatorMiniSitePage({ params }: Props) {
               flexWrap: 'wrap',
             }}
           >
-            <div
-              aria-hidden
+            {/* Initials always render as an underlay so the circle is never
+                blank between layout and image-paint — round-5 audit caught
+                a 1-2s blank-white moment on slow networks. <InitialAvatar>
+                applies backgroundImage on the same wrapper, so the photo
+                paints on top of the initials when it loads. */}
+            <InitialAvatar
+              name={creator.displayName || creator.username || ''}
+              url={creator.avatarUrl}
+              size={144}
               style={{
                 width: 'clamp(112px, 14vw, 144px)',
                 height: 'clamp(112px, 14vw, 144px)',
-                borderRadius: 999,
-                background: creator.avatarUrl
-                  ? 'var(--bg-muted)'
-                  : 'linear-gradient(135deg, #d4b896, #a07c5a)',
-                color: 'white',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--font-serif)',
-                fontWeight: 600,
                 fontSize: 'clamp(38px, 4vw, 48px)',
                 border: '5px solid var(--surface)',
                 boxShadow: 'var(--shadow-lg)',
-                flex: '0 0 auto',
-                overflow: 'hidden',
-                position: 'relative',
               }}
-            >
-              {creator.avatarUrl ? (
-                <Image
-                  src={creator.avatarUrl}
-                  alt=""
-                  fill
-                  sizes="(max-width: 720px) 112px, 144px"
-                  style={{ objectFit: 'cover' }}
-                  unoptimized
-                />
-              ) : (
-                initials
-              )}
-            </div>
+            />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingBottom: 8 }}>
               <FollowButton
                 creatorId={creator.id}
@@ -177,13 +170,11 @@ export default async function CreatorMiniSitePage({ params }: Props) {
                 initialFollowerCount={creator.followerCount}
                 isAuthenticated={Boolean(session)}
               />
-              <a
-                href={`creatorhub://creator/${username}`}
-                className="ch-btn ch-btn-ghost"
-                style={{ fontSize: 13 }}
-              >
-                Open in app
-              </a>
+              {/* "Open in app" deep-link removed (round-5 audit C2): the
+                  iOS/Android app isn't on the stores yet, so the
+                  `creatorhub://` scheme produced "Cannot open this page"
+                  for everyone. Re-introduce when the app launches and the
+                  store URLs become real fallbacks. */}
             </div>
           </div>
 
@@ -278,11 +269,16 @@ export default async function CreatorMiniSitePage({ params }: Props) {
               creatorName={creator.displayName}
             />
           ) : (
-            <EmptyState
-              creatorName={creator.displayName}
-              vertical={creator.vertical}
-              {...(creator.links ? { links: creator.links } : {})}
-            />
+            <>
+              <EmptyState
+                creatorName={creator.displayName}
+                vertical={creator.vertical}
+                {...(creator.links ? { links: creator.links } : {})}
+              />
+              {discoveryCreators.length > 0 && (
+                <DiscoverMoreCreatorsRail creators={discoveryCreators} />
+              )}
+            </>
           )}
         </div>
       </main>
@@ -525,6 +521,93 @@ function EmptyState({
         >
           Discover other creators →
         </Link>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Round-5 audit: empty profiles ended at "First chapter, coming soon."
+ * with no clear next step for the guest. This rail keeps the page from
+ * being a black hole — 5 actual creator cards (avatar + name + handle +
+ * follower count) sourced from `getDiscoverCreators()` upstream.
+ */
+function DiscoverMoreCreatorsRail({
+  creators,
+}: {
+  creators: { id: string; displayName: string | null; username: string | null; avatarUrl: string | null; followerCount: number }[]
+}) {
+  return (
+    <section style={{ marginTop: 8, marginBottom: 80 }}>
+      <p
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--primary-text-bg)',
+          margin: '0 0 6px',
+        }}
+      >
+        Discover more creators
+      </p>
+      <h3
+        className="ch-display"
+        style={{
+          fontSize: 'clamp(20px, 2.4vw, 26px)',
+          color: 'var(--ink)',
+          margin: '0 0 18px',
+          letterSpacing: '-0.01em',
+          fontWeight: 600,
+        }}
+      >
+        Voices already publishing on CreatorHub
+      </h3>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 14,
+        }}
+      >
+        {creators.map((c) => (
+          <Link
+            key={c.id}
+            href={c.username ? `/u/${c.username}` : '/discover'}
+            className="ch-card"
+            style={{
+              padding: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+              textAlign: 'center',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <InitialAvatar
+              name={c.displayName ?? c.username ?? ''}
+              url={c.avatarUrl}
+              size={56}
+            />
+            <span
+              className="ch-display"
+              style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}
+            >
+              {c.displayName ?? c.username ?? 'Creator'}
+            </span>
+            {c.username && (
+              <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
+                @{c.username}
+              </span>
+            )}
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+              {c.followerCount.toLocaleString('en-IN')} follower{c.followerCount === 1 ? '' : 's'}
+            </span>
+          </Link>
+        ))}
       </div>
     </section>
   )

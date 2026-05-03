@@ -34,6 +34,10 @@ function initialsFor(name: string): string {
 }
 
 export function InitialAvatar({ name, url, size = 40, style }: InitialAvatarProps) {
+  // Round-5 audit caught a blank-white-circle moment between layout and
+  // image-paint when `url` is set. Fix: always render the initials beneath
+  // and lay the photo on top via background-image on the same wrapper —
+  // initials are visible immediately and get covered when the photo loads.
   return (
     <div
       aria-hidden
@@ -41,7 +45,7 @@ export function InitialAvatar({ name, url, size = 40, style }: InitialAvatarProp
         width: size,
         height: size,
         borderRadius: 999,
-        background: url ? 'transparent' : 'linear-gradient(135deg, #d4b896, #a07c5a)',
+        background: 'linear-gradient(135deg, #d4b896, #a07c5a)',
         backgroundImage: url ? `url(${url})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -56,7 +60,7 @@ export function InitialAvatar({ name, url, size = 40, style }: InitialAvatarProp
         ...style,
       }}
     >
-      {url ? '' : initialsFor(name)}
+      {initialsFor(name)}
     </div>
   )
 }

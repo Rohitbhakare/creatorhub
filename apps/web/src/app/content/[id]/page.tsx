@@ -6,6 +6,7 @@ import { contentSlugId, extractContentId } from '@/lib/slug'
 import { getSession } from '@/lib/session'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
+import { BackLink } from '@/components/reader/back-link'
 import { ReadingProgress } from '@/components/reader/reading-progress'
 import { SaveButton } from '@/components/reader/save-button'
 import { BookCta } from '@/components/reader/book-cta'
@@ -84,6 +85,22 @@ function pickPhoto(title: string): string {
   const candidates = ['konkan', 'spiti', 'monsoon', 'goa', 'ladakh', 'hampi', 'matheran', 'bandra']
   for (const c of candidates) if (lower.includes(c)) return c
   return 'konkan'
+}
+
+/**
+ * Round-5 audit: posts didn't show a reading-time estimate. Backend
+ * doesn't carry a `minutesToRead` field, so we compute it client-free
+ * from the body markdown — strip code fences / image lines, then count
+ * whitespace-separated tokens at ~200 words/min (avg adult reader).
+ * Floors at 1 min so even one-paragraph posts get the badge.
+ */
+function readingMinutes(body: string): number {
+  const stripped = body
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[.*?\]\(.*?\)/g, ' ')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+  const words = stripped.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.ceil(words / 200))
 }
 
 function buildJsonLd(
@@ -169,6 +186,17 @@ export default async function ContentDetailPage({ params }: Props) {
       <script type="application/ld+json">{jsonLdString}</script>
 
       <main id="main-content">
+        {/* Round-5 audit: floating back affordance for the reader.
+            Position is absolute over both layouts (post-mode header +
+            event-mode parallax hero). */}
+        <BackLink
+          style={{
+            position: 'fixed',
+            top: 80,
+            left: 24,
+            zIndex: 30,
+          }}
+        />
         {isStory ? (
           <header
             style={{
@@ -249,6 +277,23 @@ export default async function ContentDetailPage({ params }: Props) {
                 size="sm"
                 hideCount
               />
+              {/* Round-5 audit: signal effort upfront — a "n min read"
+                  badge reduces abandonment by setting expectations.
+                  Client-free word-count from the body markdown (no
+                  backend payload field needed). */}
+              {content.body && (
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--ink-muted)',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 500,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {readingMinutes(content.body)} min read
+                </span>
+              )}
             </div>
             <figure
               className={`ch-photo ${content.coverImageUrl ? '' : photoClass}`}

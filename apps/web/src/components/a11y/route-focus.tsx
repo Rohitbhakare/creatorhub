@@ -22,11 +22,18 @@ export function RouteFocus() {
     const heading = main?.querySelector<HTMLElement>('h1')
     if (!heading) return
 
-    if (heading.getAttribute('tabindex') === null) {
-      heading.setAttribute('tabindex', '-1')
-    }
-    // Defer focus so any AnimatePresence transitions don't fight it.
+    // Round-5 audit caught a hydration mismatch on /discover: the
+    // setAttribute('tabindex', '-1') previously ran synchronously on
+    // useEffect commit, which is close enough to hydration that React
+    // 19/Next 15 dev mode flags the attribute drift on the next reconcile.
+    // Folding the mutation inside the existing 80ms setTimeout pushes it
+    // past hydration so React's reconciler is done before we touch the
+    // DOM. The attribute is needed because <h1> is not focusable without
+    // it — focus() would silently fail otherwise.
     const id = window.setTimeout(() => {
+      if (heading.getAttribute('tabindex') === null) {
+        heading.setAttribute('tabindex', '-1')
+      }
       heading.focus({ preventScroll: false })
     }, 80)
 
