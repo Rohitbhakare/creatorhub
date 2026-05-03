@@ -2,6 +2,7 @@
  * Public API surface — re-exports from feature-organised modules so callers
  * import from `@/lib/api` rather than reaching into internals.
  */
+import { cache } from 'react'
 import { apiFetch, apiFetchPublic } from '../api-client'
 import type {
   Booking,
@@ -262,7 +263,12 @@ export async function fetchLeaderboard(scope: 'city' | 'national' | 'all-time'):
   }
 }
 
-export async function fetchQuestSummary(): Promise<QuestSummary | null> {
+// Per-request memoised so the home page can await this for the header
+// streak chip AND have <HomeFeed> re-read it for QuestStripInline without
+// hitting the API twice in one render.
+export const fetchQuestSummary = cache(_fetchQuestSummary)
+
+async function _fetchQuestSummary(): Promise<QuestSummary | null> {
   try {
     return await apiFetch<QuestSummary>(`/api/v1/social/quests/summary`, {
       next: { revalidate: 0 },

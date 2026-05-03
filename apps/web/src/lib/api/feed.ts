@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { apiFetch, apiFetchPublic } from '../api-client'
 import type { ContentCard, ContentDetail, FeedSection, ItinerarySpot } from './types'
 import { listOf, transformContentCard } from './transforms'
@@ -32,7 +33,14 @@ async function fetchSection(
   }
 }
 
-export async function getHomeFeedSections(opts: {
+// Per-request memoised so the home page's hero + feed Suspense siblings
+// can each await this independently without doubling the fan-out work.
+// The underlying `fetchSection` calls go through Next's fetch cache (60s
+// revalidate), but the JS-side post-processing (filtering, ordering,
+// section assembly) was happening twice — `cache()` collapses that to one.
+export const getHomeFeedSections = cache(_getHomeFeedSections)
+
+async function _getHomeFeedSections(opts: {
   city?: string
   vertical?: string
   scope?: 'near-you' | 'following' | 'all'
@@ -288,7 +296,12 @@ export interface ChapterStory {
   chapters: ItinerarySpot[]
 }
 
-export async function getFeaturedChapterStory(opts: {
+// Per-request memoised — see note on getHomeFeedSections. The hero and
+// feed both want this (hero to render, feed to dedupe ids), but the
+// candidate-detail Promise.all should run once.
+export const getFeaturedChapterStory = cache(_getFeaturedChapterStory)
+
+async function _getFeaturedChapterStory(opts: {
   city?: string
 } = {}): Promise<ChapterStory | null> {
   // Reuse the existing handpicked-feed endpoint — already cached at 60s and

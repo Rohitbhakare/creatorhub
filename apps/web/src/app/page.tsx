@@ -1,28 +1,15 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { WebHeader } from '@/components/chrome/web-header'
 import { WebFooter } from '@/components/chrome/web-footer'
-import { GuestLocationPrompt } from '@/components/chrome/guest-location-prompt'
-import { SectionRail } from '@/components/content/section-rail'
-import { HeroFeature } from '@/components/content/hero-feature'
-import { BentoMosaic } from '@/components/content/bento-mosaic'
-import { ChapterHero } from '@/components/content/chapter-hero'
-import { MapStrip } from '@/components/content/map-strip'
-import { CreatorSpotlight } from '@/components/content/creator-spotlight'
-import { ContinueReadingRail } from '@/components/content/continue-reading-rail'
-import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { FeedChipRail } from '@/components/feed/feed-chip-rail'
-import { QuestStripInline } from '@/components/feed/quest-strip-inline'
-import { MoodSelector } from '@/components/feed/mood-selector'
-import { parseMoodParam, rankByMood, type MoodId } from '@/components/feed/mood-types'
+import { parseMoodParam, type MoodId } from '@/components/feed/mood-types'
 import { PostsFeedColumn } from '@/components/feed/posts-feed-column'
+import { HomeFeed } from '@/components/home/home-feed'
+import { HomeFeedSkeleton } from '@/components/home/home-feed-skeleton'
+import { HomeHero } from '@/components/home/home-hero'
 import { getSession } from '@/lib/session'
-import {
-  fetchPopularCities,
-  fetchQuestSummary,
-  getHomeFeedSections,
-} from '@/lib/api'
-import { getFeaturedChapterStory } from '@/lib/api/feed'
+import { fetchQuestSummary, getHomeFeedSections } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'CreatorHub — Stories, plans, and live moments',
@@ -52,13 +39,12 @@ interface Props {
  * see docs/00_SRS/v1.5/srs-v1.5-r-deltas.md.
  *
  * Composition (top-to-bottom):
- *   Header → ChapterHero (or HeroFeature fallback) → FeedChipRail
- *   → QuestStripInline (authed) → MoodSelector → BentoMosaic (8 items)
- *   → MapStrip → CreatorSpotlight → ContinueReadingRail (empty for now)
- *   → 11 SectionRails → Footer
+ *   Header → FeedChipRail → <HomeHero> → <Suspense><HomeFeed/></Suspense>
+ *   → Footer
  *
- * Branches early on `?type=post` to render <PostsFeedColumn> instead of
- * the magazine. WEB-FEED-FR-026.
+ * The hero awaits only the chapter-story fetch so it streams ahead of the
+ * 9-section feed fan-out — kills the visual pop-in that the perf pass
+ * (2026-05-02) flagged as the top LCP issue.
  */
 export default async function HomePage({ searchParams }: Props) {
   const session = await getSession()
@@ -94,63 +80,9 @@ export default async function HomePage({ searchParams }: Props) {
   }
 
   // ── Magazine mode (default) ────────────────────────────────────────
-  const [sections, quests, cities, chapterStory] = await Promise.all([
-    getHomeFeedSections(city ? { scope, city } : { scope }),
-    isGuest ? Promise.resolve(null) : fetchQuestSummary(),
-    fetchPopularCities(),
-    getFeaturedChapterStory(city ? { city } : {}),
-  ])
-
-  // Mood filtering is currently client-side: same data, page reranks by
-  // mood-keyword overlap. Server-side ranking is filed as E5.1/ENH-001;
-  // when the API accepts ?mood=, this rerank can be removed.
-  const moodFilteredSections = mood
-    ? sections.map((s) => ({ ...s, items: rankByMood(s.items, mood) }))
-    : sections
-
-  // Type filtering — when the user picks a specific content-type chip
-  // (Itineraries / Experiences / Events) we filter every section's items
-  // to that type and drop sections that empty out. 'all' and 'post' are
-  // handled elsewhere ('post' has its own dedicated PostsFeedColumn branch).
-  const filteredSections =
-    type && type !== 'all' && type !== 'post'
-      ? moodFilteredSections
-          .map((s) => ({ ...s, items: s.items.filter((i) => i.type === type) }))
-          .filter((s) => s.items.length > 0)
-      : moodFilteredSections
-
-  const allItemsRaw = filteredSections.flatMap((s) => s.items)
-  const allItems = mood ? rankByMood(allItemsRaw, mood) : allItemsRaw
-
-  // Bento takes 8 items. With a mood active we honor the mood ranking;
-  // without one we still prefer items with covers (visual quality).
-  const bentoCandidates = mood
-    ? allItems.filter((c) => c.id !== chapterStory?.content.id)
-    : allItems
-        .filter((c) => c.id !== chapterStory?.content.id)
-        .sort((a, b) => Number(b.coverImageUrl !== null) - Number(a.coverImageUrl !== null))
-  const bentoItems = bentoCandidates.slice(0, 8)
-  const bentoIds = new Set(bentoItems.map((c) => c.id))
-
-  // Spotlight: pick the first item from a creator with content, that isn't already in the hero or bento.
-  const spotlightContent = allItems.find(
-    (c) => c.id !== chapterStory?.content.id && !bentoIds.has(c.id) && c.creator,
-  )
-  const spotlightSpotlightCreator = spotlightContent?.creator ?? null
-
-  // Section rails get everything else
-  const remainingSections = filteredSections
-    .map((s) => ({
-      ...s,
-      items: s.items.filter(
-        (i) => i.id !== chapterStory?.content.id && !bentoIds.has(i.id) && i.id !== spotlightContent?.id,
-      ),
-    }))
-    .filter((s) => s.items.length > 0)
-
-  // Headline city — use ?city= override, else session city, else first popular city.
-  const headlineCity =
-    city ?? session?.displayName ?? cities[0]?.name ?? null
+  // Quests for the header streak chip — fast auth-side call, also
+  // re-read inside <HomeFeed> via React cache() for QuestStripInline.
+  const quests = isGuest ? null : await fetchQuestSummary()
 
   return (
     <>
@@ -167,128 +99,27 @@ export default async function HomePage({ searchParams }: Props) {
           {...(city ? { city } : {})}
         />
 
-        {/* Hero — chapter rotator if a featured itinerary is available; else
-            fall back to the existing single-story HeroFeature. Both share
-            the same 1640px max-width so the hero doesn't spill on wide
-            displays (HeroFeature has no internal width gate of its own). */}
-        {chapterStory ? (
-          <ChapterHero story={chapterStory} />
-        ) : allItems[0] ? (
-          <ScrollReveal>
-            <section style={{ maxWidth: 1640, margin: '0 auto', padding: '0 32px' }}>
-              <HeroFeature content={allItems[0]} />
-            </section>
-          </ScrollReveal>
-        ) : null}
+        {/* Hero — streams independently of the feed fan-out below.
+            Renders <ChapterHero> when an editorial itinerary with ≥3
+            chapters is available; falls through to the feed's
+            <HeroFeature> fallback otherwise. */}
+        <HomeHero {...(city ? { city } : {})} />
 
-        {/* Quest strip — authed only. Guests get a sign-in nudge inline. */}
-        {!isGuest && quests && (
-          <ScrollReveal>
-            <QuestStripInline summary={quests} />
-          </ScrollReveal>
-        )}
-
-        {/* Mood selector — re-rank below by lifestyle mood. */}
-        <ScrollReveal>
-          <MoodSelector activeMood={mood} />
-        </ScrollReveal>
-
-        {/* Magazine bento — 8-tile asymmetric mosaic + bottom row. */}
-        {bentoItems.length > 0 && (
-          <ScrollReveal>
-            <section style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}>
-              <BentoMosaic
-                items={bentoItems}
-                kicker={mood ? `Tuned for ${moodLabel(mood)}` : 'Curated for your weekend'}
-                title={
-                  headlineCity
-                    ? `Stories from ${headlineCity}, this week`
-                    : 'Stories this week'
-                }
-                seeAllHref={mood ? `/discover?mood=${mood}` : '/discover'}
-                {...(allItems.length > 8 ? { seeAllCount: allItems.length } : {})}
-              />
-            </section>
-          </ScrollReveal>
-        )}
-
-        {/* Map strip — stylised placeholder until E5.3 Mapbox lands. */}
-        {cities.length > 0 && (
-          <ScrollReveal>
-            <MapStrip cities={cities} fromCityName={headlineCity} />
-          </ScrollReveal>
-        )}
-
-        {/* Creator spotlight — parallax tilt card. */}
-        {spotlightContent && spotlightSpotlightCreator && (
-          <ScrollReveal>
-            <CreatorSpotlight
-              creator={{
-                id: spotlightSpotlightCreator.id,
-                displayName: spotlightSpotlightCreator.displayName,
-                username: spotlightSpotlightCreator.username,
-                avatarUrl: spotlightSpotlightCreator.avatarUrl,
-                city: spotlightContent.city ?? null,
-                followerCount: 0,
-                contentCount: 0,
-              }}
-              featuredContent={spotlightContent}
-            />
-          </ScrollReveal>
-        )}
-
-        {/* Continue reading — empty for now (no API endpoint yet). */}
-        <ContinueReadingRail items={[]} />
-
-        {/* Editorial section rails — the 11-section feed. */}
-        {remainingSections.length > 0 && (
-          <section style={{ maxWidth: 1640, margin: '40px auto 0', padding: '0 32px' }}>
-            {remainingSections.slice(0, 11).map((section) => (
-              <ScrollReveal key={section.id}>
-                <SectionRail section={section} />
-              </ScrollReveal>
-            ))}
-          </section>
-        )}
-
-        {/* Guests get the bottom-of-page sign-in nudge. */}
-        {isGuest && (
-          <ScrollReveal>
-            <section style={{ maxWidth: 720, margin: '60px auto 0', padding: '0 32px' }}>
-              <div className="ch-card" style={{ padding: 28, textAlign: 'center' }}>
-                <h2 className="ch-display" style={{ margin: '0 0 12px', fontSize: 22 }}>
-                  Save stories. Follow creators. Book trips.
-                </h2>
-                <p style={{ margin: '0 0 18px', fontSize: 14, color: 'var(--ink-muted)' }}>
-                  Free account — and we don't spam.
-                </p>
-                <Link href="/signup" className="ch-btn ch-btn-primary" style={{ padding: '10px 20px' }}>
-                  Join CreatorHub
-                </Link>
-              </div>
-            </section>
-          </ScrollReveal>
-        )}
+        {/* Feed body — bento + map strip + spotlight + 11 rails.
+            Wrapped in Suspense so the hero can paint first. */}
+        <Suspense fallback={<HomeFeedSkeleton />}>
+          <HomeFeed
+            scope={scope}
+            isGuest={isGuest}
+            mood={mood}
+            sessionDisplayName={session?.displayName ?? null}
+            {...(type ? { type } : {})}
+            {...(city ? { city } : {})}
+          />
+        </Suspense>
       </main>
-
-      {isGuest && <GuestLocationPrompt cities={cities.slice(0, 6)} />}
 
       <WebFooter />
     </>
   )
-}
-
-function moodLabel(mood: MoodId): string {
-  switch (mood) {
-    case 'slow':
-      return 'slow weekends'
-    case 'high':
-      return 'high-octane plans'
-    case 'food':
-      return 'food trails'
-    case 'sunrise':
-      return 'sunrise people'
-    case 'art':
-      return 'art & craft'
-  }
 }
