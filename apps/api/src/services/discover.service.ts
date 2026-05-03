@@ -554,6 +554,7 @@ async function citiesWithinDistance(
 
 export async function searchDiscover(
   filters: DiscoverFiltersQueryInput,
+  ctx: { viewerCityId?: string | null } = {},
 ): Promise<DiscoverResultsResponse> {
   const limit = filters.limit ?? 20
 
@@ -608,7 +609,13 @@ export async function searchDiscover(
   if (filters.sub_category_id) q = q.eq('sub_category_id', filters.sub_category_id)
   if (filters.leaf_type) q = q.eq('leaf_type', filters.leaf_type)
   if (filters.type) q = q.eq('type', filters.type)
-  if (filters.starting_city_id) q = q.eq('starting_city_id', filters.starting_city_id)
+  // starting_city_id is a strict filter on its own — but when distance_km
+  // is also set, it acts as the anchor for the radius search instead, so
+  // skip the eq and let the distance block apply an `in (citiesWithinKm)`
+  // filter that includes the anchor city itself plus its neighbours.
+  if (filters.starting_city_id && !filters.distance_km) {
+    q = q.eq('starting_city_id', filters.starting_city_id)
+  }
 
   // Destination — match starting_city OR destination_city_ids[] OR proximity
   if (filters.destination_city_id) {
@@ -628,11 +635,15 @@ export async function searchDiscover(
     q = q.in('starting_city_id', cityIds)
   }
 
-  // Distance filter — anchored to the user's geolocation when supplied,
-  // else falls back to the `starting_city_id` if set (typical case: the
-  // session city). Without either anchor the chip is a no-op — round-2
-  // QA caught the "Within 25 km" pill displaying without the result count
-  // changing, because the web never sends user_lat/user_lng.
+  // Distance filter — anchored in priority order:
+  //   1. user_lat/user_lng (geolocation, not yet sent by web)
+  //   2. starting_city_id from the URL (user explicitly picked a city)
+  //   3. viewerCityId from the authed user's home city (auto-fallback)
+  // Round-3 QA BUG-18: previously this silently no-op'd when no anchor was
+  // available — the chip showed as active but the result count didn't move.
+  // Now we either (a) fall back to the viewer's home city if signed in or
+  // (b) hard-zero the result so the UI surfaces "0 of 38" rather than
+  // pretending to filter. Honest feedback > misleading feedback.
   if (filters.distance_km) {
     let anchorLat: number | null = null
     let anchorLng: number | null = null
@@ -642,21 +653,28 @@ export async function searchDiscover(
     ) {
       anchorLat = filters.user_lat
       anchorLng = filters.user_lng
-    } else if (filters.starting_city_id) {
-      const { data: row } = await supabase
-        .from('cities')
-        .select('lat, lng')
-        .eq('id', filters.starting_city_id)
-        .maybeSingle()
-      if (row && typeof row.lat === 'number' && typeof row.lng === 'number') {
-        anchorLat = row.lat as number
-        anchorLng = row.lng as number
+    } else {
+      const cityId = filters.starting_city_id ?? ctx.viewerCityId ?? null
+      if (cityId) {
+        const { data: row } = await supabase
+          .from('cities')
+          .select('lat, lng')
+          .eq('id', cityId)
+          .maybeSingle()
+        if (row && typeof row.lat === 'number' && typeof row.lng === 'number') {
+          anchorLat = row.lat as number
+          anchorLng = row.lng as number
+        }
       }
     }
     if (anchorLat !== null && anchorLng !== null) {
       const cityIds = await citiesWithinDistance(anchorLat, anchorLng, filters.distance_km)
       if (!cityIds.length) return { items: [], next_cursor: null, total_count: 0 }
       q = q.in('starting_city_id', cityIds)
+    } else {
+      // Distance was requested but no anchor of any kind is available.
+      // Hard-zero the result so the chip's effect is visible to the user.
+      return { items: [], next_cursor: null, total_count: 0 }
     }
   }
 

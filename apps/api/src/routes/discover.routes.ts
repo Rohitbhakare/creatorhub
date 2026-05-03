@@ -17,6 +17,7 @@ import {
   getActiveCities,
 } from '../services/discover.service.js'
 import { getCategoryBrowse } from '../services/feed.service.js'
+import { supabase } from '../lib/supabase.js'
 import {
   discoverFiltersQuerySchema,
   resolveDestinationSchema,
@@ -165,7 +166,22 @@ discoverRoutes.post(
 
 async function handleDiscoverResults(c: Context): Promise<Response> {
   const filters = c.get('validatedQuery') as z.infer<typeof discoverFiltersQuerySchema>
-  const result = await searchDiscover(filters)
+
+  // Distance filter resolves an anchor in this priority: user_lat/lng →
+  // starting_city_id → viewer's home city. Only fetch the third tier when
+  // we'll actually need it — keeps non-distance queries free of the lookup.
+  let viewerCityId: string | null = null
+  const userId = c.get('userId') as string | undefined
+  if (userId && filters.distance_km && !filters.starting_city_id && filters.user_lat === undefined) {
+    const { data } = await supabase
+      .from('users')
+      .select('current_city_id')
+      .eq('id', userId)
+      .maybeSingle()
+    viewerCityId = (data?.current_city_id as string | null) ?? null
+  }
+
+  const result = await searchDiscover(filters, { viewerCityId })
   return c.json({ success: true, data: result })
 }
 

@@ -31,7 +31,7 @@ export default async function PayoutsPage() {
   )
 
   return (
-    <StudioShell active="payouts" kicker="Studio · Payouts" title="Payouts ledger">
+    <StudioShell kicker="Studio · Payouts" title="Payouts ledger">
       {rows.length === 0 ? (
         <EmptyState
           title="No payouts yet"

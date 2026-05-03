@@ -29,7 +29,6 @@ export default async function StudioContentPage() {
 
   return (
     <StudioShell
-      active="content"
       kicker="Studio · Content"
       title="Your stories"
       actions={

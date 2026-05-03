@@ -25,7 +25,7 @@ export default async function StudioSettingsPage({ searchParams }: Props) {
     | 'privacy'
 
   return (
-    <StudioShell active="settings" kicker="Studio · Settings" title="Settings">
+    <StudioShell kicker="Studio · Settings" title="Settings">
       <SettingsTabs initialTab={tab} session={{ displayName: session.displayName, username: session.username }} />
     </StudioShell>
   )

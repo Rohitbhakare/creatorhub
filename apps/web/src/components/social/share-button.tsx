@@ -15,23 +15,31 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
 
   async function nativeShare() {
-    if (typeof navigator !== 'undefined' && 'share' in navigator) {
+    // Prefer the OS share sheet only on devices that have a real one —
+    // touch devices via `(pointer: coarse)`. On desktop Chrome `'share' in
+    // navigator` is true but the sheet often resolves silently with no UI,
+    // so the user sees no feedback and reports the button as broken
+    // (round-3 QA BUG-11). Fall through to our 4-icon popup whenever the
+    // native sheet would be unreliable.
+    const hasTouch =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: coarse)').matches
+    const payload = { title, url, ...(text !== undefined ? { text } : {}) }
+    const canUseNative =
+      hasTouch &&
+      typeof navigator !== 'undefined' &&
+      'share' in navigator &&
+      (typeof navigator.canShare !== 'function' || navigator.canShare(payload))
+    if (canUseNative) {
       try {
-        await navigator.share({
-          title,
-          url,
-          ...(text !== undefined ? { text } : {}),
-        })
+        await navigator.share(payload)
         return
       } catch (err) {
-        // Web Share API present but failed. AbortError = user cancelled the
-        // native sheet — that's a clean exit, no popup needed. Anything else
-        // (NotAllowedError on non-https, "share() must be called from a user
-        // gesture", browser doesn't support sharing this URL type) means the
-        // native sheet didn't actually open — fall back to the manual popup.
+        // AbortError = user dismissed the sheet — clean exit. Anything else
+        // means the sheet didn't open; show our popup as a guaranteed path.
         const name = (err as { name?: string } | undefined)?.name
         if (name === 'AbortError') return
-        // Fall through to popup.
       }
     }
     setOpen(true)

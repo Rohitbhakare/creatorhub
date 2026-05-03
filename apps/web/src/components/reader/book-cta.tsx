@@ -61,11 +61,23 @@ export function BookCta({
           return
         }
         if (res.status === 401) {
-          // Send the user back to the content page after sign-in (where the
-          // booking CTA lives). Pre-2026-05-02 round-2 fix this pointed at
-          // `/booking?content=<id>` which doesn't match any route — after
-          // signin the user landed on home with a stale `?next=` param.
-          router.push(`/signin?next=${encodeURIComponent(`/content/${contentId}`)}`)
+          // Stale-session recovery. The middleware does a presence-only
+          // cookie check (`Boolean(ch_session)`) while `getSession()` does
+          // JWT verification — they disagree when the JWT is expired or
+          // signed with a rotated secret. Without this, the chain becomes
+          // /signin → middleware sees the cookie → /feed → /?next=/content/<id>
+          // and the user lands on home wondering what happened.
+          // Clearing cookies first ensures middleware sees a clean
+          // unauthenticated state and lets /signin render normally. Use
+          // window.location for a hard navigation so React state is also
+          // discarded.
+          await fetch('/api/auth/signout', {
+            method: 'POST',
+            credentials: 'same-origin',
+          }).catch(() => {})
+          if (typeof window !== 'undefined') {
+            window.location.href = `/signin?next=${encodeURIComponent(`/content/${contentId}`)}`
+          }
           return
         }
         if (!res.ok) {

@@ -1,10 +1,6 @@
 import type { ReactNode } from 'react'
 
 interface StudioShellProps {
-  /** @deprecated — sidebar lives in /studio/layout.tsx now and self-derives
-   *  active state from pathname. Kept here only so existing callsites compile;
-   *  remove on next pass through these files. */
-  active?: string
   kicker?: string
   title: string
   children: ReactNode
