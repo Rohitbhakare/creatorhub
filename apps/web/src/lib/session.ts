@@ -17,7 +17,10 @@ const secretKey = new TextEncoder().encode(SESSION_SECRET)
 export interface SessionPayload {
   userId: string
   username: string
-  displayName: string
+  // Round-5 audit caught a /studio + /you crash chain: the JWT carries
+  // null when a user signed up via OAuth without setting a display name,
+  // but this was typed `string`. Honest type now; callers must guard.
+  displayName: string | null
   avatarUrl: string | null
   isCreator: boolean
   vertical: string | null

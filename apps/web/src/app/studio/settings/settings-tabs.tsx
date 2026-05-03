@@ -6,9 +6,12 @@ import Link from 'next/link'
 
 type Tab = 'account' | 'payout' | 'notifications' | 'privacy'
 
+// session.displayName can be null when a user signed up via OAuth without
+// setting one — the type used to lie (`string`) and crashed `.trim()`
+// callers downstream. Honest type now; callers default to '' as needed.
 interface SettingsTabsProps {
   initialTab: Tab
-  session: { displayName: string; username: string }
+  session: { displayName: string | null; username: string }
 }
 
 const TABS: { id: Tab; label: string }[] = [
@@ -90,15 +93,16 @@ function SectionSub({ children }: { children: React.ReactNode }) {
   )
 }
 
-function AccountTab({ session }: { session: { displayName: string; username: string } }) {
+function AccountTab({ session }: { session: { displayName: string | null; username: string } }) {
+  const initialDisplayName = session.displayName ?? ''
   const [pending, startTransition] = useTransition()
-  const [displayName, setDisplayName] = useState(session.displayName)
+  const [displayName, setDisplayName] = useState(initialDisplayName)
   const [username, setUsername] = useState(session.username)
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
   const dirty =
-    displayName.trim() !== session.displayName.trim() ||
+    displayName.trim() !== initialDisplayName.trim() ||
     username.trim().toLowerCase() !== session.username.trim().toLowerCase()
 
   async function saveProfile() {

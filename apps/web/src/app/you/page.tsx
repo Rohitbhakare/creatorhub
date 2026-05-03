@@ -43,7 +43,11 @@ export default async function YouPage() {
           }}
         >
           {(() => {
-            const parts = session.displayName.split(' ')
+            // session.displayName is nullable when a user signed up via
+            // OAuth without setting one — fall back to username (always
+            // present per the JWT) so the H1 never crashes.
+            const name = session.displayName ?? session.username
+            const parts = name.split(' ')
             const last = parts.pop() ?? ''
             const head = parts.join(' ')
             return head ? (
@@ -52,7 +56,7 @@ export default async function YouPage() {
                 <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{last}</em>
               </>
             ) : (
-              <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{session.displayName}</em>
+              <em style={{ color: 'var(--primary-text-bg)', fontStyle: 'italic' }}>{name}</em>
             )
           })()}
         </h1>

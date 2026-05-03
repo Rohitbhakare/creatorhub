@@ -14,7 +14,7 @@ export default async function WelcomePage() {
   const session = await getSession()
   if (!session) redirect('/signin?next=/feed')
 
-  const firstName = session.displayName.split(' ')[0] ?? 'there'
+  const firstName = (session.displayName ?? session.username).split(' ')[0] || 'there'
 
   return (
     <>
