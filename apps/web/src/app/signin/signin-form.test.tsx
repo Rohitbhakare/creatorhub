@@ -134,7 +134,7 @@ describe('SignInForm', () => {
     expect(mockRefresh).toHaveBeenCalled()
   })
 
-  it('first-time user (onboardingComplete=false) routes to /onboarding/sub-categories', async () => {
+  it('first-time user (onboardingComplete=false) routes to /onboarding/profile', async () => {
     vi.mocked(firebase.sendPhoneOtp).mockResolvedValue({
       confirmation: {} as unknown as Awaited<
         ReturnType<typeof firebase.sendPhoneOtp>
@@ -163,7 +163,7 @@ describe('SignInForm', () => {
     await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/onboarding/sub-categories')
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding/profile')
     })
   })
 

@@ -18,7 +18,7 @@ export default async function CityPickerPage() {
 
   return (
     <>
-      <WebHeader variant="auth" />
+      <WebHeader session={session} />
       <main id="main-content" style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px 80px' }}>
         <span
           style={{

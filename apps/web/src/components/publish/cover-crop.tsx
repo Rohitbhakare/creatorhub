@@ -98,49 +98,29 @@ export function CoverCrop({ value, onChange, maxBytes = 8 * 1024 * 1024 }: Props
     setZoom((z) => Math.max(1, Math.min(4, z + delta)))
   }
 
-  function exportCrop(): void {
-    if (!imgSize || !containerRef.current) return
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const baseScale = Math.max(
-      containerRect.width / imgSize.w,
-      containerRect.height / imgSize.h,
-    )
-    const scale = baseScale * zoom
-
-    const canvas = document.createElement('canvas')
-    canvas.width = OUTPUT_WIDTH
-    canvas.height = OUTPUT_HEIGHT
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const img = new window.Image()
-    img.onload = () => {
-      // The image's rendered top-left, in container px:
-      const imgRenderedW = imgSize.w * scale
-      const imgRenderedH = imgSize.h * scale
-      const renderedX = containerRect.width / 2 - imgRenderedW / 2 + offset.x
-      const renderedY = containerRect.height / 2 - imgRenderedH / 2 + offset.y
-      // Translate the visible-rect (0..containerRect.width, 0..containerRect.height)
-      // back to source-image coordinates:
-      const srcX = (-renderedX) / scale
-      const srcY = (-renderedY) / scale
-      const srcW = containerRect.width / scale
-      const srcH = containerRect.height / scale
-      ctx.drawImage(
-        img,
-        srcX,
-        srcY,
-        srcW,
-        srcH,
-        0,
-        0,
-        OUTPUT_WIDTH,
-        OUTPUT_HEIGHT,
-      )
-      onChange(canvas.toDataURL('image/jpeg', 0.88))
+  // Round-6 audit B4: drop the explicit "Use this crop" button. Whenever
+  // the image, zoom, or pan changes (and after a brief debounce so we
+  // don't re-encode on every wheel tick), auto-export so `value` /
+  // `onChange` reflects the current crop. The wizard's Continue button
+  // then needs no extra step. Image-load triggers the first export so
+  // even an unmoved upload counts as confirmed.
+  // Capture state into a ref so the debounced effect always reads the
+  // latest values without needing exportCrop in its deps.
+  const cropStateRef = useRef({ src, imgSize, zoom, offset, onChange })
+  cropStateRef.current = { src, imgSize, zoom, offset, onChange }
+  useEffect(() => {
+    if (!src || !imgSize) return
+    const id = window.setTimeout(() => {
+      exportCropFromRef(cropStateRef.current, containerRef.current)
+    }, 200)
+    return () => {
+      window.clearTimeout(id)
     }
-    img.src = src
-  }
+  }, [src, imgSize, zoom, offset.x, offset.y])
+
+  // No in-component exportCrop — see exportCropFromRef below. The
+  // module-level helper reads from the ref so the auto-export effect
+  // doesn't need exportCrop in its dep list (round-6 B4).
 
   // Container is 2:1 inside the wizard's content max-width.
   return (
@@ -232,9 +212,6 @@ export function CoverCrop({ value, onChange, maxBytes = 8 * 1024 * 1024 }: Props
               aria-label="Zoom"
               style={{ flex: 1 }}
             />
-            <button type="button" onClick={exportCrop} className="ch-btn ch-btn-primary">
-              Use this crop
-            </button>
           </div>
         </>
       )}
@@ -253,4 +230,50 @@ export function CoverCrop({ value, onChange, maxBytes = 8 * 1024 * 1024 }: Props
       </p>
     </div>
   )
+}
+
+interface CropState {
+  src: string
+  imgSize: { w: number; h: number } | null
+  zoom: number
+  offset: { x: number; y: number }
+  onChange: (dataUrl: string) => void
+}
+
+/**
+ * Pure helper extracted out of the component so the auto-export effect
+ * can call it without React-hook deps complications. Reads the latest
+ * crop state via a ref and emits a 1600×800 JPEG via canvas, same shape
+ * as the previous in-component exportCrop().
+ */
+function exportCropFromRef(state: CropState, container: HTMLDivElement | null): void {
+  if (!state.imgSize || !container) return
+  const containerRect = container.getBoundingClientRect()
+  const baseScale = Math.max(
+    containerRect.width / state.imgSize.w,
+    containerRect.height / state.imgSize.h,
+  )
+  const scale = baseScale * state.zoom
+
+  const canvas = document.createElement('canvas')
+  canvas.width = OUTPUT_WIDTH
+  canvas.height = OUTPUT_HEIGHT
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const img = new window.Image()
+  img.onload = () => {
+    if (!state.imgSize) return
+    const imgRenderedW = state.imgSize.w * scale
+    const imgRenderedH = state.imgSize.h * scale
+    const renderedX = containerRect.width / 2 - imgRenderedW / 2 + state.offset.x
+    const renderedY = containerRect.height / 2 - imgRenderedH / 2 + state.offset.y
+    const srcX = (-renderedX) / scale
+    const srcY = (-renderedY) / scale
+    const srcW = containerRect.width / scale
+    const srcH = containerRect.height / scale
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT)
+    state.onChange(canvas.toDataURL('image/jpeg', 0.88))
+  }
+  img.src = state.src
 }

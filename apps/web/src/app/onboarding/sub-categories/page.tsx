@@ -9,30 +9,33 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// Round-6 audit B6: gradient blur placeholders → real travel photography.
+// On a visual-storytelling platform the onboarding should hook with
+// imagery, not abstract art. Unsplash IDs HEAD-checked 200.
 const SUB_CATS = [
   {
     id: 'road_trips',
     label: 'Road trips',
     blurb: 'Highway routes, weekend drives, long hauls.',
-    photo: 'ch-photo--konkan',
+    unsplashId: 'photo-1469854523086-cc02fe5d8800',
   },
   {
     id: 'biking',
     label: 'Biking',
     blurb: 'Two wheels, twisty roads, mountain passes.',
-    photo: 'ch-photo--ladakh',
+    unsplashId: 'photo-1626621341517-bbf3d9990a23',
   },
   {
     id: 'trekking',
     label: 'Trekking',
     blurb: 'Trails, summits, alpine meadows.',
-    photo: 'ch-photo--monsoon',
+    unsplashId: 'photo-1502786129293-79981df4e689',
   },
   {
     id: 'food_trails',
     label: 'Food trails',
     blurb: 'Local kitchens, street food, regional flavours.',
-    photo: 'ch-photo--bandra',
+    unsplashId: 'photo-1559329007-40df8a9345d8',
   },
 ] as const
 
@@ -42,7 +45,7 @@ export default async function SubCategoriesPage() {
 
   return (
     <>
-      <WebHeader variant="auth" />
+      <WebHeader session={session} />
       <main id="main-content"
         style={{
           maxWidth: 960,

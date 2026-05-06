@@ -1037,6 +1037,21 @@ h6:focus {
   max-width: 95%;
 }
 
+/* TipTap editor (publish wizard body step) — round-6 audit B1.
+   The default ProseMirror element ships with no min-height, leaving
+   the editor about 3 lines tall and cramping long-form writers. 360px
+   matches the loading skeleton above and gives ~12 lines at 14/1.6. */
+.ch-tiptap-prose {
+  min-height: 360px;
+  padding: 16px;
+  outline: none;
+}
+.ch-tiptap-prose:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
 /* ─── Print stylesheet ───────────────────────────────────────────
    When a guest or member prints / saves-as-PDF a content page, strip
    the header, sidebar, sticky CTA, map, and decoration so only the

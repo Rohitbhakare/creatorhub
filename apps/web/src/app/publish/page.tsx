@@ -65,7 +65,7 @@ export default async function PublishTypePicker() {
             color: 'var(--ink-muted)',
           }}
         >
-          New
+          Creator tools
         </span>
         <h1
           className="ch-display"
@@ -118,7 +118,45 @@ export default async function PublishTypePicker() {
                   transition: 'border-color 120ms ease-out, transform 120ms ease-out',
                 }}
               >
-                <div className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>
+                {/* Round-6 audit B2: card-level chips so creators can
+                    tell at a glance which type they can start with vs
+                    which need KYC. Coral "FREE" for unlocked, grey lock
+                    chip for paid-without-KYC. */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '3px 9px',
+                    borderRadius: 999,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    fontFamily: 'var(--font-mono, var(--font-sans))',
+                    background: lockedForKyc
+                      ? 'var(--surface-alt)'
+                      : 'color-mix(in srgb, var(--primary) 14%, transparent)',
+                    color: lockedForKyc ? 'var(--ink-soft)' : 'var(--primary-text-bg)',
+                  }}
+                >
+                  {lockedForKyc ? (
+                    <>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                        <rect x="5" y="11" width="14" height="10" rx="2" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                      </svg>
+                      KYC
+                    </>
+                  ) : (
+                    'Free'
+                  )}
+                </span>
+                <div className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6, paddingRight: 56 }}>
                   {t.label}
                 </div>
                 <p style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>{t.blurb}</p>

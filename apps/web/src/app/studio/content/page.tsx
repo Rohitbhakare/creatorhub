@@ -27,17 +27,26 @@ const TYPE_LABELS: Record<string, string> = {
 export default async function StudioContentPage() {
   const items = await fetchStudioContents()
 
+  // Round-6 audit B5: when there are zero items, the empty-state's
+  // "Start publishing" CTA is the focal action — don't double up with a
+  // "+ New" button in the header. Show "+ New" only once the creator
+  // has at least one piece of content (the table-vs-empty branch).
+  const isEmpty = items.length === 0
   return (
     <StudioShell
       kicker="Studio · Content"
       title="Your stories"
-      actions={
-        <Link href="/publish" className="ch-btn ch-btn-primary">
-          + New
-        </Link>
-      }
+      {...(isEmpty
+        ? {}
+        : {
+            actions: (
+              <Link href="/publish" className="ch-btn ch-btn-primary">
+                + New
+              </Link>
+            ),
+          })}
     >
-      {items.length === 0 ? (
+      {isEmpty ? (
         <EmptyState
           title="Publish your first chapter"
           body="Once you publish, this table fills up with views, saves, and bookings."

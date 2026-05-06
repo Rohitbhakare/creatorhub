@@ -91,14 +91,22 @@ export async function POST(req: NextRequest) {
       { access_token: result.access_token, refresh_token: result.refresh_token },
     )
 
-    // Onboarding gate: a user is "complete" when they've picked at least 2
-    // sub-categories and a home city. The API returns these fields on
-    // /auth/register; older deploys that don't will fall back to true so we
-    // don't trap existing users in onboarding.
+    // Onboarding gate: complete when (a) at least 2 sub-categories
+    // picked, (b) home city set, AND — round-6 audit C1 — (c) display
+    // name + username are populated. New /onboarding/profile step
+    // collects (c). The API returns these fields on /auth/register;
+    // older deploys that don't will fall back to true so we don't
+    // trap existing users in onboarding (back-compat for ~16 weeks
+    // of accounts pre-dating the profile step).
     const subCats = result.user.travel_sub_categories ?? []
+    const hasProfileBasics =
+      typeof result.user.display_name === 'string' &&
+      result.user.display_name.trim().length >= 2 &&
+      typeof result.user.username === 'string' &&
+      result.user.username.trim().length >= 3
     const onboardingComplete =
       result.user.onboarding_complete ??
-      (subCats.length >= 2 && Boolean(result.user.city_id))
+      (subCats.length >= 2 && Boolean(result.user.city_id) && hasProfileBasics)
 
     log.info(
       { userId: result.user.id, onboardingComplete, cookieNames: sessionCookies.map((c) => c.name) },

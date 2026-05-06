@@ -230,7 +230,13 @@ function ToolbarBtn({ onClick, active, ariaLabel, children }: ToolbarBtnProps) {
     <button
       type="button"
       onClick={onClick}
+      // Round-6 audit A5: aria-label was set but `title` wasn't, so
+      // sighted users got no hover tooltip on the symbol-only buttons
+      // (B / I / H2 / H3 / quote / bullet / link / image / table /
+      // YouTube). Mirroring aria-label into title gives both audiences
+      // the same disclosure.
       aria-label={ariaLabel}
+      title={ariaLabel}
       aria-pressed={active}
       style={{
         width: 32,

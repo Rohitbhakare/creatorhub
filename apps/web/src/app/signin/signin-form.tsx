@@ -356,8 +356,10 @@ async function postSignin(
     return
   }
   const data = (await res.json()) as { onboardingComplete?: boolean }
-  // First-time users land on sub-cat picker; existing users go to `next`.
-  router.replace(data.onboardingComplete === false ? '/onboarding/sub-categories' : next)
+  // First-time users start at /onboarding/profile (display name +
+  // username — round-6 audit C1) which then forwards to sub-categories
+  // and city. Existing users go straight to `next`.
+  router.replace(data.onboardingComplete === false ? '/onboarding/profile' : next)
   router.refresh()
 }
 

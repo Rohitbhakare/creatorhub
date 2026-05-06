@@ -71,6 +71,34 @@ export default async function StudioPage() {
               </span>
             </Link>
           )}
+          {/* Round-6 audit C1: backstop nudge for users who pre-date the
+              new /onboarding/profile step (display_name + username were
+              null at signup). Linked to the same step the new flow uses. */}
+          {(!session.displayName || !session.username) && (
+            <Link
+              href="/onboarding/profile"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 16px',
+                marginBottom: 24,
+                borderRadius: 'var(--radius-md)',
+                background: 'color-mix(in srgb, var(--primary) 8%, var(--surface))',
+                border: '1px solid color-mix(in srgb, var(--primary) 25%, var(--hairline))',
+                textDecoration: 'none',
+                color: 'var(--ink)',
+                fontSize: 13.5,
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 18 }}>👋</span>
+              <span style={{ flex: 1 }}>
+                <strong>Pick your display name + handle</strong> so people know who&rsquo;s
+                writing.
+              </span>
+              <span style={{ color: 'var(--primary-text-bg)', fontWeight: 600 }}>Set up →</span>
+            </Link>
+          )}
           <div style={{ marginBottom: 40 }}>
             <span
               style={{

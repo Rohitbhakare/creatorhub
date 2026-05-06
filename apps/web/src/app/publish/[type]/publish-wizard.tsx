@@ -90,6 +90,11 @@ export function PublishWizard({ type }: { type: PublishType }) {
   // the user clicked Next on an empty cover step (round-2 QA bug).
   const [error, setError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Round-6 audit A2: ReviewStep computes whether all required pieces are
+  // filled, but the Publish button at the bottom of the wizard didn't know.
+  // The child reports back via this state so the button can stay disabled
+  // until everything's green.
+  const [reviewReady, setReviewReady] = useState(false)
   const [pending, startTransition] = useTransition()
   const dirtyRef = useRef(false)
 
@@ -124,6 +129,10 @@ export function PublishWizard({ type }: { type: PublishType }) {
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
     setData((p) => ({ ...p, [key]: value }))
     dirtyRef.current = true
+    // Round-6 audit A1: inline validation errors used to persist until
+    // the user clicked Continue again. Any field edit that could plausibly
+    // satisfy the previous validation should clear the error inline.
+    if (error) setError(null)
   }
 
   async function save(publish: boolean): Promise<{ ok: boolean; draftId?: string }> {
@@ -275,7 +284,7 @@ export function PublishWizard({ type }: { type: PublishType }) {
         />
       </header>
 
-      <ProgressRail steps={steps} active={step} />
+      <ProgressRail steps={steps} active={step} onJumpToStep={setStep} />
 
       <div className="ch-card" style={{ padding: 32, marginTop: 24 }}>
         <AnimatePresence mode="wait">
@@ -307,7 +316,14 @@ export function PublishWizard({ type }: { type: PublishType }) {
               />
             )}
             {step === 'spots' && <SpotsStep spots={data.spots} update={(spots) => { update('spots', spots) }} />}
-            {step === 'review' && <ReviewStep data={data} type={type} />}
+            {step === 'review' && (
+              <ReviewStep
+                data={data}
+                type={type}
+                onReadyChange={setReviewReady}
+                onJumpToStep={setStep}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -351,17 +367,24 @@ export function PublishWizard({ type }: { type: PublishType }) {
           <button
             type="button"
             onClick={next}
-            // Round-5 audit Bug 2: previously the Publish button stayed
-            // active even when autosave was 401-failing — clicking it
-            // appeared to do nothing and let users think they'd
-            // published. Block submission whenever there's an unresolved
-            // saveError so the only path forward is to fix the save
-            // (Retry pill or sign back in).
-            disabled={pending || (step === 'review' && saveError !== null)}
+            // Round-5 + Round-6 gating:
+            //   - saveError !== null  → autosave is broken; clicking
+            //     Publish would lose data (round-5 audit Bug 2).
+            //   - !reviewReady on the review step → required fields are
+            //     empty; clicking Publish was a silent no-op for the user
+            //     (round-6 audit A2). ReviewStep reports up via
+            //     onReadyChange so the wizard can disable the button until
+            //     every checklist row is green.
+            disabled={
+              pending ||
+              (step === 'review' && (saveError !== null || !reviewReady))
+            }
             title={
               step === 'review' && saveError !== null
                 ? 'Resolve the save error before publishing'
-                : undefined
+                : step === 'review' && !reviewReady
+                  ? 'Add the missing pieces above first'
+                  : undefined
             }
             className="ch-btn ch-btn-primary"
           >
@@ -381,7 +404,15 @@ const STEP_LABELS: Record<Step, string> = {
   review: 'Review',
 }
 
-function ProgressRail({ steps, active }: { steps: Step[]; active: Step }) {
+function ProgressRail({
+  steps,
+  active,
+  onJumpToStep,
+}: {
+  steps: Step[]
+  active: Step
+  onJumpToStep: (step: Step) => void
+}) {
   const idx = steps.indexOf(active)
   return (
     <nav aria-label="Publish steps">
@@ -399,17 +430,13 @@ function ProgressRail({ steps, active }: { steps: Step[]; active: Step }) {
         {steps.map((s, i) => {
           const isActive = i === idx
           const isDone = i < idx
-          return (
-            <li
-              key={s}
-              aria-current={isActive ? 'step' : undefined}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                flex: '0 0 auto',
-              }}
-            >
+          // Round-6 audit A6: completed steps are now clickable so the
+          // user can jump back to a prior step (typo fix on the Title
+          // from the Body step shouldn't require Back, Back, Back).
+          // Future steps stay non-interactive — gating ensures they
+          // can't skip ahead without filling the current one.
+          const Inner = (
+            <>
               <span
                 aria-hidden
                 style={{
@@ -440,6 +467,50 @@ function ProgressRail({ steps, active }: { steps: Step[]; active: Step }) {
               >
                 {STEP_LABELS[s]}
               </span>
+            </>
+          )
+          return (
+            <li
+              key={s}
+              aria-current={isActive ? 'step' : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flex: '0 0 auto',
+              }}
+            >
+              {isDone ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onJumpToStep(s)
+                  }}
+                  title={`Jump back to ${STEP_LABELS[s]}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {Inner}
+                </button>
+              ) : (
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {Inner}
+                </span>
+              )}
               {i < steps.length - 1 && (
                 <div
                   aria-hidden
@@ -890,20 +961,40 @@ const miniBtn = {
   fontSize: 13,
 } as const
 
-function ReviewStep({ data, type }: { data: FormData; type: PublishType }) {
-  const checks: { ok: boolean; label: string }[] = [
-    { ok: Boolean(data.coverDataUrl || data.coverUrl), label: 'Cover image' },
-    { ok: data.title.trim().length >= 4, label: 'Title' },
-    { ok: data.summary.trim().length >= 10, label: 'Summary' },
+function ReviewStep({
+  data,
+  type,
+  onReadyChange,
+  onJumpToStep,
+}: {
+  data: FormData
+  type: PublishType
+  onReadyChange: (ready: boolean) => void
+  onJumpToStep: (step: Step) => void
+}) {
+  // Each check carries which step a user should jump to when fixing it
+  // (round-6 audit A7) — clicking an unfilled row is the one-click way
+  // back to the right field.
+  const checks: { ok: boolean; label: string; step: Step }[] = [
+    { ok: Boolean(data.coverDataUrl || data.coverUrl), label: 'Cover image', step: 'cover' },
+    { ok: data.title.trim().length >= 4, label: 'Title', step: 'details' },
+    { ok: data.summary.trim().length >= 10, label: 'Summary', step: 'details' },
     {
       ok: type === 'post' ? data.body.trim().length >= 20 : data.body.trim().length >= 80,
       label: 'Story body',
+      step: 'body',
     },
     ...(type === 'itinerary' || type === 'experience'
-      ? [{ ok: data.spots.length >= 1, label: 'At least 1 stop' }]
+      ? [{ ok: data.spots.length >= 1, label: 'At least 1 stop', step: 'spots' as Step }]
       : []),
   ]
   const allReady = checks.every((c) => c.ok)
+  // Round-6 audit A2: report ready-state up so the wizard's Publish
+  // button can disable when something's missing. useEffect to avoid a
+  // setState-during-render warning.
+  useEffect(() => {
+    onReadyChange(allReady)
+  }, [allReady, onReadyChange])
   return (
     <div>
       <h2 className="ch-display" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 16 }}>
@@ -911,30 +1002,52 @@ function ReviewStep({ data, type }: { data: FormData; type: PublishType }) {
       </h2>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {checks.map((c) => (
-          <li
-            key={c.label}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 14px',
-              background: c.ok ? 'color-mix(in srgb, var(--success) 8%, var(--surface))' : 'var(--surface-alt)',
-              border: `1px solid ${c.ok ? 'color-mix(in srgb, var(--success) 30%, var(--hairline))' : 'var(--hairline)'}`,
-              borderRadius: 'var(--radius-md)',
-              fontSize: 14,
-              color: c.ok ? 'var(--ink)' : 'var(--ink-muted)',
-            }}
-          >
-            <span aria-hidden style={{ color: c.ok ? 'var(--success)' : 'var(--ink-faint)' }}>
-              {c.ok ? '✓' : '○'}
-            </span>
-            {c.label}
+          <li key={c.label} style={{ display: 'block' }}>
+            <button
+              type="button"
+              onClick={() => {
+                onJumpToStep(c.step)
+              }}
+              aria-label={c.ok ? `${c.label} — done` : `${c.label} — incomplete, click to fix`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                width: '100%',
+                textAlign: 'left',
+                background: c.ok
+                  ? 'color-mix(in srgb, var(--success) 8%, var(--surface))'
+                  : 'var(--surface-alt)',
+                border: `1px solid ${c.ok ? 'color-mix(in srgb, var(--success) 30%, var(--hairline))' : 'var(--hairline)'}`,
+                borderRadius: 'var(--radius-md)',
+                fontSize: 14,
+                fontFamily: 'inherit',
+                color: c.ok ? 'var(--ink)' : 'var(--ink-muted)',
+                cursor: 'pointer',
+              }}
+            >
+              <span aria-hidden style={{ color: c.ok ? 'var(--success)' : 'var(--ink-faint)' }}>
+                {c.ok ? '✓' : '○'}
+              </span>
+              {c.label}
+              <span
+                aria-hidden
+                style={{
+                  marginLeft: 'auto',
+                  fontSize: 12,
+                  color: 'var(--ink-muted)',
+                }}
+              >
+                {c.ok ? 'Edit →' : 'Fix →'}
+              </span>
+            </button>
           </li>
         ))}
       </ul>
       {!allReady && (
         <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginTop: 16 }}>
-          Fill in the missing pieces before publishing — go back to update them.
+          Fill in the missing pieces before publishing — click any row above to fix it.
         </p>
       )}
       <p

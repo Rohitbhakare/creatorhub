@@ -18,7 +18,7 @@ export default async function WelcomePage() {
 
   return (
     <>
-      <WebHeader variant="auth" />
+      <WebHeader session={session} />
       <main id="main-content"
         style={{
           minHeight: 'calc(100vh - 220px)',

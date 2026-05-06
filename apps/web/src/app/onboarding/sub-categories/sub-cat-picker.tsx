@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -8,7 +9,7 @@ interface SubCatOption {
   id: string
   label: string
   blurb: string
-  photo: string
+  unsplashId: string
 }
 
 interface SubCatPickerProps {
@@ -48,8 +49,11 @@ export function SubCatPicker({ options }: SubCatPickerProps) {
           body: JSON.stringify({ sub_categories: Array.from(picked) }),
         })
         if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as { detail?: string } | null
-          setError(body?.detail ?? 'Could not save')
+          // Round-6 audit A3: previously we surfaced upstream `detail`
+          // text directly — that meant users saw "Missing Authorization
+          // header" on a stale-token submit. Map to friendly messages
+          // by status; ignore the raw detail (it's developer-facing).
+          setError(friendlySubmitError(res.status))
           return
         }
         router.replace('/onboarding/city')
@@ -100,11 +104,18 @@ export function SubCatPicker({ options }: SubCatPickerProps) {
                   : 'var(--shadow-sm)',
               }}
             >
-              <div
-                className={`ch-photo ${opt.photo}`}
-                style={{ height: 140, borderRadius: 0 }}
-                aria-hidden
-              />
+              {/* Round-6 audit B6: real travel photography instead of
+                  the gradient placeholder. priority on the first card +
+                  sizes for responsive serving. */}
+              <div style={{ position: 'relative', height: 140, overflow: 'hidden' }} aria-hidden>
+                <Image
+                  src={`https://images.unsplash.com/${opt.unsplashId}?w=600&q=80&auto=format`}
+                  alt=""
+                  fill
+                  sizes="(max-width: 720px) 50vw, 220px"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
               <div style={{ padding: 16 }}>
                 <div className="ch-display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 4 }}>
                   {opt.label}
@@ -190,4 +201,21 @@ export function SubCatPicker({ options }: SubCatPickerProps) {
       )}
     </div>
   )
+}
+
+/**
+ * Status → user-facing copy mapper for the onboarding submit. Round-6
+ * audit caught us rendering raw upstream `detail` strings ("Missing
+ * Authorization header") to creators; this normalises everything to
+ * friendly text. The dev-side detail still lands in network-tab + logs
+ * for triage.
+ */
+function friendlySubmitError(status: number): string {
+  if (status === 401 || status === 403) {
+    return 'Your session timed out. Refresh the page and try again.'
+  }
+  if (status >= 500) {
+    return 'Something went wrong on our end. Give it a moment and retry.'
+  }
+  return "Couldn't save — check your inputs and try again."
 }
